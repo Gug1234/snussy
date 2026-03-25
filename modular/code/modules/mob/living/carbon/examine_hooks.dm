@@ -77,6 +77,14 @@
 		if(mouth_exposed)
 			lines += span_notice("[m1] wearing [worn_tongue_piercing.name].")
 
+	// Append an examine link to open the intimate accessories panel when the
+	// subject has any accessories and both parties have intimate content enabled.
+	if(length(intimate_accessories))
+		var/viewer_ok = !user.client?.prefs || user.client.prefs.chastenable
+		var/wearer_ok = !client?.prefs || client.prefs.chastenable
+		if(viewer_ok && wearer_ok)
+			lines += span_notice("<a href='?src=[REF(src)];task=view_intimate'>View [m2] intimate accessories...</a>")
+
 	return lines
 
 /mob/living/carbon/human/proc/human_modular_chastity_toy_examine_line(mob/user, m2, m3)

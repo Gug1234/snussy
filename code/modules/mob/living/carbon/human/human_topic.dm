@@ -23,6 +23,22 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 		mob_examine_panel.ui_interact(usr)
 		return
 
+	// Opens the intimate accessories panel for the clicking observer.
+	// `src` is the examined human (wearer); `usr` is the viewer.
+	if(href_list["task"] == "view_intimate")
+		if(!ismob(usr) || !ishuman(src))
+			return
+		var/mob/viewer = usr
+		// Silently abort if either party has intimate content disabled.
+		if(viewer.client?.prefs && !viewer.client.prefs.chastenable)
+			to_chat(viewer, span_warning("I have intimate content disabled."))
+			return
+		if(client?.prefs && !client.prefs.chastenable)
+			to_chat(viewer, span_warning("[src] has intimate content disabled."))
+			return
+		open_intimate_menu_for(viewer)
+		return
+
 	if(href_list["inspect_limb"] && (observer_privilege || usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY)))
 		var/list/msg = list()
 		var/mob/user = usr

@@ -19,6 +19,24 @@
 /obj/item/intimate_accessory/piercing/Initialize()
 	. = ..()
 	update_item_visuals()
+	// Attach the piercing reaction component so movement jingles and sex-action flavor text fire automatically.
+	// Each item carries its own component instance; COMPONENT_DUPE_ALLOW_ALL on the component subtype
+	// allows nipple + genital + rear piercings to all operate concurrently on the same wearer.
+	AddComponent(/datum/component/intimate_reaction/piercing)
+
+/// Binds the reaction component to H after the slot reference and wearer var are set by the base finalize_intimate_equip.
+/obj/item/intimate_accessory/piercing/finalize_intimate_equip(mob/living/carbon/human/H)
+	. = ..()
+	var/datum/component/intimate_reaction/piercing/reaction = GetComponent(/datum/component/intimate_reaction/piercing)
+	if(reaction)
+		reaction.bind_to_wearer(H)
+
+/// Unbinds the reaction component from H before slot refs are cleared by the base remove_intimate_accessory.
+/obj/item/intimate_accessory/piercing/remove_intimate_accessory(mob/living/carbon/human/H)
+	var/datum/component/intimate_reaction/piercing/reaction = GetComponent(/datum/component/intimate_reaction/piercing)
+	if(reaction)
+		reaction.unbind_from_wearer(H)
+	return ..()
 
 /obj/item/intimate_accessory/piercing/proc/finalize_piercing_initialize(initial_variant_name = null)
 	if(initial_variant_name)

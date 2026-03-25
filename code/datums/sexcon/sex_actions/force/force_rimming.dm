@@ -13,6 +13,8 @@
 				return FALSE
 		else
 			return FALSE
+	if(anal_blocked_by_rear_plug(user, user))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/force_rimming/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -27,6 +29,8 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_MOUTH))
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, user, TRUE))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/force_rimming/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -36,6 +40,8 @@
 	user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] forces [target] to rim [user.p_their()] butt."))
 	user.sexcon.oralcourse_noise(target)
 	target.sexcon.do_thrust_animate(user)
+	apply_silver_intimate_contact("rear", user, target)
+	apply_silver_intimate_contact("mouth", target, user)
 
 	user.sexcon.perform_sex_action(user, 2, 4, TRUE)
 	user.sexcon.handle_passive_ejaculation()

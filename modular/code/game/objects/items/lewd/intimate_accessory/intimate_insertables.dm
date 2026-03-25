@@ -18,6 +18,8 @@
 /obj/item/intimate_accessory/genital/plug/Initialize()
 	. = ..()
 	apply_intimate_item_tint()
+	// Attach the insertable reaction component for passive shift messages and sex-action flavor text.
+	AddComponent(/datum/component/intimate_reaction/insertable)
 
 /obj/item/intimate_accessory/genital/plug/can_attach_target(mob/living/carbon/human/H, mob/user)
 	. = ..()
@@ -32,8 +34,14 @@
 	. = ..()
 	if(H)
 		playsound(H, 'sound/misc/mat/pop.ogg', 45, TRUE, ignore_walls = FALSE)
+	var/datum/component/intimate_reaction/insertable/reaction = GetComponent(/datum/component/intimate_reaction/insertable)
+	if(reaction)
+		reaction.bind_to_wearer(H)
 
 /obj/item/intimate_accessory/genital/plug/remove_intimate_accessory(mob/living/carbon/human/H)
+	var/datum/component/intimate_reaction/insertable/reaction = GetComponent(/datum/component/intimate_reaction/insertable)
+	if(reaction)
+		reaction.unbind_from_wearer(H)
 	if(H && H.intimate_genital == src)
 		if(!H.sexcon?.release_retained_internal_creampie(H))
 			playsound(H, 'sound/items/uncork.ogg', 45, TRUE, ignore_walls = FALSE)
@@ -142,12 +150,20 @@
 	. = ..()
 	base_sellprice = initial(sellprice)
 	refresh_rear_plug_state()
+	// Attach the insertable reaction component for passive shift messages and sex-action flavor text.
+	AddComponent(/datum/component/intimate_reaction/insertable)
 
 /obj/item/intimate_accessory/rear/plug/finalize_intimate_equip(mob/living/carbon/human/H)
 	. = ..()
 	play_plug_sound(H, 'sound/misc/mat/pop.ogg')
+	var/datum/component/intimate_reaction/insertable/reaction = GetComponent(/datum/component/intimate_reaction/insertable)
+	if(reaction)
+		reaction.bind_to_wearer(H)
 
 /obj/item/intimate_accessory/rear/plug/remove_intimate_accessory(mob/living/carbon/human/H)
+	var/datum/component/intimate_reaction/insertable/reaction = GetComponent(/datum/component/intimate_reaction/insertable)
+	if(reaction)
+		reaction.unbind_from_wearer(H)
 	if(is_worn_in_rear_slot(H))
 		play_plug_sound(H, 'sound/items/uncork.ogg')
 	return ..()

@@ -39,6 +39,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] knot-fucks [target]'s cunt."))
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU))
 		user.sexcon.try_pelvis_crush(target)
@@ -89,6 +91,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] double-knots [target]'s cunt."))
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU))
 		user.sexcon.try_pelvis_crush(target)

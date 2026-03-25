@@ -11,6 +11,8 @@
 		return FALSE
 	if(!user.getorganslot(ORGAN_SLOT_PENIS))
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, target))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/anal_sex/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -23,6 +25,8 @@
 	if(!user.getorganslot(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(!user.sexcon.can_use_penis())
+		return FALSE
+	if(anal_blocked_by_rear_plug(user, target, TRUE))
 		return FALSE
 	return TRUE
 
@@ -37,6 +41,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] knot-fucks [target]'s ass."))
 	user.sexcon.intercourse_noise(target)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("rear", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU))
 		user.sexcon.try_pelvis_crush(target)
@@ -87,6 +93,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] double-knots [target]'s ass."))
 	user.sexcon.intercourse_noise(target)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("rear", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU))
 		user.sexcon.try_pelvis_crush(target)

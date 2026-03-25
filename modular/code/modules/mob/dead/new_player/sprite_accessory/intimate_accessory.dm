@@ -346,6 +346,17 @@
 /datum/sprite_accessory/intimate_accessory/slime_genitals/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	return generate_untinted_icon_state(overlay_icon_state, suffix)
 
+/**
+ * Guard against missing DMI states. generate_icon_state() delegates to generate_untinted_icon_state()
+ * which returns null when the icon state does not exist in the DMI. The base get_overlay() passes that
+ * null into icon_bundle.Insert(), causing a "bad icon operation" runtime. Early-returning null here
+ * lets the caller (get_appearance) silently skip the overlay instead of crashing.
+ */
+/datum/sprite_accessory/intimate_accessory/slime_genitals/get_overlay(overlay_icon_state, color_string)
+	if(!icon_exists(icon, overlay_icon_state))
+		return null
+	return ..()
+
 /datum/sprite_accessory/intimate_accessory/slime_genitals/strange
 	icon_state = "slime_genitals_strange"
 	intimate_type = /obj/item/intimate_accessory/jelly/eora/strange
@@ -362,6 +373,12 @@
 /datum/sprite_accessory/intimate_accessory/slime_boobs/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	return generate_untinted_icon_state(overlay_icon_state, suffix)
 
+/// See slime_genitals/get_overlay for rationale — same null-state guard.
+/datum/sprite_accessory/intimate_accessory/slime_boobs/get_overlay(overlay_icon_state, color_string)
+	if(!icon_exists(icon, overlay_icon_state))
+		return null
+	return ..()
+
 /datum/sprite_accessory/intimate_accessory/slime_boobs/strange
 	icon_state = "slime_boobs_strange"
 	intimate_type = /obj/item/intimate_accessory/jelly/eora/strange
@@ -377,6 +394,12 @@
 
 /datum/sprite_accessory/intimate_accessory/slime_tendril_overlay/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	return generate_untinted_icon_state(overlay_icon_state, suffix)
+
+/// See slime_genitals/get_overlay for rationale — same null-state guard.
+/datum/sprite_accessory/intimate_accessory/slime_tendril_overlay/get_overlay(overlay_icon_state, color_string)
+	if(!icon_exists(icon, overlay_icon_state))
+		return null
+	return ..()
 
 /datum/sprite_accessory/intimate_accessory/slime_tendril_overlay/strange
 	icon_state = "slime_tendril_overlay_strange"

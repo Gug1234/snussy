@@ -46,6 +46,7 @@
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.oralcourse_noise(target)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("mouth", target, user)
 
 	user.sexcon.perform_sex_action(user, 2, 0, TRUE)
 	if(user.sexcon.check_active_ejaculation())
@@ -93,6 +94,8 @@
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.oralcourse_noise(target)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("mouth", target, user)
+	apply_silver_intimate_contact("genital", user, target)
 
 	user.sexcon.perform_sex_action(user, 2, 0, TRUE)
 	if(user.sexcon.check_active_ejaculation())
