@@ -44,6 +44,14 @@
 	var/obj/item/undies/underwear = null	//Underwear item
 	var/obj/item/legwears/legwear_socks = null	//legwear item
 	var/obj/item/chastity/chastity_device = null // Chastity item reference.
+	// Intimate accessory item references.
+	var/obj/item/intimate_accessory/intimate_genital = null
+	var/obj/item/intimate_accessory/intimate_rear = null
+	var/obj/item/intimate_accessory/intimate_breast = null
+	var/obj/item/intimate_accessory/intimate_mouth = null
+	var/obj/item/intimate_accessory/intimate_misc = null // legacy alias; mouth slot now owns slot id 4
+	var/list/intimate_accessories = list()
+
 
 	var/datum/dna/dna = null //Carbon
 	///last mind to control this mob, for blood-based cloning

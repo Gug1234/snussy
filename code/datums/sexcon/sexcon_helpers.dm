@@ -136,6 +136,104 @@
 		else
 			playsound(target, 'sound/misc/mat/segso.ogg', 50, TRUE, -2, ignore_walls = FALSE)
 
+/datum/sex_controller/proc/get_tongue_piercing_oral_flavor(mob/living/carbon/human/tongue_owner, obj/item/intimate_accessory/piercing/tongue/tongue_piercing)
+	if(!tongue_piercing)
+		return null
+
+	var/owner_their = tongue_owner ? tongue_owner.p_their() : "their"
+	var/owner_Their = "[uppertext(copytext(owner_their, 1, 2))][copytext(owner_their, 2)]"
+	var/is_gentle = (force <= SEX_FORCE_MID)
+
+	// Keep flavor varied so repeated oral actions do not always emit the same line.
+	if(istype(tongue_piercing, /obj/item/intimate_accessory/piercing/tongue/psydonic))
+		var/obj/item/intimate_accessory/piercing/tongue/psydonic/psydonic = tongue_piercing
+		if(ispath(psydonic.socketed_item_type, /obj/item/clothing/neck/roguetown/psicross/silver))
+			if(is_gentle)
+				return pick(
+					"[owner_Their] silvered psydonic tongue piercing rings like a tiny bell between wet breaths.",
+					"[owner_Their] psydonic silver-cross tongue piercing chimes with each careful lick.",
+					"A bright silver psydonic note slips from [owner_their] tongue piercing.",
+				)
+			return pick(
+				"[owner_Their] silvered psydonic tongue piercing strikes a sharp chime through the wet noise.",
+				"[owner_Their] psydonic silver-cross tongue bar clicks in a bright, insistent rhythm.",
+				"A hard silver psydonic note snaps from [owner_their] tongue piercing.",
+			)
+		if(ispath(psydonic.socketed_item_type, /obj/item/clothing/neck/roguetown/psicross/g))
+			if(is_gentle)
+				return pick(
+					"[owner_Their] gilded psydonic tongue piercing hums a warm hymn between breaths.",
+					"[owner_Their] golden psydonic tongue bar sings softly with each pull of the mouth.",
+					"A mellow psydonic chime drifts from [owner_their] golden tongue piercing.",
+				)
+			return pick(
+				"[owner_Their] gilded psydonic tongue piercing thrums with a forceful hymn.",
+				"[owner_Their] golden psydonic tongue bar rings in a driving cadence.",
+				"A bright psydonic peal rises from [owner_their] golden tongue piercing.",
+			)
+		if(is_gentle)
+			return pick(
+				"[owner_Their] psydonic tongue piercing hums a bright hymn between wet breaths.",
+				"[owner_Their] psydonic tongue bar clicks in a measured, devotional rhythm.",
+				"A faint psydonic resonance trembles with each slick motion of [owner_their] tongue piercing.",
+			)
+		return pick(
+			"[owner_Their] psydonic tongue piercing hums a fierce hymn between wet breaths.",
+			"[owner_Their] psydonic tongue bar taps in a strict, urgent rhythm.",
+			"A hard psydonic resonance shivers from [owner_their] tongue piercing.",
+		)
+
+	if(istype(tongue_piercing, /obj/item/intimate_accessory/piercing/tongue/zizite))
+		var/obj/item/intimate_accessory/piercing/tongue/zizite/zizite = tongue_piercing
+		if(ispath(zizite.socketed_item_type, /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy))
+			if(is_gentle)
+				return pick(
+					"[owner_Their] ancient zizite tongue piercing taps a stern cadence against teeth.",
+					"An old, avantyne zcross note clicks quietly from [owner_their] tongue piercing.",
+					"A deep zizite tick marks each breath from [owner_their] ancient tongue bar.",
+				)
+			return pick(
+				"[owner_Their] ancient zizite tongue piercing hammers a cold cadence against teeth.",
+				"An old, avantyne zcross note snaps from [owner_their] tongue piercing.",
+				"A deep zizite clack drives each breath from [owner_their] ancient tongue bar.",
+			)
+		if(is_gentle)
+			return pick(
+				"[owner_Their] zizite tongue piercing taps a cold rhythm against teeth.",
+				"A dark zizite click cuts softly through the wet sounds from [owner_their] tongue bar.",
+				"[owner_Their] iron zcross tongue piercing chatters in a restrained metallic beat.",
+			)
+		return pick(
+			"[owner_Their] zizite tongue piercing taps a hard, cold rhythm against teeth.",
+			"A dark zizite click slices through the wet sounds from [owner_their] tongue bar.",
+			"[owner_Their] iron zcross tongue piercing chatters in a strict metallic beat.",
+		)
+
+	if(tongue_piercing.is_silver)
+		if(is_gentle)
+			return pick(
+				"[owner_Their] silver tongue piercing gives a crisp little chime between breaths.",
+				"A bright silver click slips between wet sounds from [owner_their] tongue bar.",
+				"[owner_Their] polished silver tongue piercing ticks softly against teeth.",
+			)
+		return pick(
+			"[owner_Their] silver tongue piercing rings in a bright, biting chime.",
+			"A sharp silver click cracks between wet sounds from [owner_their] tongue bar.",
+			"[owner_Their] polished silver tongue piercing ticks in a hard metallic beat.",
+		)
+
+	if(is_gentle)
+		return pick(
+			"[owner_Their] tongue piercing clicks faintly between wet breaths.",
+			"A small metal tongue bar softly taps against teeth from [owner_their] mouth.",
+			"A quiet metallic click flickers between each warm breath from [owner_their] tongue piercing.",
+		)
+	return pick(
+		"[owner_Their] tongue piercing clicks in a quick metallic rhythm.",
+		"A small metal tongue bar taps hard against teeth from [owner_their] mouth.",
+		"A bright metallic click flashes between rough breaths from [owner_their] tongue piercing.",
+	)
+
 /datum/sex_controller/proc/oralcourse_noise(atom/movable/target)
 	if(!user || QDELETED(user) || !istype(user))
 		return
@@ -150,7 +248,23 @@
 			volume_layer = 3
 	volume_layer *= speed // speed is always between 1-4 (SEX_SPEED_MIN-SEX_SPEED_MAX)
 	playsound(target, pick('sound/misc/mat/saliva (1).ogg','sound/misc/mat/saliva (2).ogg','sound/misc/mat/saliva (3).ogg'), volume_layer, TRUE, -2, ignore_walls = FALSE)
+	if(prob(20))
+		var/mob/living/carbon/human/acting_human = ishuman(user) ? user : null
+		var/mob/living/carbon/human/target_human = ishuman(target) ? target : null
+		var/mob/living/carbon/human/tongue_owner = null
+		var/obj/item/intimate_accessory/piercing/tongue/tongue_piercing = null
+		if(istype(acting_human?.intimate_mouth, /obj/item/intimate_accessory/piercing/tongue))
+			tongue_owner = acting_human
+			tongue_piercing = acting_human.intimate_mouth
+		else if(istype(target_human?.intimate_mouth, /obj/item/intimate_accessory/piercing/tongue))
+			tongue_owner = target_human
+			tongue_piercing = target_human.intimate_mouth
 
+		if(tongue_piercing)
+			var/flavor_text = get_tongue_piercing_oral_flavor(tongue_owner, tongue_piercing)
+			if(flavor_text)
+				user.visible_message(span_notice(flavor_text))
+				
 /datum/sex_controller/proc/chastitycourse_noise(mob/living/carbon/human/action_target) // for actions that involve moving a chastity device. Chance increases with force and speed.
 	modular_chastitycourse_noise(action_target)
 	return

@@ -349,8 +349,99 @@
 			facial.refresh_cum()
 	after_ejaculation()
 
+/datum/sex_controller/proc/target_retains_internal_creampie(mob/living/carbon/human/check_target = target)
+	if(!check_target)
+		return FALSE
+
+	var/obj/item/intimate_accessory/genital_accessory = check_target.intimate_genital
+	if(genital_accessory?.retains_internal_creampie())
+		return TRUE
+
+	var/obj/item/intimate_accessory/rear_accessory = check_target.intimate_rear
+	if(rear_accessory?.retains_internal_creampie())
+		return TRUE
+
+	return FALSE
+
+/datum/sex_controller/proc/apply_internal_creampie(mob/living/carbon/human/splashed_user = target, add_retained_load = FALSE, retained_load_amount = 1)
+	if(!splashed_user)
+		return null
+
+	var/datum/status_effect/facial/internal/creampie = splashed_user.has_status_effect(/datum/status_effect/facial/internal)
+	if(!creampie)
+		creampie = splashed_user.apply_status_effect(/datum/status_effect/facial/internal)
+	else
+		creampie.refresh_cum()
+
+	if(creampie && add_retained_load)
+		creampie.add_retained_load(retained_load_amount)
+
+	return creampie
+
+/datum/sex_controller/proc/consume_internal_creampie(mob/living/carbon/human/consuming_target = target, amount = 1)
+	if(!consuming_target)
+		return FALSE
+	if(!isnum(amount) || amount <= 0)
+		return FALSE
+
+	var/datum/status_effect/facial/internal/creampie = consuming_target.has_status_effect(/datum/status_effect/facial/internal)
+	if(!creampie)
+		return FALSE
+
+	if(creampie.retained_load > 0)
+		creampie.retained_load = max(0, creampie.retained_load - round(amount))
+		if(creampie.retained_load > 0)
+			creampie.refresh_cum()
+			return TRUE
+
+	consuming_target.remove_status_effect(/datum/status_effect/facial/internal)
+	consuming_target.remove_status_effect(/datum/status_effect/creampie_leak)
+	consuming_target.remove_status_effect(/datum/status_effect/creampie_leak/long)
+	return TRUE
+
+/datum/sex_controller/proc/release_retained_internal_creampie(mob/living/carbon/human/releasing_target = target)
+	if(!releasing_target)
+		return FALSE
+
+	var/datum/status_effect/facial/internal/creampie = releasing_target.has_status_effect(/datum/status_effect/facial/internal)
+	if(!creampie)
+		return FALSE
+
+	var/released_load = round(creampie.retained_load)
+	if(released_load <= 0)
+		return FALSE
+
+	creampie.retained_load = 0
+	creampie.refresh_cum()
+
+	var/release_msg = "[releasing_target] pulls out [releasing_target.p_their()] plug, and a hot spill of cum gushes free!"
+	releasing_target.visible_message(span_love(release_msg), vision_distance = (suppress_moan ? 1 : DEFAULT_MESSAGE_RANGE))
+	to_chat(releasing_target, span_love("The plug slips free and a hot spill of retained cum gushes out of me."))
+	playsound(releasing_target, 'sound/items/uncork.ogg', 45, TRUE, ignore_walls = FALSE)
+	playsound(releasing_target, 'sound/misc/mat/endout.ogg', suppress_moan ? 12 : 40, TRUE, ignore_walls = FALSE)
+
+	var/turf/release_turf = get_turf(releasing_target)
+	var/release_puddles = clamp(released_load, 1, 3)
+	var/puddle_index = 1
+	while(puddle_index <= release_puddles)
+		add_cum_floor(release_turf, do_big_puddle = (puddle_index == 1 && released_load >= 2))
+		puddle_index += 1
+
+	releasing_target.remove_status_effect(/datum/status_effect/creampie_leak)
+	releasing_target.remove_status_effect(/datum/status_effect/creampie_leak/long)
+	if(released_load >= 2)
+		releasing_target.apply_status_effect(/datum/status_effect/creampie_leak/long)
+	else
+		releasing_target.apply_status_effect(/datum/status_effect/creampie_leak)
+
+	return TRUE
+
 /datum/sex_controller/proc/cum_into(oral = FALSE, mob/living/carbon/human/splashed_user = null)
+	if(try_resist_orgasm())
+		return
 	log_combat(user, target, "Came inside the target")
+	werewolf_sex_infect_attempt(user, target)
+	deadite_sex_infect_attempt(user, target)
 	werewolf_sex_infect_attempt(user, target)
 	deadite_sex_infect_attempt(user, target)
 	if(oral)
@@ -360,12 +451,14 @@
 	if(user != target && do_knot_action && !isnull(target) && istype(target))
 		knot_try()
 	if(splashed_user && !splashed_user.sexcon.knotted_status)
-		var/status_type = !oral ? /datum/status_effect/facial/internal : /datum/status_effect/facial
-		var/datum/status_effect/facial/splashed_type = splashed_user.has_status_effect(status_type)
-		if(!splashed_type)
-			splashed_user.apply_status_effect(status_type)
+		if(!oral)
+			apply_internal_creampie(splashed_user, target_retains_internal_creampie(splashed_user))
 		else
-			splashed_type.refresh_cum()
+			var/datum/status_effect/facial/facial = splashed_user.has_status_effect(/datum/status_effect/facial)
+			if(!facial)
+				splashed_user.apply_status_effect(/datum/status_effect/facial)
+			else
+				facial.refresh_cum()
 		if(!oral)
 			var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
 			if(testes?.ball_size > DEFAULT_TESTICLES_SIZE)
@@ -385,6 +478,18 @@
 	id = "creampie"
 	alert_type = null // don't show an alert on screen
 	tick_interval = 7 MINUTES // use this time as our dry count down
+	var/retained_load = 0
+
+/datum/status_effect/facial/internal/proc/add_retained_load(amount = 1)
+	if(!isnum(amount))
+		return retained_load
+
+	var/load_to_add = round(amount)
+	if(load_to_add <= 0)
+		return retained_load
+
+	retained_load += load_to_add
+	return retained_load
 
 /datum/status_effect/creampie_leak
 	id = "creampie_leak"
@@ -392,6 +497,28 @@
 	tick_interval = 12 SECONDS
 	duration = 30 SECONDS
 	var/contents_to_drip = /datum/reagent/erpjuice/cum
+
+/datum/status_effect/creampie_leak/proc/should_suppress_leak()
+	if(!ishuman(owner))
+		return FALSE
+
+	var/mob/living/carbon/human/H = owner
+	return H.sexcon?.target_retains_internal_creampie(H)
+
+/datum/status_effect/creampie_leak/process(wait)
+	if(QDELETED(owner))
+		qdel(src)
+		return
+
+	if(should_suppress_leak())
+		if(isnum(wait))
+			if(duration != -1)
+				duration += wait
+			if(tick_interval != -1)
+				tick_interval += wait
+		return
+
+	return ..()
 
 /datum/status_effect/creampie_leak/long
 	id = "creampie_leak_long"
@@ -418,12 +545,18 @@
 ///Callback to remove pearl necklace
 /datum/status_effect/facial/proc/clean_up(datum/source, strength)
 	if(strength >= CLEAN_WEAK && !QDELETED(owner))
+		if(istype(src, /datum/status_effect/facial/internal) && ishuman(owner))
+			var/mob/living/carbon/human/H = owner
+			if(H.sexcon?.target_retains_internal_creampie(H))
+				return
 		if(!owner.has_stress_event(/datum/stressevent/bathcleaned))
 			to_chat(owner, span_notice("I feel much cleaner now!"))
 			owner.add_stress(/datum/stressevent/bathcleaned)
 		owner.remove_status_effect(src)
 
 /datum/status_effect/creampie_leak/tick()
+	if(should_suppress_leak())
+		return
 	if(!owner?.sexcon?.bottom_exposed && !get_location_accessible(owner, BODY_ZONE_PRECISE_GROIN, skipundies = TRUE))
 		return
 	var/cur_loc = get_turf(owner)
@@ -704,8 +837,6 @@
 		var/pain_msg = pick(list("IT HURTS!!!", "IT NEEDS TO STOP!!!", "I CAN'T TAKE IT ANYMORE!!!"))
 		to_chat(user, span_boldwarning(pain_msg))
 		user.flash_fullscreen("redflash2")
-		if(prob(70) && user.stat == CONSCIOUS)
-			user.visible_message(span_warning("[user] shudders in pain!"))
 	else if(pain_amt >= PAIN_MED_EFFECT)
 		var/pain_msg = pick(list("It hurts!", "It pains me!"))
 		to_chat(user, span_boldwarning(pain_msg))
@@ -927,6 +1058,8 @@
 			continue
 		if(istype(action, /datum/sex_action/chastityplay) && !chastity_content_enabled_for_pair())
 			continue
+		if(istype(action, /datum/sex_action/chastityplay) && !chastity_content_enabled_for_pair())
+			continue
 		if(!action.shows_on_menu(user, target))
 			continue
 		if(action_blocked_by_intimate_state(action, TRUE))
@@ -1076,6 +1209,7 @@
 			break
 		find_ringing_collar()
 		action.on_perform(user, target)
+		action.modular_on_perform(user, target)
 		// It could want to finish afterwards the performed action
 		if(action.is_finished(user, target))
 			break
