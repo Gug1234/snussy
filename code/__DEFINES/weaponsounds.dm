@@ -7,6 +7,7 @@
 #define BLUNTWOOSH_HUGE			list('sound/combat/wooshes/blunt/wooshhuge (1).ogg','sound/combat/wooshes/blunt/wooshhuge (2).ogg','sound/combat/wooshes/blunt/wooshhuge (3).ogg')
 #define BLUNTWOOSH_LARGE		list('sound/combat/wooshes/blunt/wooshlarge (1).ogg','sound/combat/wooshes/blunt/wooshlarge (2).ogg','sound/combat/wooshes/blunt/wooshlarge (3).ogg')
 #define BLUNTWOOSH_MED			list('sound/combat/wooshes/blunt/wooshmed (1).ogg','sound/combat/wooshes/blunt/wooshmed (2).ogg','sound/combat/wooshes/blunt/wooshmed (3).ogg')
+#define BLUNTWOOSH_SMALL		BLUNTWOOSH_MED // No dedicated small blunt woosh files; falls back to medium.
 
 #define WHIPWOOSH			list('sound/combat/wooshes/whip_crack1.ogg','sound/combat/wooshes/whip_crack2.ogg','sound/combat/wooshes/whip_crack3.ogg')
 

@@ -1071,7 +1071,7 @@
 			link = "linkOff"
 		if(current_action == action_type)
 			link = "linkOn"
-		dat += "<center><a class='[link]' href='?src=[REF(src)];task=action;action_type=[action_type]'>[action.name]</a></center>"
+		dat += "<center><a class='[link]' href='?src=[REF(src)];task=action;action_type=[action_type]'>[action.get_display_name(user)]</a></center>"
 		dat += "</td>"
 		i++
 		if(i >= 2)
@@ -1146,7 +1146,9 @@
 		return
 	var/datum/sex_action/action = SEX_ACTION(current_action)
 	if(!user.sexcon.knotted_status) // never show the remove message, unless unknotted
-		action.on_finish(user, target)
+		if(!action.should_suppress_default(user, "on_finish"))
+			action.on_finish(user, target)
+		action.modular_on_finish(user, target)
 	desire_stop = FALSE
 	user.doing = FALSE
 	current_action = null
@@ -1180,7 +1182,7 @@
 	collar_bell_user = FALSE
 	collar_bell_target = FALSE
 	var/datum/sex_action/action = SEX_ACTION(current_action)
-	log_combat(user, target, "Started sex action: [action.name]")
+	log_combat(user, target, "Started sex action: [action.get_display_name(user)]")
 	INVOKE_ASYNC(src, PROC_REF(sex_action_loop))
 
 /datum/sex_controller/proc/sex_action_loop()
@@ -1190,7 +1192,9 @@
 	show_progress = 1
 	suppress_moan = FALSE
 	do_subtle_action = TRUE // always start subtle supported actions with subtle mode on
-	action.on_start(user, target)
+	if(!action.should_suppress_default(user, "on_start"))
+		action.on_start(user, target)
+	action.modular_on_start(user, target)
 	find_occupying_furniture()
 	find_occupying_grass()
 	while(TRUE)
@@ -1209,7 +1213,8 @@
 		if(desire_stop)
 			break
 		find_ringing_collar()
-		action.on_perform(user, target)
+		if(!action.should_suppress_default(user, "on_perform"))
+			action.on_perform(user, target)
 		action.modular_on_perform(user, target)
 		// It could want to finish afterwards the performed action
 		if(action.is_finished(user, target))

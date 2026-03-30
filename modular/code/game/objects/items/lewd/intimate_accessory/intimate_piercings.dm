@@ -13,6 +13,12 @@
 	intimate_gem_color = null
 	intimate_flags = INTIMATE_FLAG_PIERCING
 	sellprice = 10
+	/// When TRUE this piercing emits audible movement jingles (visible_message) via the reaction component.
+	/// Bell piercings set this to TRUE; plain bars, studs, hoops, and tongue bars are silent during movement.
+	var/emits_movement_sound = FALSE
+	/// Direct reference to our reaction component, cached to avoid GetComponent() on a COMPONENT_DUPE_ALLOWED type.
+	/// Set during Initialize(); cleared on Destroy(). Each piercing item carries exactly one reaction instance.
+	var/datum/component/intimate_reaction/piercing/reaction_component = null
 	// Reserved for future nudist support.
 	//nudist_approved = TRUE
 
@@ -20,22 +26,24 @@
 	. = ..()
 	update_item_visuals()
 	// Attach the piercing reaction component so movement jingles and sex-action flavor text fire automatically.
-	// Each item carries its own component instance; COMPONENT_DUPE_ALLOW_ALL on the component subtype
+	// Each item carries its own component instance; COMPONENT_DUPE_ALLOWED on the component subtype
 	// allows nipple + genital + rear piercings to all operate concurrently on the same wearer.
-	AddComponent(/datum/component/intimate_reaction/piercing)
+	reaction_component = AddComponent(/datum/component/intimate_reaction/piercing)
+
+/obj/item/intimate_accessory/piercing/Destroy()
+	reaction_component = null
+	return ..()
 
 /// Binds the reaction component to H after the slot reference and wearer var are set by the base finalize_intimate_equip.
 /obj/item/intimate_accessory/piercing/finalize_intimate_equip(mob/living/carbon/human/H)
 	. = ..()
-	var/datum/component/intimate_reaction/piercing/reaction = GetComponent(/datum/component/intimate_reaction/piercing)
-	if(reaction)
-		reaction.bind_to_wearer(H)
+	if(reaction_component)
+		reaction_component.bind_to_wearer(H)
 
 /// Unbinds the reaction component from H before slot refs are cleared by the base remove_intimate_accessory.
 /obj/item/intimate_accessory/piercing/remove_intimate_accessory(mob/living/carbon/human/H)
-	var/datum/component/intimate_reaction/piercing/reaction = GetComponent(/datum/component/intimate_reaction/piercing)
-	if(reaction)
-		reaction.unbind_from_wearer(H)
+	if(reaction_component)
+		reaction_component.unbind_from_wearer(H)
 	return ..()
 
 /obj/item/intimate_accessory/piercing/proc/finalize_piercing_initialize(initial_variant_name = null)
@@ -81,7 +89,7 @@
 		name = "[metal_descriptor] [piercing_region_name] piercing"
 
 /obj/item/intimate_accessory/piercing/proc/update_sellprice()
-	var/base_price = initial(sellprice)
+	var/base_price = roundstart_equipped ? 0 : initial(sellprice)
 	sellprice = max(1, base_price + gem_value_bonus)
 
 /obj/item/intimate_accessory/piercing/proc/get_voice_tint_color()
@@ -151,6 +159,51 @@
 	intimate_metal_name = "blacksteel"
 	intimate_metal_color = "#A2CBE3"
 	sellprice = 150
+
+// --- Breast bell piercings ---
+// A nipple ring fitted with a small dangling bell that chimes audibly during movement.
+// Inherits breast/Initialize(), so update_dynamic_name() picks up piercing_region_name and
+// produces "[metal] nipple bell piercing" automatically without an extra Initialize override.
+/obj/item/intimate_accessory/piercing/breast/bell
+	desc = "A nipple ring fitted with a tiny dangling bell. Each step produces a soft, telltale chime that announces the wearer with musical indiscretion."
+	piercing_region_name = "nipple bell"
+	emits_movement_sound = TRUE
+
+/obj/item/intimate_accessory/piercing/breast/bell/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 7
+
+/obj/item/intimate_accessory/piercing/breast/bell/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 8
+
+/obj/item/intimate_accessory/piercing/breast/bell/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/breast/bell/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 18
+
+/obj/item/intimate_accessory/piercing/breast/bell/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 40
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/breast/bell/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 65
+
+/obj/item/intimate_accessory/piercing/breast/bell/blacksteel
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 165
 
 // Genital piercing variants.
 /obj/item/intimate_accessory/piercing/genital
@@ -255,6 +308,56 @@
 	intimate_metal_name = "blacksteel"
 	intimate_metal_color = "#A2CBE3"
 	sellprice = 150
+
+// --- Genital bell piercings ---
+// A genital kit supplemented with a dangle-bell charm that chimes with each step.
+// Inherits beriddled/goodlover behaviour from the genital parent; only adds the movement-sound flag.
+/obj/item/intimate_accessory/piercing/genital/bell
+	desc = "A genital piercing kit dressed with a small dangling bell charm. Its soft chime makes no secret of what lies beneath."
+	piercing_region_name = "genital bell"
+	emits_movement_sound = TRUE
+
+// Explicit Initialize so finalize_piercing_initialize() is called and update_dynamic_name() produces
+// "[metal] genital bell piercing" — the genital base type has no Initialize of its own.
+/obj/item/intimate_accessory/piercing/genital/bell/Initialize()
+	. = ..()
+	finalize_piercing_initialize()
+
+/obj/item/intimate_accessory/piercing/genital/bell/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 7
+
+/obj/item/intimate_accessory/piercing/genital/bell/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 8
+
+/obj/item/intimate_accessory/piercing/genital/bell/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/genital/bell/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 18
+
+/obj/item/intimate_accessory/piercing/genital/bell/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 40
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/genital/bell/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 65
+
+/obj/item/intimate_accessory/piercing/genital/bell/blacksteel
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 165
 
 /obj/item/intimate_accessory/piercing/genital/psydonic
 	name = "psydonic genital piercing"

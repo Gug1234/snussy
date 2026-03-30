@@ -68,16 +68,26 @@
 /datum/outfit/job/roguetown/mercenary/forlorn/choose_loadout(mob/living/carbon/human/H)
 	. = ..()
 	var/weapons = list("Warhammer", // The OG
-	"crossbow", )
+	"Crossbow",
+	"Hunter Axe (Trick Weapon)",
+	"Saw Cleaver (Trick Weapon)")
 	var/weapon_choice = input(H, "Choose your weapon.", "ARMS OF THE ORDER") as anything in weapons
 	switch(weapon_choice)
 		if("Warhammer")
 			H.equip_to_slot_or_del(new /obj/item/rogueweapon/mace/warhammer/steel, SLOT_BELT_L)
 			H.equip_to_slot_or_del(new /obj/item/rogueweapon/shield/heater, SLOT_BACK_L)
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT)
-		if("crossbow")
+		if("Crossbow")
 			H.equip_to_slot_or_del(new /obj/item/quiver/bolts, SLOT_BELT_L)
 			H.equip_to_slot_or_del(new /obj/item/rogueweapon/sword/short/falchion, SLOT_BELT_R)
 			H.equip_to_slot_or_del(new /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow, SLOT_BACK_L)
 			H.adjust_skillrank_up_to(/datum/skill/combat/crossbows, SKILL_LEVEL_EXPERT)
+		// --- Steel Trick Weapons ---
+		if("Hunter Axe (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/hunteraxe(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT)
+		if("Saw Cleaver (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawcleaver(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN) // Transformed state uses axes
 

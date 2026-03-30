@@ -47,29 +47,28 @@
 			else
 				lines += span_warning("[m1] nipples are pierced!")
 
-	var/obj/item/intimate_accessory/genital/plug/worn_genital_plug = intimate_genital
-	if(worn_genital_plug)
-		var/genital_plug_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)
-		if(genital_plug_exposed || (user != src && perception_level >= 15))
-			if(perception_level >= 15)
-				var/genital_plug_msg = genital_plug_exposed ? "[m1] wearing a [worn_genital_plug.name]." : "[m1] wearing a vaginal plug under [m2] clothes."
-				lines += span_aiprivradio(genital_plug_msg)
-			else if(perception_level >= 8)
-				lines += span_aiprivradio("[m1] wearing a [worn_genital_plug.name].")
-			else
-				lines += span_warning("[m1] has something tucked in their cunt!")
-
-	var/obj/item/intimate_accessory/piercing/genital/worn_genital_piercing = intimate_genital
-	if(worn_genital_piercing)
+	// Genital slot — could be a plug OR a piercing; use istype to avoid double display.
+	if(intimate_genital)
 		var/genital_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)
 		if(genital_exposed || (user != src && perception_level >= 15))
-			if(perception_level >= 15)
-				var/genital_msg = genital_exposed ? "[m1] wearing [worn_genital_piercing.name]." : "[m1] wearing genital piercings under [m2] clothes."
-				lines += span_aiprivradio(genital_msg)
-			else if(perception_level >= 8)
-				lines += span_aiprivradio("[m1] wearing [worn_genital_piercing.name].")
-			else
-				lines += span_warning("[m1] privates are pierced!")
+			if(istype(intimate_genital, /obj/item/intimate_accessory/genital/plug))
+				var/obj/item/intimate_accessory/genital/plug/worn_genital_plug = intimate_genital
+				if(perception_level >= 15)
+					var/genital_plug_msg = genital_exposed ? "[m1] wearing a [worn_genital_plug.name]." : "[m1] wearing a vaginal plug under [m2] clothes."
+					lines += span_aiprivradio(genital_plug_msg)
+				else if(perception_level >= 8)
+					lines += span_aiprivradio("[m1] wearing a [worn_genital_plug.name].")
+				else
+					lines += span_warning("[m1] has something tucked in their cunt!")
+			else if(istype(intimate_genital, /obj/item/intimate_accessory/piercing/genital))
+				var/obj/item/intimate_accessory/piercing/genital/worn_genital_piercing = intimate_genital
+				if(perception_level >= 15)
+					var/genital_msg = genital_exposed ? "[m1] wearing [worn_genital_piercing.name]." : "[m1] wearing genital piercings under [m2] clothes."
+					lines += span_aiprivradio(genital_msg)
+				else if(perception_level >= 8)
+					lines += span_aiprivradio("[m1] wearing [worn_genital_piercing.name].")
+				else
+					lines += span_warning("[m1] privates are pierced!")
 
 	var/obj/item/intimate_accessory/piercing/tongue/worn_tongue_piercing = intimate_mouth
 	if(worn_tongue_piercing)
@@ -77,11 +76,13 @@
 		if(mouth_exposed)
 			lines += span_notice("[m1] wearing [worn_tongue_piercing.name].")
 
-	// Append an examine link to open the intimate accessories panel when the
-	// subject has any accessories and both parties have intimate content enabled.
+	// Append an examine link to open the intimate accessories panel when:
+	//   • the subject has accessories worn
+	//   • both parties have intimate accessories enabled
+	//   • the wearer has opted in to showing the link (show_intimate_examine)
 	if(length(intimate_accessories))
-		var/viewer_ok = !user.client?.prefs || user.client.prefs.chastenable
-		var/wearer_ok = !client?.prefs || client.prefs.chastenable
+		var/viewer_ok = !user.client?.prefs || user.client.prefs.intimate_enabled
+		var/wearer_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
 		if(viewer_ok && wearer_ok)
 			lines += span_notice("<a href='?src=[REF(src)];task=view_intimate'>View [m2] intimate accessories...</a>")
 

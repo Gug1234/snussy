@@ -60,6 +60,13 @@
 		return
 	user.visible_message(span_notice("[user] tries to put the [src] on [H]..."))
 	if(chastity_cursed)
+		// Cursed content pref gate — the wearer must have opted in.
+		if(H.client?.prefs && !H.client.prefs.cursed_enabled)
+			to_chat(user, span_warning("Eora intervenes. They have cursed content disabled."))
+			return
+		if(user?.client?.prefs && !user.client.prefs.cursed_enabled)
+			to_chat(user, span_warning("I have cursed content disabled."))
+			return
 		if(H == user)
 			to_chat(user, span_warning("I cannot fasten a cursed chastity device on myself."))
 			return

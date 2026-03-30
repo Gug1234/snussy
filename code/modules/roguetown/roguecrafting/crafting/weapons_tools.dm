@@ -518,3 +518,17 @@
 				/obj/item/natural/stoneblock = 3)
 	skillcraft = /datum/skill/craft/carpentry
 	craftdiff = 5
+
+// --------- HOLY COMET SWORD -----------
+// Forged by combining the Inquisition's Unforgotten Sword with the
+// Golgotha Psy Censer. Both legendary relics are consumed in the craft.
+/datum/crafting_recipe/roguetown/survival/holycometsword
+	name = "Holy Comet Sword"
+	category = "Weapons"
+	result = /obj/item/rogueweapon/trickweapon/holycometsword
+	reqs = list(
+		/obj/item/rogueweapon/greatsword/bsword/psy/unforgotten = 1,
+		/obj/item/flashlight/flare/torch/lantern/psycenser = 1,
+	)
+	skillcraft = /datum/skill/craft/weaponsmithing
+	craftdiff = 5

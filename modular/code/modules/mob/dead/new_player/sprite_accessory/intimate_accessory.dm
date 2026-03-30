@@ -383,6 +383,28 @@
 	icon_state = "slime_boobs_strange"
 	intimate_type = /obj/item/intimate_accessory/jelly/eora/strange
 
+/datum/sprite_accessory/intimate_accessory/slime_genitals_rear
+	name = "Slime Genitals (Rear)"
+	icon = 'modular/icons/obj/lewd/intimate_slime_overlays.dmi'
+	icon_state = "slime_genitals_rear"
+	layer = BODY_FRONT_FRONT_LAYER
+	intimate_type = /obj/item/intimate_accessory/jelly/eora
+	color_keys = 0
+	default_colors = null
+
+/datum/sprite_accessory/intimate_accessory/slime_genitals_rear/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
+	return generate_untinted_icon_state(overlay_icon_state, suffix)
+
+/// See slime_genitals/get_overlay for rationale — same null-state guard.
+/datum/sprite_accessory/intimate_accessory/slime_genitals_rear/get_overlay(overlay_icon_state, color_string)
+	if(!icon_exists(icon, overlay_icon_state))
+		return null
+	return ..()
+
+/datum/sprite_accessory/intimate_accessory/slime_genitals_rear/strange
+	icon_state = "slime_genitals_rear_strange"
+	intimate_type = /obj/item/intimate_accessory/jelly/eora/strange
+
 /datum/sprite_accessory/intimate_accessory/slime_tendril_overlay
 	name = "Slime Tendrils"
 	icon = 'modular/icons/obj/lewd/intimate_slime_overlays.dmi'
@@ -428,6 +450,12 @@
 
 /datum/sprite_accessory/intimate_overlays/slime_boobs/strange
 	parent_type = /datum/sprite_accessory/intimate_accessory/slime_boobs/strange
+
+/datum/sprite_accessory/intimate_overlays/slime_genitals_rear
+	parent_type = /datum/sprite_accessory/intimate_accessory/slime_genitals_rear
+
+/datum/sprite_accessory/intimate_overlays/slime_genitals_rear/strange
+	parent_type = /datum/sprite_accessory/intimate_accessory/slime_genitals_rear/strange
 
 /datum/sprite_accessory/intimate_overlays/slime_tendril_overlay
 	parent_type = /datum/sprite_accessory/intimate_accessory/slime_tendril_overlay

@@ -115,3 +115,28 @@
 		device.remove_chastity(human_mob)
 		device.forceMove(get_turf(human_mob))
 		human_mob.visible_message(span_notice("the divine hand of Eora slipped [device] free from [human_mob]'s loins!"))
+
+/**
+ * Called when the player toggles "Cursed Content" OFF in the ERP Preferences menu.
+ * Strips any currently worn cursed collar and/or cursed chastity device.
+ */
+/client/proc/modular_handle_cursed_toggle_disable()
+	if(!ishuman(mob))
+		return
+	var/mob/living/carbon/human/human_mob = mob
+
+	// Strip cursed chastity device
+	var/obj/item/chastity/device = human_mob.chastity_device
+	if(device?.chastity_cursed)
+		device.cleanup_cursed_binding(human_mob)
+		device.remove_chastity(human_mob)
+		device.forceMove(get_turf(human_mob))
+		human_mob.visible_message(span_notice("The divine hand of Eora dissolves the cursed bindings from [human_mob]'s loins!"))
+
+	// Strip cursed collar
+	var/obj/item/clothing/neck/roguetown/cursed_collar/collar = human_mob.get_item_by_slot(SLOT_NECK)
+	if(istype(collar))
+		REMOVE_TRAIT(collar, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+		SEND_SIGNAL(human_mob, COMSIG_CARBON_LOSE_COLLAR)
+		human_mob.dropItemToGround(collar, force = TRUE)
+		human_mob.visible_message(span_notice("The divine hand of Eora shatters the cursed collar from [human_mob]'s neck!"))

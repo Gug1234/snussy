@@ -5,6 +5,12 @@ import { Window } from '../layouts';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+/** A slot the jelly can be repositioned into. */
+type SwapOption = {
+  slot: number;
+  name: string;
+};
+
 /** Detailed data for a visible worn accessory (absent when slot is empty/concealed). */
 type ItemData = {
   ref: string;
@@ -20,9 +26,34 @@ type ItemData = {
   is_silver: boolean;
   can_remove: boolean;
   is_beads: boolean;
-  bead_depth: 'short' | 'medium' | 'long' | null;
+  beads_inserted: number;
+  max_beads: number;
   can_push_beads: boolean;
   can_pull_beads: boolean;
+  // ── Eora jelly fields ──────────────────────────────────────────────────
+  is_eora_jelly: boolean;
+  is_strange_jelly: boolean;
+  current_slot: number;
+  current_slot_name: string;
+  is_internal_slot: boolean;
+  swap_slot_options: SwapOption[];
+  can_stimulate: boolean;
+  can_eat_cum: boolean;
+  // Strange-only fields (zero/false/null when not a strange jelly)
+  need_level: number;
+  max_need_level: number;
+  need_state: string | null;
+  neglect_level: number;
+  max_neglect_level: number;
+  neglect_state: string | null;
+  bond_escalation_level: number;
+  obsession_level: number;
+  has_bonded_wearer: boolean;
+  bonded_wearer_name: string | null;
+  is_cocooned: boolean;
+  is_bonded_wearer: boolean;
+  can_soothe: boolean;
+  can_tend: boolean;
 };
 
 /** One inventory slot, always present in the data even when empty. */
@@ -38,6 +69,8 @@ type Data = {
   invalid?: boolean;
   wearer_name: string;
   is_self: boolean;
+  /** Mirrors the wearer's `intimate_visual_widgets` pref. Reserved for future paper-doll imagery. */
+  show_visual_widgets: boolean;
   slots: SlotEntry[];
 };
 
@@ -70,11 +103,11 @@ function buildTags(item: ItemData): string {
   return tags.join(', ') || '—';
 }
 
-/** Human-readable label for the bead depth. */
-const BEAD_DEPTH_LABEL: Record<string, string> = {
-  short: 'Short (4 beads)',
-  medium: 'Medium (5 beads)',
-  long: 'Long (6 beads)',
+/** Human-readable label for the bead set size. */
+const BEAD_SET_LABEL: Record<number, string> = {
+  4: 'Short set',
+  5: 'Medium set',
+  6: 'Long set',
 };
 
 // ── Root component ────────────────────────────────────────────────────────────
@@ -150,6 +183,245 @@ const SlotCard = (props: { slot: SlotEntry }) => {
   );
 };
 
+// ── Mini progress bar ────────────────────────────────────────────────────────
+
+/**
+ * Thin inline progress bar built from plain Box elements.
+ * `value` and `max` map to [0, max]; `color` is a CSS colour string.
+ */
+const MiniBar = (props: {
+  value: number;
+  max: number;
+  color: string;
+  label: string;
+  sublabel?: string;
+}) => {
+  const { value, max, color, label, sublabel } = props;
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <Box mb={0.5}>
+      <Stack align="center">
+        <Stack.Item width={7}>
+          <Box color="label" fontSize="0.8em">
+            {label}
+          </Box>
+        </Stack.Item>
+        <Stack.Item grow>
+          {/* Track */}
+          <Box
+            style={{
+              position: 'relative',
+              height: '0.6em',
+              background: 'rgba(255,255,255,0.12)',
+              borderRadius: '3px',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Fill */}
+            <Box
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
+                width: `${pct}%`,
+                background: color,
+                borderRadius: '3px',
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </Box>
+        </Stack.Item>
+        <Stack.Item width={4} style={{ textAlign: 'right' }}>
+          <Box color="label" fontSize="0.8em">
+            {value}/{max}
+            {sublabel ? ` — ${sublabel}` : ''}
+          </Box>
+        </Stack.Item>
+      </Stack>
+    </Box>
+  );
+};
+
+// ── Jelly panel ───────────────────────────────────────────────────────────────
+
+/** Bond escalation colour coding (0–4 scale). */
+const ESCALATION_COLOR: Record<number, string> = {
+  0: '#aaaaaa',
+  1: '#88cc88',
+  2: '#ddcc55',
+  3: '#dd7722',
+  4: '#cc3333',
+};
+
+/**
+ * Expanded interaction panel rendered inside ItemCard when the accessory is an
+ * Eora Jelly. Shows need / neglect bars for strange jellies, slot-swap buttons,
+ * and command buttons (Eat, Stimulate, Soothe / Tend).
+ */
+const JellyPanel = (props: { item: ItemData }) => {
+  const { act } = useBackend<Data>();
+  const { item } = props;
+
+  const escalationColor = ESCALATION_COLOR[item.bond_escalation_level] ?? '#aaaaaa';
+
+  return (
+    <Box mt={1}>
+      <Section title="Jelly Controls" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+        <Stack vertical>
+
+          {/* ── Strange-jelly need / neglect status ── */}
+          {item.is_strange_jelly && (
+            <Stack.Item>
+              <Box bold mb={0.5} color="label" fontSize="0.85em">
+                Status
+              </Box>
+              <MiniBar
+                value={item.need_level}
+                max={item.max_need_level}
+                color="#7799dd"
+                label="Need"
+                sublabel={item.need_state ?? undefined}
+              />
+              <MiniBar
+                value={item.neglect_level}
+                max={item.max_neglect_level}
+                color="#cc6666"
+                label="Neglect"
+                sublabel={item.neglect_state ?? undefined}
+              />
+              {/* Bond escalation indicator */}
+              {item.bond_escalation_level > 0 && (
+                <Box mt={0.5} fontSize="0.8em">
+                  <Box
+                    inline
+                    style={{
+                      background: escalationColor,
+                      color: '#111',
+                      borderRadius: '3px',
+                      padding: '0 4px',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Bond Escalation {item.bond_escalation_level}
+                  </Box>
+                  {item.obsession_level > 0 && (
+                    <Box inline ml={0.5} color="average">
+                      · Obsession {item.obsession_level}
+                    </Box>
+                  )}
+                </Box>
+              )}
+              {/* Bonded wearer info */}
+              {item.has_bonded_wearer && (
+                <Box mt={0.5} color="label" fontSize="0.8em">
+                  Bonded to:{' '}
+                  <Box inline color="good">
+                    {item.bonded_wearer_name ?? 'Unknown'}
+                  </Box>
+                </Box>
+              )}
+              {item.is_cocooned && (
+                <Box mt={0.5} color="bad" italic fontSize="0.85em">
+                  ⚠ Wearer is currently cocooned.
+                </Box>
+              )}
+            </Stack.Item>
+          )}
+
+          {/* ── Slot position ── */}
+          {item.swap_slot_options?.length > 0 && (
+            <Stack.Item mt={item.is_strange_jelly ? 1 : 0}>
+              <Box bold mb={0.5} color="label" fontSize="0.85em">
+                Position — currently in{' '}
+                <Box inline color="good">
+                  {item.current_slot_name}
+                </Box>
+              </Box>
+              <Stack wrap>
+                {item.swap_slot_options.map((opt) => (
+                  <Stack.Item key={opt.slot}>
+                    <Button
+                      color="transparent"
+                      tooltip={`Move the jelly to the ${opt.name} slot.`}
+                      onClick={() =>
+                        act('jelly_swap_slot', { ref: item.ref, slot: opt.slot })
+                      }
+                    >
+                      → {opt.name}
+                    </Button>
+                  </Stack.Item>
+                ))}
+              </Stack>
+            </Stack.Item>
+          )}
+
+          {/* ── Commands ── */}
+          <Stack.Item mt={1}>
+            <Box bold mb={0.5} color="label" fontSize="0.85em">
+              Commands
+            </Box>
+            <Stack wrap>
+              {/* Stimulate — all eora jellies */}
+              <Stack.Item>
+                <Button
+                  color="good"
+                  disabled={!item.can_stimulate}
+                  tooltip={
+                    item.can_stimulate
+                      ? 'Command the jelly to apply a stimulation burst.'
+                      : 'The jelly needs a moment to settle.'
+                  }
+                  onClick={() => act('jelly_stimulate', { ref: item.ref })}
+                >
+                  Stimulate
+                </Button>
+              </Stack.Item>
+              {/* Eat cum — only when in an internal slot */}
+              {item.can_eat_cum && (
+                <Stack.Item>
+                  <Button
+                    color="average"
+                    tooltip="Command the jelly to eagerly consume retained internal fluids."
+                    onClick={() => act('jelly_eat_cum', { ref: item.ref })}
+                  >
+                    Consume Fluids
+                  </Button>
+                </Stack.Item>
+              )}
+              {/* Soothe — bonded wearer only */}
+              {item.is_strange_jelly && item.can_soothe && (
+                <Stack.Item>
+                  <Button
+                    color="pink"
+                    tooltip="Attend to the jelly, reducing its need and neglect."
+                    onClick={() => act('jelly_soothe', { ref: item.ref })}
+                  >
+                    Soothe
+                  </Button>
+                </Stack.Item>
+              )}
+              {/* Tend / Comfort — adjacent non-bonded observer */}
+              {item.is_strange_jelly && item.can_tend && (
+                <Stack.Item>
+                  <Button
+                    color="blue"
+                    tooltip="Gently comfort this jelly, partially easing its needs."
+                    onClick={() => act('jelly_comfort', { ref: item.ref })}
+                  >
+                    Tend Jelly
+                  </Button>
+                </Stack.Item>
+              )}
+            </Stack>
+          </Stack.Item>
+
+        </Stack>
+      </Section>
+    </Box>
+  );
+};
+
 // ── Item card ─────────────────────────────────────────────────────────────────
 
 /** Renders the detail view and action buttons for a visible worn accessory. */
@@ -190,7 +462,7 @@ const ItemCard = (props: { item: ItemData }) => {
             {item.metal}
           </LabeledList.Item>
 
-          {item.has_socket && (
+          {!!item.has_socket && (
             <LabeledList.Item label="Socket">
               <ColorSwatch color={item.gem_color} round />
               {item.socket_desc ?? 'Unknown insert'}
@@ -201,19 +473,21 @@ const ItemCard = (props: { item: ItemData }) => {
             {buildTags(item)}
           </LabeledList.Item>
 
-          {/* Bead depth row + push/pull controls */}
-          {item.is_beads && item.bead_depth && (
-            <LabeledList.Item label="Depth">
+          {/* Bead insertion counter + push/pull controls */}
+          {!!item.is_beads && item.max_beads > 0 && (
+            <LabeledList.Item label="Beads">
               <Stack align="center" wrap>
-                <Stack.Item>{BEAD_DEPTH_LABEL[item.bead_depth] ?? item.bead_depth}</Stack.Item>
+                <Stack.Item>
+                  {item.beads_inserted} / {item.max_beads} inserted ({BEAD_SET_LABEL[item.max_beads] ?? `${item.max_beads} beads`})
+                </Stack.Item>
                 <Stack.Item>
                   <Button
                     color="good"
                     disabled={!item.can_push_beads}
                     tooltip={
                       !item.can_push_beads
-                        ? 'Beads are already at maximum depth.'
-                        : 'Push the beads in one step deeper.'
+                        ? 'All beads are already inserted.'
+                        : 'Push one more bead in.'
                     }
                     onClick={() => act('push_beads', { ref: item.ref })}
                   >
@@ -224,7 +498,7 @@ const ItemCard = (props: { item: ItemData }) => {
                   <Button
                     color="average"
                     disabled={!item.can_pull_beads}
-                    tooltip="Pull the beads out one step. At minimum depth they are removed entirely."
+                    tooltip="Pull one bead out. At the last bead, removes them entirely."
                     onClick={() => act('pull_beads', { ref: item.ref })}
                   >
                     Pull Out
@@ -235,6 +509,13 @@ const ItemCard = (props: { item: ItemData }) => {
           )}
         </LabeledList>
       </Stack.Item>
+
+      {/* Jelly-specific controls rendered below the standard property list */}
+      {!!item.is_eora_jelly && (
+        <Stack.Item>
+          <JellyPanel item={item} />
+        </Stack.Item>
+      )}
     </Stack>
   );
 };

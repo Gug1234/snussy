@@ -42,6 +42,12 @@
 		if(H.mind.current)
 			H.mind.current.faction += "[H.name]_faction"
 		var/weapons = list("Longsword", "Mace", "Flail", "Axe", "Billhook")
+		// Abyssor heretics may wield eldritch trick weapons forged from the deep.
+		if(H.patron?.type == /datum/patron/divine/abyssor)
+			weapons += list("Abyssal Parasite", "Abyssal Arm")
+		// Necran heretics may wield the Gravereaper — a curved blade that unfolds into a scythe.
+		if(H.patron?.type == /datum/patron/divine/necra)
+			weapons += list("Gravereaper")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		switch(weapon_choice)
 			if("Longsword")
@@ -76,6 +82,19 @@
 					r_hand = /obj/item/rogueweapon/spear/psyspear/old
 				else
 					r_hand = /obj/item/rogueweapon/spear/billhook
+			// Abyssor trick weapons — eldritch armaments forged with abyssal sea creatures.
+			if("Abyssal Parasite")
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/kosparasite
+			if("Abyssal Arm")
+				l_hand = /obj/item/rogueweapon/scabbard/gwstrap
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/amygdalanarm
+			// Necra trick weapon — curved blade that unfolds into a reaping scythe.
+			if("Gravereaper")
+				l_hand = /obj/item/rogueweapon/scabbard/gwstrap
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/burialblade
 		var/datum/devotion/C = new /datum/devotion(H, H.patron)
 		C.grant_miracles(H, cleric_tier = CLERIC_T1, passive_gain = CLERIC_REGEN_MINOR, devotion_limit = CLERIC_REQ_4)	//Minor regen, can level up to T4.
 		wretch_select_bounty(H)

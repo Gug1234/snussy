@@ -78,7 +78,7 @@
 
 /datum/outfit/job/roguetown/puritan/inspector/choose_loadout(mob/living/carbon/human/H)
 	. = ..()
-	var/weapons = list("Psydonic Longsword", "Psydonic Rapier", "Daybreak (Whip)", "Stigmata (Halberd)", "Eucharist (Rapier)")
+	var/weapons = list("Psydonic Longsword", "Psydonic Rapier", "Daybreak (Whip)", "Stigmata (Halberd)", "Eucharist (Rapier)", "Threaded Cane (Trick Weapon)", "Reiterpallasch (Trick Weapon)", "Chikage (Trick Weapon)")
 	var/weapon_choice = input(H,"FLOURISH YOUR SILVER.", "WIELD THEM IN HIS NAME.") as anything in weapons
 	switch(weapon_choice)
 		if("Psydonic Longsword")
@@ -99,4 +99,15 @@
 		if("Eucharist (Rapier)")
 			H.put_in_hands(new /obj/item/rogueweapon/sword/rapier/psy/relic(H), TRUE)
 			H.equip_to_slot_or_del(new /obj/item/rogueweapon/scabbard/sword, SLOT_BELT_L, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+		// --- Silver Trick Weapons ---
+		if("Threaded Cane (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/threadedcane(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, 4, TRUE) // Transformed state uses whips
+		if("Reiterpallasch (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/reiterpallasch(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+		if("Chikage (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/chikage(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)

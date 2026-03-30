@@ -70,9 +70,18 @@
 		mannequin.patron = selected_patron
 		preview_subclass.equipme(mannequin, dummy = TRUE)
 
+	// Apply arousal preview state to the mannequin's penis organ so players can
+	// verify genital sprite alignment at different erection levels from the lobby.
+	var/obj/item/organ/penis/preview_penis = mannequin.getorganslot(ORGAN_SLOT_PENIS)
+	if(preview_penis)
+		preview_penis.erect_state = preview_erect_state
+
 	mannequin.regenerate_clothes()
 	mannequin.update_body()
 	mannequin.update_hair()
+	// Redraw bodyparts so features applied after the copy_to() icon pass
+	// (chastity devices, intimate accessories, etc.) are included in the snapshot.
+	mannequin.update_body_parts(redraw = TRUE)
 	mannequin.rebuild_obscured_flags()
 	COMPILE_OVERLAYS(mannequin)
 	parent.show_character_previews(new /mutable_appearance(mannequin))

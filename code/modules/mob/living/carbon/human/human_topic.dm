@@ -29,12 +29,12 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 		if(!ismob(usr) || !ishuman(src))
 			return
 		var/mob/viewer = usr
-		// Silently abort if either party has intimate content disabled.
-		if(viewer.client?.prefs && !viewer.client.prefs.chastenable)
-			to_chat(viewer, span_warning("I have intimate content disabled."))
+		// Silently abort if either party has intimate accessories disabled.
+		if(viewer.client?.prefs && !viewer.client.prefs.intimate_enabled)
+			to_chat(viewer, span_warning("I have intimate accessories disabled."))
 			return
-		if(client?.prefs && !client.prefs.chastenable)
-			to_chat(viewer, span_warning("[src] has intimate content disabled."))
+		if(client?.prefs && !client.prefs.intimate_enabled)
+			to_chat(viewer, span_warning("[src] has intimate accessories disabled."))
 			return
 		open_intimate_menu_for(viewer)
 		return

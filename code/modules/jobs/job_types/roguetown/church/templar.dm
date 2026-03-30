@@ -175,7 +175,7 @@
 			weapons += list("Moonlight Khopesh", "Eclipsum Longsword")
 			weapons -= "Longsword"//Eclipsum Longsword takes priority.
 		if(/datum/patron/divine/necra)
-			weapons += list("Swift End", "Respite")
+			weapons += list("Swift End", "Respite", "Gravereaper")
 			weapons -= list("Flail", "Battle Axe")//First to have two wildly different weapons.
 		if(/datum/patron/divine/pestra)
 			weapons += "Plaguebringer Sickles"
@@ -194,7 +194,7 @@
 			weapons += list("The Heartstring", "Close Caress")
 			weapons -= "Longsword"//Heartstring takes priority.
 		if(/datum/patron/divine/abyssor)
-			weapons += list("Tidecleaver", "Barotrauma")
+			weapons += list("Tidecleaver", "Barotrauma", "Abyssal Parasite", "Abyssal Arm")
 			weapons -= "Battle Axe"//Tidecleaver takes priority.
 	var/weapon_choice = input(H,"Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 	switch(weapon_choice)
@@ -270,6 +270,12 @@
 			H.put_in_hands(new /obj/item/rogueweapon/scabbard/gwstrap(H), FALSE)
 			H.adjust_skillrank(/datum/skill/combat/axes, 1, TRUE)
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
+//Necra trick weapon — a curved blade that unfolds into a reaping scythe.
+		if("Gravereaper")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/burialblade(H), TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/scabbard/gwstrap(H), FALSE)
+			H.adjust_skillrank(/datum/skill/combat/swords, 1, TRUE)
+			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
 		if("Eclipsum Longsword")
 			H.put_in_hands(new /obj/item/rogueweapon/sword/long/holysee_lesser(H), TRUE)
 			H.adjust_skillrank(/datum/skill/combat/swords, 1, TRUE)
@@ -284,6 +290,16 @@
 			H.put_in_hands(new /obj/item/rogueweapon/katar/abyssor(H), TRUE)
 			H.adjust_skillrank(/datum/skill/combat/unarmed, 1, TRUE)
 			ADD_TRAIT(H, TRAIT_CIVILIZEDBARBARIAN, TRAIT_GENERIC)
+			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
+//Abyssor trick weapons — eldritch armaments forged with abyssal sea creatures.
+		if("Abyssal Parasite")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kosparasite(H), TRUE)
+			H.adjust_skillrank(/datum/skill/combat/maces, 1, TRUE)
+			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
+		if("Abyssal Arm")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/amygdalanarm(H), TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/scabbard/gwstrap(H), FALSE)
+			H.adjust_skillrank(/datum/skill/combat/maces, 1, TRUE)
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
 //Unusual loadouts, such as a crossbow.
 		if("Crossbow + Shortsword")

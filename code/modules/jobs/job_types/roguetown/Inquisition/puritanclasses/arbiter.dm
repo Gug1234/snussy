@@ -77,7 +77,7 @@
 
 /datum/outfit/job/roguetown/puritan/arbiter/choose_loadout(mob/living/carbon/human/H)
 	. = ..()//Just as with the stats, this has a mixture of weapon choice between Ordinators and Inspectors. A less-used weapon list.
-	var/weapons = list("Psydonic Broadsword", "Daybreak (Whip)", "Stigmata (Halberd)", "Consecratia (Flail)")
+	var/weapons = list("Psydonic Broadsword", "Daybreak (Whip)", "Stigmata (Halberd)", "Consecratia (Flail)", "Church Pick (Trick Weapon)", "Threaded Cane (Trick Weapon)", "Tonitrus (Trick Weapon)")
 	var/weapon_choice = input(H,"FIND YOUR TRUTHS.", "WIELD THEM IN HIS NAME.") as anything in weapons
 	switch(weapon_choice)
 		if("Psydonic Broadsword")
@@ -94,6 +94,17 @@
 		if("Consecratia (Flail)")
 			H.put_in_hands(new /obj/item/rogueweapon/flail/sflail/psyflail/relic(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, 4, TRUE)
+		// --- Silver Trick Weapons ---
+		if("Church Pick (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/churchpick(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+		if("Threaded Cane (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/threadedcane(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, 4, TRUE) // Transformed state uses whips
+		if("Tonitrus (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/tonitrus(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE)
 	//Now, for their 'sect'. They can either choose a heavy gambeson and +1SPD, or inquisitor coat and +1STR.
 	var/sect = list("Ancient - Gilbranze, Gambesons & Speed", "New Age - Silver, Overcoats & Strength")
 	var/sect_choice = input(H,"FIND YOUR SECT", "WHAT ARE WE?") as anything in sect

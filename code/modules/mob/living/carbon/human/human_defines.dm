@@ -144,6 +144,18 @@
 	var/nsfw_ooc_extra_img_link
 	var/erpprefs = null
 
+	/// When TRUE, genital sprites use taur-specific DMI files instead of defaults.
+	/// Copied from /datum/preferences during copy_to so clientless mannequins can use it.
+	var/use_taur_genital_sprites = FALSE
+	/// Per-genital taur pixel offsets — copied from prefs for mannequin preview support.
+	/// Penis and testicle X offsets are mirrored (negated) when facing west.
+	var/taur_penis_offset_x = 0
+	var/taur_penis_offset_y = 0
+	var/taur_testicles_offset_x = 0
+	var/taur_testicles_offset_y = 0
+	var/taur_vagina_offset_x = 0
+	var/taur_vagina_offset_y = 0
+
 	var/list/img_gallery = list()
 	var/list/nsfw_img_gallery = list()
 

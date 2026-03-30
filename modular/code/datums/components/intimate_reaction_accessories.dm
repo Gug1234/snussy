@@ -9,7 +9,8 @@
  *
  * Produces coverage-aware jingle emotes on movement and private flavor text during sex actions.
  * Multiple piercing components may coexist on the same wearer simultaneously — see COMPONENT_DUPE_ALLOW_ALL.
- * Movement reactions are skipped for mouth-slot piercings since tongue bars produce no audible jingle while walking.
+ * Movement reactions only fire when the parent piercing has emits_movement_sound = TRUE (i.e. bell variants).
+ * Plain bars, studs, hoops, and tongue piercings are silent during movement and never register a movement signal.
  */
 /datum/component/intimate_reaction/piercing
 	dupe_mode = COMPONENT_DUPE_ALLOWED
@@ -25,7 +26,7 @@
 	if(!istype(parent, /obj/item/intimate_accessory/piercing))
 		return COMPONENT_INCOMPATIBLE
 
-/// Binds the component to the wearer, registering movement reactions for non-mouth piercings.
+/// Binds the component to the wearer, registering movement reactions only for bell-style piercings.
 /datum/component/intimate_reaction/piercing/bind_to_wearer(mob/living/carbon/human/H)
 	var/already_bound = (wearer == H)
 	. = ..()
@@ -34,8 +35,9 @@
 	if(already_bound)
 		return TRUE
 	var/obj/item/intimate_accessory/piercing/piercing = parent
-	// Tongue piercings sit inside the mouth and produce no audible jingle during movement.
-	if(piercing.intimate_slot != INTIMATE_SLOT_MOUTH)
+	// Only bell piercings (emits_movement_sound = TRUE) produce an audible visible_message jingle.
+	// Plain bars, studs, hoops, and tongue bars are always silent during movement.
+	if(piercing.emits_movement_sound)
 		register_movement_reaction(H)
 	return TRUE
 
@@ -45,7 +47,7 @@
 	if(!H)
 		return FALSE
 	var/obj/item/intimate_accessory/piercing/piercing = parent
-	if(piercing.intimate_slot != INTIMATE_SLOT_MOUTH)
+	if(piercing.emits_movement_sound)
 		unregister_movement_reaction(H)
 	return ..(H)
 

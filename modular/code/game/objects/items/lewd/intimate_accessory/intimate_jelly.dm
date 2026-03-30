@@ -16,6 +16,10 @@
 	var/max_lactation_progress = 6
 	var/lactation_progress_per_nursing = 1
 	var/nursing_milk_drain = 2
+	/// Timestamp of the last manual stimulation command; 0 = never used.
+	var/last_jelly_stimulate = 0
+	/// Minimum delay between manual stimulation commands (default 2 minutes).
+	var/jelly_stimulate_interval = 2 MINUTES
 
 /obj/item/intimate_accessory/jelly/eora/Initialize()
 	. = ..()
@@ -46,8 +50,10 @@
 			return is_strange_jelly() ? /datum/sprite_accessory/intimate_overlays/slime_boobs/strange : /datum/sprite_accessory/intimate_overlays/slime_boobs
 		if(INTIMATE_SLOT_GENITAL)
 			return is_strange_jelly() ? /datum/sprite_accessory/intimate_overlays/slime_genitals/strange : /datum/sprite_accessory/intimate_overlays/slime_genitals
-		if(INTIMATE_SLOT_MOUTH, INTIMATE_SLOT_REAR)
-			return is_strange_jelly() ? /datum/sprite_accessory/intimate_overlays/slime_tendril_overlay/strange : /datum/sprite_accessory/intimate_overlays/slime_tendril_overlay
+		if(INTIMATE_SLOT_REAR)
+			return is_strange_jelly() ? /datum/sprite_accessory/intimate_overlays/slime_genitals_rear/strange : /datum/sprite_accessory/intimate_overlays/slime_genitals_rear
+		if(INTIMATE_SLOT_MOUTH)
+			return null // mouth slot intentionally has no visual overlay
 	return null
 
 /obj/item/intimate_accessory/jelly/eora/proc/update_visual_accessory_type(slot_override = null)
@@ -198,11 +204,61 @@
 	var/mob/living/carbon/human/inhabitant = null
 	var/obj/item/intimate_accessory/jelly/eora/strange/source_jelly = null
 	var/breakout_time = 60 SECONDS
+	/// How many active-tick cycles have fired since the last inhabitant was inserted.
+	var/tick_count = 0
+	/// Interval between active-tick pulses while an inhabitant is sealed inside (30 s).
+	var/active_tick_interval = 30 SECONDS
+	/// Small arousal bump applied to the inhabitant each active tick.
+	var/cocoon_tick_arousal = 4
 
 /obj/structure/eora_jelly_cocoon/proc/refresh_icon_state()
 	if(source_jelly)
 		icon_state = source_jelly.get_cocoon_icon_state()
 	return icon_state
+
+/**
+ * Launches the cocoon's active-tick loop in a non-blocking spawned context.
+ * The loop fires every active_tick_interval while an inhabitant remains sealed inside.
+ * Called from insert_target() after the inhabitant has been moved into the cocoon.
+ */
+/obj/structure/eora_jelly_cocoon/proc/start_active_tick()
+	tick_count = 0
+	spawn(active_tick_interval)
+		active_tick()
+
+/**
+ * Fires one pulse of cocoon activity, then re-queues itself if an inhabitant is still present.
+ * Each pulse:
+ *   - Broadcasts a flavor message from source_jelly.get_cocoon_action_flavor().
+ *   - Applies a small arousal boost to the inhabitant.
+ *   - Every 2 ticks advances the cocoon cum-stage icon via source_jelly.add_cocoon_cum(1).
+ * Guards against QDELETED source or null/displaced inhabitant before proceeding.
+ */
+/obj/structure/eora_jelly_cocoon/proc/active_tick()
+	// Stop the loop if the cocoon or its data is gone.
+	if(QDELETED(src) || !inhabitant || inhabitant.loc != src || !source_jelly || QDELETED(source_jelly))
+		return
+
+	var/mob/living/carbon/human/H = inhabitant
+	var/obj/item/intimate_accessory/jelly/eora/strange/jelly = source_jelly
+	tick_count++
+
+	// Emit flavor text from the strange jelly's action template bank.
+	var/action_flavor = jelly.get_cocoon_action_flavor(H)
+	if(action_flavor)
+		visible_message(span_love(action_flavor))
+
+	// Apply a small arousal bump to the sealed inhabitant.
+	if(H.sexcon && !H.sexcon.arousal_frozen && H.sexcon.arousal < ACTIVE_EJAC_THRESHOLD)
+		H.sexcon.adjust_arousal(cocoon_tick_arousal)
+
+	// Advance the cum-stage visual every 2 ticks.
+	if(!(tick_count % 2))
+		jelly.add_cocoon_cum(1)
+
+	// Re-queue the next tick.
+	spawn(active_tick_interval)
+		active_tick()
 
 /obj/structure/eora_jelly_cocoon/proc/register_inhabitant_access()
 	if(inhabitant)
@@ -239,6 +295,7 @@
 	register_inhabitant_access()
 	refresh_icon_state()
 	target.forceMove(src)
+	start_active_tick()
 	return TRUE
 
 /obj/structure/eora_jelly_cocoon/proc/dump_inhabitant(destroy_after = TRUE, escaped = FALSE)
@@ -394,6 +451,107 @@
 
 	return did_anything
 
+/**
+ * Commands the jelly to aggressively consume retained internal fluids (3× passive rate).
+ * Only works when the jelly is in an internal slot (genital or rear).
+ * Plays a sound and prints flavor text; silently fails if nothing is available to consume.
+ * Returns TRUE when fluid was actually consumed.
+ */
+/obj/item/intimate_accessory/jelly/eora/proc/jelly_eat_internal_cum(mob/living/carbon/human/H)
+	if(!H || wearer != H || !is_internal_jelly_slot())
+		return FALSE
+	if(!H.sexcon)
+		return FALSE
+	var/amount = internal_cleanup_amount * 3
+	if(!H.sexcon.consume_internal_creampie(H, amount))
+		to_chat(H, span_notice("[src] probes eagerly inside me but finds nothing to consume."))
+		return FALSE
+	to_chat(H, span_love("[src] eagerly drinks down what has been left inside me, each pull sending a faint shiver through my core."))
+	playsound(H, 'sound/misc/mat/pop.ogg', 30, TRUE, ignore_walls = FALSE)
+	return TRUE
+
+/**
+ * Triggers an active stimulation burst from the jelly.
+ * Applies 3× the passive arousal amount and sends slot-appropriate flavor text.
+ * Subject to jelly_stimulate_interval cooldown to prevent spam.
+ * Returns TRUE when stimulation fires successfully.
+ */
+/obj/item/intimate_accessory/jelly/eora/proc/jelly_stimulate_wearer(mob/living/carbon/human/H)
+	if(!H || wearer != H || !H.sexcon)
+		return FALSE
+	if(last_jelly_stimulate && world.time < last_jelly_stimulate + jelly_stimulate_interval)
+		to_chat(H, span_notice("[src] is still settling — give it another moment."))
+		return FALSE
+	last_jelly_stimulate = world.time
+	var/slot = get_effective_intimate_slot()
+	var/flavor_msg
+	switch(slot)
+		if(INTIMATE_SLOT_GENITAL)
+			flavor_msg = "[src] clenches inward with a sudden, muscular contraction — the slime forcing itself deeper, pressing against bruised walls until the ache blooms into something wet and molten."
+		if(INTIMATE_SLOT_REAR)
+			flavor_msg = "[src] worms a thick tendril deeper into my guts, the blunt tip grinding against the inner rim until my legs tremble and my stomach clenches."
+		if(INTIMATE_SLOT_BREAST)
+			flavor_msg = "[src] squeezes tight around my chest, the slime kneading into swollen flesh with a rhythmic, suckling pressure that makes my nipples ache and my breath come short."
+		if(INTIMATE_SLOT_MOUTH)
+			flavor_msg = "[src] forces itself deeper across my tongue, the thick gel pressing against the back of my throat until I gag, saliva pooling hot around the intrusion."
+		else
+			flavor_msg = "[src] shifts against me with a disturbingly precise pressure, the slime finding nerves I didn't know I had."
+	to_chat(H, span_love(flavor_msg))
+	if(!H.sexcon.arousal_frozen && H.sexcon.arousal < ACTIVE_EJAC_THRESHOLD)
+		H.sexcon.adjust_arousal(passive_arousal_amount * 3)
+	return TRUE
+
+/**
+ * Repositions the jelly to a different intimate slot without a full remove/re-equip cycle.
+ * Validates anatomy availability and slot vacancy before committing.
+ * Releases any retained internal creampie before leaving an internal slot.
+ * Detaches and reattaches the bodypart feature so overlays update correctly.
+ * Fires notify_intimate_state_change with reason "jelly_swapped" on success.
+ * Returns TRUE if the swap completed.
+ */
+/obj/item/intimate_accessory/jelly/eora/proc/jelly_swap_to_slot(new_slot, mob/living/carbon/human/H)
+	if(!H || wearer != H)
+		return FALSE
+	var/current_slot = get_effective_intimate_slot()
+	if(current_slot == new_slot)
+		to_chat(H, span_notice("[src] is already positioned there."))
+		return FALSE
+	if(!supports_intimate_slot(new_slot))
+		to_chat(H, span_warning("[src] cannot be placed in that slot."))
+		return FALSE
+	if(!has_slot_anatomy(H, new_slot))
+		to_chat(H, span_warning(get_slot_anatomy_failure_message(H, H, new_slot)))
+		return FALSE
+	if(!is_slot_available(H, new_slot))
+		to_chat(H, span_warning(get_slot_unavailable_message(H, H, new_slot)))
+		return FALSE
+
+	// Release retained internal content before leaving the current internal slot.
+	if(is_internal_jelly_slot() && H.sexcon)
+		H.sexcon.release_retained_internal_creampie(H)
+
+	// Detach the old bodypart feature so it can be rebuilt under the new slot.
+	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
+	if(chest && intimate_feature)
+		chest.remove_bodypart_feature(intimate_feature)
+	intimate_feature = null
+
+	// Repoint all mob slot references and update the jelly's recorded slot.
+	// set_current_intimate_slot on the eora subtype also calls update_visual_accessory_type.
+	clear_worn_slot_refs(H)
+	set_current_intimate_slot(new_slot)
+	set_worn_in_slot(H, src)
+
+	// Reattach the visual overlay feature in the new slot position.
+	attach_intimate_feature(H)
+
+	var/new_slot_name = lowertext(get_intimate_slot_display_name())
+	to_chat(H, span_notice("[src] wriggles and shifts, nestling itself into my [new_slot_name]."))
+	H.visible_message(span_notice("[H]'s [src] ripples, repositioning itself."))
+	playsound(H, 'sound/misc/mat/pop.ogg', 40, TRUE, ignore_walls = FALSE)
+	notify_intimate_state_change(H, "jelly_swapped")
+	return TRUE
+
 /obj/item/intimate_accessory/jelly/eora/strange
 	name = "Strange Eora's Jelly"
 	desc = "A living slime turned a strange pinkish violet by emberwine. It yearns for attention, and seems to remember whoever first wore it. Wearing this might be... interesting..."
@@ -428,16 +586,42 @@
 	var/mob/living/carbon/human/cocooned_wearer = null
 	var/obj/structure/eora_jelly_cocoon/active_cocoon = null
 	var/static/list/cocoon_resist_templates = list(
-		"1" = "The tendrils %FORCE% writhe around %USER% as %THEIR% fists drum uselessly against the cocoon.",
-		"2" = "%USER% %FORCE% bangs %THEIR% head against the cocoon, only for the tendrils to surge deeper down %THEIR% throat.",
-		"3" = "%THEIR_CAP% head rings as the tendrils %FORCE% worm their way into %THEIR% ears.",
-		"4" = "Despite %FORCE% biting down on the tendril, the slime keeps violating %USER%'s throat.",
+		"1" = "The tendrils %FORCE% writhe around %USER% as %THEIR% fists drum uselessly against the inner wall, the slime tightening in response — squeezing the air from %THEIR% lungs.",
+		"2" = "%USER% %FORCE% slams %THEIR% skull against the cocoon wall, but the impact only drives the tendril deeper down %THEIR% throat, the thick gel filling %THEIR% mouth until %THEIR% jaw aches.",
+		"3" = "%THEIR_CAP% head snaps sideways as tendrils %FORCE% bore into %THEIR% ear canals, the wet, invasive pressure making %THEIR% vision swim and %THEIR% stomach heave.",
+		"4" = "Despite %FORCE% clamping %THEIR% jaw shut, the tendril oozes between %USER%'s teeth and forces %THEIR% throat open — the slime pumping rhythmically, gagging %THEIR% into a drooling, retching mess.",
 	)
 	var/static/list/cocoon_action_templates = list(
-		"1" = "The cocoon turns milky as the tendrils %FORCE% pump seed into %TARGET%'s guts.",
-		"2" = "The cocoon's outer walls buckle and bulge as the slime %FORCE% slams through %TARGET%'s insides.",
-		"3" = "A muffled cry spills from within as the tendrils %FORCE% slither deeper into %TARGET%'s body.",
-		"4" = "%TARGET%'s cocoon jerks and ripples as the tendrils %FORCE% work from one end of %THEIR% body to the other.",
+		"1" = "The cocoon goes cloudy with a thick, milky discharge as tendrils %FORCE% pump load after load of viscous seed into %TARGET%'s guts — the belly distending visibly through the translucent walls.",
+		"2" = "The cocoon's outer walls buckle and bulge obscenely as the slime %FORCE% rams through %TARGET%'s insides, the shape of the tendrils visible through the membrane as they churn.",
+		"3" = "A wet, muffled scream spills from within as the tendrils %FORCE% bore deeper into %TARGET%'s body — the cocoon shuddering with each convulsion.",
+		"4" = "%TARGET%'s cocoon jerks and ripples as the tendrils %FORCE% work from both ends simultaneously, the slime filling every cavity until the body inside stops struggling and starts twitching.",
+	)
+	/// Timestamp of the last time an observer used try_comfort_jelly(); 0 = never tended.
+	var/last_tended = 0
+	/// Minimum delay between observer tend actions (default 3 minutes).
+	var/tend_interval = 3 MINUTES
+	/// Timestamp of the last sated-state healing reward; 0 = never fired.
+	var/last_sated_reward = 0
+	/// Minimum gap between sated rewards to prevent spam.
+	var/sated_reward_interval = 5 MINUTES
+	/// Timestamp of the last level-1 ambient insistence message emitted to the bonded wearer.
+	var/last_ambient_message = 0
+	/// Gap between ambient insistence messages at bond level 1+.
+	var/ambient_message_interval = 2 MINUTES
+	/// Ambient messages emitted when bond_escalation_level >= 1 during passive tick.
+	var/static/list/ambient_insistence_templates = list(
+		"1" = "grinds against me from the inside with a slow, kneading pressure — hungry, insistent, like something alive that hasn't been fed.",
+		"2" = "rolls a thick, pulsing wave through my gut that makes my knees soften — it wants something and it's not asking politely.",
+		"3" = "wriggles deeper with a wet, needful persistence, tendrils probing at raw tissue until I can't think about anything else.",
+		"4" = "nudges me from the inside with a warm, throbbing desperation — pressing against bruised walls like it's trying to crawl further in.",
+	)
+	/// Flavor messages shown when the bonded wearer tries to remove a highly-bonded jelly.
+	var/static/list/removal_resist_templates = list(
+		"1" = "clenches down hard, tendrils boring deeper in protest — the slime threading itself into raw flesh until the pain of pulling it free outweighs the want.",
+		"2" = "surges inward with a possessive, crushing grip, flooding heat through every nerve it can reach, refusing to let go.",
+		"3" = "floods my body with a vicious pulse of sensation that makes my vision white out — a last, desperate bid to make me stop reaching for it.",
+		"4" = "drives a ring of clinging tendrils deeper, the slime knotting itself inside me with a wet, determined finality — it has no intention of leaving.",
 	)
 
 /obj/item/intimate_accessory/jelly/eora/strange/Initialize()
@@ -472,6 +656,50 @@
 
 /obj/item/intimate_accessory/jelly/eora/strange/proc/get_cocoon_action_flavor(mob/living/carbon/human/H, datum/sex_controller/acting_sexcon = null)
 	return get_formatted_cocoon_flavor(cocoon_action_templates, H, acting_sexcon)
+
+/**
+ * Returns a random removal-resistance flavor string for use when the jelly fights removal.
+ * The string is prefixed with "[src] " by the caller for readability.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/get_removal_resist_flavor()
+	if(!length(removal_resist_templates))
+		return null
+	return "[src] [removal_resist_templates["[rand(1, length(removal_resist_templates))]"]]"
+
+/**
+ * Emits a mild ambient insistence message to the bonded wearer at bond_escalation_level >= 1.
+ * Gated by ambient_message_interval (2 minutes) to avoid spam.
+ * Returns TRUE when a message was emitted.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/try_emit_ambient_insistence(mob/living/carbon/human/H)
+	if(!H || !matches_bonded_wearer(H))
+		return FALSE
+	if(bond_escalation_level < 1)
+		return FALSE
+	if(last_ambient_message && world.time < last_ambient_message + ambient_message_interval)
+		return FALSE
+	if(!length(ambient_insistence_templates))
+		return FALSE
+	last_ambient_message = world.time
+	to_chat(H, span_notice("[src] [ambient_insistence_templates["[rand(1, length(ambient_insistence_templates))]"]]"))
+	return TRUE
+
+/**
+ * Rewards the bonded wearer with a small brute heal when the jelly is fully sated (need=0, neglect=0).
+ * Fires at most once per sated_reward_interval (5 minutes) to prevent spam.
+ * Returns TRUE when a reward was applied.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/try_apply_sated_reward(mob/living/carbon/human/H)
+	if(!H || !matches_bonded_wearer(H))
+		return FALSE
+	if(need_level || neglect_level)
+		return FALSE
+	if(last_sated_reward && world.time < last_sated_reward + sated_reward_interval)
+		return FALSE
+	last_sated_reward = world.time
+	H.adjustBruteLoss(-1)
+	to_chat(H, span_notice("[src] nestles contentedly, its warmth spreading through me like a quiet balm."))
+	return TRUE
 
 /obj/item/intimate_accessory/jelly/eora/strange/get_item_icon_state()
 	if(has_bonded_wearer())
@@ -614,6 +842,29 @@
 	if(ensure_bonded_wearer_lovefiend(H, TRUE))
 		did_change = TRUE
 	return did_change
+
+/**
+ * Allows an observer (non-bonded player) to partially ease the jelly's needs.
+ * Applies half-strength soothe_needs with reduce_neglect = FALSE — only the bonded
+ * wearer earns neglect reduction. Tracked by last_tended / tend_interval (3 min).
+ * Emits a shared visible message to both the comforter and the bonded wearer.
+ * Returns TRUE when comfort was applied.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/try_comfort_jelly(mob/living/carbon/human/comforter)
+	if(!comforter)
+		return FALSE
+	if(!has_bonded_wearer())
+		return FALSE
+	if(last_tended && world.time < last_tended + tend_interval)
+		to_chat(comforter, span_notice("[src] seems content for now — give it a moment before tending again."))
+		return FALSE
+	last_tended = world.time
+	soothe_needs(need_soothe_amount * 0.5, FALSE)
+	to_chat(comforter, span_notice("I gently tend to [src], easing its restlessness a little."))
+	if(bonded_wearer && !QDELETED(bonded_wearer))
+		to_chat(bonded_wearer, span_notice("Someone nearby tends to [src], and it calms slightly at their touch."))
+	comforter.visible_message(span_notice("[comforter] reaches out and gently tends to [src]."))
+	return TRUE
 
 /obj/item/intimate_accessory/jelly/eora/strange/proc/ensure_bonded_wearer_lovefiend(mob/living/carbon/human/H, sate = FALSE)
 	if(!H || !matches_bonded_wearer(H))
@@ -890,17 +1141,60 @@
 		did_change_state = TRUE
 	if(H && try_apply_neglect_punishment(H))
 		. = TRUE
+
+	// Bond level 1+: emit occasional ambient insistence messages.
+	if(H && bond_escalation_level >= 1 && try_emit_ambient_insistence(H))
+		. = TRUE
+
+	// Bond level 2+: apply a second burst of arousal (doubled passive arousal).
+	if(H && bond_escalation_level >= 2 && H.sexcon && !H.sexcon.arousal_frozen)
+		if(H.sexcon.arousal < ACTIVE_EJAC_THRESHOLD)
+			H.sexcon.adjust_arousal(passive_arousal_amount)
+			. = TRUE
+
 	if(H && try_soothe_needs(H))
 		did_change_state = TRUE
 		. = TRUE
+
+	// Sated reward: heal a point of brute when need and neglect are both zero.
+	if(H && try_apply_sated_reward(H))
+		. = TRUE
+
 	if(H && update_cocoon_state(H))
 		did_change_state = TRUE
 		. = TRUE
 	if(H && did_change_state)
 		notify_intimate_state_change(H, "jelly_passive_state")
 
+/**
+ * Overrides removal to resist when the bonded wearer tries to remove a high-escalation jelly.
+ * At bond level >= 3 and the bonded wearer is conscious, a do_after gate is inserted:
+ *   - Level 3: 10-second delay.
+ *   - Level 4: 20-second delay + nympho stress event on success.
+ * If the do_after fails the proc returns early, aborting removal entirely.
+ * Non-bonded wearers and unconscious/NPC removals bypass resistance entirely.
+ */
 /obj/item/intimate_accessory/jelly/eora/strange/remove_intimate_accessory(mob/living/carbon/human/H)
 	update_needs_state()
+
+	// Resistance only applies to a conscious bonded wearer with an active client.
+	if(H && H.client && H.stat == CONSCIOUS && has_bonded_wearer() && matches_bonded_wearer(H) && bond_escalation_level >= 3)
+		var/resist_flavor = get_removal_resist_flavor()
+		if(resist_flavor)
+			to_chat(H, span_userdanger(resist_flavor))
+
+		var/resist_delay = (bond_escalation_level >= 4) ? 20 SECONDS : 10 SECONDS
+		if(!do_after(H, resist_delay, target = H))
+			to_chat(H, span_notice("[src] clings tightly — I cannot bring myself to pull it free right now."))
+			return  // Abort; the item stays equipped.
+
+		// Re-validate state after sleeping; another proc may have removed it already.
+		if(QDELETED(src) || !H || get_worn_in_slot(H) != src)
+			return
+
+		if(bond_escalation_level >= 4)
+			H.add_stress(/datum/stressevent/vice/nympho)
+
 	if(cocooned)
 		remove_cocoon_from_wearer()
 	if(H && bonded_wearer == H)

@@ -342,7 +342,9 @@ var/forgerites = list("Ritual of Blessed Reforgance")
 				"Dreamreaver Greataxe" = image(icon = 'icons/roguetown/weapons/64.dmi', icon_state = "dreamaxe"),
 				"Harmonious Spear" = image(icon = 'icons/roguetown/weapons/64.dmi', icon_state = "dreamspear"),
 				"Oozing Sword" = image(icon = 'icons/roguetown/weapons/64.dmi', icon_state = "dreamsword"),
-				"Thunderous Trident" = image(icon = 'icons/roguetown/weapons/64.dmi', icon_state = "dreamtri")
+				"Thunderous Trident" = image(icon = 'icons/roguetown/weapons/64.dmi', icon_state = "dreamtri"),
+				"Abyssal Parasite" = image(icon = 'modular/icons/obj/trickweapons/trickweapons.dmi', icon_state = "kosparasite"),
+				"Abyssal Arm" = image(icon = 'modular/icons/obj/trickweapons/trickweapons.dmi', icon_state = "amygdalanarm")
 			)
 
 			var/choice = show_radial_menu(user, src, weapon_options, require_near = TRUE, tooltips = TRUE)
@@ -388,6 +390,12 @@ var/forgerites = list("Ritual of Blessed Reforgance")
 		if("Thunderous Trident")
 			new_weapon = new /obj/item/rogueweapon/spear/dreamscape_trident(user.loc)
 			skill_to_teach = /datum/skill/combat/polearms
+		if("Abyssal Parasite")
+			new_weapon = new /obj/item/rogueweapon/trickweapon/kosparasite(user.loc)
+			skill_to_teach = /datum/skill/combat/maces
+		if("Abyssal Arm")
+			new_weapon = new /obj/item/rogueweapon/trickweapon/amygdalanarm(user.loc)
+			skill_to_teach = /datum/skill/combat/maces
 
 	if(new_weapon)
 		user.put_in_hands(new_weapon)
@@ -1628,6 +1636,16 @@ var/forgerites = list("Ritual of Blessed Reforgance")
 		target.apply_status_effect(/datum/status_effect/debuff/devitalised)
 		if(!HAS_TRAIT(target, TRAIT_OVERTHERETIC))
 			ADD_TRAIT(target, TRAIT_OVERTHERETIC, TRAIT_MIRACLE)
+		// Offer weapon choice — Graggar's Greataxe or the Bloodletter trick weapon
+		var/list/weapon_options = list("Graggar's Greataxe", "Bloodletter")
+		var/weapon_choice = input(target, "CHOOSE YOUR INSTRUMENT OF SLAUGHTER.", "GRAGGAR DEMANDS BLOOD.") as anything in weapon_options
+		if(weapon_choice == "Bloodletter")
+			var/obj/item/old_weapon = target.get_active_held_item()
+			if(old_weapon)
+				qdel(old_weapon)
+			target.put_in_hands(new /obj/item/rogueweapon/trickweapon/bloodletter(target))
+			target.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE)
+			to_chat(target, span_cult("The mace throbs with a heartbeat not your own. Feed it."))
 		spawn(40)
 			to_chat(target, span_cult("Break them."))
 

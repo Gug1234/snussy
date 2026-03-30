@@ -11,6 +11,7 @@
 	grid_height = 32
 	grid_width = 32
 	throw_speed = 0.5
+	dropshrink = 0.35
 	var/intimate_slot = INTIMATE_SLOT_MISC
 	var/intimate_flags = 0
 	var/intimate_metal_name = "steel"
@@ -19,6 +20,10 @@
 	var/socketed_item_type = null
 	var/current_gem_descriptor = null
 	var/gem_value_bonus = 0
+	/// When TRUE this accessory was spawned from round-start preferences.
+	/// Round-start accessories have no sell value until a gem is socketed,
+	/// preventing players from spawning with precious metal jewelry to sell.
+	var/roundstart_equipped = FALSE
 	var/intimate_retains_internal_creampie = FALSE
 	var/intimate_passive_insertable_effect = FALSE
 	var/list/supported_intimate_slots = null
@@ -224,13 +229,13 @@
 	return !isnull(sprite_acc)
 
 /obj/item/intimate_accessory/proc/passes_access_checks(mob/living/carbon/human/H, mob/user, slot_override = null, silent = FALSE)
-	if(H?.client?.prefs && !H.client.prefs.chastenable)
+	if(H?.client?.prefs && !H.client.prefs.intimate_enabled)
 		if(!silent)
-			to_chat(user, span_warning("[H] has chastity/intimate content disabled."))
+			to_chat(user, span_warning("[H] has intimate accessories disabled."))
 		return FALSE
-	if(user?.client?.prefs && !user.client.prefs.chastenable)
+	if(user?.client?.prefs && !user.client.prefs.intimate_enabled)
 		if(!silent)
-			to_chat(user, span_warning("I have chastity/intimate content disabled."))
+			to_chat(user, span_warning("I have intimate accessories disabled."))
 		return FALSE
 
 	var/effective_slot = get_effective_intimate_slot(slot_override)

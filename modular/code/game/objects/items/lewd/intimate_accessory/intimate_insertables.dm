@@ -169,7 +169,8 @@
 	return ..()
 
 /obj/item/intimate_accessory/rear/plug/proc/update_sellprice()
-	sellprice = max(1, base_sellprice + gem_value_bonus)
+	var/effective_base = roundstart_equipped ? 0 : base_sellprice
+	sellprice = max(1, effective_base + gem_value_bonus)
 
 /obj/item/intimate_accessory/rear/plug/proc/update_item_visuals()
 	cut_overlays()
@@ -472,11 +473,42 @@
 	zizite_desc = "A string of anal beads threaded with fixed zcross beadwork and morbid accents. It carries the Dame of Progress's spite bead by bead."
 	blue_pearled_desc = "A string of living dreamfiend eyes where once there were anal beads, warped by a blue pearl. Ahh, Abyssor, or some say Great Tide... Do you hear our dreams? As you once did for the everlurking Leviathan, Grant us eyes, grant us eyes. Shove eyes in our stomachs, to purify our rotfested lux..."
 	bead_count = "short"
+	/// How many individual beads are currently inserted. 0 = none inserted (not worn or just equipped).
+	var/beads_inserted = 0
 
 /obj/item/intimate_accessory/rear/plug/analbeads/proc/get_bead_length()
 	if(bead_count == "medium" || bead_count == "long")
 		return bead_count
 	return "short"
+
+/// Returns the maximum number of individual beads on this set. Short = 4, medium = 5, long = 6.
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/get_max_beads()
+	switch(bead_count)
+		if("long")
+			return 6
+		if("medium")
+			return 5
+	return 4
+
+/obj/item/intimate_accessory/rear/plug/analbeads/finalize_intimate_equip(mob/living/carbon/human/H)
+	. = ..()
+	// Start with one bead inserted when first equipped.
+	if(beads_inserted <= 0)
+		beads_inserted = 1
+
+/// Applies arousal gain proportional to beads_inserted when removed, then resets count.
+/// Plays a staggered pop sound for each bead pulled out.
+/obj/item/intimate_accessory/rear/plug/analbeads/remove_intimate_accessory(mob/living/carbon/human/H)
+	if(H && beads_inserted > 0)
+		// Staggered pop sounds — one per bead, 3ds apart.
+		for(var/i in 1 to beads_inserted)
+			addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(playsound), H, 'sound/misc/mat/pop.ogg', 45, TRUE, 0, null, null, null, FALSE, FALSE), (i - 1) * 3)
+		// Arousal gain scales with how many beads were inside.
+		if(H.sexcon && !H.sexcon.arousal_frozen)
+			var/arousal_gain = beads_inserted * 3
+			H.sexcon.adjust_arousal(arousal_gain)
+	beads_inserted = 0
+	return ..(H)
 
 /obj/item/intimate_accessory/rear/plug/analbeads/update_item_visuals()
 	cut_overlays()

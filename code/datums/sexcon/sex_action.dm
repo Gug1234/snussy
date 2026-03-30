@@ -45,6 +45,11 @@
 /datum/sex_action/proc/is_finished(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	return FALSE
 
+/// Returns the display name for the action, optionally player-specific.
+/// Override in custom action slots to pull the name from player preferences.
+/datum/sex_action/proc/get_display_name(mob/living/carbon/human/user)
+	return name
+
 /datum/sex_action/proc/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	return TRUE
 
