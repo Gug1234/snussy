@@ -136,6 +136,7 @@
 	var/ooc_extra_img_link
 	var/rumour = null
 	var/noble_gossip = null
+	var/has_gnoll_scent_this_round = FALSE
 	var/song_title
 	var/song_artist
 	var/received_resident_key = FALSE
