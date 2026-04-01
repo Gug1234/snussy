@@ -11,10 +11,14 @@
 		var/mob/living/L = user
 		perception_level = L.STAPER
 
+	// If the wearer has show_intimate_examine disabled, high-perception through-clothes detection
+	// is suppressed — only physically exposed accessories are shown.
+	var/wearer_allows_intimate = !client?.prefs || client.prefs.show_intimate_examine
+
 	var/obj/item/chastity/worn_chastity = chastity_device
 	if(worn_chastity)
 		var/cage_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)
-		if(cage_exposed || (user != src && perception_level >= 15))
+		if(cage_exposed || (wearer_allows_intimate && user != src && perception_level >= 15))
 			if(perception_level >= 15)
 				var/chastity_msg = cage_exposed ? "[m1] secured in a [worn_chastity.name]." : "[m1] wearing a chastity device under [m2] clothes."
 				lines += span_aiprivradio(chastity_msg)
@@ -26,7 +30,7 @@
 	var/obj/item/intimate_accessory/rear/plug/worn_plug = intimate_rear
 	if(worn_plug)
 		var/plug_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)
-		if(plug_exposed || (user != src && perception_level >= 15))
+		if(plug_exposed || (wearer_allows_intimate && user != src && perception_level >= 15))
 			if(perception_level >= 15)
 				var/plug_msg = plug_exposed ? "[m1] wearing a [worn_plug.name]." : "[m1] wearing a buttplug under [m2] clothes."
 				lines += span_aiprivradio(plug_msg)
@@ -38,7 +42,7 @@
 	var/obj/item/intimate_accessory/piercing/breast/worn_breast_piercing = intimate_breast
 	if(worn_breast_piercing)
 		var/piercing_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_CHEST)
-		if(piercing_exposed || (user != src && perception_level >= 15))
+		if(piercing_exposed || (wearer_allows_intimate && user != src && perception_level >= 15))
 			if(perception_level >= 15)
 				var/piercing_msg = piercing_exposed ? "[m1] wearing [worn_breast_piercing.name]." : "[m1] wearing nipple piercings under [m2] clothes."
 				lines += span_aiprivradio(piercing_msg)
@@ -50,7 +54,7 @@
 	// Genital slot — could be a plug OR a piercing; use istype to avoid double display.
 	if(intimate_genital)
 		var/genital_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)
-		if(genital_exposed || (user != src && perception_level >= 15))
+		if(genital_exposed || (wearer_allows_intimate && user != src && perception_level >= 15))
 			if(istype(intimate_genital, /obj/item/intimate_accessory/genital/plug))
 				var/obj/item/intimate_accessory/genital/plug/worn_genital_plug = intimate_genital
 				if(perception_level >= 15)

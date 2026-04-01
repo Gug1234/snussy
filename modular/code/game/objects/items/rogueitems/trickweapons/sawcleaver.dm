@@ -114,6 +114,7 @@
 	name = "saw cleaver"
 	desc = "One of the trick weapons of the Artificer's Guild, commonly issued to hunters tasked with culling deadites and werewolves beyond the walls. This saw, effective at slicing through Rot-hardened flesh, transforms into a long cleaver that makes use of centrifugal force."
 	icon_state = "sawcleaver"
+	serrated = TRUE
 	item_state = "sawcleaver"
 	force = 22
 	force_wielded = 25
@@ -133,6 +134,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/sawcleaver/transform_open.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/sawcleaver/transform_close.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 40

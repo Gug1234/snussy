@@ -151,6 +151,8 @@
 	swingsound = BLADEWOOSH_SMALL
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/threadedcane/whip_crack1.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/threadedcane/whip_crack2.ogg'
 	throwforce = 8
 	thrown_bclass = BCLASS_CUT
 	sellprice = 45
@@ -161,6 +163,7 @@
 	transformed_desc = "The threaded cane, now unraveled into its whip form. Segmented blades lash outward in sweeping arcs, flaying Rot-bloated flesh at a distance no sword could reach."
 	transformed_icon_state = "threadedcane_t"
 	transformed_item_state = "threadedcane_t"
+	transformed_serrated = TRUE // Whip form's segmented blades rend beast flesh; base cane form does not
 	transformed_force = 19
 	transformed_force_wielded = 0
 	transformed_intents = list(/datum/intent/threadedcane/whipslash, /datum/intent/threadedcane/whipthrust)

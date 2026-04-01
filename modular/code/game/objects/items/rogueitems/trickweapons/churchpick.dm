@@ -158,6 +158,7 @@
 	desc = "A trick weapon commissioned by the Otavan Inquisition for its Ordinators. In its compact form, it serves as a sturdy broadsword suited to general combat. When transformed, the blade folds outward into a savage warpick designed to puncture deadite hides and Rot-hardened bone."
 	icon_state = "churchpick"
 	item_state = "churchpick"
+	transformed_serrated = TRUE // Warpick form rends beast flesh; base sword form does not
 	force = 22
 	force_wielded = 26
 	possible_item_intents = list(/datum/intent/churchpick/quickthrust, /datum/intent/churchpick/horizsweep, /datum/intent/churchpick/forcethrust)
@@ -176,6 +177,7 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/churchpick/pick_iron.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 50

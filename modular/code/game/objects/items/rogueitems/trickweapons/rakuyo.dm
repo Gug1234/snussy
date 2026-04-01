@@ -148,6 +148,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/rakuyo/transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/rakuyo/transform_grab.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 55

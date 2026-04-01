@@ -149,6 +149,7 @@
 	name = "saw spear"
 	desc = "A trick weapon of the Artificer's Guild, designed for versatile engagement against the Rot. In its compact form it functions as a quick serrated blade. Extended, it becomes a fearsome barbed spear capable of impaling deadites from a safe distance."
 	icon_state = "sawspear"
+	serrated = TRUE
 	item_state = "sawspear"
 	force = 21
 	force_wielded = 24
@@ -168,6 +169,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/sawspear/transform_open.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/sawspear/transform_close.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_STAB
 	sellprice = 40

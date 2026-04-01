@@ -157,6 +157,7 @@
 	name = "whirligig saw"
 	desc = "A trick weapon devised by the heretical artificers of an age past. In its dormant form, a heavy mace-like bludgeon with a large serrated disc at its head. When activated, the disc spins at tremendous speed, grinding through Rot-bloated flesh and deadite bone like a millstone through grain. Affectionately dubbed the 'pizza cutter' by those with a dark sense of humor."
 	icon_state = "whirligigsaw"
+	transformed_serrated = TRUE // Only serrated when the saw disc is spinning
 	item_state = "whirligigsaw"
 	force = 22
 	force_wielded = 26
@@ -176,6 +177,7 @@
 	swingsound = BLUNTWOOSH_MED
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/whirligigsaw/saw_spin_loop_start.ogg'
 	throwforce = 12
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 55

@@ -38,7 +38,7 @@
 /// Strong overhand swipe â€” deliberate windup, heavier hit.
 /datum/intent/beastclaw/overhand
 	name = "overhand rake"
-	icon_state = "insmash"
+	icon_state = "inrake"
 	attack_verb = list("rakes", "tears")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
@@ -53,7 +53,7 @@
 /// Charged uppercut â€” extended windup, heavy damage.
 /datum/intent/beastclaw/uppercut
 	name = "savage uppercut"
-	icon_state = "inrend"
+	icon_state = "insavage"
 	attack_verb = list("uppercuts", "gashes")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -71,7 +71,7 @@
 /// Rapid alternating dual swipe â€” both claws from left and right.
 /datum/intent/beastclaw/dualswipe
 	name = "dual swipe"
-	icon_state = "incut"
+	icon_state = "inclaw"
 	attack_verb = list("swipes", "rakes", "slashes")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -86,7 +86,7 @@
 /// Left-hand overhead slam â€” raised and brought down hard.
 /datum/intent/beastclaw/dualoverhand
 	name = "feral slam"
-	icon_state = "insmash"
+	icon_state = "inslam"
 	attack_verb = list("slams", "mauls", "batters")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
@@ -116,7 +116,7 @@
 /// Massive charged ground slam â€” both claws overhead, slammed into the earth.
 /datum/intent/beastclaw/groundslam
 	name = "ground slam"
-	icon_state = "insmash"
+	icon_state = "inslam"
 	attack_verb = list("slams", "pounds", "crushes")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
@@ -164,6 +164,7 @@
 	swingsound = BLADEWOOSH_SMALL
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/beastclaws/claw_double.ogg'
 	throwforce = 6
 	thrown_bclass = BCLASS_CUT
 	smeltresult = /obj/item/ingot/iron

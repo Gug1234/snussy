@@ -166,6 +166,7 @@
 	swingsound = list('sound/combat/wooshes/punch/punchwoosh (1).ogg', 'sound/combat/wooshes/punch/punchwoosh (2).ogg', 'sound/combat/wooshes/punch/punchwoosh (3).ogg')
 	parrysound = list('sound/combat/parry/pugilism/unarmparry (1).ogg', 'sound/combat/parry/pugilism/unarmparry (2).ogg', 'sound/combat/parry/pugilism/unarmparry (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/stakedriver/combo1.ogg'
 	throwforce = 8
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 55

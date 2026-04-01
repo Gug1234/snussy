@@ -157,6 +157,7 @@
 	swingsound = BLADEWOOSH_HUGE
 	parrysound = list('sound/combat/parry/bladed/bladedlarge (1).ogg', 'sound/combat/parry/bladed/bladedlarge (2).ogg', 'sound/combat/parry/bladed/bladedlarge (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/holycomet/activate.ogg'
 	bigboy = TRUE
 	pixel_y = -16
 	pixel_x = -16

@@ -73,6 +73,24 @@
 	/// Weight class when transformed.
 	var/transformed_w_class
 
+	// --- Transformation sound vars ---
+	/// Sound played when transforming from base to transformed state.
+	/// Override in subtypes with weapon-specific sounds from modular/sounds/trickweapons/.
+	var/transform_sound = 'sound/combat/clash_draw.ogg'
+	/// Sound played when reverting from transformed back to base state.
+	/// If null, falls back to transform_sound.
+	var/untransform_sound
+
+	// --- Serrated damage system vars ---
+	/// Whether this weapon currently has a serrated edge that deals bonus damage to beasts and anthromorphs.
+	var/serrated = FALSE
+	/// Bonus damage multiplier applied to force_dynamic against qualifying targets. 0.2 = 20% extra.
+	var/serrated_bonus = 0.2
+	/// Cached base form serrated state (populated on Initialize from initial serrated value).
+	var/base_serrated
+	/// Serrated state when transformed. Null = same as base. Set explicitly for per-form toggling.
+	var/transformed_serrated
+
 	// --- Firearm hybrid system vars (for gun-weapons like Reiterpallasch, Rifle Spear) ---
 	/// The ammo type this weapon consumes for shot intents. Null = no shot capability.
 	var/shot_ammo_type
@@ -125,6 +143,15 @@
 	base_sharpness = sharpness
 	base_w_class = w_class
 
+	// Cache the initial serrated state as the base form value
+	base_serrated = serrated
+	// If transformed_serrated was never set, default it to match base
+	if(isnull(transformed_serrated))
+		transformed_serrated = serrated
+
+	// Register serrated bonus signal if this weapon starts serrated
+	update_serrated_signal()
+
 /**
  * Core transformation proc. Ungrips if needed, swaps all state vars
  * between base and transformed, updates visuals, and refreshes intents.
@@ -145,7 +172,8 @@
 	update_icon()
 	update_force_dynamic()
 	wdefense_dynamic = wdefense
-	playsound(loc, 'sound/combat/clash_draw.ogg', 100, TRUE)
+	var/active_sound = transformed ? transform_sound : (untransform_sound || transform_sound)
+	playsound(loc, active_sound, 100, TRUE)
 	to_chat(user, span_notice("I transform [src]."))
 	if(user.get_active_held_item() == src)
 		user.update_a_intents()
@@ -170,6 +198,8 @@
 	associated_skill = transformed_associated_skill
 	sharpness = transformed_sharpness
 	w_class = transformed_w_class
+	serrated = transformed_serrated
+	update_serrated_signal()
 
 /// Restores the base state's vars to the weapon.
 /obj/item/rogueweapon/trickweapon/proc/apply_base_state()
@@ -190,6 +220,8 @@
 	associated_skill = base_associated_skill
 	sharpness = base_sharpness
 	w_class = base_w_class
+	serrated = base_serrated
+	update_serrated_signal()
 
 // ===================== FIREARM HYBRID SYSTEM =====================
 // For gun-weapons (Reiterpallasch, Rifle Spear) that have shot intents
@@ -288,4 +320,101 @@
 	if(L.get_active_held_item() != src)
 		return
 	transform_weapon(L)
+
+// ===================== SERRATED DAMAGE SYSTEM =====================
+// Serrated trick weapons deal bonus brute damage against beasts and
+// beast-adjacent species. Full bonus vs animals, monsters, werewolves,
+// wildkin, lupians, venardines, and wildshape forms. Half bonus vs
+// halfkin, lamia, and harpies who have partial beast heritage.
+//
+// The bonus is applied via COMSIG_ITEM_ATTACK_SUCCESS, which fires
+// after defense checks pass but before attacked_by deals base damage.
+// This keeps the serrated logic decoupled from the core attack flow.
+
+/// Static list of species IDs that receive FULL serrated bonus damage.
+/// Includes beast-kin, anthromorphs, werewolves, and druidic wildshapes.
+GLOBAL_LIST_INIT(serrated_full_species, list(
+	"werewolf",
+	"anthromorph",
+	"anthromorphsmall",
+	"lupian",
+	"vulpkanin",
+	"shapebear",
+	"shapewolf",
+	"shapecat",
+	"shapefox",
+	"shapecabbit",
+	"shapespider",
+	"shapesaiga",
+))
+
+/// Static list of species IDs that receive HALF serrated bonus damage.
+/// These species have partial beast heritage but are more humanoid.
+GLOBAL_LIST_INIT(serrated_half_species, list(
+	"demihuman",
+	"lamia",
+	"harpy",
+))
+
+/**
+ * Returns the serrated damage multiplier for the given target.
+ * 1.0 = full bonus (beasts, anthromorphs, wildshapes)
+ * 0.5 = half bonus (halfkin, lamia, harpies)
+ * 0   = no bonus (humanoids, undead, etc.)
+ *
+ * Checks mob_biotypes first (MOB_BEAST for simple animals/monsters),
+ * then falls back to species ID for carbon humanoids.
+ */
+/obj/item/rogueweapon/trickweapon/proc/get_serrated_multiplier(mob/living/target)
+	// Simple animals and monsters with MOB_BEAST biotype get full bonus
+	if(target.mob_biotypes & MOB_BEAST)
+		return 1
+
+	// Check species ID for humanoid carbon mobs
+	if(ishuman(target))
+		var/mob/living/carbon/human/H = target
+		if(H.dna?.species)
+			var/species_id = H.dna.species.id
+			if(species_id in GLOB.serrated_full_species)
+				return 1
+			if(species_id in GLOB.serrated_half_species)
+				return 0.5
+
+	return 0
+
+/**
+ * Registers or unregisters the serrated bonus signal handler based on
+ * the current value of `serrated`. Called during Initialize and on
+ * each form swap to keep the signal in sync with the active form.
+ */
+/obj/item/rogueweapon/trickweapon/proc/update_serrated_signal()
+	UnregisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS)
+	if(serrated)
+		RegisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS, PROC_REF(apply_serrated_bonus))
+
+/**
+ * Signal handler for COMSIG_ITEM_ATTACK_SUCCESS.
+ * Applies bonus serrated brute damage to qualifying beast targets
+ * after defense checks have passed. The bonus bypasses armor —
+ * serrated edges are designed to rip through hide and flesh.
+ */
+/obj/item/rogueweapon/trickweapon/proc/apply_serrated_bonus(datum/source, mob/living/target, mob/living/user)
+	SIGNAL_HANDLER
+	if(!isliving(target))
+		return
+	var/multiplier = get_serrated_multiplier(target)
+	if(!multiplier)
+		return
+	var/bonus = round(force_dynamic * serrated_bonus * multiplier)
+	if(bonus <= 0)
+		return
+	target.apply_damage(bonus, BRUTE)
+
+/**
+ * Appends serrated examine text when the weapon is inspected.
+ */
+/obj/item/rogueweapon/trickweapon/examine(mob/user)
+	. = ..()
+	if(serrated)
+		. += span_warning("Its serrated edge is designed to rend beast flesh.")
 

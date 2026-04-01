@@ -75,7 +75,7 @@
 /// Amygdalan Arm transformed - tentacle lash. Fast whip-like strike at range.
 /datum/intent/amygdala/lash
 	name = "tentacle lash"
-	icon_state = "incut"
+	icon_state = "inlash"
 	attack_verb = list("lashes", "whips")
 	animname = "cut"
 	blade_class = BCLASS_LASHING
@@ -90,7 +90,7 @@
 /// Amygdalan Arm transformed - extended sweep. Wide arc at range 2.
 /datum/intent/amygdala/tendsweep
 	name = "extended sweep"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("sweeps", "swipes")
 	animname = "cut"
 	blade_class = BCLASS_BLUNT
@@ -126,7 +126,7 @@
 /// Amygdalan Arm transformed - eldritch slam. Heavy charged ground pound at range.
 /datum/intent/amygdala/eldritchslam
 	name = "eldritch slam"
-	icon_state = "incrush"
+	icon_state = "inslam"
 	attack_verb = list("slams", "pounds")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
@@ -173,6 +173,8 @@
 	swingsound = BLUNTWOOSH_MED
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/amygdalanarm/flesh_impact1.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/amygdalanarm/flesh_impact2.ogg'
 	throwforce = 12
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 55

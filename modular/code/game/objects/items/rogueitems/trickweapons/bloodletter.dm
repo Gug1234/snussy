@@ -171,6 +171,8 @@
 	swingsound = BLADEWOOSH_SMALL
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/bloodletter/blood_combo1.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/bloodletter/blood_combo2.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_BLUNT
 	smeltresult = /obj/item/ingot/iron

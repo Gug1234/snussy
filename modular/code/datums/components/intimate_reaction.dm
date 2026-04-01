@@ -580,9 +580,13 @@
 	else
 		to_chat(source, span_boldwarning(message))
 
+	// When the wearer has show_intimate_examine disabled, suppress visible_message calls
+	// so nearby players don't see chastity pain reactions. The wearer still gets to_chat above.
+	var/show_reactions = !source.client?.prefs || source.client.prefs.show_intimate_examine
+
 	if(pain_amt >= PAIN_HIGH_EFFECT)
 		source.flash_fullscreen("redflash3")
-		if(prob(70))
+		if(show_reactions && prob(70))
 			if(devout_spiked)
 				source.visible_message(span_notice("[source] goes very still, jaw set, as the chastity spikes bite deep — enduring it with deliberate composure."))
 			else if(masochist_spiked)
@@ -593,7 +597,7 @@
 
 	if(pain_amt >= PAIN_MED_EFFECT)
 		source.flash_fullscreen("redflash2")
-		if(prob(50))
+		if(show_reactions && prob(50))
 			if(devout_spiked)
 				source.visible_message(span_notice("[source] breathes carefully through the bite of the chastity spikes, expression drawn but steady."))
 			else if(masochist_spiked)
@@ -603,7 +607,7 @@
 		return TRUE
 
 	source.flash_fullscreen("redflash1")
-	if(prob(30))
+	if(show_reactions && prob(30))
 		if(devout_spiked)
 			source.visible_message(span_notice("[source] shifts slightly as the chastity spikes catch, then stills themselves with quiet deliberateness."))
 		else if(masochist_spiked)
@@ -647,6 +651,9 @@
 		return TRUE
 
 	last_movement_message_time = world.time
+	// When the wearer has show_intimate_examine disabled, suppress movement visible_messages.
+	if(source.client?.prefs && !source.client.prefs.show_intimate_examine)
+		return TRUE
 	// All jingle banks (visible and all covered variants) produce messages beginning with "'s",
 	// so they are concatenated directly onto the name without a separating space.
 	// Pain and struggle messages begin with a verb and need the leading space.

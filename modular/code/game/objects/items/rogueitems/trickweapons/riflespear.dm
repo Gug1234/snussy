@@ -170,6 +170,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/generic/iron_cut_iron1.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/generic/iron_cut_iron2.ogg'
 	throwforce = 15
 	thrown_bclass = BCLASS_STAB
 	anvilrepair = /datum/skill/craft/weaponsmithing

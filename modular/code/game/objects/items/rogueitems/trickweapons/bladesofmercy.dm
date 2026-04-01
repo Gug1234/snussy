@@ -4,7 +4,7 @@
 /// Quick and consistent with minimal stamina cost.
 /datum/intent/mercy/horizslash
 	name = "horizontal slash"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -50,7 +50,7 @@
 /// Drags the blade behind, then brings it up in a devastating uppercut.
 /datum/intent/mercy/chargeduppercut
 	name = "charged uppercut"
-	icon_state = "inchop"
+	icon_state = "inuppercut"
 	attack_verb = list("uppercuts", "rips upward into")
 	animname = "chop"
 	blade_class = BCLASS_CUT
@@ -68,7 +68,7 @@
 /// extremely fast. Speeds up dramatically after the first few hits.
 /datum/intent/mercy/flurry
 	name = "flurry"
-	icon_state = "incut"
+	icon_state = "influrry"
 	attack_verb = list("slashes with both blades", "flurries into", "rakes with twin daggers")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -116,7 +116,7 @@
 /// Well-suited as a finisher after an R1 flurry, creating distance.
 /datum/intent/mercy/scissorslash
 	name = "scissor slash"
-	icon_state = "incrush"
+	icon_state = "inslash"
 	attack_verb = list("scissor-slashes", "carves an X into")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
@@ -159,6 +159,8 @@
 	swingsound = BLADEWOOSH_SMALL
 	parrysound = list('sound/combat/parry/bladed/bladedsmall (1).ogg', 'sound/combat/parry/bladed/bladedsmall (2).ogg', 'sound/combat/parry/bladed/bladedsmall (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/bladesofmercy/transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/bladesofmercy/unfold.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 50

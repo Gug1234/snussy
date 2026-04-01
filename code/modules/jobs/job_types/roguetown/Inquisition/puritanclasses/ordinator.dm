@@ -104,11 +104,11 @@
 			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, 5, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/shields, 4, TRUE)
 		// --- Silver Trick Weapons ---
-		if("Kirkhammer (Trick Weapon)")
+		if("Psydonic Hammer (Trick Weapon)")
 			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kirkhammer(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 5, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE) // Transformed state uses maces
-		if("Ludwig's Holy Blade (Trick Weapon)")
+		if("Pontifex's Holy Blade (Trick Weapon)")
 			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/ludwigblade(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 5, TRUE)
 		if("Tonitrus (Trick Weapon)")

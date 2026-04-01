@@ -3,7 +3,7 @@
 /// Beast Cutter base - downward slash. R1 combo starter, overhead chop.
 /datum/intent/beastcutter/downslash
 	name = "downward slash"
-	icon_state = "inchop"
+	icon_state = "inslash"
 	attack_verb = list("slashes", "chops")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
@@ -17,7 +17,7 @@
 /// Beast Cutter base - horizontal sweep. R2 backhand sweep from behind.
 /datum/intent/beastcutter/horizsweep
 	name = "horizontal sweep"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("sweeps", "swings")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -62,7 +62,7 @@
 /// Beast Cutter transformed - chain sweep. R1 slow horizontal whip swings, reach 2.
 /datum/intent/beastcutter/chainsweep
 	name = "chain sweep"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("sweeps", "lashes")
 	animname = "cut"
 	blade_class = BCLASS_LASHING
@@ -92,7 +92,7 @@
 /// Beast Cutter transformed - chain slam. R2 downward chain smash extending outward.
 /datum/intent/beastcutter/chainslam
 	name = "chain slam"
-	icon_state = "insmash"
+	icon_state = "inslam"
 	attack_verb = list("slams", "crashes")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
@@ -133,6 +133,8 @@
 	desc = "A trick weapon forged in a distant Zybantine workshop, designed for hunting werewolves and Rot-touched abominations. In its compact form, a heavy serrated cleaver with formidable weight behind each swing. When extended, the blade segments separate and unfurl into a long, flexible whip-sword capable of lashing out across great distances. Designed to topple creatures too large and savage to approach safely."
 	icon_state = "beastcutter"
 	item_state = "beastcutter"
+	serrated = TRUE // Serrated cleaver in both forms
+	transformed_serrated = TRUE
 	force = 23
 	force_wielded = 27
 	possible_item_intents = list(/datum/intent/beastcutter/downslash, /datum/intent/beastcutter/horizsweep, /datum/intent/beastcutter/jab)
@@ -151,6 +153,8 @@
 	swingsound = BLUNTWOOSH_MED
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/beastcutter/chain1.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/beastcutter/chain2.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 50

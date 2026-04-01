@@ -155,6 +155,8 @@
 	swingsound = BLUNTWOOSH_SMALL
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
+	transform_sound = 'modular/sounds/trickweapons/kosparasite/flesh_impact1.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/kosparasite/flesh_impact2.ogg'
 	throwforce = 6
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 50
