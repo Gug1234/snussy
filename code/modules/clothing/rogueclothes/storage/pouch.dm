@@ -97,6 +97,45 @@
 
 /obj/item/storage/belt/rogue/pouch/treasure/PopulateContents()
 	new /obj/effect/spawner/lootdrop/mobtreasure(src)
+	new /obj/item/reagent_containers/food/snacks/rogue/crackerscooked(src)
+
+/obj/item/storage/belt/rogue/pouch/healing
+
+/obj/item/storage/belt/rogue/pouch/healing/PopulateContents()
+	new /obj/item/reagent_containers/glass/bottle/alchemical/healthpot(src)
+	new /obj/item/reagent_containers/glass/bottle/alchemical/healthpot(src)
+	new /obj/item/needle(src)
+
+/obj/item/storage/belt/rogue/pouch/alchemy
+
+/obj/item/storage/belt/rogue/pouch/alchemy/PopulateContents()
+	new /obj/item/reagent_containers/glass/bottle/alchemical(src)
+	new /obj/item/reagent_containers/glass/bottle/alchemical(src)
+	new /obj/item/reagent_containers/glass/bottle/alchemical(src)
+	new /obj/item/needle(src)
+
+/obj/item/storage/belt/rogue/pouch/zigarrete
+	name = "zig box"
+	desc = "Used to hold someone's zigs and flints."
+	icon_state = "smokebox"
+	item_state = "smokebox"
+	component_type = /datum/component/storage/concrete/grid/zigbox
+
+/obj/item/storage/belt/rogue/pouch/zigarrete/nicotine/PopulateContents()
+	new /obj/item/clothing/mask/cigarette/rollie/nicotine(src)
+	new /obj/item/clothing/mask/cigarette/rollie/nicotine(src)
+	new /obj/item/clothing/mask/cigarette/rollie/nicotine(src)
+	new /obj/item/clothing/mask/cigarette/rollie/nicotine(src)
+	new /obj/item/clothing/mask/cigarette/rollie/nicotine(src)
+	new /obj/item/clothing/mask/cigarette/rollie/nicotine(src)
+
+/obj/item/storage/belt/rogue/pouch/zigarrete/trippy/PopulateContents()
+	new /obj/item/clothing/mask/cigarette/rollie/trippy(src)
+	new /obj/item/clothing/mask/cigarette/rollie/trippy(src)
+	new /obj/item/clothing/mask/cigarette/rollie/trippy(src)
+	new /obj/item/clothing/mask/cigarette/rollie/trippy(src)
+	new /obj/item/clothing/mask/cigarette/rollie/trippy(src)
+	new /obj/item/clothing/mask/cigarette/rollie/trippy(src)
 
 /obj/item/storage/belt/rogue/pouch/treasure/lucky/PopulateContents()
 	new /obj/effect/spawner/lootdrop/mobtreasure/lucky(src)

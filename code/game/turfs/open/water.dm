@@ -56,6 +56,16 @@
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
+	if(H.dna?.species?.id == "gnoll" && ispath(water_reagent, /datum/reagent/blood))
+		if(!H.gnoll_bloodpool_feed())
+			return
+		playsound(src, 'sound/misc/drink_blood.ogg', 100, FALSE, -4)
+		H.changeNext_move(CLICK_CD_MELEE)
+		if(!mapped)
+			water_volume = max(water_volume - 2, 0)
+			if(water_volume <= 0)
+				water_reagent = water_reagent_purified
+		return
 	if(HAS_TRAIT(H, TRAIT_MIRROR_MAGIC))
 		to_chat(H, span_info("You gaze at your reflection in the water, concentrating on the glamoring magicks..."))
 		if(do_after(H, 3 SECONDS, src))
@@ -341,6 +351,17 @@
 		return
 
 	if(do_after(L, 25, target = src))
+		if(ishuman(L))
+			var/mob/living/carbon/human/H = L
+			if(H.dna?.species?.id == "gnoll" && ispath(water_reagent, /datum/reagent/blood))
+				if(!H.gnoll_bloodpool_feed())
+					return
+				playsound(src, 'sound/misc/drink_blood.ogg', 100, FALSE, -4)
+				if(!mapped)
+					water_volume = max(water_volume - 2, 0)
+					if(water_volume <= 0)
+						water_reagent = water_reagent_purified
+				return
 		if (istype(src,/turf/open/water/sewer))
 			to_chat(user, span_userdanger("Have I gone mad!? Why am I drinking sewage!?"))
 		var/list/waterl = list(src.water_reagent = 5)

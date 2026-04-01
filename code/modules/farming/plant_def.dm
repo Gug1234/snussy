@@ -302,7 +302,6 @@
 	produce_amount_min = 2
 	produce_amount_max = 3
 
-
 /datum/plant_def/tea
 	name = "tea bush"
 	icon = 'icons/roguetown/misc/crops.dmi'

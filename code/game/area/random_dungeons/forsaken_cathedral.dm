@@ -37,3 +37,13 @@
 	droning_sound_night = 'sound/music/area/inferno.ogg'
 	converted_type = /area/rogue/outdoors/dungeon1
 	detail_text = DETAIL_TEXT_BLOODY_ARENA
+
+/area/rogue/under/cave/inhumen/wretch/gnollcavern
+	name = "GNOLL CAVERN"
+	icon_state = "cave"
+	first_time_text = "GNOLL CAVERN"
+	droning_sound = 'sound/music/area/inferno.ogg'
+	droning_sound_dusk = 'sound/music/area/inferno.ogg'
+	droning_sound_night = 'sound/music/area/inferno.ogg'
+	converted_type = /area/rogue/outdoors/dungeon1
+	detail_text = DETAIL_TEXT_GNOLL_CAVERN

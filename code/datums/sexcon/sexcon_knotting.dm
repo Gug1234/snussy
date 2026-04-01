@@ -327,6 +327,8 @@
 		add_cum_floor(get_turf(btm))
 		if(top.sexcon.knotted_part_partner&(SEX_PART_CUNT|SEX_PART_ANUS)) // use top's knotted_part_partner var to check what effect we need to apply, as bottom may be double knotted or more
 			top.sexcon.apply_internal_creampie(btm, top.sexcon.target_retains_internal_creampie(btm))
+			if(top?.dna?.species?.id == "gnoll")
+				btm.has_gnoll_scent_this_round = TRUE
 			modular_record_collar_receive_event(btm, top)
 			if(!btm.has_status_effect(/datum/status_effect/knot_gaped))
 				var/obj/item/organ/testicles/testes = top.getorganslot(ORGAN_SLOT_TESTICLES)
