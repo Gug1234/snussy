@@ -348,6 +348,7 @@
 			splashed_user.apply_status_effect(/datum/status_effect/facial)
 		else
 			facial.refresh_cum()
+		modular_record_collar_receive_event(splashed_user, user)
 	after_ejaculation()
 
 /datum/sex_controller/proc/target_retains_internal_creampie(mob/living/carbon/human/check_target = target)
@@ -460,6 +461,7 @@
 				splashed_user.apply_status_effect(/datum/status_effect/facial)
 			else
 				facial.refresh_cum()
+		modular_record_collar_receive_event(splashed_user, user)
 		if(!oral)
 			var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
 			if(testes?.ball_size > DEFAULT_TESTICLES_SIZE)
@@ -892,6 +894,7 @@
 							splashed_user.apply_status_effect(/datum/status_effect/facial)
 						else
 							facial.refresh_cum()
+						modular_record_collar_receive_event(splashed_user, user)
 	if(arousal < PASSIVE_EJAC_THRESHOLD)
 		return
 	if(is_spent())
@@ -905,6 +908,7 @@
 			splashed_user.apply_status_effect(/datum/status_effect/facial)
 		else
 			facial.refresh_cum()
+		modular_record_collar_receive_event(splashed_user, user)
 
 /datum/sex_controller/proc/handle_container_ejaculation()
 	if(arousal < PASSIVE_EJAC_THRESHOLD)

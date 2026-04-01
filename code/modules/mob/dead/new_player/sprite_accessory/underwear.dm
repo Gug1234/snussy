@@ -49,6 +49,14 @@
 			tag = tag + "_4"
 		if(breasts.breast_size == 5)
 			tag = tag + "_5"
+		if(breasts.breast_size == 6)
+			tag = tag + "_6"
+		if(breasts.breast_size == 7)
+			tag = tag + "_7"
+		if(breasts.breast_size == 8)
+			tag = tag + "_8"
+		if(breasts.breast_size == 9)
+			tag = tag + "_9"
 		return tag
 	else
 		return "bikini_f_0"

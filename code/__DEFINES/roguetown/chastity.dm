@@ -14,4 +14,3 @@
 /// character name → list of assoc lists with "lockhash" and "owner_name" entries.
 /// Entries are consumed and removed when the target character spawns via copy_to.
 GLOBAL_LIST_EMPTY(pending_chastity_keys)
-
