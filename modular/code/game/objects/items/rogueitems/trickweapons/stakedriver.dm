@@ -191,13 +191,13 @@
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_NORMAL
 
-/// Mob render properties for one-handed display (gauntlet-style weapon).
+/// Mob render properties for one-handed display (gauntlet-style weapon, same for both forms).
 /obj/item/rogueweapon/trickweapon/stakedriver/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.4,"sx" = -7,"sy" = -4,"nx" = 7,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 110,"sturn" = -110,"wturn" = -110,"eturn" = 110,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+				return list("shrink" = 0.3,"sx" = -11,"sy" = -3,"nx" = 9,"ny" = -3,"wx" = -4,"wy" = -4,"ex" = -1,"ey" = -4,"northabove" = 1,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -48,"sturn" = 48,"wturn" = 48,"eturn" = -48,"nflip" = -2,"sflip" = 1,"wflip" = 1,"eflip" = -1)
 
 /**
  * After landing a hit in primed (transformed) state, automatically

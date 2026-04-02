@@ -128,6 +128,14 @@
 			var/sentinel = SH.calculate_sentinel_bonus()
 			prob2defend += sentinel
 
+	// Anti-trick weapon parry bonus: defenders holding weapons with anti_trickweapon_parry_bonus
+	// get a flat prob2defend boost when the attacker is using a trick weapon.
+	if(intenty?.masteritem && istype(intenty.masteritem, /obj/item/rogueweapon/trickweapon))
+		if(used_weapon)
+			var/obj/item/rogueweapon/trickweapon/defender_tw = used_weapon
+			if(istype(defender_tw) && defender_tw.anti_trickweapon_parry_bonus)
+				prob2defend += defender_tw.anti_trickweapon_parry_bonus
+
 	prob2defend = clamp(prob2defend, 5, 90)
 	if(HAS_TRAIT(user, TRAIT_HARDSHELL) && H.client)	//Dwarf-merc specific limitation w/ their armor on in pvp
 		prob2defend = clamp(prob2defend, 5, 70)

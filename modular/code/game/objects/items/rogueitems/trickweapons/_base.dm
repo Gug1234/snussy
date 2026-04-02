@@ -91,6 +91,26 @@
 	/// Serrated state when transformed. Null = same as base. Set explicitly for per-form toggling.
 	var/transformed_serrated
 
+	// --- Dual Wielder trait scaling vars ---
+	/// Bonus force added to force_dynamic when the wielder has TRAIT_DUALWIELDER. 0 = no bonus.
+	var/dualwielder_force_bonus = 0
+	/// Bonus wdefense added to wdefense_dynamic when the wielder has TRAIT_DUALWIELDER. 0 = no bonus.
+	var/dualwielder_wdefense_bonus = 0
+
+	// --- Anti-trick weapon defense vars ---
+	/// Bonus dodge chance when defending against an attacker using a trick weapon. 0 = no bonus.
+	var/anti_trickweapon_dodge_bonus = 0
+	/// Bonus parry chance when defending against an attacker using a trick weapon. 0 = no bonus.
+	var/anti_trickweapon_parry_bonus = 0
+
+	// --- Transform spam detection vars ---
+	/// Number of transforms recorded in the current rolling window.
+	var/transform_spam_count = 0
+	/// world.time when the rolling window started. Resets after TRANSFORM_SPAM_WINDOW elapses.
+	var/transform_spam_window_start = 0
+	/// Whether admins have already been alerted for the current spam burst (prevents alert flood).
+	var/transform_spam_alerted = FALSE
+
 	// --- Firearm hybrid system vars (for gun-weapons like Reiterpallasch, Rifle Spear) ---
 	/// The ammo type this weapon consumes for shot intents. Null = no shot capability.
 	var/shot_ammo_type
@@ -152,12 +172,49 @@
 	// Register serrated bonus signal if this weapon starts serrated
 	update_serrated_signal()
 
+/// Transforms within the rolling window before a warning is issued to the player.
+#define TRANSFORM_SPAM_WARN_THRESHOLD 10
+/// Transforms within the rolling window before the weapon explodes and dismembers the holding arm.
+#define TRANSFORM_SPAM_EXPLODE_THRESHOLD 30
+/// Rolling window duration in deciseconds (10 seconds).
+#define TRANSFORM_SPAM_WINDOW (10 SECONDS)
+
 /**
  * Core transformation proc. Ungrips if needed, swaps all state vars
  * between base and transformed, updates visuals, and refreshes intents.
+ *
+ * Includes a multi-stage rolling-window spam penalty:
+ *   - 10 transforms: IC warning to the player + admin alert
+ *   - 30 transforms: weapon explodes, dismembers holding arm, painscream,
+ *     bold visible_message, and admin log
  */
 /obj/item/rogueweapon/trickweapon/proc/transform_weapon(mob/living/user)
-	// Ungrip before transforming to avoid stale wielded state
+	// --- Transform spam detection ---
+	var/now = world.time
+	if(now - transform_spam_window_start > TRANSFORM_SPAM_WINDOW)
+		// Window expired — reset counter
+		transform_spam_count = 0
+		transform_spam_window_start = now
+		transform_spam_alerted = FALSE
+	transform_spam_count++
+
+	// Stage 1: Warning at 10 transforms
+	if(transform_spam_count >= TRANSFORM_SPAM_WARN_THRESHOLD && !transform_spam_alerted)
+		transform_spam_alerted = TRUE
+		to_chat(user, span_userdanger("[src] begins to grow unstable from the rapid transformations. It'd probably be a good idea to stop..."))
+		message_admins("TRICK WEAPON SPAM: [ADMIN_LOOKUPFLW(user)] transformed [src] [transform_spam_count] times in [TRANSFORM_SPAM_WINDOW / 10] seconds.")
+		log_game("TRICK WEAPON SPAM: [key_name(user)] transformed [src] [transform_spam_count] times in [TRANSFORM_SPAM_WINDOW / 10] seconds at [AREACOORD(user)].")
+
+	// Stage 2: Explosion at 30 transforms — dismember arm, destroy weapon
+	if(transform_spam_count >= TRANSFORM_SPAM_EXPLODE_THRESHOLD)
+		transform_spam_explode(user)
+		return
+
+	// Remember grip state so we can restore it after the swap
+	var/was_wielded = wielded
+	var/was_altgripped = altgripped
+
+	// Ungrip before swapping vars to avoid stale state
 	if(wielded || altgripped)
 		ungrip(user, show_message = FALSE)
 
@@ -171,13 +228,59 @@
 	// Update the visual and combat state
 	update_icon()
 	update_force_dynamic()
-	wdefense_dynamic = wdefense
+	update_wdefense_dynamic()
 	var/active_sound = transformed ? transform_sound : (untransform_sound || transform_sound)
 	playsound(loc, active_sound, 100, TRUE)
+	do_sparks(3, FALSE, src)
 	to_chat(user, span_notice("I transform [src]."))
+
+	// Restore grip state — weapon stays two-handed across transformations
+	if(was_wielded && !was_altgripped)
+		wield(user, show_message = FALSE)
+	else if(was_altgripped)
+		altgrip(user)
+
 	if(user.get_active_held_item() == src)
 		user.update_a_intents()
 		user.update_inv_hands()
+
+
+/**
+ * Punishment proc for extreme transform spam. The weapon explodes violently,
+ * dismembering whichever arm was holding it, forces a painscream, broadcasts
+ * a bold message to nearby players, and logs the event.
+ */
+/obj/item/rogueweapon/trickweapon/proc/transform_spam_explode(mob/living/carbon/human/user)
+	if(!istype(user))
+		return
+
+	// Determine which arm is holding the weapon
+	var/held_idx = user.get_held_index_of_item(src)
+	var/arm_zone = (held_idx % 2) ? BODY_ZONE_L_ARM : BODY_ZONE_R_ARM // Odd = left, Even = right
+
+	// Drop and destroy the weapon
+	var/weapon_name = name
+	user.dropItemToGround(src, force = TRUE)
+	visible_message(span_boldwarning("[src] violently explodes in a shower of shrapnel!"))
+	playsound(user, 'sound/misc/explode/bomb.ogg', 100, TRUE)
+	new /obj/effect/temp_visual/explosion/fast(get_turf(user))
+	qdel(src)
+
+	// Dismember the arm that was holding the weapon (admin_dismember bypasses armor)
+	var/obj/item/bodypart/arm = user.get_bodypart(arm_zone)
+	if(arm)
+		arm.admin_dismember(BRUTE, BCLASS_BLUNT)
+
+	// Force a painscream
+	user.emote("painscream")
+
+	// Bold message to everyone nearby explaining what happened
+	user.visible_message(span_boldwarning("[user] blew [user.p_their()] own arm off by spamming [weapon_name]'s transformation mechanism!"), \
+		span_userdanger("The rapid transformations overloaded [weapon_name] — it explodes, taking my arm with it!"))
+
+	// Log to admins
+	message_admins("TRICK WEAPON EXPLOSION: [ADMIN_LOOKUPFLW(user)] hit [TRANSFORM_SPAM_EXPLODE_THRESHOLD] transforms in [TRANSFORM_SPAM_WINDOW / 10]s — [weapon_name] exploded and dismembered their [arm_zone == BODY_ZONE_L_ARM ? "left" : "right"] arm.")
+	log_game("TRICK WEAPON EXPLOSION: [key_name(user)] hit [TRANSFORM_SPAM_EXPLODE_THRESHOLD] transforms in [TRANSFORM_SPAM_WINDOW / 10]s — [weapon_name] exploded and dismembered their [arm_zone == BODY_ZONE_L_ARM ? "left" : "right"] arm at [AREACOORD(user)].")
 
 /// Applies the transformed state's vars to the weapon.
 /obj/item/rogueweapon/trickweapon/proc/apply_transformed_state()
@@ -282,14 +385,39 @@
 	return ..()
 
 /**
+ * Override update_force_dynamic to inject the dual wielder force bonus.
+ * Checks if the holder has TRAIT_DUALWIELDER and adds the bonus on top
+ * of the base force_dynamic calculation.
+ */
+/obj/item/rogueweapon/trickweapon/update_force_dynamic()
+	..()
+	if(dualwielder_force_bonus && isliving(loc) && HAS_TRAIT(loc, TRAIT_DUALWIELDER))
+		force_dynamic += dualwielder_force_bonus
+
+/**
+ * Calculates and sets wdefense_dynamic, including the dual wielder bonus.
+ * Mirrors the base game logic: unwielded = wdefense, wielded = wdefense + wdefense_wbonus.
+ * Adds dualwielder_wdefense_bonus on top when the holder has TRAIT_DUALWIELDER.
+ */
+/obj/item/rogueweapon/trickweapon/proc/update_wdefense_dynamic()
+	if(wielded || altgripped)
+		wdefense_dynamic = wdefense + wdefense_wbonus
+	else
+		wdefense_dynamic = wdefense
+	if(dualwielder_wdefense_bonus && isliving(loc) && HAS_TRAIT(loc, TRAIT_DUALWIELDER))
+		wdefense_dynamic += dualwielder_wdefense_bonus
+
+/**
  * Override wield to swap to 64x64 two-handed sprites.
  * Appends "1" to icon_state and item_state so generateonmob picks
  * up the correct wielded sprite (e.g. "sawcleaver" -> "sawcleaver1").
+ * Also recalculates wdefense_dynamic with dual wielder bonus.
  */
 /obj/item/rogueweapon/trickweapon/wield(mob/living/carbon/user, show_message = TRUE)
 	. = ..()
 	if(!wielded)
 		return
+	update_wdefense_dynamic()
 	icon_state = "[icon_state]1"
 	item_state = "[item_state]1"
 	user.update_inv_hands()
@@ -298,6 +426,7 @@
  * Override ungrip to restore the correct icon_state before the parent
  * calls update_transform() and update_inv_hands(). Strips the "1"
  * suffix by restoring the current form's cached icon_state.
+ * Also recalculates wdefense_dynamic with dual wielder bonus.
  */
 /obj/item/rogueweapon/trickweapon/ungrip(mob/living/carbon/user, show_message = TRUE)
 	if(wielded)
@@ -308,6 +437,7 @@
 			icon_state = base_icon_state
 			item_state = base_item_state
 	. = ..()
+	update_wdefense_dynamic()
 
 /**
  * Overrides rmb_self to trigger transformation instead of alt-grip.
@@ -339,6 +469,12 @@ GLOBAL_LIST_INIT(serrated_full_species, list(
 	"anthromorphsmall",
 	"lupian",
 	"vulpkanin",
+	"tabaxi",
+	"akula",
+	"dracon",
+	"lizardfolk",
+	"kobold",
+	"gnoll",
 	"shapebear",
 	"shapewolf",
 	"shapecat",
@@ -417,4 +553,8 @@ GLOBAL_LIST_INIT(serrated_half_species, list(
 	. = ..()
 	if(serrated)
 		. += span_warning("Its serrated edge is designed to rend beast flesh.")
+	if(dualwielder_force_bonus || dualwielder_wdefense_bonus)
+		. += span_notice("This weapon rewards a trained dual-wielding style with greater striking power and defensive finesse.")
+	if(anti_trickweapon_dodge_bonus || anti_trickweapon_parry_bonus)
+		. += span_notice("Designed to counter other trick weapons \u2014 grants an edge when parrying or dodging their strikes.")
 

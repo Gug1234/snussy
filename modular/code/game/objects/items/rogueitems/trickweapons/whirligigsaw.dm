@@ -3,7 +3,7 @@
 /// Whirligig Saw base - diagonal slash. Standard R1 combo starter.
 /datum/intent/whirligig/slash
 	name = "diagonal slash"
-	icon_state = "incut"
+	icon_state = "instrike"
 	attack_verb = list("slashes", "swipes")
 	animname = "cut"
 	blade_class = BCLASS_BLUNT
@@ -55,7 +55,7 @@
 /// Whirligig Saw base - power sweep. Wide charged horizontal swing.
 /datum/intent/whirligig/powersweep
 	name = "power sweep"
-	icon_state = "incut"
+	icon_state = "inchop"
 	attack_verb = list("sweeps", "swings")
 	animname = "cut"
 	blade_class = BCLASS_BLUNT
@@ -100,24 +100,97 @@
 	clickcd = CLICK_CD_CHARGED
 	item_d_type = "stab"
 
-/// Whirligig Saw transformed - spinning saw (L2). Held grinding attack.
-/// Simulates the iconic L2 held attack. Hold to grind, high stamina drain, lower per-hit damage.
-/// Uses chargedloop to play the saw spinning sound while held.
+/// How often the sustained spinning saw aura ticks, in deciseconds (0.5s).
+#define SPINNING_SAW_TICK_RATE 5
+/// Damage multiplier per sustained grind tick (fraction of force_dynamic).
+#define SPINNING_SAW_TICK_DAMFACTOR 0.5
+
+/// Whirligig Saw transformed - spinning saw (L2). Sustained grinding attack.
+/// Click and hold to rev the saw. Once fully charged, the spinning disc
+/// damages any living mob on the tile the wielder is facing (1 tile forward).
+/// Face your target and hold — anything that steps in front gets ground up.
+/// High stamina drain while active. Uses chargedloop for saw spin sound.
 /datum/intent/whirligig/spinningsaw
 	name = "spinning saw"
-	icon_state = "incrush"
+	icon_state = "inrend"
 	attack_verb = list("grinds through", "shreds")
 	animname = "strike"
 	blade_class = BCLASS_CUT
 	hitsound = list('modular/sounds/trickweapons/whirligigsaw/saw_spin_hit1.ogg', 'modular/sounds/trickweapons/whirligigsaw/saw_spin_hit2.ogg')
 	chargetime = 1
-	chargedrain = 3
+	chargedrain = 1
 	chargedloop = /datum/looping_sound/whirligig_saw
+	no_early_release = TRUE
+	keep_looping = TRUE
 	penfactor = 25
 	damfactor = 0.7
 	clickcd = CLICK_CD_RAPID
-	releasedrain = 3
+	releasedrain = 1
 	item_d_type = "slash"
+	/// Timer ID for the sustained grinding damage loop.
+	var/saw_grind_timer
+
+/// Start the grinding damage aura timer when the charge begins.
+/// The tick proc checks for full charge before dealing damage.
+/datum/intent/whirligig/spinningsaw/on_charge_start()
+	..()
+	saw_grind_timer = addtimer(CALLBACK(src, PROC_REF(saw_grind_tick)), SPINNING_SAW_TICK_RATE, TIMER_STOPPABLE | TIMER_LOOP)
+
+/// Stop the grinding damage aura when the mouse is released.
+/datum/intent/whirligig/spinningsaw/on_mouse_up()
+	if(saw_grind_timer)
+		deltimer(saw_grind_timer)
+		saw_grind_timer = null
+	..()
+
+/**
+ * Sustained damage tick for the spinning saw.
+ * Fires every SPINNING_SAW_TICK_RATE ds while held. Only applies damage
+ * once the charge is complete (chargedprog >= 100). Targets the single
+ * tile the wielder is facing — hold the saw out in a direction and
+ * anything standing there gets ground up.
+ */
+/datum/intent/whirligig/spinningsaw/proc/saw_grind_tick()
+	// Safety: stop if mob or weapon is gone
+	if(!mastermob || QDELETED(mastermob) || !masteritem || QDELETED(masteritem))
+		if(saw_grind_timer)
+			deltimer(saw_grind_timer)
+			saw_grind_timer = null
+		return
+	// Only deal damage once fully charged
+	if(!mastermob.client || mastermob.client.chargedprog < 100)
+		return
+	// Must still be holding the weapon
+	if(mastermob.get_active_held_item() != masteritem)
+		if(saw_grind_timer)
+			deltimer(saw_grind_timer)
+			saw_grind_timer = null
+		return
+	// Can't grind while incapacitated
+	if(mastermob.incapacitated())
+		return
+
+	// Get the tile the wielder is facing
+	var/turf/target_turf = get_step(mastermob, mastermob.dir)
+	if(!target_turf)
+		return
+
+	var/grind_damage = max(1, round(masteritem.force_dynamic * SPINNING_SAW_TICK_DAMFACTOR))
+
+	for(var/mob/living/L in target_turf)
+		if(L.stat == DEAD)
+			continue
+		// Apply grinding damage
+		var/target_limb = L.simple_limb_hit(mastermob.zone_selected)
+		L.apply_damage(grind_damage, BRUTE, def_zone = target_limb)
+		// --- On-hit feedback: meaty cut sound + saw grind layered ---
+		playsound(L, pick('modular/sounds/trickweapons/generic/iron_cut_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_cut_meat2.ogg'), 65, TRUE)
+		playsound(L, pick(hitsound), 50, TRUE)
+		// --- VFX: sparks + blood ---
+		do_sparks(2, FALSE, L)
+		L.add_splatter_floor()
+		to_chat(L, span_userdanger("[mastermob]'s spinning saw grinds into you!"))
+		to_chat(mastermob, span_warning("The spinning saw grinds into [L]!"))
 
 /// Whirligig Saw transformed - grinding slam. Heavy overhead with spinning disc.
 /datum/intent/whirligig/grindingslam
@@ -139,11 +212,13 @@
 // ---- Whirligig Saw looping sound ----
 /// Looping sound for the Whirligig Saw's spinning disc.
 /// Plays saw_spin_loop_start on activation, then loops saw_spin_loop while held.
+/// mid_length must closely match the audio file duration for a seamless loop —
+/// too short causes stop-start stuttering, too long leaves silence gaps.
 /datum/looping_sound/whirligig_saw
 	start_sound = 'modular/sounds/trickweapons/whirligigsaw/saw_spin_loop_start.ogg'
-	start_length = 8
+	start_length = 12
 	mid_sounds = list('modular/sounds/trickweapons/whirligigsaw/saw_spin_loop.ogg')
-	mid_length = 10
+	mid_length = 30
 	volume = 80
 	extra_range = 3
 
@@ -156,9 +231,9 @@
 /obj/item/rogueweapon/trickweapon/whirligigsaw
 	name = "whirligig saw"
 	desc = "A trick weapon devised by the heretical artificers of an age past. In its dormant form, a heavy mace-like bludgeon with a large serrated disc at its head. When activated, the disc spins at tremendous speed, grinding through Rot-bloated flesh and deadite bone like a millstone through grain. Affectionately dubbed the 'pizza cutter' by those with a dark sense of humor."
-	icon_state = "whirligigsaw"
+	icon_state = "whirligig"
 	transformed_serrated = TRUE // Only serrated when the saw disc is spinning
-	item_state = "whirligigsaw"
+	item_state = "whirligig"
 	force = 22
 	force_wielded = 26
 	possible_item_intents = list(/datum/intent/whirligig/slash, /datum/intent/whirligig/thrust, /datum/intent/whirligig/slam)
@@ -186,10 +261,10 @@
 	// --- Transformed state: Pizza Cutter ---
 	transformed_name = "whirligig saw"
 	transformed_desc = "The whirligig saw, now fully revved. The massive serrated disc spins with terrifying speed, shredding anything it contacts in a storm of sparks and gore. Hold it steady and let the wheel do the work."
-	transformed_icon_state = "whirligigsaw_t"
-	transformed_item_state = "whirligigsaw_t"
-	transformed_force = 16 // Lower per-hit, but faster
-	transformed_force_wielded = 22
+	transformed_icon_state = "whirligig_t"
+	transformed_item_state = "whirligig_t"
+	transformed_force = 20 
+	transformed_force_wielded = 28
 	transformed_intents = list(/datum/intent/whirligig/grindingsweep, /datum/intent/whirligig/grindingthrust, /datum/intent/whirligig/spinningsaw)
 	transformed_gripped_intents = list(/datum/intent/whirligig/grindingsweep, /datum/intent/whirligig/grindingthrust, /datum/intent/whirligig/spinningsaw, /datum/intent/whirligig/grindingslam)
 	transformed_swingsound = BLADEWOOSH_LARGE
@@ -203,13 +278,20 @@
 	transformed_w_class = WEIGHT_CLASS_BULKY
 
 /// Mob render properties for one-handed and wielded display.
+/// Branches on `transformed` to use different render profiles per form.
 /obj/item/rogueweapon/trickweapon/whirligigsaw/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+				if(transformed) // --- Transformed (spinning saw) one-handed ---
+					return list("shrink" = 0.6,"sx" = -1,"sy" = 3,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = -4,"ey" = 0,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = -83,"sturn" = 79,"wturn" = 67,"eturn" = -67,"nflip" = 0,"sflip" = -4,"wflip" = 4,"eflip" = 0)
+				// --- Base (folded) one-handed ---
+				return list("shrink" = 0.6,"sx" = -7,"sy" = -5,"nx" = 7,"ny" = -3,"wx" = -5,"wy" = -4,"ex" = 0,"ey" = -4,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 65,"sturn" = -65,"wturn" = -30,"eturn" = 30,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
 			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+				if(transformed) // --- Transformed (spinning saw) two-handed ---
+					return list("shrink" = 0.7,"sx" = 5,"sy" = 2,"nx" = -6,"ny" = 2,"wx" = -8,"wy" = 3,"ex" = 6,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 4,"wturn" = 13,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 4,"eflip" = 0)
+				// --- Base (folded) two-handed ---
+				return list("shrink" = 0.7,"sx" = 0,"sy" = -2,"nx" = 0,"ny" = -2,"wx" = -1,"wy" = -1,"ex" = 1,"ey" = -1,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 20,"eturn" = -20,"nflip" = 0,"sflip" = 0,"wflip" = -4,"eflip" = 0)
 
 

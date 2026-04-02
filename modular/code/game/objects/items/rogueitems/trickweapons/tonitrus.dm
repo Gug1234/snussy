@@ -154,6 +154,8 @@
 	desc = "A unique trick weapon contrived by an eccentric artificer of the Guild. In its base form, a simple but sturdy mace with an unusual metallic head. Hidden within is a mechanism that, when activated, wreathes the striking surface in crackling arcyne energy."
 	icon_state = "tonitrus"
 	item_state = "tonitrus"
+	/// Bonus damage multiplier vs moths when charged. 0.3 = 30% extra.
+	var/bugzapper_bonus = 0.3
 	force = 22
 	force_wielded = 25
 	possible_item_intents = list(/datum/intent/tonitrus/strike, /datum/intent/tonitrus/overhead, /datum/intent/tonitrus/jab, /datum/intent/tonitrus/slam)
@@ -203,14 +205,15 @@
 	transformed_w_class = WEIGHT_CLASS_NORMAL
 
 /// Mob render properties for one-handed and wielded display (mace-sized).
+/// Tonitrus uses the same sprite for both forms — only the charge effect changes.
 /obj/item/rogueweapon/trickweapon/tonitrus/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.5,"sx" = -7,"sy" = -4,"nx" = 7,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 110,"sturn" = -110,"wturn" = -110,"eturn" = 110,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+				return list("shrink" = 0.3,"sx" = -7,"sy" = -3,"nx" = 6,"ny" = -4,"wx" = -2,"wy" = -2,"ex" = -4,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -89,"sturn" = 0,"wturn" = -82,"eturn" = 82,"nflip" = 4,"sflip" = 1,"wflip" = 4,"eflip" = 0)
 			if("wielded")
-				return list("shrink" = 0.6,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+				return list("shrink" = 0.4,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 4,"eflip" = 0)
 
 /**
  * Overrides transform_weapon to add auto-revert timer when charging,
@@ -224,10 +227,13 @@
 		charge_timer_id = null
 	// Perform the standard transformation
 	..()
-	// If we just entered charged mode, start the auto-revert timer
+	// If we just entered charged mode, start the auto-revert timer and enable bugzapper
 	if(transformed)
 		charge_timer_id = addtimer(CALLBACK(src, PROC_REF(auto_revert)), charge_duration, TIMER_STOPPABLE)
+		RegisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS, PROC_REF(apply_bugzapper_bonus))
 		to_chat(user, span_warning("Arcyne energy crackles through [src] â€” it won't last long!"))
+	else
+		UnregisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS)
 
 /**
  * Called by the auto-revert timer when the charge expires.
@@ -247,6 +253,7 @@
 	update_icon()
 	update_force_dynamic()
 	wdefense_dynamic = wdefense
+	UnregisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS)
 	playsound(loc, 'sound/combat/clash_draw.ogg', 80, TRUE)
 	// Notify holder
 	if(ismob(loc))
@@ -256,5 +263,56 @@
 			user.update_a_intents()
 			user.update_inv_hands()
 
+// ===================== BUGZAPPER SYSTEM =====================
+// The Tonitrus deals bonus electrical damage to moths when charged.
+// Bugs are funny, and lightning is particularly devastating to insectoids.
 
+/**
+ * Signal handler for COMSIG_ITEM_ATTACK_SUCCESS (charged mode only).
+ * Applies bonus brute damage to insectoid and arachnid targets — the arcyne
+ * charge acts as a bugzapper. Triggers against:
+ * - Moth player characters (species id "moth")
+ * - Shapespider wildshape druids (species id "shapespider")
+ * - Spider simple mobs (faction "spiders")
+ * - Any mob with the MOB_BUG biotype
+ */
+/obj/item/rogueweapon/trickweapon/tonitrus/proc/apply_bugzapper_bonus(datum/source, mob/living/target, mob/living/user)
+	SIGNAL_HANDLER
+	if(!isliving(target) || !transformed)
+		return
+	if(!is_bugzapper_target(target))
+		return
+	var/bonus = round(force_dynamic * bugzapper_bonus)
+	if(bonus <= 0)
+		return
+	target.apply_damage(bonus, BRUTE)
+	// Visual/audio feedback — the zap is visceral
+	playsound(target.loc, 'modular/sounds/trickweapons/tonitrus/electric_buff.ogg', 60, TRUE)
+
+/**
+ * Checks whether the given target qualifies as a bugzapper victim.
+ * Returns TRUE for moths, spiders (simple mobs and wildshape), and MOB_BUG mobs.
+ */
+/obj/item/rogueweapon/trickweapon/tonitrus/proc/is_bugzapper_target(mob/living/target)
+	// MOB_BUG biotype catches generic insects (butterflies, cockroaches, etc.)
+	if(target.mob_biotypes & MOB_BUG)
+		return TRUE
+	// Spider simple mobs use the "spiders" faction
+	if(istype(target, /mob/living/simple_animal) && ("spiders" in target.faction))
+		return TRUE
+	// Humanoid checks — moth species and shapespider wildshape
+	if(ishuman(target))
+		var/mob/living/carbon/human/H = target
+		if(H.dna?.species)
+			if(H.dna.species.id == "moth" || H.dna.species.id == "shapespider")
+				return TRUE
+	return FALSE
+
+/**
+ * Appends bugzapper examine text when inspecting a charged Tonitrus.
+ */
+/obj/item/rogueweapon/trickweapon/tonitrus/examine(mob/user)
+	. = ..()
+	if(transformed)
+		. += span_warning("Arcyne lightning arcs hungrily across its surface \u2014 insects beware.")
 

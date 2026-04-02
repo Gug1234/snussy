@@ -184,6 +184,12 @@
 	transformed_associated_skill = /datum/skill/combat/knives
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_SMALL
+	// --- Dual wielder scaling: rewards TRAIT_DUALWIELDER users ---
+	dualwielder_force_bonus = 3
+	dualwielder_wdefense_bonus = 2
+	// --- Anti-trick weapon defense: hunter-killer specialization ---
+	anti_trickweapon_dodge_bonus = 15
+	anti_trickweapon_parry_bonus = 15
 
 /// Mob render properties for one-handed and wielded display (small dagger).
 /obj/item/rogueweapon/trickweapon/bladesofmercy/getonmobprop(tag)

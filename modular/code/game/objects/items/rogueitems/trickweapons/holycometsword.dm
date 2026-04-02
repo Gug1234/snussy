@@ -110,7 +110,7 @@
 	item_d_type = "slash"
 
 /// Holy Comet Sword transformed - arcane thrust. L2 forward thrust with an arcane flash.
-/// Causes knockdown effect in Bloodborne; here represented as high pen + commitment.
+/// When fully charged in transformed state, releases a Holy Energy Burst AOE.
 /datum/intent/holycomet/arcanethrust
 	name = "arcane thrust"
 	icon_state = "instab"
@@ -118,7 +118,8 @@
 	animname = "stab"
 	blade_class = BCLASS_STAB
 	hitsound = list('modular/sounds/trickweapons/holycomet/arcane_thrust.ogg', 'modular/sounds/trickweapons/holycomet/activate.ogg')
-	chargetime = 0
+	chargetime = 4
+	chargedrain = 1
 	penfactor = 40
 	damfactor = 1.5
 	clickcd = CLICK_CD_CHARGED
@@ -189,12 +190,10 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
-	/// List of spell types granted when transforming into psycross state.
-	var/list/psycross_spell_types = list(
-		/obj/effect/proc_holder/spell/invoked/projectile/cometbeam,
-		/obj/effect/proc_holder/spell/invoked/holy_burst,
-		/obj/effect/proc_holder/spell/invoked/psycross_slash
-	)
+	/// Damage dealt by the Holy Burst AOE (arcanethrust full-charge effect).
+	var/burst_damage = 25
+	/// Range of the Holy Burst AOE in tiles.
+	var/burst_range = 2
 
 /// Override ComponentInitialize to apply Psydonian blessing by default.
 /// The base rogueweapon class would give it a Tennite-type blessing since is_silver = TRUE,
@@ -211,87 +210,156 @@
 	)
 
 /// Greatsword-style mob render properties for 64x64 sprite visibility.
+/// Branches on `transformed` to use different render profiles per form.
 /obj/item/rogueweapon/trickweapon/holycometsword/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.6,"sx" = -6,"sy" = 6,"nx" = 6,"ny" = 7,"wx" = 0,"wy" = 5,"ex" = -1,"ey" = 7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -50,"sturn" = 40,"wturn" = 50,"eturn" = -50,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+				if(transformed) // --- Transformed (arcane) one-handed ---
+					return list("shrink" = 0.6,"sx" = -21,"sy" = -10,"nx" = 20,"ny" = -10,"wx" = 0,"wy" = 10,"ex" = -2,"ey" = 9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 74,"sturn" = -70,"wturn" = 54,"eturn" = -56,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+				// --- Base (greatsword) one-handed ---
+				return list("shrink" = 0.6,"sx" = -5,"sy" = 9,"nx" = 4,"ny" = 10,"wx" = 0,"wy" = 10,"ex" = -2,"ey" = 9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -62,"sturn" = 53,"wturn" = 54,"eturn" = -56,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
 			if("wielded")
-				return list("shrink" = 0.6,"sx" = 9,"sy" = -4,"nx" = -7,"ny" = 1,"wx" = -9,"wy" = 2,"ex" = 10,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 1,"eflip" = 0)
+				if(transformed) // --- Transformed (arcane) two-handed ---
+					return list("shrink" = 0.7,"sx" = 10,"sy" = -5,"nx" = -7,"ny" = 1,"wx" = -13,"wy" = 2,"ex" = 12,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 1,"eflip" = 0)
+				// --- Base (greatsword) two-handed ---
+				return list("shrink" = 0.6,"sx" = 9,"sy" = -8,"nx" = -7,"ny" = 1,"wx" = -9,"wy" = 2,"ex" = 10,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 1,"eflip" = 0)
 			if("onback")
 				return list("shrink" = 0.6,"sx" = -1,"sy" = 2,"nx" = 0,"ny" = 2,"wx" = 2,"wy" = 1,"ex" = 0,"ey" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 70,"eturn" = 15,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
 
-/// Grants psycross spells when transforming into the psycross state.
-/obj/item/rogueweapon/trickweapon/holycometsword/apply_transformed_state()
+/**
+ * Afterattack hook — fires psycross spell effects when conditions are met.
+ * Each transformed charged intent triggers a specific arcane effect:
+ *   moonlightsweep (full charge) → Comet Beam projectile
+ *   chargedmoonlight (full charge) → Psycross Slash (3-wide projectile arc)
+ *   arcanethrust (full charge) → Holy Energy Burst (AOE around user)
+ * Effects only fire when transformed AND the charge bar reached 100%.
+ */
+/obj/item/rogueweapon/trickweapon/holycometsword/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
 	. = ..()
-	var/mob/living/user = loc
-	if(!istype(user) || !user.mind)
+	if(!transformed)
 		return
-	for(var/spell_type in psycross_spell_types)
-		if(!user.mind.has_spell(spell_type))
-			user.mind.AddSpell(new spell_type)
-
-/// Removes psycross spells when reverting to base greatsword state.
-/obj/item/rogueweapon/trickweapon/holycometsword/apply_base_state()
-	. = ..()
-	remove_psycross_spells()
-
-/// Strips psycross spells from the holder's mind, if any.
-/obj/item/rogueweapon/trickweapon/holycometsword/proc/remove_psycross_spells()
-	var/mob/living/user = loc
-	if(!istype(user) || !user.mind)
+	if(!isliving(user))
 		return
-	for(var/obj/effect/proc_holder/spell/S in user.mind.spell_list)
-		if(S.type in psycross_spell_types)
-			user.mind.RemoveSpell(S)
+	var/mob/living/L = user
+	if(!L.client || L.client.chargedprog < 100)
+		return
+	var/datum/intent/I = L.used_intent
+	if(!I)
+		return
+	if(istype(I, /datum/intent/holycomet/moonlightsweep))
+		fire_comet_beam(L)
+	else if(istype(I, /datum/intent/holycomet/chargedmoonlight))
+		fire_psycross_slash(L)
+	else if(istype(I, /datum/intent/holycomet/arcanethrust))
+		fire_holy_burst(L)
 
-/// Cleanup spells if the weapon is dropped while transformed.
-/obj/item/rogueweapon/trickweapon/holycometsword/dropped(mob/user)
-	if(transformed)
-		var/mob/living/L = user
-		if(istype(L) && L.mind)
-			for(var/obj/effect/proc_holder/spell/S in L.mind.spell_list)
-				if(S.type in psycross_spell_types)
-					L.mind.RemoveSpell(S)
-	return ..()
+/**
+ * Fires a short-range beam of pale arcane energy in the user's facing direction.
+ * Spawns a cometbeam projectile aimed at a far turf, range 4.
+ */
+/obj/item/rogueweapon/trickweapon/holycometsword/proc/fire_comet_beam(mob/living/user)
+	var/turf/origin = get_turf(user)
+	if(!origin)
+		return
+	playsound(origin, 'sound/magic/churn.ogg', 80, TRUE)
+	user.visible_message(span_warning("[user] fires a searing beam from [src]!"), span_notice("Pale light erupts from the psycross!"))
+	var/turf/far_target = origin
+	for(var/i in 1 to 4)
+		var/turf/next = get_step(far_target, user.dir)
+		if(!next)
+			break
+		far_target = next
+	var/obj/projectile/energy/cometbeam/P = new(origin)
+	P.firer = user
+	P.def_zone = user.zone_selected
+	P.preparePixelProjectile(far_target, origin)
+	P.fire()
+
+/**
+ * Releases a burst of holy energy in a radius around the user.
+ * Damages all adjacent living mobs (except user), respects anti-magic.
+ */
+/obj/item/rogueweapon/trickweapon/holycometsword/proc/fire_holy_burst(mob/living/user)
+	var/turf/center = get_turf(user)
+	if(!center)
+		return
+	playsound(center, 'sound/magic/whiteflame.ogg', 80, TRUE)
+	user.visible_message(span_warning("[user] releases a burst of holy energy!"), span_notice("Holy light erupts from the psycross!"))
+	new /obj/effect/temp_visual/comet_aoe(center)
+	for(var/mob/living/M in range(burst_range, center))
+		if(M == user)
+			continue
+		if(M.anti_magic_check())
+			to_chat(M, span_warning("The holy energy washes over you harmlessly."))
+			continue
+		to_chat(M, span_warning("Holy energy sears your flesh!"))
+		M.apply_damage(burst_damage, BRUTE, "chest")
+		playsound(get_turf(M), 'sound/magic/churn.ogg', 60, TRUE)
+
+/**
+ * Fires a 3-wide psycross slash — a visible center projectile flanked by
+ * two invisible projectiles offset perpendicular to the facing direction.
+ */
+/obj/item/rogueweapon/trickweapon/holycometsword/proc/fire_psycross_slash(mob/living/user)
+	var/turf/origin = get_turf(user)
+	if(!origin)
+		return
+	var/dir_facing = user.dir
+	playsound(origin, 'sound/magic/churn.ogg', 80, TRUE)
+	user.visible_message(span_warning("[user] sweeps [src] in a wide arc!"), span_notice("Radiant energy lashes outward!"))
+	// Perpendicular directions for flanking projectiles
+	var/left_dir
+	var/right_dir
+	switch(dir_facing)
+		if(NORTH, SOUTH)
+			left_dir = WEST
+			right_dir = EAST
+		if(EAST, WEST)
+			left_dir = NORTH
+			right_dir = SOUTH
+	// Far target turf for aiming
+	var/turf/far_target = origin
+	for(var/i in 1 to 4)
+		var/turf/next = get_step(far_target, dir_facing)
+		if(!next)
+			break
+		far_target = next
+	// Center projectile (visible, carries overlay)
+	var/obj/projectile/energy/psycross_slash/center_proj = new(origin)
+	center_proj.firer = user
+	center_proj.def_zone = user.zone_selected
+	center_proj.set_slash_direction(dir_facing)
+	center_proj.preparePixelProjectile(far_target, origin)
+	center_proj.fire()
+	// Left flanking projectile (invisible)
+	var/turf/left_origin = get_step(origin, left_dir)
+	if(left_origin)
+		var/turf/left_target = get_step(far_target, left_dir)
+		if(left_target)
+			var/obj/projectile/energy/psycross_slash/flank/left_proj = new(left_origin)
+			left_proj.firer = user
+			left_proj.def_zone = user.zone_selected
+			left_proj.preparePixelProjectile(left_target, left_origin)
+			left_proj.fire()
+	// Right flanking projectile (invisible)
+	var/turf/right_origin = get_step(origin, right_dir)
+	if(right_origin)
+		var/turf/right_target = get_step(far_target, right_dir)
+		if(right_target)
+			var/obj/projectile/energy/psycross_slash/flank/right_proj = new(right_origin)
+			right_proj.firer = user
+			right_proj.def_zone = user.zone_selected
+			right_proj.preparePixelProjectile(right_target, right_origin)
+			right_proj.fire()
 
 
+// ===================== PSYCROSS PROJECTILES & VISUALS =====================
+// Projectile and visual effect types used by the Holy Comet Sword's
+// intent-based psycross effects (Comet Beam, Holy Burst, Psycross Slash).
 
-
-// ===================== PSYCROSS SPELLS =====================
-// Spells granted to the wielder when the Holy Comet Sword is in
-// its transformed psycross state. Removed when reverting or dropping.
-
-// ---------- Comet Beam ----------
-/// Fires a short-range beam of pale arcane energy from the psycross.
-/// Range 4, fully charged before release, moderate cooldown.
-/obj/effect/proc_holder/spell/invoked/projectile/cometbeam
-	name = "Comet Beam"
-	desc = "Channel the radiance of Comet Syon into a searing beam of pale light. Must be fully charged before release."
-	clothes_req = FALSE
-	range = 4
-	projectile_type = /obj/projectile/energy/cometbeam
-	overlay_state = "youritem"
-	sound = list('sound/magic/churn.ogg')
-	active = FALSE
-	releasedrain = 30
-	chargedrain = 2
-	chargetime = 10
-	recharge_time = 15 SECONDS
-	human_req = TRUE
-	warnie = "spellwarning"
-	no_early_release = TRUE
-	movement_interrupt = FALSE
-	charging_slowdown = 3
-	chargedloop = /datum/looping_sound/invokegen
-	associated_skill = /datum/skill/combat/swords
-	invocations = list("")
-	invocation_type = "emote"
-	cost = 0
-	miracle = FALSE
-	xp_gain = FALSE
-
+// ---------- Comet Beam Projectile ----------
 /// Comet beam projectile â€” pale arcane energy, short range, anti-magic blockable.
 /// Uses the standard 32x32 divine_blast sprite for reliable trajectory rendering,
 /// with the large 64x128 cometbeam sprite attached as a visual-only overlay.
@@ -329,150 +397,6 @@
 			qdel(src)
 			return BULLET_ACT_BLOCK
 		playsound(get_turf(target), 'sound/magic/churn.ogg', 100)
-
-// ---------- Holy Energy Burst ----------
-/// AOE burst of holy energy centered on the caster. Damages all adjacent hostiles.
-/obj/effect/proc_holder/spell/invoked/holy_burst
-	name = "Holy Energy Burst"
-	desc = "Release a burst of holy energy from the psycross, searing all nearby foes."
-	clothes_req = FALSE
-	range = 1
-	overlay_state = "youritem"
-	sound = list('sound/magic/whiteflame.ogg')
-	active = FALSE
-	releasedrain = 40
-	chargedrain = 2
-	chargetime = 8
-	recharge_time = 20 SECONDS
-	human_req = TRUE
-	warnie = "spellwarning"
-	no_early_release = TRUE
-	movement_interrupt = FALSE
-	charging_slowdown = 4
-	chargedloop = /datum/looping_sound/invokegen
-	associated_skill = /datum/skill/combat/swords
-	invocations = list("")
-	invocation_type = "emote"
-	cost = 0
-	miracle = FALSE
-	xp_gain = FALSE
-	/// Damage dealt to each target in the AOE.
-	var/burst_damage = 25
-	/// Range of the burst effect in tiles (2 = 5x5 diamond, covers 128x128 sprite area).
-	var/burst_range = 2
-
-/obj/effect/proc_holder/spell/invoked/holy_burst/cast(list/targets, mob/user)
-	. = ..()
-	if(!.)
-		return FALSE
-	var/turf/center = get_turf(user)
-	if(!center)
-		return FALSE
-	playsound(center, 'sound/magic/whiteflame.ogg', 80, TRUE)
-	user.visible_message(span_warning("[user] releases a burst of holy energy!"), span_notice("Holy light erupts from the psycross!"))
-	// Spawn the 128x128 AOE visual centered on the caster.
-	new /obj/effect/temp_visual/comet_aoe(center)
-	for(var/mob/living/M in range(burst_range, center))
-		if(M == user)
-			continue
-		if(M.anti_magic_check())
-			to_chat(M, span_warning("The holy energy washes over you harmlessly."))
-			continue
-		to_chat(M, span_warning("Holy energy sears your flesh!"))
-		M.apply_damage(burst_damage, BRUTE, "chest")
-		playsound(get_turf(M), 'sound/magic/churn.ogg', 60, TRUE)
-	return TRUE
-
-// ---------- Psycross Slash ----------
-/// Fires 3 parallel projectiles in the facing direction: a visible center beam
-/// carrying the cometslash overlay, and two invisible flanking beams offset
-/// 1 tile perpendicular to provide a 3-wide hitbox.
-/obj/effect/proc_holder/spell/invoked/psycross_slash
-	name = "Psycross Slash"
-	desc = "Unleash a wide arc of radiant energy in a line before you, striking all in its path."
-	clothes_req = FALSE
-	range = 4
-	overlay_state = "youritem"
-	sound = list('sound/magic/churn.ogg')
-	active = FALSE
-	releasedrain = 25
-	chargedrain = 1
-	chargetime = 5
-	recharge_time = 12 SECONDS
-	human_req = TRUE
-	warnie = "spellwarning"
-	no_early_release = TRUE
-	movement_interrupt = FALSE
-	charging_slowdown = 2
-	chargedloop = /datum/looping_sound/invokegen
-	associated_skill = /datum/skill/combat/swords
-	invocations = list("")
-	invocation_type = "emote"
-	cost = 0
-	miracle = FALSE
-	xp_gain = FALSE
-
-/obj/effect/proc_holder/spell/invoked/psycross_slash/cast(list/targets, mob/user)
-	. = ..()
-	if(!.)
-		return FALSE
-	var/turf/origin = get_turf(user)
-	if(!origin)
-		return FALSE
-	var/dir_facing = user.dir
-	playsound(origin, 'sound/magic/churn.ogg', 80, TRUE)
-	user.visible_message(span_warning("[user] sweeps the psycross in a wide arc!"), span_notice("Radiant energy lashes outward!"))
-
-	// Determine perpendicular directions for the flanking projectiles.
-	var/left_dir
-	var/right_dir
-	switch(dir_facing)
-		if(NORTH, SOUTH)
-			left_dir = WEST
-			right_dir = EAST
-		if(EAST, WEST)
-			left_dir = NORTH
-			right_dir = SOUTH
-
-	// Calculate a far-forward target turf for aiming all three projectiles.
-	var/turf/far_target = origin
-	for(var/i in 1 to 4)
-		var/turf/next = get_step(far_target, dir_facing)
-		if(!next)
-			break
-		far_target = next
-
-	// --- Center projectile (visible, carries the cometslash overlay) ---
-	var/obj/projectile/energy/psycross_slash/center_proj = new(origin)
-	center_proj.firer = user
-	center_proj.def_zone = user.zone_selected
-	center_proj.set_slash_direction(dir_facing)
-	center_proj.preparePixelProjectile(far_target, origin)
-	center_proj.fire()
-
-	// --- Left flanking projectile (invisible) ---
-	var/turf/left_origin = get_step(origin, left_dir)
-	if(left_origin)
-		var/turf/left_target = get_step(far_target, left_dir)
-		if(left_target)
-			var/obj/projectile/energy/psycross_slash/flank/left_proj = new(left_origin)
-			left_proj.firer = user
-			left_proj.def_zone = user.zone_selected
-			left_proj.preparePixelProjectile(left_target, left_origin)
-			left_proj.fire()
-
-	// --- Right flanking projectile (invisible) ---
-	var/turf/right_origin = get_step(origin, right_dir)
-	if(right_origin)
-		var/turf/right_target = get_step(far_target, right_dir)
-		if(right_target)
-			var/obj/projectile/energy/psycross_slash/flank/right_proj = new(right_origin)
-			right_proj.firer = user
-			right_proj.def_zone = user.zone_selected
-			right_proj.preparePixelProjectile(right_target, right_origin)
-			right_proj.fire()
-
-	return TRUE
 
 // ---------- Psycross Slash Projectiles ----------
 

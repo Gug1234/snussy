@@ -165,6 +165,20 @@
 			var/sentinel = H.calculate_sentinel_bonus()
 			prob2defend += sentinel
 
+		// Anti-trick weapon dodge bonus: defenders holding weapons with anti_trickweapon_dodge_bonus
+		// get a flat prob2defend boost when the attacker is using a trick weapon.
+		if(I && istype(I, /obj/item/rogueweapon/trickweapon))
+			var/obj/item/defender_main = L.get_active_held_item()
+			var/obj/item/defender_off = L.get_inactive_held_item()
+			var/best_anti_tw_dodge = 0
+			if(istype(defender_main, /obj/item/rogueweapon/trickweapon))
+				var/obj/item/rogueweapon/trickweapon/tw_main = defender_main
+				best_anti_tw_dodge = max(best_anti_tw_dodge, tw_main.anti_trickweapon_dodge_bonus)
+			if(istype(defender_off, /obj/item/rogueweapon/trickweapon))
+				var/obj/item/rogueweapon/trickweapon/tw_off = defender_off
+				best_anti_tw_dodge = max(best_anti_tw_dodge, tw_off.anti_trickweapon_dodge_bonus)
+			prob2defend += best_anti_tw_dodge
+
 		prob2defend = clamp(prob2defend, 5, 90)
 
 		//------------Dual Wielding Checks------------

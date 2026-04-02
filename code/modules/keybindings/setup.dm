@@ -72,6 +72,8 @@
 
 /client/proc/set_macros(datum/preferences/prefs_override = prefs)
 	set waitfor = FALSE
+	if(!prefs_override)
+		return
 
 	// First, wipe
 	keys_held.Cut()
@@ -167,6 +169,8 @@
 		do_keybind_modifier_permutations("[mod]+[key]", permutations.Copy(), .)
 
 /client/proc/set_hotkeys_preference(datum/preferences/prefs_override = prefs)
+	if(!prefs_override)
+		return
 	if(prefs_override.hotkeys)
 		winset(src, null, "map.focus=true input.background-color=[COLOR_INPUT_DISABLED] mainwindow.macro=[SKIN_MACROSET_HOTKEYS]")
 	else

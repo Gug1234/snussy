@@ -173,6 +173,9 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_NORMAL
+	// --- Dual wielder scaling: rewards TRAIT_DUALWIELDER users ---
+	dualwielder_force_bonus = 3
+	dualwielder_wdefense_bonus = 2
 
 /// Mob render properties for one-handed and wielded display.
 /obj/item/rogueweapon/trickweapon/rakuyo/getonmobprop(tag)
