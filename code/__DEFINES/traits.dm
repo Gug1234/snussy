@@ -248,6 +248,7 @@
 #define TRAIT_DYES "Dyemaster"
 #define TRAIT_GOODWRITER "Great Writer"
 #define TRAIT_COMBAT_AWARE	"Combat Aware"
+#define TRAIT_COMBAT_REFLEXES	"Combat Reflexes" //reduces bait and defend cooldowns
 #define TRAIT_SILVER_WEAK "Silver Weakness"
 #define TRAIT_ASSASSIN	"Assassin"
 #define TRAIT_EQUESTRIAN "Equestrian"
@@ -522,7 +523,8 @@ GLOBAL_LIST_INIT(roguetraits, list(
 	TRAIT_CHASTITY_LOCKED = span_info("My chastity device is locked, it's impossible to remove without the key."),
 	TRAIT_GANG_A = span_info("I belong to the Rontz Ratz gang"),
 	TRAIT_GANG_B = span_info("I belong to the Blortz Volves gang"),
-	TRAIT_EXTREME_TEMPERATURE_IMMUNE = span_info("I will not suffer ills from extreme temperatures, wether hot or cold, yet fire and ice can still harm me.")
+	TRAIT_EXTREME_TEMPERATURE_IMMUNE = span_info("I will not suffer ills from extreme temperatures, wether hot or cold, yet fire and ice can still harm me."),
+	TRAIT_COMBAT_REFLEXES = span_info("My combat instincts are sharp. I recover from baiting and guarding more quickly than most.")
 ))
 
 // trait accessor defines
