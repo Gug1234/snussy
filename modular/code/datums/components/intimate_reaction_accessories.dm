@@ -14,10 +14,10 @@
  */
 /datum/component/intimate_reaction/piercing
 	dupe_mode = COMPONENT_DUPE_ALLOWED
-	movement_message_cooldown = 12 SECONDS
+	movement_message_cooldown = 24 SECONDS
 	/// Cooldown state for receive-flavor channel, separate from movement cooldown.
 	var/last_receive_flavor_time = 0
-	var/receive_flavor_cooldown = 10 SECONDS
+	var/receive_flavor_cooldown = 20 SECONDS
 
 /datum/component/intimate_reaction/piercing/Initialize()
 	. = ..()
@@ -117,12 +117,15 @@
 	return null
 
 /// Movement handler: emits a coverage-graded jingle visible_message to nearby players.
+/// Consults the mob-level reaction coordinator to prevent spam when multiple accessories are worn.
 /datum/component/intimate_reaction/piercing/try_handle_wearer_moved(mob/living/carbon/human/source)
 	if(!is_valid_wearer_source(source))
 		return FALSE
 	if(source.stat != CONSCIOUS)
 		return FALSE
 	if(last_movement_message_time + movement_message_cooldown >= world.time)
+		return FALSE
+	if(!can_fire_reaction(source, "movement"))
 		return FALSE
 	if(!prob(20))
 		return FALSE
@@ -134,6 +137,7 @@
 	if(!message)
 		return FALSE
 	last_movement_message_time = world.time
+	mark_reaction_fired(source, "movement")
 	// Jingle messages begin with "'s" and concatenate directly onto the name without a separating space.
 	if(copytext(message, 1, 3) == "'s")
 		source.visible_message(span_notice("[source][message]"))
@@ -142,12 +146,15 @@
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message to the wearer.
+/// Consults the mob-level reaction coordinator to prevent spam when multiple accessories are worn.
 /datum/component/intimate_reaction/piercing/try_handle_wearer_sex_action_received(mob/living/carbon/human/source, mob/living/carbon/human/acting_mob, datum/sex_controller/acting_sexcon, datum/sex_action/action, receiver_part, giving, arousal_amt, pain_amt, applied_force, applied_speed)
 	if(!is_valid_wearer_source(source))
 		return FALSE
 	if(source.stat != CONSCIOUS)
 		return FALSE
 	if(last_receive_flavor_time + receive_flavor_cooldown >= world.time)
+		return FALSE
+	if(!can_fire_reaction(source, "sex_received"))
 		return FALSE
 	var/datum/sex_controller/sexcon = source.sexcon
 	if(!sexcon || !sexcon.modular_chastity_content_enabled_for(source))
@@ -159,6 +166,7 @@
 	if(!message)
 		return FALSE
 	last_receive_flavor_time = world.time
+	mark_reaction_fired(source, "sex_received")
 	to_chat(source, span_warning(message))
 	return TRUE
 
@@ -169,10 +177,10 @@
  * relevant sex actions. All messages are private — insertable sensations are interior and inaudible.
  */
 /datum/component/intimate_reaction/insertable
-	movement_message_cooldown = 15 SECONDS
+	movement_message_cooldown = 30 SECONDS
 	/// Cooldown state for receive-flavor channel.
 	var/last_receive_flavor_time = 0
-	var/receive_flavor_cooldown = 10 SECONDS
+	var/receive_flavor_cooldown = 20 SECONDS
 
 /datum/component/intimate_reaction/insertable/Initialize()
 	. = ..()
@@ -233,12 +241,15 @@
 	return null
 
 /// Movement handler: sends a private shift-sensation message to the wearer.
+/// Consults the mob-level reaction coordinator to prevent spam when multiple accessories are worn.
 /datum/component/intimate_reaction/insertable/try_handle_wearer_moved(mob/living/carbon/human/source)
 	if(!is_valid_wearer_source(source))
 		return FALSE
 	if(source.stat != CONSCIOUS)
 		return FALSE
 	if(last_movement_message_time + movement_message_cooldown >= world.time)
+		return FALSE
+	if(!can_fire_reaction(source, "movement"))
 		return FALSE
 	if(!prob(15))
 		return FALSE
@@ -250,16 +261,20 @@
 	if(!message)
 		return FALSE
 	last_movement_message_time = world.time
+	mark_reaction_fired(source, "movement")
 	to_chat(source, span_warning(message))
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message to the wearer.
+/// Consults the mob-level reaction coordinator to prevent spam when multiple accessories are worn.
 /datum/component/intimate_reaction/insertable/try_handle_wearer_sex_action_received(mob/living/carbon/human/source, mob/living/carbon/human/acting_mob, datum/sex_controller/acting_sexcon, datum/sex_action/action, receiver_part, giving, arousal_amt, pain_amt, applied_force, applied_speed)
 	if(!is_valid_wearer_source(source))
 		return FALSE
 	if(source.stat != CONSCIOUS)
 		return FALSE
 	if(last_receive_flavor_time + receive_flavor_cooldown >= world.time)
+		return FALSE
+	if(!can_fire_reaction(source, "sex_received"))
 		return FALSE
 	var/datum/sex_controller/sexcon = source.sexcon
 	if(!sexcon || !sexcon.modular_chastity_content_enabled_for(source))
@@ -271,6 +286,7 @@
 	if(!message)
 		return FALSE
 	last_receive_flavor_time = world.time
+	mark_reaction_fired(source, "sex_received")
 	to_chat(source, span_warning(message))
 	return TRUE
 

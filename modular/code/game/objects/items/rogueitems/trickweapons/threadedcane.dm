@@ -32,7 +32,7 @@
 /// Threaded Cane base - charged thrust. Charged R2, identical motion with more power.
 /datum/intent/threadedcane/chargedthrust
 	name = "charged thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -94,7 +94,7 @@
 /// Threaded Cane transformed - wide sweep. R2 overhead horizontal loop with reach.
 /datum/intent/threadedcane/widesweep
 	name = "wide sweep"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("sweeps", "lashes")
 	animname = "cut"
 	blade_class = BCLASS_LASHING

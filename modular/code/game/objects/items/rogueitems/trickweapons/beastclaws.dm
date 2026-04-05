@@ -86,7 +86,7 @@
 /// Left-hand overhead slam â€” raised and brought down hard.
 /datum/intent/beastclaw/dualoverhand
 	name = "feral slam"
-	icon_state = "inslam"
+	icon_state = "incrush"
 	attack_verb = list("slams", "mauls", "batters")
 	animname = "chop"
 	blade_class = BCLASS_CHOP

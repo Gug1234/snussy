@@ -18,7 +18,7 @@
 	if(!target)
 		return FALSE
 	// Strange jelly can sprout several tendrils independently.
-	for(var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly as anything in target.intimate_accessories)
+	if(istype(target.intimate_jelly, /obj/item/intimate_accessory/jelly/eora/strange))
 		return TRUE
 	// Otherwise needs a mouth jelly AND a rear-or-genital jelly simultaneously.
 	if(!get_mouth_jelly(target))
@@ -27,7 +27,8 @@
 
 /// Returns the primary jelly driving this action (for cocoon flavour lookup).
 /datum/sex_action/slime_tendril_multi/proc/get_primary_jelly(mob/living/carbon/human/target)
-	for(var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly as anything in target.intimate_accessories)
+	var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = target.intimate_jelly
+	if(istype(strange_jelly))
 		return strange_jelly
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_rear_jelly(target)
 	if(jelly)
@@ -35,13 +36,9 @@
 	return get_mouth_jelly(target)
 
 /datum/sex_action/slime_tendril_multi/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	if(user == target)
-		return FALSE
 	return has_multi_tendril_setup(target)
 
 /datum/sex_action/slime_tendril_multi/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	if(user == target)
-		return FALSE
 	if(!has_multi_tendril_setup(target))
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_MOUTH))
@@ -52,10 +49,17 @@
 
 /datum/sex_action/slime_tendril_multi/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_primary_jelly(target)
+	var/self_target = (user == target)
 	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange) && target.loc == jelly:active_cocoon)
-		user.visible_message(span_warning("[user] runs [user.p_their()] hands across the cocoon, coaxing it into filling [target] completely with writhing tendrils!"))
+		if(self_target)
+			user.visible_message(span_warning("[user] runs [user.p_their()] hands across the cocoon, coaxing it into filling [user.p_them()] completely with writhing tendrils!"))
+		else
+			user.visible_message(span_warning("[user] runs [user.p_their()] hands across the cocoon, coaxing it into filling [target] completely with writhing tendrils!"))
 		return
-	user.visible_message(span_warning("[user] coaxes the slime, urging it to fill every one of [target]'s openings at once!"))
+	if(self_target)
+		user.visible_message(span_warning("[user] coaxes [user.p_their()] own slime, urging it to fill every opening at once!"))
+	else
+		user.visible_message(span_warning("[user] coaxes the slime, urging it to fill every one of [target]'s openings at once!"))
 
 /datum/sex_action/slime_tendril_multi/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_primary_jelly(target)
@@ -65,17 +69,25 @@
 	var/message = null
 	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange))
 		var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = jelly
-		message = strange_jelly.get_cocoon_action_flavor(target, user.sexcon)
 		if(strange_jelly.active_cocoon?.inhabitant == target)
+			message = strange_jelly.get_cocoon_action_flavor("multi", target, user.sexcon)
 			strange_jelly.add_cocoon_cum(1)
+		else
+			message = strange_jelly.get_tendril_action_flavor("multi", target, user.sexcon)
 	if(!message)
-		message = "[user] [user.sexcon.get_generic_force_adjective()] urges the slime to drive its tendrils deeper — [target] is filled completely, throat and rear stuffed and writhing."
+		if(user == target)
+			message = "[user] [user.sexcon.get_generic_force_adjective()] urges the slime to drive its tendrils deeper — filled completely, [user.p_their()] throat and rear stuffed and writhing."
+		else
+			message = "[user] [user.sexcon.get_generic_force_adjective()] urges the slime to drive its tendrils deeper — [target] is filled completely, throat and rear stuffed and writhing."
 
 	user.visible_message(user.sexcon.spanify_force(message))
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.oralcourse_noise(target)
 	apply_silver_intimate_contact("mouth", target, user)
 	apply_silver_intimate_contact("rear", target, user)
+	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange))
+		var/obj/item/intimate_accessory/jelly/eora/strange/bond_jelly = jelly
+		bond_jelly.advance_bond_from_sex(2) // double for multi-penetration
 
 	// Heavy dual-penetration arousal and pain; throat tendril causes oxyloss at higher force.
 	user.sexcon.perform_sex_action(target, 2, 8, TRUE)
@@ -84,7 +96,10 @@
 	target.sexcon.handle_passive_ejaculation()
 
 /datum/sex_action/slime_tendril_multi/on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	user.visible_message(span_warning("[user] eases up, letting the slime retract its tendrils from [target]'s throat and rear simultaneously."))
+	if(user == target)
+		user.visible_message(span_warning("[user] eases up, letting the slime retract its tendrils from [user.p_their()] throat and rear simultaneously."))
+	else
+		user.visible_message(span_warning("[user] eases up, letting the slime retract its tendrils from [target]'s throat and rear simultaneously."))
 
 /datum/sex_action/slime_tendril_multi/is_finished(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(target.sexcon.finished_check())

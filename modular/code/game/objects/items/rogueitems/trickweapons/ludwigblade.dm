@@ -53,7 +53,7 @@
 /// Charged violent thrust â€” gripped R2 charged. Extended windup, blade driven upward.
 /datum/intent/ludwig/chargedthrust
 	name = "violent thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB

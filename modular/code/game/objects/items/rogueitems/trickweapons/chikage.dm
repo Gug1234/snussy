@@ -20,7 +20,7 @@
 /// Chikage base - quick slash. Fast horizontal sweep, slightly weaker but rapid.
 /datum/intent/chikage/quickslash
 	name = "quick slash"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("swipes", "sweeps")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -81,7 +81,7 @@
 /// Chikage transformed - blood sweep. Wide horizontal sweep, crowd control.
 /datum/intent/chikage/bloodsweep
 	name = "blood sweep"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("sweeps", "carves")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -96,7 +96,7 @@
 /// Chikage transformed - iaido draw. Sheathe-and-draw attack. High damage, charged.
 /datum/intent/chikage/iaidodraw
 	name = "iaido draw"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("draws through", "flash-cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT

@@ -19,7 +19,7 @@
 /// Reiterpallasch base - quick slash. R1 alternating slash from left to right.
 /datum/intent/reiter/quickslash
 	name = "quick slash"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -48,7 +48,7 @@
 /// Reiterpallasch base - charged thrust. R2 powerful lunge forward.
 /datum/intent/reiter/chargedthrust
 	name = "charged thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -112,7 +112,7 @@
 /// Reiterpallasch transformed - extending thrust. Charged rapier thrust at full extension.
 /datum/intent/reiter/extendingthrust
 	name = "extending thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives through", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB

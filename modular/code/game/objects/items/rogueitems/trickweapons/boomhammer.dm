@@ -36,7 +36,7 @@
 /// Boom Hammer base - uppercut sweep. R2 diagonal swing from foot to shoulder.
 /datum/intent/boomhammer/uppercut
 	name = "uppercut sweep"
-	icon_state = "incut"
+	icon_state = "inuppercut"
 	attack_verb = list("uppercuts", "sweeps")
 	animname = "cut"
 	blade_class = BCLASS_BLUNT
@@ -101,7 +101,7 @@
 /// Boom Hammer transformed - fiery uppercut. Ignited R2 diagonal fire swing.
 /datum/intent/boomhammer/fieryuppercut
 	name = "fiery uppercut"
-	icon_state = "incut"
+	icon_state = "inuppercut"
 	attack_verb = list("ignites", "sears through")
 	animname = "cut"
 	blade_class = BCLASS_BURN

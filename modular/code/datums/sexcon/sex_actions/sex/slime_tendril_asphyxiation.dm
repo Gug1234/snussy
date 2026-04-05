@@ -12,26 +12,29 @@
 	category = SEX_CATEGORY_MISC
 
 /datum/sex_action/slime_tendril_asphyxiation/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	if(user == target)
-		return FALSE
 	return !!get_any_eora_jelly(target)
 
 /datum/sex_action/slime_tendril_asphyxiation/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	if(user == target)
-		return FALSE
 	if(!get_any_eora_jelly(target))
 		return FALSE
 	// The head/throat must not be fully armoured or blocked.
-	if(!check_location_accessible(user, target, BODY_ZONE_HEAD))
+	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_MOUTH))
 		return FALSE
 	return TRUE
 
 /datum/sex_action/slime_tendril_asphyxiation/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_any_eora_jelly(target)
+	var/self_target = (user == target)
 	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange) && target.loc == jelly:active_cocoon)
-		user.visible_message(span_warning("[user] squeezes the cocoon, urging it to tighten around [target]'s throat!"))
+		if(self_target)
+			user.visible_message(span_warning("[user] squeezes the cocoon, urging it to tighten around [user.p_their()] own throat!"))
+		else
+			user.visible_message(span_warning("[user] squeezes the cocoon, urging it to tighten around [target]'s throat!"))
 		return
-	user.visible_message(span_warning("[user] coaxes the slime into sending a tendril snaking toward [target]'s throat!"))
+	if(self_target)
+		user.visible_message(span_warning("[user] coaxes [user.p_their()] own slime into sending a tendril snaking toward [user.p_their()] throat!"))
+	else
+		user.visible_message(span_warning("[user] coaxes the slime into sending a tendril snaking toward [target]'s throat!"))
 
 /datum/sex_action/slime_tendril_asphyxiation/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_any_eora_jelly(target)
@@ -41,11 +44,20 @@
 	var/message = null
 	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange))
 		var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = jelly
-		message = strange_jelly.get_cocoon_action_flavor(target, user.sexcon)
+		if(strange_jelly.active_cocoon?.inhabitant == target)
+			message = strange_jelly.get_cocoon_action_flavor("asphyxiation", target, user.sexcon)
+		else
+			message = strange_jelly.get_tendril_action_flavor("asphyxiation", target, user.sexcon)
 	if(!message)
-		message = "[user] [user.sexcon.get_generic_force_adjective()] urges the tendril tighter around [target]'s throat — [target.p_their()] breath comes in ragged, stolen gasps."
+		if(user == target)
+			message = "[user] [user.sexcon.get_generic_force_adjective()] urges the tendril tighter around [user.p_their()] own throat — [user.p_their()] breath comes in ragged, stolen gasps."
+		else
+			message = "[user] [user.sexcon.get_generic_force_adjective()] urges the tendril tighter around [target]'s throat — [target.p_their()] breath comes in ragged, stolen gasps."
 
 	user.visible_message(user.sexcon.spanify_force(message))
+	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange))
+		var/obj/item/intimate_accessory/jelly/eora/strange/bond_jelly = jelly
+		bond_jelly.advance_bond_from_sex()
 
 	// Oxyloss scales directly with force — this is the primary effect of the action.
 	var/oxyloss = 0
@@ -65,7 +77,10 @@
 	target.sexcon.handle_passive_ejaculation()
 
 /datum/sex_action/slime_tendril_asphyxiation/on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	user.visible_message(span_warning("[user] eases up, letting the slime loosen its grip on [target]'s throat."))
+	if(user == target)
+		user.visible_message(span_warning("[user] eases up, letting the slime loosen its grip on [user.p_their()] own throat."))
+	else
+		user.visible_message(span_warning("[user] eases up, letting the slime loosen its grip on [target]'s throat."))
 
 /datum/sex_action/slime_tendril_asphyxiation/is_finished(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(target.sexcon.finished_check())

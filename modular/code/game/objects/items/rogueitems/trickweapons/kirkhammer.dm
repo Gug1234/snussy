@@ -46,7 +46,7 @@
 /// Kirkhammer base - charged thrust. Charged R2 powerful thrust with upward path.
 /datum/intent/kirkhammer/chargedthrust
 	name = "charged thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives into", "skewers")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -96,7 +96,7 @@
 /// Kirkhammer transformed - overhead slam. R2 vertical overhead ground pound.
 /datum/intent/kirkhammer/overheadslam
 	name = "overhead slam"
-	icon_state = "insmash"
+	icon_state = "inslam"
 	attack_verb = list("pounds", "slams")
 	animname = "chop"
 	blade_class = BCLASS_SMASH

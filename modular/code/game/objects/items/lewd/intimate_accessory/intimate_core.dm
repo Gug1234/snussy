@@ -88,6 +88,8 @@
 			return "Breast"
 		if(INTIMATE_SLOT_MOUTH)
 			return "Mouth"
+		if(INTIMATE_SLOT_JELLY)
+			return "Jelly"
 		else
 			return "Misc"
 
@@ -120,48 +122,58 @@
 		return FALSE
 	return TRUE
 
+/// Returns the mob var name for this item's sub-slot (piercing or insertable).
+/// Jelly items route to "intimate_jelly" regardless of region.
 /obj/item/intimate_accessory/proc/get_slot_var_name(slot_override = null)
+	// Jelly always goes to its dedicated slot
+	if(intimate_flags & INTIMATE_FLAG_JELLY)
+		return "intimate_jelly"
+	var/is_piercing = !!(intimate_flags & INTIMATE_FLAG_PIERCING)
 	switch(get_effective_intimate_slot(slot_override))
 		if(INTIMATE_SLOT_GENITAL)
-			return "intimate_genital"
+			return is_piercing ? "intimate_genital_piercing" : "intimate_genital_insertable"
 		if(INTIMATE_SLOT_REAR)
-			return "intimate_rear"
+			return is_piercing ? "intimate_rear_piercing" : "intimate_rear_insertable"
 		if(INTIMATE_SLOT_BREAST)
-			return "intimate_breast"
+			return is_piercing ? "intimate_breast_piercing" : "intimate_breast_insertable"
 		if(INTIMATE_SLOT_MOUTH)
-			return "intimate_mouth"
+			return is_piercing ? "intimate_mouth_piercing" : "intimate_mouth_insertable"
+		if(INTIMATE_SLOT_JELLY)
+			return "intimate_jelly"
 		else
-			return "intimate_misc"
+			return is_piercing ? "intimate_mouth_piercing" : "intimate_mouth_insertable"
 
 /obj/item/intimate_accessory/proc/get_worn_in_slot(mob/living/carbon/human/H, slot_override = null)
 	if(!H)
 		return null
-	if(get_effective_intimate_slot(slot_override) == INTIMATE_SLOT_MOUTH)
-		return H.intimate_mouth ? H.intimate_mouth : H.intimate_misc
 	return H.vars[get_slot_var_name(slot_override)]
 
 /obj/item/intimate_accessory/proc/set_worn_in_slot(mob/living/carbon/human/H, obj/item/intimate_accessory/new_value, slot_override = null)
 	if(!H)
-		return
-	if(get_effective_intimate_slot(slot_override) == INTIMATE_SLOT_MOUTH)
-		H.intimate_mouth = new_value
-		H.intimate_misc = new_value
 		return
 	H.vars[get_slot_var_name(slot_override)] = new_value
 
 /obj/item/intimate_accessory/proc/clear_worn_slot_refs(mob/living/carbon/human/H)
 	if(!H)
 		return
-	if(H.intimate_genital == src)
-		H.intimate_genital = null
-	if(H.intimate_rear == src)
-		H.intimate_rear = null
-	if(H.intimate_breast == src)
-		H.intimate_breast = null
-	if(H.intimate_mouth == src)
-		H.intimate_mouth = null
-	if(H.intimate_misc == src)
-		H.intimate_misc = null
+	if(H.intimate_genital_piercing == src)
+		H.intimate_genital_piercing = null
+	if(H.intimate_genital_insertable == src)
+		H.intimate_genital_insertable = null
+	if(H.intimate_rear_piercing == src)
+		H.intimate_rear_piercing = null
+	if(H.intimate_rear_insertable == src)
+		H.intimate_rear_insertable = null
+	if(H.intimate_breast_piercing == src)
+		H.intimate_breast_piercing = null
+	if(H.intimate_breast_insertable == src)
+		H.intimate_breast_insertable = null
+	if(H.intimate_mouth_piercing == src)
+		H.intimate_mouth_piercing = null
+	if(H.intimate_mouth_insertable == src)
+		H.intimate_mouth_insertable = null
+	if(H.intimate_jelly == src)
+		H.intimate_jelly = null
 
 /obj/item/intimate_accessory/proc/is_slot_available(mob/living/carbon/human/H, slot_override = null)
 	return !get_worn_in_slot(H, slot_override)

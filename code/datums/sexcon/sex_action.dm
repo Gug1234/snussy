@@ -108,7 +108,7 @@
 /datum/sex_action/proc/get_rear_plug(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/rear/plug/rear_plug = owner.intimate_rear
+	var/obj/item/intimate_accessory/rear/plug/rear_plug = owner.intimate_rear_insertable
 	if(!istype(rear_plug))
 		return null
 	return rear_plug
@@ -116,7 +116,7 @@
 /datum/sex_action/proc/get_breast_piercing(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/piercing/breast/breast_piercing = owner.intimate_breast
+	var/obj/item/intimate_accessory/piercing/breast/breast_piercing = owner.intimate_breast_piercing
 	if(!istype(breast_piercing))
 		return null
 	return breast_piercing

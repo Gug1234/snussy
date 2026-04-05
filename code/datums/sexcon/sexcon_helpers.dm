@@ -253,12 +253,12 @@
 		var/mob/living/carbon/human/target_human = ishuman(target) ? target : null
 		var/mob/living/carbon/human/tongue_owner = null
 		var/obj/item/intimate_accessory/piercing/tongue/tongue_piercing = null
-		if(istype(acting_human?.intimate_mouth, /obj/item/intimate_accessory/piercing/tongue))
+		if(istype(acting_human?.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing/tongue))
 			tongue_owner = acting_human
-			tongue_piercing = acting_human.intimate_mouth
-		else if(istype(target_human?.intimate_mouth, /obj/item/intimate_accessory/piercing/tongue))
+			tongue_piercing = acting_human.intimate_mouth_piercing
+		else if(istype(target_human?.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing/tongue))
 			tongue_owner = target_human
-			tongue_piercing = target_human.intimate_mouth
+			tongue_piercing = target_human.intimate_mouth_piercing
 
 		if(tongue_piercing)
 			var/flavor_text = get_tongue_piercing_oral_flavor(tongue_owner, tongue_piercing)

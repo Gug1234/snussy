@@ -136,14 +136,22 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/intimate_reaction_show_extreme = TRUE
 	/// Sub-toggle: when FALSE, suppresses accessory-free character flavor text (custom movement, flash, sex-received).
 	var/intimate_reaction_show_accessory_free = TRUE
-	/// Typepath of the intimate accessory to equip in the genital slot at round-start. Null = none.
-	var/pref_intimate_genital = null
-	/// Typepath of the intimate accessory to equip in the rear slot at round-start. Null = none.
-	var/pref_intimate_rear = null
-	/// Typepath of the intimate accessory to equip in the breast slot at round-start. Null = none.
-	var/pref_intimate_breast = null
-	/// Typepath of the intimate accessory to equip in the mouth slot at round-start. Null = none.
-	var/pref_intimate_mouth = null
+	/// Typepath of the piercing to equip in the genital slot at round-start. Null = none.
+	var/pref_intimate_genital_piercing = null
+	/// Typepath of the insertable to equip in the genital slot at round-start. Null = none.
+	var/pref_intimate_genital_insertable = null
+	/// Typepath of the piercing to equip in the rear slot at round-start. Null = none.
+	var/pref_intimate_rear_piercing = null
+	/// Typepath of the insertable to equip in the rear slot at round-start. Null = none.
+	var/pref_intimate_rear_insertable = null
+	/// Typepath of the piercing to equip in the breast slot at round-start. Null = none.
+	var/pref_intimate_breast_piercing = null
+	/// Typepath of the insertable to equip in the breast slot at round-start. Null = none.
+	var/pref_intimate_breast_insertable = null
+	/// Typepath of the piercing to equip in the mouth slot at round-start. Null = none.
+	var/pref_intimate_mouth_piercing = null
+	/// Typepath of the insertable to equip in the mouth slot at round-start. Null = none.
+	var/pref_intimate_mouth_insertable = null
 
 	/// Whether a chastity device should be equipped at round-start. The specific
 	/// device typepath is resolved at equip time from the toggle prefs below.

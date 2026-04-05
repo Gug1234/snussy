@@ -293,7 +293,9 @@
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
 //Abyssor trick weapons — eldritch armaments forged with abyssal sea creatures.
 		if("Abyssal Parasite")
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kosparasite(H), TRUE)
+			var/obj/item/rogueweapon/trickweapon/kosparasite/KP = new(H)
+			H.put_in_hands(KP, TRUE)
+			KP.infest(H, force = TRUE)
 			H.adjust_skillrank(/datum/skill/combat/maces, 1, TRUE)
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
 		if("Abyssal Arm")

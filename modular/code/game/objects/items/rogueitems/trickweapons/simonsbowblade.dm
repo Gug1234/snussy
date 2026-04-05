@@ -32,7 +32,7 @@
 /// Simon's Bowblade base - backhand swipe. Backstep R1 quick reverse slash.
 /datum/intent/bowblade/backswipe
 	name = "backhand swipe"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("swipes", "backhands")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -77,7 +77,7 @@
 /// Long reach represents the arrow travelling across tiles.
 /datum/intent/bowblade/piercingshot
 	name = "piercing shot"
-	icon_state = "instab"
+	icon_state = "instrike"
 	attack_verb = list("pierces", "shoots")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -95,7 +95,7 @@
 /// Simon's Bowblade transformed - charged shot. Charged R2 powerful arrow with full draw.
 /datum/intent/bowblade/chargedshot
 	name = "charged shot"
-	icon_state = "instab"
+	icon_state = "incrush"
 	attack_verb = list("impales", "skewers")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -115,7 +115,7 @@
 /// Simon's Bowblade transformed - bow thrust. Backstep melee jab with the bow tip.
 /datum/intent/bowblade/bowthrust
 	name = "bow thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("jabs", "pokes")
 	animname = "stab"
 	blade_class = BCLASS_STAB

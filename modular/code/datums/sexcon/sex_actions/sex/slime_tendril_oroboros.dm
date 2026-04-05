@@ -57,9 +57,11 @@
 	// Strange jellies on the target produce cocoon flavour if they can.
 	if(istype(target_jelly, /obj/item/intimate_accessory/jelly/eora/strange))
 		var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = target_jelly
-		message = strange_jelly.get_cocoon_action_flavor(target, user.sexcon)
 		if(strange_jelly.active_cocoon?.inhabitant == target)
+			message = strange_jelly.get_cocoon_action_flavor("through", target, user.sexcon)
 			strange_jelly.add_cocoon_cum(1)
+		else
+			message = strange_jelly.get_tendril_action_flavor("through", target, user.sexcon)
 	if(!message)
 		message = "[user] and [target] are locked in a closed circuit of slime — each tendril drives deeper as the loop [user.sexcon.get_generic_force_adjective()] tightens around both of them."
 
@@ -67,6 +69,13 @@
 	user.sexcon.intercourse_noise(target)
 	apply_silver_intimate_contact("rear", target, user)
 	apply_silver_intimate_contact("rear", user, target)
+	// Advance bond on both jellies if applicable
+	if(istype(target_jelly, /obj/item/intimate_accessory/jelly/eora/strange))
+		var/obj/item/intimate_accessory/jelly/eora/strange/bond_jelly = target_jelly
+		bond_jelly.advance_bond_from_sex(2)
+	if(istype(user_jelly, /obj/item/intimate_accessory/jelly/eora/strange))
+		var/obj/item/intimate_accessory/jelly/eora/strange/bond_jelly2 = user_jelly
+		bond_jelly2.advance_bond_from_sex(2)
 
 	// Oxyloss for both: the loop constricts airways as it tightens.
 	var/oxyloss = 0

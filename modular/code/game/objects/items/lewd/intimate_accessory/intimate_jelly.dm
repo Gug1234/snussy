@@ -3,9 +3,11 @@
 	desc = "A warm, living lump of slime. It can be pressed into almost any intimate hollow. While some consider them parasites, others find the companionate squirming of the slime irresistible, not to mention the hygiene benefits."
 	icon_state = "rear_plug_item_slime"
 	item_state = "rear_plug_item_1"
-	intimate_slot = INTIMATE_SLOT_GENITAL
+	intimate_slot = INTIMATE_SLOT_JELLY
+	/// Supported BODY REGIONS — the jelly can functionally cover any of these.
+	/// Storage is always via INTIMATE_SLOT_JELLY; these control behavior dispatch.
 	supported_intimate_slots = list(INTIMATE_SLOT_MOUTH, INTIMATE_SLOT_BREAST, INTIMATE_SLOT_GENITAL, INTIMATE_SLOT_REAR)
-	intimate_flags = INTIMATE_FLAG_INSERTABLE
+	intimate_flags = INTIMATE_FLAG_INSERTABLE | INTIMATE_FLAG_JELLY
 	intimate_passive_insertable_effect = TRUE
 	sprite_acc = null
 	sellprice = 15
@@ -20,9 +22,14 @@
 	var/last_jelly_stimulate = 0
 	/// Minimum delay between manual stimulation commands (default 2 minutes).
 	var/jelly_stimulate_interval = 2 MINUTES
+	/// The active slime doppelganger, if any. Only one at a time.
+	var/mob/living/carbon/human/slime_doppelganger/active_doppelganger = null
 
 /obj/item/intimate_accessory/jelly/eora/Initialize()
 	. = ..()
+	// Default to genital region for behavior dispatch — storage is always INTIMATE_SLOT_JELLY.
+	if(isnull(current_intimate_slot))
+		current_intimate_slot = INTIMATE_SLOT_GENITAL
 	color = null
 	refresh_item_icon_state()
 	update_visual_accessory_type()
@@ -243,10 +250,17 @@
 	var/obj/item/intimate_accessory/jelly/eora/strange/jelly = source_jelly
 	tick_count++
 
-	// Emit flavor text from the strange jelly's action template bank.
-	var/action_flavor = jelly.get_cocoon_action_flavor(H)
+	// Pick a random action type for the autonomous cocoon pulse.
+	var/static/list/cocoon_tick_actions = list("anal", "throat", "through", "ear", "asphyxiation", "multi")
+	var/action_key = pick(cocoon_tick_actions)
+
+	// Emit flavor text from the strange jelly's per-action cocoon template bank.
+	var/action_flavor = jelly.get_cocoon_action_flavor(action_key, H)
 	if(action_flavor)
 		visible_message(span_love(action_flavor))
+
+	// Play a wet slime sound for the cocoon pulse.
+	playsound(src, 'sound/misc/mat/insert (1).ogg', 40, TRUE, ignore_walls = FALSE)
 
 	// Apply a small arousal bump to the sealed inhabitant.
 	if(H.sexcon && !H.sexcon.arousal_frozen && H.sexcon.arousal < ACTIVE_EJAC_THRESHOLD)
@@ -449,6 +463,10 @@
 		H.sexcon.adjust_arousal(passive_arousal_amount)
 		did_anything = TRUE
 
+	// Autonomous jelly behavior — bead interaction, ambient flavor text, etc.
+	if(try_autonomous_behavior(H))
+		did_anything = TRUE
+
 	return did_anything
 
 /**
@@ -522,9 +540,6 @@
 	if(!has_slot_anatomy(H, new_slot))
 		to_chat(H, span_warning(get_slot_anatomy_failure_message(H, H, new_slot)))
 		return FALSE
-	if(!is_slot_available(H, new_slot))
-		to_chat(H, span_warning(get_slot_unavailable_message(H, H, new_slot)))
-		return FALSE
 
 	// Release retained internal content before leaving the current internal slot.
 	if(is_internal_jelly_slot() && H.sexcon)
@@ -536,13 +551,11 @@
 		chest.remove_bodypart_feature(intimate_feature)
 	intimate_feature = null
 
-	// Repoint all mob slot references and update the jelly's recorded slot.
+	// Update the jelly's active REGION — storage remains in intimate_jelly.
 	// set_current_intimate_slot on the eora subtype also calls update_visual_accessory_type.
-	clear_worn_slot_refs(H)
 	set_current_intimate_slot(new_slot)
-	set_worn_in_slot(H, src)
 
-	// Reattach the visual overlay feature in the new slot position.
+	// Reattach the visual overlay feature in the new region position.
 	attach_intimate_feature(H)
 
 	var/new_slot_name = lowertext(get_intimate_slot_display_name())
@@ -560,23 +573,32 @@
 	var/mob/living/carbon/human/bonded_wearer = null
 	var/bonded_ckey = null
 	var/bonded_name = null
+	/// Player-assigned custom name for the jelly. Null = default name.
+	var/custom_jelly_name = null
+	/// Accumulated bond progress from consensual sex. Resets on each bond level-up.
+	var/bond_progress = 0
+	/// How many sex action ticks are needed per bond level increase.
+	var/bond_progress_threshold = 8
 	var/need_level = 0
 	var/max_need_level = 6
 	var/neglect_level = 0
 	var/max_neglect_level = 6
 	var/last_need_update = 0
-	var/need_tick_interval = 5 MINUTES
-	var/need_growth_per_tick = 1
+	var/need_tick_interval = 2 MINUTES       // was 5 min — needs grow faster
+	var/need_growth_per_tick = 2             // was 1 — two need levels per tick
 	var/last_need_soothe = 0
-	var/need_soothe_interval = 2 MINUTES
-	var/need_soothe_amount = 1
+	var/need_soothe_interval = 1 MINUTES     // was 2 min — can be soothed faster to match
+	var/need_soothe_amount = 2               // was 1 — soothing is proportionally stronger
 	var/last_neglect_punishment = 0
-	var/neglect_punishment_interval = 3 MINUTES
+	var/neglect_punishment_interval = 1.5 MINUTES // was 3 min — punishes faster
 	var/last_force_strip = 0
-	var/force_strip_interval = 10 MINUTES
+	var/force_strip_interval = 5 MINUTES     // was 10 min — escalates faster
 	var/neglect_punishment_threshold = 3
 	var/force_strip_neglect_threshold = 4
 	var/cocoon_neglect_threshold = 5
+	/// Need level at or above which the jelly will cocoon its bonded wearer.
+	/// This fires while the jelly IS worn, unlike neglect which grows only off-body.
+	var/cocoon_need_threshold = 5
 	var/max_obsession_level = 6
 	var/max_bond_escalation_level = 4
 	var/obsession_level = 0
@@ -591,24 +613,112 @@
 		"3" = "%THEIR_CAP% head snaps sideways as tendrils %FORCE% bore into %THEIR% ear canals, the wet, invasive pressure making %THEIR% vision swim and %THEIR% stomach heave.",
 		"4" = "Despite %FORCE% clamping %THEIR% jaw shut, the tendril oozes between %USER%'s teeth and forces %THEIR% throat open — the slime pumping rhythmically, gagging %THEIR% into a drooling, retching mess.",
 	)
+	// ── Cocoon flavor text keyed by action type ──
+	// Each action gets contextually appropriate cocoon-themed messages.
 	var/static/list/cocoon_action_templates = list(
-		"1" = "The cocoon goes cloudy with a thick, milky discharge as tendrils %FORCE% pump load after load of viscous seed into %TARGET%'s guts — the belly distending visibly through the translucent walls.",
-		"2" = "The cocoon's outer walls buckle and bulge obscenely as the slime %FORCE% rams through %TARGET%'s insides, the shape of the tendrils visible through the membrane as they churn.",
-		"3" = "A wet, muffled scream spills from within as the tendrils %FORCE% bore deeper into %TARGET%'s body — the cocoon shuddering with each convulsion.",
-		"4" = "%TARGET%'s cocoon jerks and ripples as the tendrils %FORCE% work from both ends simultaneously, the slime filling every cavity until the body inside stops struggling and starts twitching.",
+		"anal" = list(
+			"1" = "The cocoon goes cloudy with a thick, milky discharge as tendrils %FORCE% pump load after load of viscous seed into %TARGET%'s guts — the belly distending visibly through the translucent walls.",
+			"2" = "The cocoon's outer walls buckle and bulge obscenely as the slime %FORCE% rams through %TARGET%'s rear, the shape of the tendril visible through the membrane as it churns.",
+			"3" = "A wet, muffled moan spills from within as the cocoon's tendril %FORCE% bores deeper into %TARGET%'s rear — the cocoon shuddering with each convulsion.",
+			"4" = "The cocoon clenches around %TARGET% as a fat tendril %FORCE% drives into %THEIR% ass, the translucent walls rippling with each thrust.",
+		),
+		"throat" = list(
+			"1" = "The cocoon pulses as a thick tendril %FORCE% snakes past %TARGET%'s lips, filling %THEIR% throat — %THEIR% jaw distends visibly through the membrane.",
+			"2" = "A muffled gag echoes inside the cocoon as the slime %FORCE% drives a tendril deeper into %TARGET%'s throat, the bulge visible through the translucent walls.",
+			"3" = "The cocoon shudders as tendrils %FORCE% pour into %TARGET%'s mouth, %THEIR% throat bulging grotesquely behind the membrane.",
+			"4" = "Slime %FORCE% floods %TARGET%'s throat from within the cocoon — %THEIR% cheeks balloon outward as the tendril pushes deeper than breath allows.",
+		),
+		"through" = list(
+			"1" = "The cocoon jerks and ripples as the tendril %FORCE% threads from %TARGET%'s rear to %THEIR% throat in one continuous motion — the shape of it visible the entire way through the translucent walls.",
+			"2" = "A long, sinuous bulge traces from the base of the cocoon upward as the tendril %FORCE% drives through %TARGET%'s gut, emerging slick from %THEIR% lips.",
+			"3" = "The cocoon convulses as the slime %FORCE% completes its path through %TARGET% — rear to mouth, every inch of %THEIR% insides filled and writhing.",
+			"4" = "Both ends of the cocoon bulge simultaneously as the tendril %FORCE% works through %TARGET%'s body, the membrane going opaque with thick, milky discharge.",
+		),
+		"ear" = list(
+			"1" = "A thin tendril %FORCE% threads through the cocoon wall beside %TARGET%'s head, worming into %THEIR% ear canal — %TARGET%'s whole body twitches inside the membrane.",
+			"2" = "The cocoon hums with a low vibration as a filament %FORCE% probes into %TARGET%'s ear — %THEIR% eyes roll behind the translucent walls.",
+			"3" = "A delicate tendril %FORCE% finds %TARGET%'s ear through the cocoon, pulsing against %THEIR% eardrum — the membrane trembles with each muffled whimper.",
+			"4" = "The cocoon tightens around %TARGET%'s head as tendrils %FORCE% worm into both ears simultaneously, %THEIR% body going rigid inside the membrane.",
+		),
+		"asphyxiation" = list(
+			"1" = "The cocoon constricts around %TARGET%'s neck as a tendril %FORCE% cinches tight — %THEIR% breath fogs the translucent walls in thin, desperate gasps.",
+			"2" = "Slime %FORCE% tightens around %TARGET%'s throat inside the cocoon — %THEIR% face darkens behind the membrane, mouth working silently.",
+			"3" = "The cocoon pulses rhythmically as the tendril %FORCE% squeezes %TARGET%'s airway shut, each pulse stealing another breath through the membrane.",
+			"4" = "A coil of gel %FORCE% wraps around %TARGET%'s neck within the cocoon, the translucent walls fogging over as %THEIR% oxygen runs thin.",
+		),
+		"sounding" = list(
+			"1" = "A needle-thin tendril %FORCE% threads through the cocoon wall and into %TARGET%'s urethra — %THEIR% whole body arches inside the membrane.",
+			"2" = "The cocoon shudders as a gossamer tendril %FORCE% probes into %TARGET%'s slit, the invasive sensation making %THEIR% legs twitch behind the translucent walls.",
+			"3" = "A burning, intimate pressure as the tendril %FORCE% bores into %TARGET%'s urethra through the cocoon — %THEIR% muffled cries vibrate through the membrane.",
+			"4" = "The cocoon trembles as the thinnest tendril %FORCE% squirms into %TARGET%'s cock from the tip down, exploring every ridge and curve behind the translucent walls.",
+		),
+		"multi" = list(
+			"1" = "%TARGET%'s cocoon jerks and ripples as the tendrils %FORCE% work from both ends simultaneously, the slime filling every cavity until the body inside stops struggling and starts twitching.",
+			"2" = "The cocoon bloats and contracts as tendrils %FORCE% fill %TARGET% from every angle at once — throat, rear, and more, the membrane straining around the writhing mass inside.",
+			"3" = "Every orifice is %FORCE% claimed simultaneously within the cocoon — %TARGET%'s muffled screams vibrate through the walls as tendrils stuff %THEIR% body full.",
+			"4" = "The cocoon goes opaque with discharge as tendrils %FORCE% erupt from every surface inside, filling %TARGET%'s throat, rear, and every gap between — the membrane bulging obscenely.",
+		),
+	)
+
+	// ── Tendril flavor text for when no cocoon is active ──
+	// Keyed by action type. Each entry is an assoc list of numbered templates
+	// using the same %TOKEN% system as cocoon templates.
+	var/static/list/tendril_action_templates = list(
+		"anal" = list(
+			"1" = "The jelly %FORCE% splits a thick tendril from its mass and drives it into %TARGET%'s rear — the slime writhing deeper with every pulse.",
+			"2" = "A glistening tendril coils and %FORCE% forces its way into %TARGET%'s ass, the slime pulsing with a wet, rhythmic hunger.",
+			"3" = "The jelly shivers and extrudes a fat tendril that %FORCE% bores into %TARGET%'s rear, stretching %THEIR% rim around its girth.",
+			"4" = "Slick and insistent, the tendril %FORCE% pushes past %TARGET%'s resistance, filling %THEIR% rear with a churning, living warmth.",
+		),
+		"throat" = list(
+			"1" = "The jelly %FORCE% sends a tendril snaking past %TARGET%'s lips and down %THEIR% throat — the thick gel filling %THEIR% mouth with a pulsing warmth.",
+			"2" = "A slick tendril %FORCE% worms between %TARGET%'s teeth, oozing down %THEIR% throat until %THEIR% jaw aches around its girth.",
+			"3" = "The jelly shudders and %FORCE% drives a tendril into %TARGET%'s mouth — %THEIR% throat bulges visibly as it squirms deeper.",
+			"4" = "Tendrils of living slime %FORCE% pour past %TARGET%'s lips, filling %THEIR% throat with rhythmic, gagging pulses.",
+		),
+		"through" = list(
+			"1" = "The tendril %FORCE% pushes through %TARGET%'s gut in one continuous, relentless motion — %TARGET% can feel every inch of it squirming from rear to throat.",
+			"2" = "A long, sinuous tendril %FORCE% threads through %TARGET%'s insides, pressing against every wall as it traces a path from rear to mouth.",
+			"3" = "The jelly %FORCE% drives its tendril the entire length of %TARGET%'s body — the tip emerging past %THEIR% lips, slick with gel and bile.",
+			"4" = "From rear to throat, the tendril %FORCE% fills %TARGET% completely — every twitch of the slime sends shuddering waves through %THEIR% whole body.",
+		),
+		"ear" = list(
+			"1" = "A thin tendril %FORCE% worms into %TARGET%'s ear canal, the wet pressure behind %THEIR% eyes immediate and disorienting.",
+			"2" = "The jelly %FORCE% threads a delicate tendril into %TARGET%'s ear — the sensation is invasive, intimate, utterly wrong.",
+			"3" = "A slick filament %FORCE% squirms past %TARGET%'s eardrum, pulsing against %THEIR% brain in slow, maddening waves.",
+			"4" = "The tendril %FORCE% probes deeper into %TARGET%'s skull through %THEIR% ear canal, each pulse clouding %THEIR% thoughts further.",
+		),
+		"asphyxiation" = list(
+			"1" = "The jelly %FORCE% cinches a thick tendril around %TARGET%'s throat — %THEIR% breath comes in thin, desperate sips.",
+			"2" = "Living slime %FORCE% tightens around %TARGET%'s neck, the tendril pulsing in time with %THEIR% fading heartbeat.",
+			"3" = "A coil of gel %FORCE% constricts %TARGET%'s airway — %THEIR% face darkens as the jelly squeezes tighter.",
+			"4" = "The tendril %FORCE% wraps and rewraps around %TARGET%'s throat, each loop tighter than the last, stealing %THEIR% air in rhythmic pulses.",
+		),
+		"sounding" = list(
+			"1" = "The jelly %FORCE% thins a tendril to a needle-fine point and threads it into %TARGET%'s urethra — the sensation is white-hot and inescapable.",
+			"2" = "A gossamer-thin tendril %FORCE% probes into %TARGET%'s urethral slit, the slime pulsing as it pushes deeper with agonizing precision.",
+			"3" = "The tendril %FORCE% squirms into %TARGET%'s cock from the tip down, the living probe exploring every ridge and curve of %THEIR% urethra.",
+			"4" = "A burning, intimate pressure as the tendril %FORCE% bores into %TARGET%'s slit — the slime filling %THEIR% urethra with a pulsing, invasive fullness.",
+		),
+		"multi" = list(
+			"1" = "The jelly %FORCE% splits into multiple tendrils at once — %TARGET%'s throat, rear, and every gap between are filled simultaneously with squirming slime.",
+			"2" = "Tendrils %FORCE% erupt from the jelly in every direction, stuffing %TARGET%'s openings simultaneously — there is no part of %THEIR% body the slime hasn't claimed.",
+			"3" = "The jelly %FORCE% surges, filling %TARGET% from every angle at once — throat and rear stuffed full, tendrils writhing in concert inside %THEIR% body.",
+			"4" = "Every orifice is %FORCE% claimed at once as the jelly splits and drives — %TARGET% can do nothing but take it as tendrils fill %THEIR% throat, rear, and more.",
+		),
 	)
 	/// Timestamp of the last time an observer used try_comfort_jelly(); 0 = never tended.
 	var/last_tended = 0
-	/// Minimum delay between observer tend actions (default 3 minutes).
-	var/tend_interval = 3 MINUTES
+	/// Minimum delay between observer tend actions.
+	var/tend_interval = 1.5 MINUTES         // was 3 min
 	/// Timestamp of the last sated-state healing reward; 0 = never fired.
 	var/last_sated_reward = 0
 	/// Minimum gap between sated rewards to prevent spam.
-	var/sated_reward_interval = 5 MINUTES
+	var/sated_reward_interval = 3 MINUTES   // was 5 min
 	/// Timestamp of the last level-1 ambient insistence message emitted to the bonded wearer.
 	var/last_ambient_message = 0
 	/// Gap between ambient insistence messages at bond level 1+.
-	var/ambient_message_interval = 2 MINUTES
+	var/ambient_message_interval = 1 MINUTES // was 2 min
 	/// Ambient messages emitted when bond_escalation_level >= 1 during passive tick.
 	var/static/list/ambient_insistence_templates = list(
 		"1" = "grinds against me from the inside with a slow, kneading pressure — hungry, insistent, like something alive that hasn't been fed.",
@@ -629,8 +739,55 @@
 	last_need_update = world.time
 	last_need_soothe = world.time
 
+/obj/item/intimate_accessory/jelly/eora/strange/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/// SSobj processing tick — runs even when the jelly is not worn.
+/// Allows need growth and neglect escalation to continue off-body.
+/obj/item/intimate_accessory/jelly/eora/strange/process()
+	if(!has_bonded_wearer())
+		STOP_PROCESSING(SSobj, src)
+		return
+	// Only tick if we're NOT being worn — the passive insertable effect
+	// already handles need growth while worn.
+	if(wearer && matches_bonded_wearer(wearer))
+		return
+	update_needs_state()
+
 /obj/item/intimate_accessory/jelly/eora/strange/is_strange_jelly()
 	return TRUE
+
+/// Returns a bond-tinted color string. Higher bond = deeper, more vivid hue.
+/// Bond 0: pale pinkish (#C89AC0), Bond 1: warm rose (#D479B8),
+/// Bond 2: vivid magenta (#E050B0), Bond 3: deep fuchsia (#E030A8),
+/// Bond 4: hot pulsing violet (#F010A0).
+/obj/item/intimate_accessory/jelly/eora/strange/get_intimate_color_string()
+	var/static/list/bond_colors = list(
+		"#C89AC0",  // bond 0 — pale, muted
+		"#D479B8",  // bond 1 — warmer
+		"#E050B0",  // bond 2 — vivid
+		"#E030A8",  // bond 3 — deep
+		"#F010A0",  // bond 4 — intense, pulsing
+	)
+	var/bond_index = clamp(bond_escalation_level + 1, 1, length(bond_colors))
+	var/base_color = bond_colors[bond_index]
+	return base_color
+
+/// Adds bond level to examine text as a visual descriptor.
+/obj/item/intimate_accessory/jelly/eora/strange/examine(mob/user)
+	. = ..()
+	switch(bond_escalation_level)
+		if(0)
+			. += span_notice("Its surface is a pale, muted pink — docile and unattached.")
+		if(1)
+			. += span_notice("A warmer hue pulses through its membrane — it has begun to bond.")
+		if(2)
+			. += span_warning("Its color has deepened to a vivid magenta. The jelly thrums with possessive energy.")
+		if(3)
+			. += span_boldwarning("A deep fuchsia saturates its flesh. The bond is strong — almost oppressive.")
+		if(4)
+			. += span_boldwarning("The jelly blazes with an intense, hot violet. It radiates hunger. The bond is absolute.")
 
 /obj/item/intimate_accessory/jelly/eora/strange/proc/get_formatted_cocoon_flavor(list/template_bank, mob/living/carbon/human/H, datum/sex_controller/acting_sexcon = null)
 	if(!H || !length(template_bank))
@@ -654,8 +811,32 @@
 /obj/item/intimate_accessory/jelly/eora/strange/proc/get_cocoon_resist_flavor(mob/living/carbon/human/H)
 	return get_formatted_cocoon_flavor(cocoon_resist_templates, H, H?.sexcon)
 
-/obj/item/intimate_accessory/jelly/eora/strange/proc/get_cocoon_action_flavor(mob/living/carbon/human/H, datum/sex_controller/acting_sexcon = null)
-	return get_formatted_cocoon_flavor(cocoon_action_templates, H, acting_sexcon)
+/**
+ * Returns a random cocoon flavor string for a specific action type.
+ *
+ * @param action_key  One of: "anal", "throat", "through", "ear", "asphyxiation", "sounding", "multi"
+ * @param H           The target mob for pronoun resolution.
+ * @param acting_sexcon  Optional sex controller for force adjective.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/get_cocoon_action_flavor(action_key, mob/living/carbon/human/H, datum/sex_controller/acting_sexcon = null)
+	var/list/action_bank = cocoon_action_templates[action_key]
+	if(!length(action_bank))
+		return null
+	return get_formatted_cocoon_flavor(action_bank, H, acting_sexcon)
+
+/**
+ * Returns a random tendril-action flavor string for a specific action type
+ * when no cocoon is active. Falls back to null if the action_key has no templates.
+ *
+ * @param action_key  One of: "anal", "throat", "through", "ear", "asphyxiation", "sounding", "multi"
+ * @param H           The target mob for pronoun resolution.
+ * @param acting_sexcon  Optional sex controller for force adjective.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/get_tendril_action_flavor(action_key, mob/living/carbon/human/H, datum/sex_controller/acting_sexcon = null)
+	var/list/action_bank = tendril_action_templates[action_key]
+	if(!length(action_bank))
+		return null
+	return get_formatted_cocoon_flavor(action_bank, H, acting_sexcon)
 
 /**
  * Returns a random removal-resistance flavor string for use when the jelly fights removal.
@@ -755,6 +936,28 @@
 		return "hungry"
 	return "aching for attention"
 
+
+/**
+ * Called during consensual sex actions to advance the bond through positive interaction.
+ * Each call adds `amount` to `bond_progress`. When progress crosses the threshold,
+ * `bond_escalation_level` permanently increases by 1 and progress resets.
+ *
+ * This ensures bond grows through intimacy, not just neglect/need pressure.
+ */
+/obj/item/intimate_accessory/jelly/eora/strange/proc/advance_bond_from_sex(amount = 1)
+	if(bond_escalation_level >= max_bond_escalation_level)
+		return FALSE
+	bond_progress += amount
+	if(bond_progress >= bond_progress_threshold)
+		bond_progress = 0
+		bond_escalation_level = min(bond_escalation_level + 1, max_bond_escalation_level)
+		if(wearer)
+			to_chat(wearer, span_love("[src] pulses warmly — I can feel its bond deepening."))
+			update_visual_accessory_type()
+			refresh_item_icon_state()
+		return TRUE
+	return FALSE
+
 /obj/item/intimate_accessory/jelly/eora/strange/proc/get_neglect_state()
 	if(neglect_level <= 0)
 		return "well-attended"
@@ -764,22 +967,50 @@
 		return "resentful"
 	return "dangerously possessive"
 
+
+/// Returns a human-readable bond state descriptor for the UI.
+/obj/item/intimate_accessory/jelly/eora/strange/proc/get_bond_state()
+	switch(bond_escalation_level)
+		if(0)
+			return "unattached"
+		if(1)
+			return "curious"
+		if(2)
+			return "possessive"
+		if(3)
+			return "devoted"
+		if(4)
+			return "absolute"
+	return "unknown"
+
 /obj/item/intimate_accessory/jelly/eora/strange/proc/refresh_need_tension()
 	if(!has_bonded_wearer())
 		obsession_level = 0
-		bond_escalation_level = 0
+		// Do NOT zero bond — it's a permanent high-water mark.
 		return FALSE
 
 	var/new_obsession_level = clamp(1 + round(need_level / 2) + neglect_level, 1, max_obsession_level)
-	var/new_bond_escalation_level = clamp(neglect_level - 2, 0, max_bond_escalation_level)
 	var/did_change = FALSE
 
 	if(obsession_level != new_obsession_level)
 		obsession_level = new_obsession_level
 		did_change = TRUE
-	if(bond_escalation_level != new_bond_escalation_level)
-		bond_escalation_level = new_bond_escalation_level
+
+	// Bond is a HIGH-WATER MARK — it can only be pushed UP by need/neglect
+	// pressure, never pulled down. Soothing/satisfying the jelly does not
+	// reduce bond. Bond represents accumulated affection & attachment.
+	// The pressure formula can temporarily elevate bond above the permanent
+	// floor set by advance_bond_from_sex(), but it can never lower it.
+	var/pressure_bond = clamp(round((need_level + neglect_level) / 2) - 1, 0, max_bond_escalation_level)
+	var/effective_bond = max(bond_escalation_level, pressure_bond)
+	if(bond_escalation_level != effective_bond)
+		var/old_bond = bond_escalation_level
+		bond_escalation_level = effective_bond
 		did_change = TRUE
+		// Refresh the mob overlay color when bond level changes
+		if(old_bond != effective_bond && wearer)
+			update_visual_accessory_type()
+			refresh_item_icon_state()
 
 	return did_change
 
@@ -896,7 +1127,13 @@
 		return FALSE
 	if(!matches_bonded_wearer(H))
 		return FALSE
-	return neglect_level >= cocoon_neglect_threshold
+	// Cocoon triggers from high neglect (off-body escalation) OR high need (on-body escalation).
+	// Need grows while worn, neglect grows while not worn — both paths can reach the cocoon.
+	if(neglect_level >= cocoon_neglect_threshold)
+		return TRUE
+	if(need_level >= cocoon_need_threshold)
+		return TRUE
+	return FALSE
 
 /obj/item/intimate_accessory/jelly/eora/strange/proc/on_cocoon_released(mob/living/carbon/human/H, obj/structure/eora_jelly_cocoon/cocoon, escaped = FALSE)
 	var/did_change = cocooned || cocooned_wearer || active_cocoon
@@ -914,6 +1151,11 @@
 		var/new_neglect_level = min(neglect_level, max(cocoon_neglect_threshold - 1, 0))
 		if(new_neglect_level != neglect_level)
 			neglect_level = new_neglect_level
+			did_change = TRUE
+		// Also reduce need below cocoon threshold so it doesn't immediately re-cocoon
+		var/new_need_level = min(need_level, max(cocoon_need_threshold - 1, 0))
+		if(new_need_level != need_level)
+			need_level = new_need_level
 			did_change = TRUE
 		last_need_soothe = world.time
 		if(refresh_need_tension())
@@ -1053,6 +1295,7 @@
 		last_need_soothe = world.time
 		refresh_need_tension()
 		refresh_item_icon_state()
+		START_PROCESSING(SSobj, src) // Tick even when not worn for neglect growth
 		to_chat(H, span_notice("[src] quivers against me, as if it has chosen me."))
 		return TRUE
 
@@ -1125,12 +1368,12 @@
 		. = TRUE
 	if(did_change_state)
 		notify_intimate_state_change(H, "jelly_bonded")
-	if(H && try_soothe_needs(H))
-		did_change_state = TRUE
+	// Note: needs are NOT auto-soothed here — soothing requires player action
+	// (sex actions, soothe button, or observer comfort).
 	if(H && update_cocoon_state(H))
 		did_change_state = TRUE
 	if(H && did_change_state)
-		notify_intimate_state_change(H, "jelly_needs_soothed")
+		notify_intimate_state_change(H, "jelly_equipped")
 
 /obj/item/intimate_accessory/jelly/eora/strange/handle_passive_insertable_effect(mob/living/carbon/human/H)
 	var/did_change_state = FALSE
@@ -1152,9 +1395,8 @@
 			H.sexcon.adjust_arousal(passive_arousal_amount)
 			. = TRUE
 
-	if(H && try_soothe_needs(H))
-		did_change_state = TRUE
-		. = TRUE
+	// Note: needs are NOT auto-soothed during passive ticks — soothing requires
+	// player action (sex actions, soothe button, or observer comfort).
 
 	// Sated reward: heal a point of brute when need and neglect are both zero.
 	if(H && try_apply_sated_reward(H))
@@ -1197,6 +1439,8 @@
 
 	if(cocooned)
 		remove_cocoon_from_wearer()
+	// Dismiss any active doppelganger
+	dismiss_doppelganger()
 	if(H && bonded_wearer == H)
 		bonded_wearer = null
 	refresh_item_icon_state()

@@ -18,7 +18,7 @@
 /// Stake Driver base - uppercut. Quickstep R1 rising slash from right to left, scraping the ground.
 /datum/intent/stakedriver/uppercut
 	name = "uppercut"
-	icon_state = "incut"
+	icon_state = "inuppercut"
 	attack_verb = list("uppercuts", "rips upward")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -83,7 +83,7 @@
 /// Stake Driver transformed - quick punch. Quickstep R1 short horizontal punch from right to left.
 /datum/intent/stakedriver/quickpunch
 	name = "quick punch"
-	icon_state = "inpunch"
+	icon_state = "instrike"
 	attack_verb = list("punches", "strikes")
 	animname = "strike"
 	blade_class = BCLASS_BLUNT
@@ -119,7 +119,7 @@
 /// 3.55x motion value from Bloodborne; highest single-hit damage in the game.
 /datum/intent/stakedriver/pilebunker
 	name = "pile bunker"
-	icon_state = "insmash"
+	icon_state = "incrush"
 	attack_verb = list("pile bunkers", "detonates upon")
 	animname = "strike"
 	blade_class = BCLASS_SMASH

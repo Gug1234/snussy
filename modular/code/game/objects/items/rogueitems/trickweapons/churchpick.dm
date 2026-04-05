@@ -31,7 +31,7 @@
 /// Church Pick base - quick thrust. R1 combo opener, straight thrust forward.
 /datum/intent/churchpick/quickthrust
 	name = "quick thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("thrusts", "jabs")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -74,7 +74,7 @@
 /// Church Pick base - arching uppercut. Charged R2 wide uppercut from foot to shoulder.
 /datum/intent/churchpick/uppercut
 	name = "arching uppercut"
-	icon_state = "incut"
+	icon_state = "inuppercut"
 	attack_verb = list("uppercuts", "arcs through")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -104,7 +104,7 @@
 /// Church Pick transformed - wide sweep. R1 combo horizontal sweeps at extended range.
 /datum/intent/churchpick/widesweep
 	name = "wide sweep"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("sweeps", "rakes")
 	animname = "cut"
 	blade_class = BCLASS_CUT

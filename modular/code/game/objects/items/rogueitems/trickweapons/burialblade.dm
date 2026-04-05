@@ -77,7 +77,7 @@
 /// Burial Blade transformed - pulling cut. Backstep R1, pulling the scythe blade inward.
 /datum/intent/burialblade/pullingcut
 	name = "pulling cut"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("rakes", "pulls through")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -94,7 +94,7 @@
 /// Burial Blade transformed - reaping sweep. R2 wide horizontal scythe arc.
 /datum/intent/burialblade/reapingsweep
 	name = "reaping sweep"
-	icon_state = "incrush"
+	icon_state = "insweep"
 	attack_verb = list("reaps through", "scythes")
 	animname = "cut"
 	blade_class = BCLASS_CUT

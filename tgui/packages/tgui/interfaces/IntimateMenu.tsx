@@ -30,6 +30,7 @@ type ItemData = {
   max_beads: number;
   can_push_beads: boolean;
   can_pull_beads: boolean;
+  can_ripcord_beads: boolean;
   // ── Eora jelly fields ──────────────────────────────────────────────────
   is_eora_jelly: boolean;
   is_strange_jelly: boolean;
@@ -47,9 +48,14 @@ type ItemData = {
   max_neglect_level: number;
   neglect_state: string | null;
   bond_escalation_level: number;
+  max_bond_escalation_level: number;
+  bond_state: string | null;
+  bond_progress: number;
+  bond_progress_threshold: number;
   obsession_level: number;
   has_bonded_wearer: boolean;
   bonded_wearer_name: string | null;
+  custom_jelly_name: string | null;
   is_cocooned: boolean;
   is_bonded_wearer: boolean;
   can_soothe: boolean;
@@ -270,9 +276,31 @@ const JellyPanel = (props: { item: ItemData }) => {
       <Section title="Jelly Controls" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
         <Stack vertical>
 
-          {/* ── Strange-jelly need / neglect status ── */}
-          {item.is_strange_jelly && (
+          {/* ── Strange-jelly identity & status ── */}
+          {!!item.is_strange_jelly && (
             <Stack.Item>
+              {/* ── Name & rename ── */}
+              <Box mb={0.5}>
+                <Stack align="center">
+                  <Stack.Item grow>
+                    <Box bold fontSize="0.9em" color={escalationColor}>
+                      {item.custom_jelly_name ?? item.name}
+                    </Box>
+                  </Stack.Item>
+                  {!!item.is_bonded_wearer && (
+                    <Stack.Item>
+                      <Button
+                        color="transparent"
+                        tooltip="Give this jelly a name."
+                        onClick={() => act('jelly_rename', { ref: item.ref })}
+                      >
+                        ✎ Rename
+                      </Button>
+                    </Stack.Item>
+                  )}
+                </Stack>
+              </Box>
+
               <Box bold mb={0.5} color="label" fontSize="0.85em">
                 Status
               </Box>
@@ -290,30 +318,27 @@ const JellyPanel = (props: { item: ItemData }) => {
                 label="Neglect"
                 sublabel={item.neglect_state ?? undefined}
               />
-              {/* Bond escalation indicator */}
-              {item.bond_escalation_level > 0 && (
-                <Box mt={0.5} fontSize="0.8em">
-                  <Box
-                    inline
-                    style={{
-                      background: escalationColor,
-                      color: '#111',
-                      borderRadius: '3px',
-                      padding: '0 4px',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    Bond Escalation {item.bond_escalation_level}
-                  </Box>
-                  {item.obsession_level > 0 && (
-                    <Box inline ml={0.5} color="average">
-                      · Obsession {item.obsession_level}
-                    </Box>
-                  )}
+              {/* ── Bond level bar ── */}
+              <MiniBar
+                value={item.bond_escalation_level}
+                max={item.max_bond_escalation_level || 4}
+                color={escalationColor}
+                label="Bond"
+                sublabel={item.bond_state ?? undefined}
+              />
+              {item.bond_escalation_level < (item.max_bond_escalation_level || 4) &&
+                item.bond_progress_threshold > 0 && (
+                <Box mt={0.25} fontSize="0.75em" color="label">
+                  Progress: {item.bond_progress} / {item.bond_progress_threshold}
+                </Box>
+              )}
+              {item.obsession_level > 0 && (
+                <Box mt={0.25} fontSize="0.8em" color="average">
+                  Obsession level: {item.obsession_level}
                 </Box>
               )}
               {/* Bonded wearer info */}
-              {item.has_bonded_wearer && (
+              {!!item.has_bonded_wearer && (
                 <Box mt={0.5} color="label" fontSize="0.8em">
                   Bonded to:{' '}
                   <Box inline color="good">
@@ -321,7 +346,7 @@ const JellyPanel = (props: { item: ItemData }) => {
                   </Box>
                 </Box>
               )}
-              {item.is_cocooned && (
+              {!!item.is_cocooned && (
                 <Box mt={0.5} color="bad" italic fontSize="0.85em">
                   ⚠ Wearer is currently cocooned.
                 </Box>
@@ -378,7 +403,7 @@ const JellyPanel = (props: { item: ItemData }) => {
                 </Button>
               </Stack.Item>
               {/* Eat cum — only when in an internal slot */}
-              {item.can_eat_cum && (
+              {!!item.can_eat_cum && (
                 <Stack.Item>
                   <Button
                     color="average"
@@ -390,7 +415,7 @@ const JellyPanel = (props: { item: ItemData }) => {
                 </Stack.Item>
               )}
               {/* Soothe — bonded wearer only */}
-              {item.is_strange_jelly && item.can_soothe && (
+              {!!item.is_strange_jelly && !!item.can_soothe && (
                 <Stack.Item>
                   <Button
                     color="pink"
@@ -402,7 +427,7 @@ const JellyPanel = (props: { item: ItemData }) => {
                 </Stack.Item>
               )}
               {/* Tend / Comfort — adjacent non-bonded observer */}
-              {item.is_strange_jelly && item.can_tend && (
+              {!!item.is_strange_jelly && !!item.can_tend && (
                 <Stack.Item>
                   <Button
                     color="blue"
@@ -502,6 +527,16 @@ const ItemCard = (props: { item: ItemData }) => {
                     onClick={() => act('pull_beads', { ref: item.ref })}
                   >
                     Pull Out
+                  </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    color="bad"
+                    disabled={!item.can_ripcord_beads}
+                    tooltip="Yank all beads out at once. On strong intent, this is violent."
+                    onClick={() => act('ripcord_beads', { ref: item.ref })}
+                  >
+                    Ripcord
                   </Button>
                 </Stack.Item>
               </Stack>

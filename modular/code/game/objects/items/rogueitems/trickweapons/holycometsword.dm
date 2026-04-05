@@ -46,7 +46,7 @@
 /// Holy Comet Sword base - charged thrust. Charged R2 powerful lunge.
 /datum/intent/holycomet/chargedthrust
 	name = "charged thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -94,7 +94,7 @@
 /// Holy Comet Sword transformed - charged moonlight. Charged R2 diagonal sweep with powerful wave.
 /datum/intent/holycomet/chargedmoonlight
 	name = "charged moonlight"
-	icon_state = "incrush"
+	icon_state = "insmash"
 	attack_verb = list("detonates upon", "moonlight-blasts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -113,7 +113,7 @@
 /// When fully charged in transformed state, releases a Holy Energy Burst AOE.
 /datum/intent/holycomet/arcanethrust
 	name = "arcane thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("pierces with light", "arcane-thrusts")
 	animname = "stab"
 	blade_class = BCLASS_STAB

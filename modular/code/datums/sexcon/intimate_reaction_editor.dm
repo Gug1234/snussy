@@ -29,7 +29,7 @@
 #define INTIMATE_EDITOR_PRESETS_PATH "modular/code/datums/sexcon/strings"
 
 /// Valid string bank IDs.
-#define INTIMATE_REACTION_BANK_IDS list("character", "piercing", "insertable", "chastity")
+#define INTIMATE_REACTION_BANK_IDS list("character", "piercing", "insertable", "chastity", "manticore_tail")
 
 /// IC verb available to any player with intimate reactions enabled.
 /mob/living/carbon/human/verb/open_intimate_reaction_editor()
@@ -161,6 +161,20 @@
 			list("key" = "chastity_intersex_outercourse", "label" = "Intersex Outercourse", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_masturbation_devout", "label" = "Masturbation (Devout)", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_masturbation_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_outercourse_devout", "label" = "Outercourse (Devout)", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_outercourse_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+		),
+	)
+
+	// ── Manticore Tail bank — gated behind intimate_enabled ────────────
+	banks["manticore_tail"] = list(
+		"label" = "Manticore Tail",
+		"available" = pierce_avail,
+		"categories" = list(
+			list("key" = "manticore_tail_idle", "label" = "Tail Move (Idle)", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_idle", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_aroused", "label" = "Tail Move (Aroused)", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_aroused", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_penetrated", "label" = "Tail Penetrated", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_penetrated", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_wrapping", "label" = "Tail Wrapping", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_wrapping", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_oral", "label" = "Tail Oral", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_oral", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_climax", "label" = "Tail Climax", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_climax", "path" = INTIMATE_EDITOR_STRINGS_PATH),
 		),
 	)
 

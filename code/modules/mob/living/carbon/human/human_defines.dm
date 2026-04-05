@@ -140,6 +140,14 @@
 	var/song_title
 	var/song_artist
 	var/received_resident_key = FALSE
+	/// Tracks the last world.time an intimate reaction category fired, keyed by category string.
+	/// Used by /datum/component/intimate_reaction coordination procs to suppress spam
+	/// when multiple accessories (piercings, plugs, chastity) try to fire simultaneously.
+	/// Format: list("movement" = world.time, "sex_received" = world.time, ...)
+	var/list/intimate_reaction_last_fired
+	/// Tracks the category string of the most recently fired intimate reaction.
+	/// That category receives double cooldown to avoid the same type spamming back-to-back.
+	var/intimate_reaction_last_category
 	var/nsfwflavortext = null
 	var/nsfw_ooc_extra_img
 	var/nsfw_ooc_extra_img_link

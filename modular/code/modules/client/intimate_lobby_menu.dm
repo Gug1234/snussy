@@ -36,12 +36,16 @@
 	var/list/data = list()
 	var/list/slots = list()
 
-	// Slot definitions: key, label, pref var value, option list proc
+	// Each region has two sub-slots: piercing and insertable.
 	var/list/slot_defs = list(
-		list("key" = "genital", "label" = "Genital",  "pref" = prefs.pref_intimate_genital),
-		list("key" = "rear",    "label" = "Rear",     "pref" = prefs.pref_intimate_rear),
-		list("key" = "breast",  "label" = "Breast",   "pref" = prefs.pref_intimate_breast),
-		list("key" = "mouth",   "label" = "Mouth",    "pref" = prefs.pref_intimate_mouth),
+		list("key" = "genital_piercing",    "label" = "Genital Piercing",    "pref" = prefs.pref_intimate_genital_piercing),
+		list("key" = "genital_insertable",  "label" = "Genital Insertable",  "pref" = prefs.pref_intimate_genital_insertable),
+		list("key" = "rear_piercing",       "label" = "Rear Piercing",       "pref" = prefs.pref_intimate_rear_piercing),
+		list("key" = "rear_insertable",     "label" = "Rear Insertable",     "pref" = prefs.pref_intimate_rear_insertable),
+		list("key" = "breast_piercing",     "label" = "Breast Piercing",     "pref" = prefs.pref_intimate_breast_piercing),
+		list("key" = "breast_insertable",   "label" = "Breast Insertable",   "pref" = prefs.pref_intimate_breast_insertable),
+		list("key" = "mouth_piercing",      "label" = "Mouth Piercing",      "pref" = prefs.pref_intimate_mouth_piercing),
+		list("key" = "mouth_insertable",    "label" = "Mouth Insertable",    "pref" = prefs.pref_intimate_mouth_insertable),
 	)
 
 	for(var/list/def in slot_defs)
@@ -64,14 +68,22 @@
 /// Returns the assoc options list for a given slot key string.
 /datum/intimate_lobby_menu/proc/_get_options_for_slot(slot_key)
 	switch(slot_key)
-		if("genital")
-			return prefs.get_intimate_genital_options()
-		if("rear")
-			return prefs.get_intimate_rear_options()
-		if("breast")
-			return prefs.get_intimate_breast_options()
-		if("mouth")
-			return prefs.get_intimate_mouth_options()
+		if("genital_piercing")
+			return prefs.get_intimate_genital_piercing_options()
+		if("genital_insertable")
+			return prefs.get_intimate_genital_insertable_options()
+		if("rear_piercing")
+			return prefs.get_intimate_rear_piercing_options()
+		if("rear_insertable")
+			return prefs.get_intimate_rear_insertable_options()
+		if("breast_piercing")
+			return prefs.get_intimate_breast_piercing_options()
+		if("breast_insertable")
+			return prefs.get_intimate_breast_insertable_options()
+		if("mouth_piercing")
+			return prefs.get_intimate_mouth_piercing_options()
+		if("mouth_insertable")
+			return prefs.get_intimate_mouth_insertable_options()
 	return list()
 
 /datum/intimate_lobby_menu/ui_act(action, list/params, datum/tgui/ui)
@@ -91,14 +103,22 @@
 				typepath = options[chosen]
 
 			switch(slot_key)
-				if("genital")
-					prefs.pref_intimate_genital = typepath
-				if("rear")
-					prefs.pref_intimate_rear = typepath
-				if("breast")
-					prefs.pref_intimate_breast = typepath
-				if("mouth")
-					prefs.pref_intimate_mouth = typepath
+				if("genital_piercing")
+					prefs.pref_intimate_genital_piercing = typepath
+				if("genital_insertable")
+					prefs.pref_intimate_genital_insertable = typepath
+				if("rear_piercing")
+					prefs.pref_intimate_rear_piercing = typepath
+				if("rear_insertable")
+					prefs.pref_intimate_rear_insertable = typepath
+				if("breast_piercing")
+					prefs.pref_intimate_breast_piercing = typepath
+				if("breast_insertable")
+					prefs.pref_intimate_breast_insertable = typepath
+				if("mouth_piercing")
+					prefs.pref_intimate_mouth_piercing = typepath
+				if("mouth_insertable")
+					prefs.pref_intimate_mouth_insertable = typepath
 				else
 					return FALSE
 
@@ -109,14 +129,22 @@
 		if("clear")
 			var/slot_key = params["slot"]
 			switch(slot_key)
-				if("genital")
-					prefs.pref_intimate_genital = null
-				if("rear")
-					prefs.pref_intimate_rear = null
-				if("breast")
-					prefs.pref_intimate_breast = null
-				if("mouth")
-					prefs.pref_intimate_mouth = null
+				if("genital_piercing")
+					prefs.pref_intimate_genital_piercing = null
+				if("genital_insertable")
+					prefs.pref_intimate_genital_insertable = null
+				if("rear_piercing")
+					prefs.pref_intimate_rear_piercing = null
+				if("rear_insertable")
+					prefs.pref_intimate_rear_insertable = null
+				if("breast_piercing")
+					prefs.pref_intimate_breast_piercing = null
+				if("breast_insertable")
+					prefs.pref_intimate_breast_insertable = null
+				if("mouth_piercing")
+					prefs.pref_intimate_mouth_piercing = null
+				if("mouth_insertable")
+					prefs.pref_intimate_mouth_insertable = null
 				else
 					return FALSE
 

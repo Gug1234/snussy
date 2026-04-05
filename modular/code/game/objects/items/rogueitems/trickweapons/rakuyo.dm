@@ -45,7 +45,7 @@
 /// Rakuyo base - charged dash thrust. R2 charged lunge with full commitment.
 /datum/intent/rakuyo/dashthrust
 	name = "dash thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -75,7 +75,7 @@
 /// Rakuyo transformed - dagger swipe. Quick backhand dagger strike.
 /datum/intent/rakuyo/daggerswipe
 	name = "dagger swipe"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("swipes", "nicks")
 	animname = "cut"
 	blade_class = BCLASS_CUT

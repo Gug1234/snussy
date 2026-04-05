@@ -17,7 +17,7 @@
 /// Hunter Saif base - diagonal sweep. Quickstep R1, rising sweep from bottom right to top left.
 /datum/intent/huntersaif/diagsweep
 	name = "diagonal sweep"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("sweeps", "slashes")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -78,7 +78,7 @@
 /// Hunter Saif transformed - forward thrust. R2 tip thrust with forward lunge.
 /datum/intent/huntersaif/fwdthrust
 	name = "forward thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("thrusts", "lunges")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -92,7 +92,7 @@
 /// Hunter Saif transformed - forward swipe. Dash R1 quick right-to-left swipe.
 /datum/intent/huntersaif/fwdswipe
 	name = "forward swipe"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("swipes", "slashes")
 	animname = "cut"
 	blade_class = BCLASS_CUT

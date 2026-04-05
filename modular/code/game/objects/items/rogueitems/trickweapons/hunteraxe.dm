@@ -53,7 +53,7 @@
 /// Charged overhead chop â€” gripped R2 charged. Full-body swing driving the axe deep.
 /datum/intent/hunteraxe/chargedchop
 	name = "cleaving chop"
-	icon_state = "inchop"
+	icon_state = "incrush"
 	attack_verb = list("cleaves", "splits")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
@@ -116,7 +116,7 @@
 /// 360-degree spin â€” the signature Hunter Axe charged R2. Full rotation greataxe sweep.
 /datum/intent/hunteraxe/spin
 	name = "360 spin"
-	icon_state = "incut"
+	icon_state = "insweep"
 	attack_verb = list("reaps", "scythes", "carves")
 	animname = "cut"
 	blade_class = BCLASS_CUT

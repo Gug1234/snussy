@@ -470,3 +470,21 @@
 		/datum/sprite_accessory/tail/swallow,
 		/datum/sprite_accessory/tail/pinecone
 	)
+
+
+// ── Manticore Tail ──────────────────────────────────────────────────────────
+// Uses /obj/item/organ/tail/manticore which auto-attaches the intimate_reaction
+// component for tail-orifice flavor text on movement and during sex actions.
+/datum/customizer/organ/tail/manticore
+	name = "Tail Maw"
+	customizer_choices = list(/datum/customizer_choice/organ/tail/manticore)
+	allows_disabling = TRUE
+	default_disabled = TRUE
+
+/datum/customizer_choice/organ/tail/manticore
+	name = "Manticore Tail"
+	organ_type = /obj/item/organ/tail/manticore
+	sprite_accessories = list(
+		/datum/sprite_accessory/tail/manticore,
+	)
+	allows_accessory_color_customization = TRUE

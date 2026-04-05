@@ -33,7 +33,7 @@
 /// Rifle Spear base - heavy thrust. Powerful two-handed thrust.
 /datum/intent/riflespear/heavythrust
 	name = "heavy thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -48,7 +48,7 @@
 /// Rifle Spear base - charged thrust. R2 fully-charged lancing thrust.
 /datum/intent/riflespear/chargedthrust
 	name = "charged thrust"
-	icon_state = "instab"
+	icon_state = "incrush"
 	attack_verb = list("impales", "skewers")
 	animname = "stab"
 	blade_class = BCLASS_STAB
@@ -114,7 +114,7 @@
 /// Rifle Spear transformed - heavy thrust. Powerful extended thrust at range.
 /datum/intent/riflespear/t_heavythrust
 	name = "heavy thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives through", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB

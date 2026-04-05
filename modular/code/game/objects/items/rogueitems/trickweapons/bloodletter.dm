@@ -37,7 +37,7 @@
 /// Bloodletter base - thrust. Forward thrust with the mace head.
 /datum/intent/bloodletter/thrust
 	name = "thrust"
-	icon_state = "instrike"
+	icon_state = "inthrust"
 	attack_verb = list("thrusts", "jabs")
 	animname = "thrust"
 	blade_class = BCLASS_BLUNT
@@ -70,7 +70,7 @@
 /// Bloodletter transformed - blood sweep. Wide backhanded sweep with the blood flail.
 /datum/intent/bloodletter/bloodsweep
 	name = "blood sweep"
-	icon_state = "instrike"
+	icon_state = "insweep"
 	attack_verb = list("lashes", "rends")
 	animname = "strike"
 	blade_class = BCLASS_BLUNT
@@ -87,7 +87,7 @@
 /// Bloodletter transformed - blood smash. Overhead slam with the blood-engorged head.
 /datum/intent/bloodletter/bloodsmash
 	name = "blood smash"
-	icon_state = "incrush"
+	icon_state = "insmash"
 	attack_verb = list("smashes", "pulverizes")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
@@ -105,7 +105,7 @@
 /// Bloodletter transformed - blood thrust. Two-handed forward thrust with the spiked head.
 /datum/intent/bloodletter/bloodthrust
 	name = "blood thrust"
-	icon_state = "instrike"
+	icon_state = "inthrust"
 	attack_verb = list("impales", "gores")
 	animname = "thrust"
 	blade_class = BCLASS_BLUNT

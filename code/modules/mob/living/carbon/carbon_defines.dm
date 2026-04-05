@@ -44,12 +44,19 @@
 	var/obj/item/undies/underwear = null	//Underwear item
 	var/obj/item/legwears/legwear_socks = null	//legwear item
 	var/obj/item/chastity/chastity_device = null // Chastity item reference.
-	// Intimate accessory item references.
-	var/obj/item/intimate_accessory/intimate_genital = null
-	var/obj/item/intimate_accessory/intimate_rear = null
-	var/obj/item/intimate_accessory/intimate_breast = null
-	var/obj/item/intimate_accessory/intimate_mouth = null
-	var/obj/item/intimate_accessory/intimate_misc = null // legacy alias; mouth slot now owns slot id 4
+	// ── Intimate accessory item references ──
+	// Each body region has TWO sub-slots: one for piercings, one for insertables.
+	// The routing is automatic based on INTIMATE_FLAG_PIERCING on the item.
+	var/obj/item/intimate_accessory/intimate_genital_piercing = null
+	var/obj/item/intimate_accessory/intimate_genital_insertable = null
+	var/obj/item/intimate_accessory/intimate_rear_piercing = null
+	var/obj/item/intimate_accessory/intimate_rear_insertable = null
+	var/obj/item/intimate_accessory/intimate_breast_piercing = null
+	var/obj/item/intimate_accessory/intimate_breast_insertable = null
+	var/obj/item/intimate_accessory/intimate_mouth_piercing = null
+	var/obj/item/intimate_accessory/intimate_mouth_insertable = null
+	/// Dedicated slot for the Eora jelly — doesn't compete with piercings or insertables.
+	var/obj/item/intimate_accessory/intimate_jelly = null
 	var/list/intimate_accessories = list()
 
 

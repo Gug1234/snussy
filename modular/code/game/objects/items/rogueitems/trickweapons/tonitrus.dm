@@ -40,7 +40,7 @@
 /// Tonitrus base - jab. Quick forward thrust with the mace head.
 /datum/intent/tonitrus/jab
 	name = "jab"
-	icon_state = "instrike"
+	icon_state = "instab"
 	attack_verb = list("jabs", "prods")
 	animname = "thrust"
 	blade_class = BCLASS_BLUNT
@@ -108,7 +108,7 @@
 /// Tonitrus charged - bolt jab. Fast electrified thrust.
 /datum/intent/tonitrus/boltjab
 	name = "bolt jab"
-	icon_state = "instrike"
+	icon_state = "instab"
 	attack_verb = list("zaps", "shocks")
 	animname = "thrust"
 	blade_class = BCLASS_BLUNT

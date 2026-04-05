@@ -2,7 +2,7 @@
 /datum/sex_action/proc/get_tongue_piercing(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/piercing/tongue/tongue_piercing = owner.intimate_mouth
+	var/obj/item/intimate_accessory/piercing/tongue/tongue_piercing = owner.intimate_mouth_piercing
 	if(!istype(tongue_piercing))
 		return null
 	return tongue_piercing
@@ -10,7 +10,7 @@
 /datum/sex_action/proc/get_genital_piercing(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/piercing/genital/genital_piercing = owner.intimate_genital
+	var/obj/item/intimate_accessory/piercing/genital/genital_piercing = owner.intimate_genital_piercing
 	if(!istype(genital_piercing))
 		return null
 	return genital_piercing
@@ -18,7 +18,7 @@
 /datum/sex_action/proc/get_genital_plug(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/genital/plug/genital_plug = owner.intimate_genital
+	var/obj/item/intimate_accessory/genital/plug/genital_plug = owner.intimate_genital_insertable
 	if(!istype(genital_plug))
 		return null
 	return genital_plug
@@ -26,24 +26,31 @@
 /datum/sex_action/proc/get_mouth_jelly(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_mouth
+	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_jelly
 	if(!istype(jelly))
+		return null
+	// Only return if the jelly is functionally covering the mouth region
+	if(jelly.current_intimate_slot != INTIMATE_SLOT_MOUTH)
 		return null
 	return jelly
 
 /datum/sex_action/proc/get_breast_jelly(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_breast
+	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_jelly
 	if(!istype(jelly))
+		return null
+	if(jelly.current_intimate_slot != INTIMATE_SLOT_BREAST)
 		return null
 	return jelly
 
 /datum/sex_action/proc/get_genital_jelly(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_genital
+	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_jelly
 	if(!istype(jelly))
+		return null
+	if(jelly.current_intimate_slot != INTIMATE_SLOT_GENITAL)
 		return null
 	return jelly
 
@@ -55,36 +62,26 @@
 /datum/sex_action/proc/get_any_eora_jelly(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/jelly/eora/jelly
-	jelly = get_rear_jelly(owner)
-	if(jelly)
+	// With the dedicated jelly slot, there's only one jelly — just return it
+	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_jelly
+	if(istype(jelly))
 		return jelly
-	jelly = get_genital_jelly(owner)
-	if(jelly)
-		return jelly
-	jelly = get_mouth_jelly(owner)
-	if(jelly)
-		return jelly
-	jelly = get_breast_jelly(owner)
-	if(jelly)
-		return jelly
-	// Fallback: any strange jelly can sprout tendrils from wherever it sits.
-	for(var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly as anything in owner.intimate_accessories)
-		return strange_jelly
 	return null
 
 /datum/sex_action/proc/get_rear_jelly(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_rear
+	var/obj/item/intimate_accessory/jelly/eora/jelly = owner.intimate_jelly
 	if(!istype(jelly))
+		return null
+	if(jelly.current_intimate_slot != INTIMATE_SLOT_REAR)
 		return null
 	return jelly
 
 /datum/sex_action/proc/get_rear_piercing(mob/living/carbon/human/owner)
 	if(!owner)
 		return null
-	var/obj/item/intimate_accessory/rear_item = owner.intimate_rear
+	var/obj/item/intimate_accessory/rear_item = owner.intimate_rear_piercing
 	if(!istype(rear_item, /obj/item/intimate_accessory))
 		return null
 	return rear_item
@@ -625,24 +622,24 @@
 
 	// ── User intimate accessory requirements ──
 	if(config["req_user_piercing"])
-		if(!istype(user.intimate_breast, /obj/item/intimate_accessory/piercing) \
-			&& !istype(user.intimate_genital, /obj/item/intimate_accessory/piercing) \
-			&& !istype(user.intimate_mouth, /obj/item/intimate_accessory/piercing))
+		if(!istype(user.intimate_breast_piercing, /obj/item/intimate_accessory/piercing) \
+			&& !istype(user.intimate_genital_piercing, /obj/item/intimate_accessory/piercing) \
+			&& !istype(user.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing))
 			return FALSE
 	if(config["req_user_plug"])
-		if(!istype(user.intimate_rear, /obj/item/intimate_accessory/rear/plug) \
-			&& !istype(user.intimate_genital, /obj/item/intimate_accessory/genital/plug))
+		if(!istype(user.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
+			&& !istype(user.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug))
 			return FALSE
 
 	// ── Target intimate accessory requirements ──
 	if(config["req_target_piercing"])
-		if(!istype(target.intimate_breast, /obj/item/intimate_accessory/piercing) \
-			&& !istype(target.intimate_genital, /obj/item/intimate_accessory/piercing) \
-			&& !istype(target.intimate_mouth, /obj/item/intimate_accessory/piercing))
+		if(!istype(target.intimate_breast_piercing, /obj/item/intimate_accessory/piercing) \
+			&& !istype(target.intimate_genital_piercing, /obj/item/intimate_accessory/piercing) \
+			&& !istype(target.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing))
 			return FALSE
 	if(config["req_target_plug"])
-		if(!istype(target.intimate_rear, /obj/item/intimate_accessory/rear/plug) \
-			&& !istype(target.intimate_genital, /obj/item/intimate_accessory/genital/plug))
+		if(!istype(target.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
+			&& !istype(target.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug))
 			return FALSE
 
 	// ── Rear plug block check ──

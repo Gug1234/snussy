@@ -45,7 +45,7 @@
 	/// Movement cooldown state shared across all subtypes. Subtypes set movement_message_cooldown in their
 	/// vars block to tune the frequency; last_movement_message_time is updated inside try_handle_wearer_moved.
 	var/last_movement_message_time = 0
-	var/movement_message_cooldown = 10 SECONDS
+	var/movement_message_cooldown = 20 SECONDS
 
 /// Initializes the component.
 /datum/component/intimate_reaction/Initialize()
@@ -117,6 +117,52 @@
 /// Subtypes override to add item-specific checks (e.g., source.chastity_device == parent for the chastity subtype).
 /datum/component/intimate_reaction/proc/is_valid_wearer_source(mob/living/carbon/human/source)
 	return source && !QDELETED(source) && source == wearer
+
+// ── Reaction Coordination ──────────────────────────────────────────────────
+// When a wearer has multiple intimate accessories (piercings + plug + chastity belt),
+// each component's movement/sex reactions can fire simultaneously, flooding chat.
+// These procs enforce a shared cooldown per reaction category on the mob so that
+// once one component fires, the others are suppressed until the cooldown expires.
+// The previously-fired category gets DOUBLE cooldown to rotate variety.
+
+/// Base cooldown (in ticks) between any two intimate reactions in the same category.
+/// Movement uses this directly; sex_received uses half (since it fires less often).
+#define INTIMATE_REACTION_MOVEMENT_COOLDOWN (12 SECONDS)
+#define INTIMATE_REACTION_SEX_COOLDOWN (8 SECONDS)
+
+/// Checks whether the given reaction category is allowed to fire on this wearer right now.
+/// Returns TRUE if the category is off cooldown and may proceed.
+/datum/component/intimate_reaction/proc/can_fire_reaction(mob/living/carbon/human/source, category)
+	if(!source)
+		return FALSE
+	if(!source.intimate_reaction_last_fired)
+		return TRUE // Never fired before — always allowed
+	var/last_time = source.intimate_reaction_last_fired[category]
+	if(!last_time)
+		return TRUE // This category never fired — allowed
+	var/base_cd
+	switch(category)
+		if("movement")
+			base_cd = INTIMATE_REACTION_MOVEMENT_COOLDOWN
+		if("sex_received")
+			base_cd = INTIMATE_REACTION_SEX_COOLDOWN
+		else
+			base_cd = INTIMATE_REACTION_MOVEMENT_COOLDOWN
+	// The previously-fired category gets double cooldown to rotate variety
+	var/effective_cd = base_cd
+	if(source.intimate_reaction_last_category == category)
+		effective_cd = base_cd * 2
+	return (world.time >= last_time + effective_cd)
+
+/// Marks the given reaction category as having just fired on this wearer.
+/// Call this AFTER successfully emitting a message.
+/datum/component/intimate_reaction/proc/mark_reaction_fired(mob/living/carbon/human/source, category)
+	if(!source)
+		return
+	if(!source.intimate_reaction_last_fired)
+		source.intimate_reaction_last_fired = list()
+	source.intimate_reaction_last_fired[category] = world.time
+	source.intimate_reaction_last_category = category
 
 /**
  * Picks a random string from an external JSON string bank.
@@ -247,9 +293,9 @@
 /// last_movement_message_time and movement_message_cooldown are inherited from the base class.
 /datum/component/intimate_reaction/chastity_receive_flavor
 	var/last_receive_flavor_time = 0
-	var/receive_flavor_cooldown = 8 SECONDS
+	var/receive_flavor_cooldown = 16 SECONDS
 	var/last_arousal_message_time = 0
-	var/arousal_message_cooldown = 10 SECONDS
+	var/arousal_message_cooldown = 20 SECONDS
 
 /datum/component/intimate_reaction/chastity_receive_flavor/Initialize()
 	. = ..()
@@ -644,6 +690,9 @@
 		return TRUE
 	if(last_movement_message_time + movement_message_cooldown >= world.time)
 		return TRUE
+	// Coordinate with other intimate reaction components to prevent message spam
+	if(!can_fire_reaction(source, "movement"))
+		return TRUE
 
 	var/string_key = get_movement_string_key(source)
 	var/message = pick_string_bank("chastity_movement_messages.json", string_key)
@@ -651,6 +700,7 @@
 		return TRUE
 
 	last_movement_message_time = world.time
+	mark_reaction_fired(source, "movement")
 	// When the wearer has show_intimate_examine disabled, suppress movement visible_messages.
 	if(source.client?.prefs && !source.client.prefs.show_intimate_examine)
 		return TRUE
@@ -668,6 +718,8 @@
 /datum/component/intimate_reaction/chastity_receive_flavor/try_handle_wearer_sex_action_received(mob/living/carbon/human/source, mob/living/carbon/human/acting_mob, datum/sex_controller/acting_sexcon, datum/sex_action/action, receiver_part, giving, arousal_amt, pain_amt, applied_force, applied_speed)
 	if(!is_valid_wearer_source(source))
 		return FALSE
+	if(!can_fire_reaction(source, "sex_received"))
+		return FALSE
 	var/handled = FALSE
 	if(try_handle_pain_message(source, pain_amt))
 		handled = TRUE
@@ -675,4 +727,6 @@
 		handled = TRUE
 	if(try_handle_receive_flavor(source, receiver_part, action, acting_mob, applied_force, applied_speed))
 		handled = TRUE
+	if(handled)
+		mark_reaction_fired(source, "sex_received")
 	return handled

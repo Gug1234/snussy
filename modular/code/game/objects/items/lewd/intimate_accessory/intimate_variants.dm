@@ -9,4 +9,4 @@
 	else
 		color = initial(color)
 
-#include "intimate_jelly.dm"
+// intimate_jelly.dm is included via roguetown.dme — do not duplicate here.

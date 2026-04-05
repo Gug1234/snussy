@@ -18,25 +18,28 @@
 	category = SEX_CATEGORY_MISC
 
 /datum/sex_action/slime_tendril_ear/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	if(user == target)
-		return FALSE
 	return !!get_any_eora_jelly(target)
 
 /datum/sex_action/slime_tendril_ear/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	if(user == target)
-		return FALSE
 	if(!get_any_eora_jelly(target))
 		return FALSE
-	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_EARS))
-		return FALSE
+	// Ears are always accessible — no clothing blocks them and BODY_ZONE_PRECISE_EARS
+	// has no entry in the get_accessible_body_zone bitfield system.
 	return TRUE
 
 /datum/sex_action/slime_tendril_ear/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_any_eora_jelly(target)
+	var/self_target = (user == target)
 	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange) && target.loc == jelly:active_cocoon)
-		user.visible_message(span_warning("[user] taps the cocoon beside [target]'s head, coaxing its tendrils toward [target.p_their()] ears!"))
+		if(self_target)
+			user.visible_message(span_warning("[user] taps the cocoon beside [user.p_their()] own head, coaxing its tendrils toward [user.p_their()] ears!"))
+		else
+			user.visible_message(span_warning("[user] taps the cocoon beside [target]'s head, coaxing its tendrils toward [target.p_their()] ears!"))
 		return
-	user.visible_message(span_warning("[user] guides the slime toward [target]'s ears, urging a thin tendril inside!"))
+	if(self_target)
+		user.visible_message(span_warning("[user] guides [user.p_their()] own slime toward [user.p_their()] ears, urging a thin tendril inside!"))
+	else
+		user.visible_message(span_warning("[user] guides the slime toward [target]'s ears, urging a thin tendril inside!"))
 
 /datum/sex_action/slime_tendril_ear/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_any_eora_jelly(target)
@@ -46,11 +49,20 @@
 	var/message = null
 	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange))
 		var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = jelly
-		message = strange_jelly.get_cocoon_action_flavor(target, user.sexcon)
+		if(strange_jelly.active_cocoon?.inhabitant == target)
+			message = strange_jelly.get_cocoon_action_flavor("ear", target, user.sexcon)
+		else
+			message = strange_jelly.get_tendril_action_flavor("ear", target, user.sexcon)
 	if(!message)
-		message = "[user] [user.sexcon.get_generic_force_adjective()] urges the tendril deeper into [target]'s ears — [target] can feel it pulsing behind [target.p_their()] eyes."
+		if(user == target)
+			message = "[user] [user.sexcon.get_generic_force_adjective()] urges the tendril deeper into [user.p_their()] own ears — [user.p_they(TRUE)] can feel it pulsing behind [user.p_their()] eyes."
+		else
+			message = "[user] [user.sexcon.get_generic_force_adjective()] urges the tendril deeper into [target]'s ears — [target] can feel it pulsing behind [target.p_their()] eyes."
 
 	user.visible_message(user.sexcon.spanify_force(message))
+	if(istype(jelly, /obj/item/intimate_accessory/jelly/eora/strange))
+		var/obj/item/intimate_accessory/jelly/eora/strange/bond_jelly = jelly
+		bond_jelly.advance_bond_from_sex()
 
 	// The stupefying sensation clouds the target's thoughts. Refreshes each perform.
 	target.apply_status_effect(/datum/status_effect/debuff/jelly_stupefied)
@@ -71,7 +83,10 @@
 	target.sexcon.handle_passive_ejaculation()
 
 /datum/sex_action/slime_tendril_ear/on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	user.visible_message(span_warning("[user] eases the slime back, its tendril withdrawing slowly from [target]'s ears."))
+	if(user == target)
+		user.visible_message(span_warning("[user] eases the slime back, its tendril withdrawing slowly from [user.p_their()] own ears."))
+	else
+		user.visible_message(span_warning("[user] eases the slime back, its tendril withdrawing slowly from [target]'s ears."))
 
 /datum/sex_action/slime_tendril_ear/is_finished(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(target.sexcon.finished_check())

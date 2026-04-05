@@ -355,11 +355,11 @@
 	if(!check_target)
 		return FALSE
 
-	var/obj/item/intimate_accessory/genital_accessory = check_target.intimate_genital
+	var/obj/item/intimate_accessory/genital_accessory = check_target.intimate_genital_insertable
 	if(genital_accessory?.retains_internal_creampie())
 		return TRUE
 
-	var/obj/item/intimate_accessory/rear_accessory = check_target.intimate_rear
+	var/obj/item/intimate_accessory/rear_accessory = check_target.intimate_rear_insertable
 	if(rear_accessory?.retains_internal_creampie())
 		return TRUE
 

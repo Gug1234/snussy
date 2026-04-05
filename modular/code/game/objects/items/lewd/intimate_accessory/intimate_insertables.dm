@@ -2,8 +2,8 @@
 /obj/item/intimate_accessory/genital/plug
 	name = "steel vaginal plug"
 	desc = "A smooth, tapered plug meant to sit snugly in the cunt. It holds what is pressed into it and leaves behind a quiet, needy pressure."
-	icon_state = "rear_plug_item_1"
-	item_state = "rear_plug_item_1"
+	icon_state = "genital_plug_item_1"
+	item_state = "genital_plug_item_1"
 	mob_overlay_icon = "rear_plug_1"
 	intimate_slot = INTIMATE_SLOT_GENITAL
 	intimate_flags = INTIMATE_FLAG_INSERTABLE
@@ -17,9 +17,21 @@
 
 /obj/item/intimate_accessory/genital/plug/Initialize()
 	. = ..()
-	apply_intimate_item_tint()
+	update_item_visuals()
 	// Attach the insertable reaction component for passive shift messages and sex-action flavor text.
 	AddComponent(/datum/component/intimate_reaction/insertable)
+
+/obj/item/intimate_accessory/genital/plug/proc/update_item_visuals()
+	cut_overlays()
+	apply_intimate_item_tint()
+	icon_state = "genital_plug_item_1"
+	item_state = "genital_plug_item_1"
+	if(has_socketed_insert())
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "genital_plug_item_2")
+		if(intimate_gem_color)
+			gem_overlay.color = intimate_gem_color
+		add_overlay(gem_overlay)
+	update_icon()
 
 /obj/item/intimate_accessory/genital/plug/can_attach_target(mob/living/carbon/human/H, mob/user)
 	. = ..()
@@ -42,13 +54,13 @@
 	var/datum/component/intimate_reaction/insertable/reaction = GetComponent(/datum/component/intimate_reaction/insertable)
 	if(reaction)
 		reaction.unbind_from_wearer(H)
-	if(H && H.intimate_genital == src)
+	if(H && H.intimate_genital_insertable == src)
 		if(!H.sexcon?.release_retained_internal_creampie(H))
 			playsound(H, 'sound/items/uncork.ogg', 45, TRUE, ignore_walls = FALSE)
 	return ..()
 
 /obj/item/intimate_accessory/genital/plug/handle_passive_insertable_effect(mob/living/carbon/human/H)
-	if(!H || H.intimate_genital != src)
+	if(!H || H.intimate_genital_insertable != src)
 		return FALSE
 	if(H.stat == DEAD || !H.sexcon)
 		return FALSE
@@ -102,6 +114,93 @@
 	intimate_metal_color = "#A2CBE3"
 	sellprice = 150
 
+// ── Sounding Rod — penis-slot genital plug ───────────────────────────────────
+// A thin, smooth rod designed to be inserted into the urethra.
+// Uses the GENITAL slot but requires a penis instead of a vagina.
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod
+	name = "steel sounding rod"
+	desc = "A thin, smooth steel rod with a gentle curve and a jewel cap. Designed for urethral insertion — a deeply intimate, deeply invasive form of stimulation that borders on the clinical."
+
+	icon_state = "sounding_plug_item_1"
+	item_state = "sounding_plug_item_1"
+
+/// Sounding rods require a penis, not a vagina.
+/// We call the grandparent (intimate_accessory) directly, then do our own penis check.
+/obj/item/intimate_accessory/genital/plug/sounding_rod/can_attach_target(mob/living/carbon/human/H, mob/user)
+	// Grandparent checks: H exists, has mind, not werewolf, silver
+	if(!H)
+		return FALSE
+	if(!H.mind)
+		to_chat(user, span_warning("[H] cannot be fitted with [src] right now."))
+		return FALSE
+	if(istype(H, /mob/living/carbon/human/species/werewolf))
+		to_chat(user, span_warning("[H]'s transformed body cannot be fitted with [src]."))
+		return FALSE
+	if(is_silver && HAS_TRAIT(H, TRAIT_SILVER_WEAK))
+		to_chat(user, span_warning("[H] recoils from silver; [src] cannot be worn."))
+		return FALSE
+	// Require a penis instead of a vagina
+	if(!H.getorganslot(ORGAN_SLOT_PENIS))
+		to_chat(user, span_warning("[H] lacks the anatomy to wear [src]."))
+		return FALSE
+	return TRUE
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/update_item_visuals()
+	cut_overlays()
+	apply_intimate_item_tint()
+	icon_state = "sounding_plug_item_1"
+	item_state = "sounding_plug_item_1"
+	if(has_socketed_insert())
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "sounding_plug_item_2")
+		if(intimate_gem_color)
+			gem_overlay.color = intimate_gem_color
+		add_overlay(gem_overlay)
+	update_icon()
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/iron
+	name = "iron sounding rod"
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 5
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/copper
+	name = "copper sounding rod"
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 5
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/steel
+	name = "steel sounding rod"
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 10
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/bronze
+	name = "bronze sounding rod"
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 12
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/silver
+	name = "silver sounding rod"
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 30
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/gold
+	name = "gold sounding rod"
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 50
+
+/obj/item/intimate_accessory/genital/plug/sounding_rod/blacksteel
+	name = "blacksteel sounding rod"
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 150
+
 // Rear plug variants.
 /obj/item/intimate_accessory/rear/plug
 	name = "intimate plug"
@@ -133,7 +232,7 @@
 	var/zizite_socketed = FALSE
 
 /obj/item/intimate_accessory/rear/plug/proc/is_worn_in_rear_slot(mob/living/carbon/human/H)
-	return !!(H && H.intimate_rear == src)
+	return !!(H && H.intimate_rear_insertable == src)
 
 /obj/item/intimate_accessory/rear/plug/proc/play_plug_sound(mob/living/carbon/human/H, sound_file)
 	if(H)
@@ -490,6 +589,35 @@
 			return 5
 	return 4
 
+/// Returns a custom visible_message for pushing a bead in. Override for bespoke insertion text.
+/// Return null to use the default message.
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/get_push_bead_message(mob/user, mob/living/carbon/human/target)
+	return null
+
+/// Returns a custom visible_message for pulling a bead out. Override for bespoke removal text.
+/// Return null to use the default message.
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/get_pull_bead_message(mob/user, mob/living/carbon/human/target)
+	return null
+
+/// Returns a visible_message for ripcording all beads out at once. Override for bespoke text.
+/// `violent` is TRUE when the user is on strong intent.
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/get_ripcord_message(mob/user, mob/living/carbon/human/target, violent = FALSE)
+	var/who = (user == target) ? "[user]" : "[target]"
+	var/count = beads_inserted
+	if(violent)
+		return "[user] grabs the pull ring and rips all [count] beads out of [who] in one savage yank!"
+	return "[user] grips the pull ring and steadily draws all [count] beads out of [who] in one long, continuous pull."
+
+/// Called after ripcording. Override to apply bead-specific consequences.
+/// `violent` is TRUE when the user was on strong intent.
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/on_ripcord(mob/user, mob/living/carbon/human/target, violent = FALSE)
+	if(!target?.sexcon)
+		return
+	// Default: arousal spike and emote proportional to how many beads were yanked
+	target.sexcon.set_arousal(MAX_AROUSAL)
+	target.emote("sexmoanhvy", forced = TRUE)
+	playsound(target, 'sound/misc/mat/pop.ogg', 60, TRUE, ignore_walls = FALSE)
+
 /obj/item/intimate_accessory/rear/plug/analbeads/finalize_intimate_equip(mob/living/carbon/human/H)
 	. = ..()
 	// Start with one bead inserted when first equipped.
@@ -582,10 +710,10 @@
 	desc = "A string of dreamfiend eyes where once there were anal beads, warped by a blue pearl. Ahh, Abyssor, or some say Great Tide... Do you hear our dreams? As you once did for the everlurking Leviathan, Grant us eyes, grant us eyes. Shove eyes in our stomachs, to purify our rotfested lux..."
 	blue_pearled = TRUE
 	blue_pearled_name = "String of Eyes"
-
+e
 /obj/item/intimate_accessory/rear/plug/analbeads/abyssor/try_extract_socketed_item(mob/living/user)
 	if(user)
-		to_chat(user, span_warning("This transformation is permanent; the blue pearl cannot be removed."))
+		to_chat(user, span_warning("You can't un-eyeball the string of eyes, dullard."))
 	return TRUE
 
 /obj/item/intimate_accessory/rear/plug/analbeads/abyssor/attackby(obj/item/I, mob/living/user, params)

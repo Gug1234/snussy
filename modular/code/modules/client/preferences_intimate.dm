@@ -2,17 +2,20 @@
  * # Intimate Accessory Preferences
  *
  * Extends /datum/preferences with helper procs for the lobby-based intimate
- * accessory selection UI.  Each slot (genital, rear, breast, mouth) stores a
- * typepath that is instantiated and force-equipped during `copy_to` when the
- * character spawns or when the lobby preview mannequin is dressed.
+ * accessory selection UI.  Each region (genital, rear, breast, mouth) has TWO
+ * sub-slots: one for piercings, one for insertables. Each stores a typepath
+ * that is instantiated and force-equipped during `copy_to` when the character
+ * spawns or when the lobby preview mannequin is dressed.
  *
  * Option lists are built lazily via static vars so the first call pays the
  * init cost and every subsequent call is a no-op lookup.
  */
 
 // ── Option-list helpers ────────────────────────────────────────────────────
-/// Returns an assoc list of "Display Name" = typepath for the REAR slot.
-/datum/preferences/proc/get_intimate_rear_options()
+// Each region now has separate piercing and insertable option lists.
+
+/// Returns insertable options for the REAR slot (plugs, beads).
+/datum/preferences/proc/get_intimate_rear_insertable_options()
 	var/static/list/options
 	if(!options)
 		options = list(
@@ -33,9 +36,15 @@
 		)
 	return options
 
-/// Returns an assoc list of "Display Name" = typepath for the GENITAL slot.
-/// Plugs require ORGAN_SLOT_VAGINA; piercings do not.
-/datum/preferences/proc/get_intimate_genital_options()
+/// Returns piercing options for the REAR slot (currently none, placeholder).
+/datum/preferences/proc/get_intimate_rear_piercing_options()
+	var/static/list/options
+	if(!options)
+		options = list("None" = null)
+	return options
+
+/// Returns insertable options for the GENITAL slot (vaginal plugs, sounding rods).
+/datum/preferences/proc/get_intimate_genital_insertable_options()
 	var/static/list/options
 	if(!options)
 		options = list(
@@ -46,6 +55,21 @@
 			"Bronze Vaginal Plug"         = /obj/item/intimate_accessory/genital/plug/bronze,
 			"Silver Vaginal Plug"         = /obj/item/intimate_accessory/genital/plug/silver,
 			"Gold Vaginal Plug"           = /obj/item/intimate_accessory/genital/plug/gold,
+			"Iron Sounding Rod"           = /obj/item/intimate_accessory/genital/plug/sounding_rod/iron,
+			"Copper Sounding Rod"         = /obj/item/intimate_accessory/genital/plug/sounding_rod/copper,
+			"Steel Sounding Rod"          = /obj/item/intimate_accessory/genital/plug/sounding_rod/steel,
+			"Bronze Sounding Rod"         = /obj/item/intimate_accessory/genital/plug/sounding_rod/bronze,
+			"Silver Sounding Rod"         = /obj/item/intimate_accessory/genital/plug/sounding_rod/silver,
+			"Gold Sounding Rod"           = /obj/item/intimate_accessory/genital/plug/sounding_rod/gold,
+		)
+	return options
+
+/// Returns piercing options for the GENITAL slot.
+/datum/preferences/proc/get_intimate_genital_piercing_options()
+	var/static/list/options
+	if(!options)
+		options = list(
+			"None"                        = null,
 			"Iron Genital Piercing"       = /obj/item/intimate_accessory/piercing/genital/iron,
 			"Copper Genital Piercing"     = /obj/item/intimate_accessory/piercing/genital/copper,
 			"Steel Genital Piercing"      = /obj/item/intimate_accessory/piercing/genital/steel,
@@ -61,8 +85,8 @@
 		)
 	return options
 
-/// Returns an assoc list of "Display Name" = typepath for the BREAST slot.
-/datum/preferences/proc/get_intimate_breast_options()
+/// Returns piercing options for the BREAST slot.
+/datum/preferences/proc/get_intimate_breast_piercing_options()
 	var/static/list/options
 	if(!options)
 		options = list(
@@ -82,8 +106,15 @@
 		)
 	return options
 
-/// Returns an assoc list of "Display Name" = typepath for the MOUTH slot.
-/datum/preferences/proc/get_intimate_mouth_options()
+/// Returns insertable options for the BREAST slot (currently none, placeholder).
+/datum/preferences/proc/get_intimate_breast_insertable_options()
+	var/static/list/options
+	if(!options)
+		options = list("None" = null)
+	return options
+
+/// Returns piercing options for the MOUTH slot.
+/datum/preferences/proc/get_intimate_mouth_piercing_options()
 	var/static/list/options
 	if(!options)
 		options = list(
@@ -97,14 +128,22 @@
 		)
 	return options
 
-
+/// Returns insertable options for the MOUTH slot (currently none, placeholder).
+/datum/preferences/proc/get_intimate_mouth_insertable_options()
+	var/static/list/options
+	if(!options)
+		options = list("None" = null)
+	return options
 
 /// Given a typepath, search all option lists and return the display name.
 /// Falls back to the typepath string if not found.
 /datum/preferences/proc/get_intimate_option_display_name(typepath)
 	if(!typepath)
 		return "None"
-	var/list/all_options = get_intimate_rear_options() + get_intimate_genital_options() + get_intimate_breast_options() + get_intimate_mouth_options()
+	var/list/all_options = get_intimate_rear_insertable_options() + get_intimate_rear_piercing_options() \
+		+ get_intimate_genital_insertable_options() + get_intimate_genital_piercing_options() \
+		+ get_intimate_breast_piercing_options() + get_intimate_breast_insertable_options() \
+		+ get_intimate_mouth_piercing_options() + get_intimate_mouth_insertable_options()
 	for(var/label in all_options)
 		if(all_options[label] == typepath)
 			return label
@@ -112,11 +151,11 @@
 
 // ── Force-equip for spawn / preview ────────────────────────────────────────
 /**
- * Instantiates and equips the four intimate accessory prefs onto a character.
- * Bypasses `can_attach_target` (which requires a `mind`) by calling
- * `set_current_intimate_slot` -> `attach_intimate_feature` -> `finalize_intimate_equip`
- * directly.  Anatomy checks (e.g. vagina requirement for genital plugs) are
- * replicated inline.
+ * Instantiates and equips the split intimate accessory prefs onto a character.
+ * Each region has two sub-slots (piercing + insertable). Bypasses `can_attach_target`
+ * (which requires a `mind`) by calling `set_current_intimate_slot` ->
+ * `attach_intimate_feature` -> `finalize_intimate_equip` directly.
+ * Anatomy checks (e.g. vagina requirement for genital plugs) are replicated inline.
  */
 /datum/preferences/proc/apply_intimate_preferences(mob/living/carbon/human/H)
 	if(!istype(H))
@@ -125,11 +164,16 @@
 		return
 
 	// Helper list: slot constant -> pref typepath
+	// Each region has two entries: piercing and insertable.
 	var/list/slot_prefs = list(
-		"[INTIMATE_SLOT_GENITAL]" = pref_intimate_genital,
-		"[INTIMATE_SLOT_REAR]"    = pref_intimate_rear,
-		"[INTIMATE_SLOT_BREAST]"  = pref_intimate_breast,
-		"[INTIMATE_SLOT_MOUTH]"   = pref_intimate_mouth,
+		"[INTIMATE_SLOT_GENITAL]_p" = pref_intimate_genital_piercing,
+		"[INTIMATE_SLOT_GENITAL]_i" = pref_intimate_genital_insertable,
+		"[INTIMATE_SLOT_REAR]_p"    = pref_intimate_rear_piercing,
+		"[INTIMATE_SLOT_REAR]_i"    = pref_intimate_rear_insertable,
+		"[INTIMATE_SLOT_BREAST]_p"  = pref_intimate_breast_piercing,
+		"[INTIMATE_SLOT_BREAST]_i"  = pref_intimate_breast_insertable,
+		"[INTIMATE_SLOT_MOUTH]_p"   = pref_intimate_mouth_piercing,
+		"[INTIMATE_SLOT_MOUTH]_i"   = pref_intimate_mouth_insertable,
 	)
 
 	for(var/slot_key in slot_prefs)
@@ -137,11 +181,18 @@
 		if(!item_path || !ispath(item_path, /obj/item/intimate_accessory))
 			continue
 
-		var/slot = text2num(slot_key)
+		// Parse the region from the key (everything before the underscore suffix)
+		var/slot = text2num(copytext(slot_key, 1, findtext(slot_key, "_")))
 
 		// Genital plugs require a vagina — skip silently if anatomy doesn't match
 		if(ispath(item_path, /obj/item/intimate_accessory/genital/plug))
-			if(!H.getorganslot(ORGAN_SLOT_VAGINA))
+			if(!ispath(item_path, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+				if(!H.getorganslot(ORGAN_SLOT_VAGINA))
+					continue
+
+		// Sounding rods require a penis
+		if(ispath(item_path, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+			if(!H.getorganslot(ORGAN_SLOT_PENIS))
 				continue
 
 		// Silver check — skip for silver-weak characters
@@ -150,6 +201,9 @@
 
 		// Instantiate and force-equip
 		var/obj/item/intimate_accessory/accessory = new item_path(H)
+		// Jelly uses INTIMATE_SLOT_JELLY for storage; set its region for visuals
+		if(accessory.intimate_flags & INTIMATE_FLAG_JELLY)
+			accessory.current_intimate_slot = slot
 		if(!accessory.set_current_intimate_slot(slot))
 			qdel(accessory)
 			continue

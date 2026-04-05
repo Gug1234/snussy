@@ -29,7 +29,7 @@
 /// Horizontal slash — R2 attack. Brief windup, wide right-to-left cut.
 /datum/intent/sawspear/horizslash
 	name = "horizontal slash"
-	icon_state = "incut"
+	icon_state = "inslash"
 	attack_verb = list("slashes", "rips")
 	animname = "cut"
 	blade_class = BCLASS_CUT
@@ -127,7 +127,7 @@
 /// Charged spear thrust — Charged R2. Weapon brought back and driven forward hard.
 /datum/intent/sawspear/chargedthrust
 	name = "charged thrust"
-	icon_state = "instab"
+	icon_state = "inthrust"
 	attack_verb = list("drives", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB

@@ -95,12 +95,22 @@
 	// conditionally render widget imagery once art assets exist.
 	data["show_visual_widgets"] = wearer.client?.prefs ? !!wearer.client.prefs.intimate_visual_widgets : FALSE
 
-	// Always emit all four canonical slots so the frontend can render the full inventory grid.
+	// Emit all sub-slots — each region has a piercing and insertable sub-slot, plus the jelly slot.
 	var/list/slots_data = list()
-	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_GENITAL, "Genital",    wearer.intimate_genital, BODY_ZONE_PRECISE_GROIN))
-	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_REAR,    "Rear",       wearer.intimate_rear,    BODY_ZONE_PRECISE_GROIN))
-	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_BREAST,  "Breast",     wearer.intimate_breast,  BODY_ZONE_CHEST))
-	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_MOUTH,   "Mouth/Misc", (wearer.intimate_mouth || wearer.intimate_misc), BODY_ZONE_PRECISE_MOUTH))
+	// Genital region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_GENITAL, "Genital Piercing",    wearer.intimate_genital_piercing, BODY_ZONE_PRECISE_GROIN))
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_GENITAL, "Genital Insertable",  wearer.intimate_genital_insertable, BODY_ZONE_PRECISE_GROIN))
+	// Rear region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_REAR,    "Rear Piercing",       wearer.intimate_rear_piercing, BODY_ZONE_PRECISE_GROIN))
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_REAR,    "Rear Insertable",     wearer.intimate_rear_insertable, BODY_ZONE_PRECISE_GROIN))
+	// Breast region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_BREAST,  "Breast Piercing",     wearer.intimate_breast_piercing, BODY_ZONE_CHEST))
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_BREAST,  "Breast Insertable",   wearer.intimate_breast_insertable, BODY_ZONE_CHEST))
+	// Mouth region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_MOUTH,   "Mouth Piercing",      wearer.intimate_mouth_piercing, BODY_ZONE_PRECISE_MOUTH))
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_MOUTH,   "Mouth Insertable",    wearer.intimate_mouth_insertable, BODY_ZONE_PRECISE_MOUTH))
+	// Jelly slot
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_JELLY,   "Jelly",               wearer.intimate_jelly, BODY_ZONE_PRECISE_GROIN))
 	data["slots"] = slots_data
 	return data
 
@@ -153,11 +163,13 @@
 		d["max_beads"]       = max_b
 		d["can_push_beads"]  = (inserted < max_b)
 		d["can_pull_beads"]  = TRUE
+		d["can_ripcord_beads"] = (inserted >= 2) // Need at least 2 beads for a ripcord
 	else
 		d["beads_inserted"]  = 0
 		d["max_beads"]       = 0
 		d["can_push_beads"]  = FALSE
 		d["can_pull_beads"]  = FALSE
+		d["can_ripcord_beads"] = FALSE
 
 	// Eora jelly — slot management, commands, and (for strange) need/neglect state.
 	var/is_eora_jelly = istype(acc, /obj/item/intimate_accessory/jelly/eora)
@@ -193,9 +205,14 @@
 			d["max_neglect_level"]   = strange.max_neglect_level
 			d["neglect_state"]       = strange.get_neglect_state()
 			d["bond_escalation_level"] = strange.bond_escalation_level
+			d["max_bond_escalation_level"] = strange.max_bond_escalation_level
+			d["bond_state"]          = strange.get_bond_state()
+			d["bond_progress"]       = strange.bond_progress
+			d["bond_progress_threshold"] = strange.bond_progress_threshold
 			d["obsession_level"]     = strange.obsession_level
 			d["has_bonded_wearer"]   = strange.has_bonded_wearer()
 			d["bonded_wearer_name"]  = strange.bonded_name
+			d["custom_jelly_name"]   = strange.custom_jelly_name
 			d["is_cocooned"]         = strange.cocooned
 			// Determine whether the viewer is the bonded wearer.
 			var/is_bonded_wearer = ishuman(user) && strange.matches_bonded_wearer(user)
@@ -216,9 +233,14 @@
 			d["max_neglect_level"]   = 0
 			d["neglect_state"]       = null
 			d["bond_escalation_level"] = 0
+			d["max_bond_escalation_level"] = 0
+			d["bond_state"]          = null
+			d["bond_progress"]       = 0
+			d["bond_progress_threshold"] = 0
 			d["obsession_level"]     = 0
 			d["has_bonded_wearer"]   = FALSE
 			d["bonded_wearer_name"]  = null
+			d["custom_jelly_name"]   = null
 			d["is_cocooned"]         = FALSE
 			d["is_bonded_wearer"]    = FALSE
 			d["can_soothe"]          = FALSE
@@ -255,6 +277,8 @@
 			return _intimate_act_push_beads(user, params)
 		if("pull_beads")
 			return _intimate_act_pull_beads(user, params)
+		if("ripcord_beads")
+			return _intimate_act_ripcord_beads(user, params)
 		// ── Eora jelly commands ────────────────────────────────────────────────
 		if("jelly_swap_slot")
 			return _intimate_act_jelly_swap_slot(user, params)
@@ -266,6 +290,8 @@
 			return _intimate_act_jelly_soothe(user, params)
 		if("jelly_comfort")
 			return _intimate_act_jelly_comfort(user, params)
+		if("jelly_rename")
+			return _intimate_act_jelly_rename(user, params)
 
 	return TRUE
 
@@ -323,7 +349,10 @@
 		to_chat(user, span_warning("All [max_b] beads are already inserted."))
 		return TRUE
 
-	if(user == wearer)
+	var/custom_push_msg = beads.get_push_bead_message(user, wearer)
+	if(custom_push_msg)
+		user.visible_message(span_notice(custom_push_msg))
+	else if(user == wearer)
 		user.visible_message(span_notice("[user] slowly pushes another bead in..."))
 	else
 		user.visible_message(span_notice("[user] slowly pushes another bead into [wearer]..."))
@@ -358,7 +387,10 @@
 		to_chat(user, span_warning("Those beads are no longer worn."))
 		return TRUE
 
-	if(user == wearer)
+	var/custom_pull_msg = beads.get_pull_bead_message(user, wearer)
+	if(custom_pull_msg)
+		user.visible_message(span_notice(custom_pull_msg))
+	else if(user == wearer)
 		user.visible_message(span_notice("[user] starts pulling a bead out..."))
 	else
 		user.visible_message(span_notice("[user] starts pulling a bead out of [wearer]..."))
@@ -389,6 +421,52 @@
 		to_chat(user, span_notice("I pull a bead out. [beads.beads_inserted] of [max_b] beads remain inserted."))
 	else
 		to_chat(user, span_notice("I pull a bead out of [wearer]. [beads.beads_inserted] of [max_b] beads remain inserted."))
+	return TRUE
+
+// ── Ripcord handler — yank all beads out at once ─────────────────────────────
+
+/datum/intimate_menu/proc/_intimate_act_ripcord_beads(mob/user, list/params)
+	var/acc_ref = params["ref"]
+	if(!acc_ref)
+		return TRUE
+	var/obj/item/intimate_accessory/rear/plug/analbeads/beads = locate(acc_ref)
+	if(!istype(beads) || QDELETED(beads))
+		return TRUE
+	var/mob/living/carbon/human/wearer = beads.wearer
+	if(!wearer || QDELETED(wearer) || beads.wearer != wearer)
+		return TRUE
+	if(beads.beads_inserted <= 0)
+		to_chat(user, span_warning("There are no beads inserted to pull out."))
+		return TRUE
+
+	var/violent = istype(user.rmb_intent, /datum/rmb_intent/strong)
+	var/count = beads.beads_inserted
+
+	// Show the ripcord message
+	var/ripcord_msg = beads.get_ripcord_message(user, wearer, violent)
+	if(ripcord_msg)
+		user.visible_message(span_warning(ripcord_msg))
+
+	// Ripcord delay — violent is fast, gentle is slow
+	var/delay = violent ? 10 : (count * 5)
+	if(!do_after(user, delay, needhand = 1, target = wearer))
+		return TRUE
+
+	if(!wearer || QDELETED(wearer) || QDELETED(beads) || beads.wearer != wearer)
+		return TRUE
+
+	// Yank them all
+	beads.beads_inserted = 0
+	playsound(wearer, 'sound/misc/mat/pop.ogg', 65, TRUE, ignore_walls = FALSE)
+	beads.notify_intimate_state_change(wearer, "beads_ripcorded")
+
+	// Apply consequences
+	beads.on_ripcord(user, wearer, violent)
+
+	if(user == wearer)
+		to_chat(user, span_notice("I rip all [count] beads out at once. 0 of [beads.get_max_beads()] beads remain inserted."))
+	else
+		to_chat(user, span_notice("I rip all [count] beads out of [wearer] at once. 0 of [beads.get_max_beads()] beads remain inserted."))
 	return TRUE
 
 // ── Eora jelly action handlers ────────────────────────────────────────────────
@@ -484,4 +562,42 @@
 	if(!jelly || QDELETED(jelly) || !istype(jelly) || jelly.wearer != wearer)
 		return TRUE
 	jelly.try_comfort_jelly(user)
+	return TRUE
+
+
+/**
+ * Allows the bonded wearer to give the strange jelly a custom name.
+ * Strips HTML, limits to 24 characters. Empty input clears the name.
+ */
+/datum/intimate_menu/proc/_intimate_act_jelly_rename(mob/user, list/params)
+	if(user != wearer)
+		to_chat(user, span_warning("Only the bonded wearer can name this jelly."))
+		return TRUE
+	var/acc_ref = params["ref"]
+	if(!acc_ref)
+		return TRUE
+	var/obj/item/intimate_accessory/jelly/eora/strange/jelly = locate(acc_ref)
+	if(!jelly || QDELETED(jelly) || !istype(jelly) || jelly.wearer != wearer)
+		return TRUE
+	if(!jelly.matches_bonded_wearer(wearer))
+		to_chat(user, span_warning("The jelly doesn't recognize me — it refuses the name."))
+		return TRUE
+
+	// Open a proper BYOND text input dialog
+	var/new_name = tgui_input_text(user, "Name your jelly (max 24 characters):", "Rename Jelly", jelly.custom_jelly_name || "", 24)
+	if(isnull(new_name))
+		return TRUE // cancelled
+	if(QDELETED(jelly) || jelly.wearer != wearer)
+		return TRUE // jelly removed while dialog was open
+
+	new_name = strip_html_simple(new_name, 24)
+	if(!length(new_name))
+		jelly.custom_jelly_name = null
+		jelly.name = initial(jelly.name)
+		to_chat(user, span_notice("I let the jelly's name fade — it's just a jelly again."))
+		return TRUE
+
+	jelly.custom_jelly_name = new_name
+	jelly.name = new_name
+	to_chat(user, span_love("I whisper the name '[new_name]' to the jelly. It pulses warmly in recognition."))
 	return TRUE

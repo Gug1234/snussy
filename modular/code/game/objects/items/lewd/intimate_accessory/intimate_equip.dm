@@ -62,30 +62,41 @@
 // Returns a list of the intimate accessories currently worn by this human, for use in the remove_intimate_accessory verb's list of options for which accessory to remove.
 /mob/living/carbon/proc/get_intimate_accessory_options()
 	var/list/options = list()
-	if(intimate_genital)
-		options += intimate_genital
-	if(intimate_rear)
-		options += intimate_rear
-	if(intimate_breast)
-		options += intimate_breast
-	if(intimate_mouth)
-		options += intimate_mouth
-	else if(intimate_misc)
-		options += intimate_misc
+	if(intimate_genital_piercing)
+		options += intimate_genital_piercing
+	if(intimate_genital_insertable)
+		options += intimate_genital_insertable
+	if(intimate_rear_piercing)
+		options += intimate_rear_piercing
+	if(intimate_rear_insertable)
+		options += intimate_rear_insertable
+	if(intimate_breast_piercing)
+		options += intimate_breast_piercing
+	if(intimate_breast_insertable)
+		options += intimate_breast_insertable
+	if(intimate_mouth_piercing)
+		options += intimate_mouth_piercing
+	if(intimate_mouth_insertable)
+		options += intimate_mouth_insertable
+	if(intimate_jelly)
+		options += intimate_jelly
 	return options
 
 // Returns the accessory currently worn in the specified slot, or null if no accessory is currently worn in that slot. This is used in the remove_intimate_accessory verb to check that the accessory the player is trying to remove is still being worn in that slot before allowing them to remove it, to prevent issues with players trying to remove accessories that are no longer worn due to changes in state during the removal process such as moving or being moved by another player, which could cause desync issues if we allowed them to continue removing an accessory that's no longer worn.
+/// Returns the first accessory found in the given region slot (piercing or insertable).
+/// For the jelly slot, returns the jelly directly.
 /mob/living/carbon/proc/get_worn_in_slot(intimate_slot)
-	if(intimate_slot == INTIMATE_SLOT_GENITAL)
-		return intimate_genital
-	if(intimate_slot == INTIMATE_SLOT_REAR)
-		return intimate_rear
-	if(intimate_slot == INTIMATE_SLOT_BREAST)
-		return intimate_breast
-	if(intimate_slot == INTIMATE_SLOT_MOUTH)
-		return intimate_mouth
-	if(intimate_slot == INTIMATE_SLOT_MISC)
-		return intimate_misc
+	switch(intimate_slot)
+		if(INTIMATE_SLOT_GENITAL)
+			return intimate_genital_piercing || intimate_genital_insertable
+		if(INTIMATE_SLOT_REAR)
+			return intimate_rear_piercing || intimate_rear_insertable
+		if(INTIMATE_SLOT_BREAST)
+			return intimate_breast_piercing || intimate_breast_insertable
+		if(INTIMATE_SLOT_MOUTH)
+			return intimate_mouth_piercing || intimate_mouth_insertable
+		if(INTIMATE_SLOT_JELLY)
+			return intimate_jelly
 	return null
 
 /mob/living/carbon/human/verb/remove_intimate_accessory()

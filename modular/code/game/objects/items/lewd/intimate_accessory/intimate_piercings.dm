@@ -119,7 +119,7 @@
 	play_piercing_sound(H, 'sound/foley/pierce.ogg')
 
 /obj/item/intimate_accessory/piercing/breast/remove_intimate_accessory(mob/living/carbon/human/H)
-	if(H && H.intimate_breast == src)
+	if(H && H.intimate_breast_piercing == src)
 		play_piercing_sound(H, 'sound/foley/equip/chain_equip.ogg')
 	return ..()
 
@@ -236,7 +236,7 @@
 /obj/item/intimate_accessory/piercing/genital/proc/sync_beriddled_goodlover(mob/living/carbon/human/H = wearer)
 	if(!H)
 		return
-	if(H.intimate_genital == src && is_beriddled())
+	if(H.intimate_genital_piercing == src && is_beriddled())
 		ADD_TRAIT(H, TRAIT_GOODLOVER, get_goodlover_trait_source())
 		return
 	REMOVE_TRAIT(H, TRAIT_GOODLOVER, get_goodlover_trait_source())
@@ -264,7 +264,7 @@
 /obj/item/intimate_accessory/piercing/genital/remove_intimate_accessory(mob/living/carbon/human/H)
 	if(H)
 		REMOVE_TRAIT(H, TRAIT_GOODLOVER, get_goodlover_trait_source())
-	if(H && H.intimate_genital == src)
+	if(H && H.intimate_genital_piercing == src)
 		play_piercing_sound(H, 'sound/foley/equip/chain_equip.ogg')
 	return ..()
 
@@ -428,7 +428,7 @@
 /obj/item/intimate_accessory/piercing/tongue/proc/can_use_tongue_piercing_action(mob/living/carbon/human/user)
 	if(!user)
 		return FALSE
-	if(user.intimate_mouth != src)
+	if(user.intimate_mouth_piercing != src)
 		to_chat(user, span_warning("I need to be wearing [src] to do that."))
 		return FALSE
 	return TRUE
@@ -620,7 +620,7 @@
 	if(!H)
 		return
 
-	if(H.intimate_mouth == src)
+	if(H.intimate_mouth_piercing == src)
 		H.verbs |= /mob/living/carbon/human/proc/quote_psydonic_scripture
 		return
 
@@ -736,7 +736,7 @@
 	if(!H)
 		return
 
-	if(H.intimate_mouth == src)
+	if(H.intimate_mouth_piercing == src)
 		H.verbs |= /mob/living/carbon/human/proc/speak_zizo_chant
 		return
 
@@ -764,11 +764,11 @@
 	return ..()
 
 /mob/living/carbon/human/proc/get_tongue_piercing_of_type(required_type)
-	if(!required_type || !intimate_mouth)
+	if(!required_type || !intimate_mouth_piercing)
 		return null
-	if(!istype(intimate_mouth, required_type))
+	if(!istype(intimate_mouth_piercing, required_type))
 		return null
-	return intimate_mouth
+	return intimate_mouth_piercing
 
 /mob/living/carbon/human/proc/get_zizite_tongue_piercing()
 	return get_tongue_piercing_of_type(/obj/item/intimate_accessory/piercing/tongue/zizite)

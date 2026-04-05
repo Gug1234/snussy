@@ -110,12 +110,12 @@
 		return overlay_icon_state
 
 	var/mob/living/carbon/human/H = owner
-	if(istype(H.intimate_genital, /obj/item/intimate_accessory/piercing/genital/psydonic))
+	if(istype(H.intimate_genital_piercing, /obj/item/intimate_accessory/piercing/genital/psydonic))
 		var/psydonic_state = "[overlay_icon_state]_psy"
 		if(icon_exists(icon, psydonic_state))
 			return psydonic_state
 
-	if(istype(H.intimate_genital, /obj/item/intimate_accessory/piercing/genital/zizite))
+	if(istype(H.intimate_genital_piercing, /obj/item/intimate_accessory/piercing/genital/zizite))
 		var/zizite_state = "[overlay_icon_state]_zizo"
 		if(icon_exists(icon, zizite_state))
 			return zizite_state
@@ -305,8 +305,8 @@
 	var/bead_count = "short"
 	if(ishuman(owner))
 		var/mob/living/carbon/human/H = owner
-		if(istype(H.intimate_rear, /obj/item/intimate_accessory/rear/plug/analbeads))
-			var/obj/item/intimate_accessory/rear/plug/analbeads/beads = H.intimate_rear
+		if(istype(H.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug/analbeads))
+			var/obj/item/intimate_accessory/rear/plug/analbeads/beads = H.intimate_rear_insertable
 			if(beads.bead_count == "medium" || beads.bead_count == "long")
 				bead_count = beads.bead_count
 	return "[icon_state]_[bead_count]_[get_body_suffix(owner)]"

@@ -268,19 +268,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["intimate_reaction_show_chastity"]	>> intimate_reaction_show_chastity
 	S["intimate_reaction_show_extreme"]		>> intimate_reaction_show_extreme
 	S["intimate_reaction_show_accessory_free"]	>> intimate_reaction_show_accessory_free
-	// Intimate accessory prefs (typepaths or null)
-	var/raw_intimate_genital
-	S["pref_intimate_genital"]	>> raw_intimate_genital
-	pref_intimate_genital = ispath(raw_intimate_genital) ? raw_intimate_genital : null
-	var/raw_intimate_rear
-	S["pref_intimate_rear"]		>> raw_intimate_rear
-	pref_intimate_rear = ispath(raw_intimate_rear) ? raw_intimate_rear : null
-	var/raw_intimate_breast
-	S["pref_intimate_breast"]	>> raw_intimate_breast
-	pref_intimate_breast = ispath(raw_intimate_breast) ? raw_intimate_breast : null
-	var/raw_intimate_mouth
-	S["pref_intimate_mouth"]	>> raw_intimate_mouth
-	pref_intimate_mouth = ispath(raw_intimate_mouth) ? raw_intimate_mouth : null
+	// Intimate accessory prefs — global load (legacy migration handled in character load)
+	// These are no longer used directly; character-level load in load_character handles the split vars.
 	S["shake"]				>> shake
 	S["mastervol"]			>> mastervol
 	S["lastclass"]			>> lastclass
@@ -1057,25 +1046,60 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["customizer_entries"] >> customizer_entries
 	validate_customizer_entries()
 
-	// Intimate accessory prefs — per-character (migrated from global prefs).
-	// Falls back to the global values loaded by load_preferences() if not yet
-	// saved to this character slot, ensuring a seamless migration.
-	var/raw_intimate_genital_slot
-	S["pref_intimate_genital"]	>> raw_intimate_genital_slot
-	if(raw_intimate_genital_slot)
-		pref_intimate_genital = ispath(raw_intimate_genital_slot) ? raw_intimate_genital_slot : null
-	var/raw_intimate_rear_slot
-	S["pref_intimate_rear"]		>> raw_intimate_rear_slot
-	if(raw_intimate_rear_slot)
-		pref_intimate_rear = ispath(raw_intimate_rear_slot) ? raw_intimate_rear_slot : null
-	var/raw_intimate_breast_slot
-	S["pref_intimate_breast"]	>> raw_intimate_breast_slot
-	if(raw_intimate_breast_slot)
-		pref_intimate_breast = ispath(raw_intimate_breast_slot) ? raw_intimate_breast_slot : null
-	var/raw_intimate_mouth_slot
-	S["pref_intimate_mouth"]	>> raw_intimate_mouth_slot
-	if(raw_intimate_mouth_slot)
-		pref_intimate_mouth = ispath(raw_intimate_mouth_slot) ? raw_intimate_mouth_slot : null
+	// Intimate accessory prefs — split into piercing + insertable per region.
+	// Migration: old single-slot prefs are loaded into the appropriate sub-slot.
+	var/raw_val
+	// Genital piercing
+	S["pref_intimate_genital_piercing"] >> raw_val
+	if(!raw_val)
+		S["pref_intimate_genital"] >> raw_val // legacy migration
+	if(raw_val && ispath(raw_val))
+		if(ispath(raw_val, /obj/item/intimate_accessory/piercing))
+			pref_intimate_genital_piercing = raw_val
+		else
+			pref_intimate_genital_insertable = raw_val
+	raw_val = null
+	// Genital insertable
+	S["pref_intimate_genital_insertable"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_genital_insertable = raw_val
+	raw_val = null
+	// Rear piercing
+	S["pref_intimate_rear_piercing"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_rear_piercing = raw_val
+	raw_val = null
+	// Rear insertable
+	S["pref_intimate_rear_insertable"] >> raw_val
+	if(!raw_val)
+		S["pref_intimate_rear"] >> raw_val // legacy migration
+	if(raw_val && ispath(raw_val))
+		pref_intimate_rear_insertable = raw_val
+	raw_val = null
+	// Breast piercing
+	S["pref_intimate_breast_piercing"] >> raw_val
+	if(!raw_val)
+		S["pref_intimate_breast"] >> raw_val // legacy migration
+	if(raw_val && ispath(raw_val))
+		pref_intimate_breast_piercing = raw_val
+	raw_val = null
+	// Breast insertable
+	S["pref_intimate_breast_insertable"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_breast_insertable = raw_val
+	raw_val = null
+	// Mouth piercing
+	S["pref_intimate_mouth_piercing"] >> raw_val
+	if(!raw_val)
+		S["pref_intimate_mouth"] >> raw_val // legacy migration
+	if(raw_val && ispath(raw_val))
+		pref_intimate_mouth_piercing = raw_val
+	raw_val = null
+	// Mouth insertable
+	S["pref_intimate_mouth_insertable"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_mouth_insertable = raw_val
+	raw_val = null
 
 	// Custom sex flavor text — stored as a JSON string; decoded back to a list here.
 	var/sex_flavors_json
@@ -1350,11 +1374,15 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["gnoll_descriptor_muzzle"] , gnoll_prefs?.descriptor_muzzle)
 	WRITE_FILE(S["gnoll_descriptor_expression"] , gnoll_prefs?.descriptor_expression)
 
-	// Intimate accessory prefs — per-character (was global before migration).
-	WRITE_FILE(S["pref_intimate_genital"], preferences_typepath_or_null(pref_intimate_genital))
-	WRITE_FILE(S["pref_intimate_rear"], preferences_typepath_or_null(pref_intimate_rear))
-	WRITE_FILE(S["pref_intimate_breast"], preferences_typepath_or_null(pref_intimate_breast))
-	WRITE_FILE(S["pref_intimate_mouth"], preferences_typepath_or_null(pref_intimate_mouth))
+	// Intimate accessory prefs — split into piercing + insertable per region.
+	WRITE_FILE(S["pref_intimate_genital_piercing"], preferences_typepath_or_null(pref_intimate_genital_piercing))
+	WRITE_FILE(S["pref_intimate_genital_insertable"], preferences_typepath_or_null(pref_intimate_genital_insertable))
+	WRITE_FILE(S["pref_intimate_rear_piercing"], preferences_typepath_or_null(pref_intimate_rear_piercing))
+	WRITE_FILE(S["pref_intimate_rear_insertable"], preferences_typepath_or_null(pref_intimate_rear_insertable))
+	WRITE_FILE(S["pref_intimate_breast_piercing"], preferences_typepath_or_null(pref_intimate_breast_piercing))
+	WRITE_FILE(S["pref_intimate_breast_insertable"], preferences_typepath_or_null(pref_intimate_breast_insertable))
+	WRITE_FILE(S["pref_intimate_mouth_piercing"], preferences_typepath_or_null(pref_intimate_mouth_piercing))
+	WRITE_FILE(S["pref_intimate_mouth_insertable"], preferences_typepath_or_null(pref_intimate_mouth_insertable))
 
 	// Custom sex flavor text — serialized to JSON for storage.
 	// Local var required: WRITE_FILE is a macro and ternary exprs in macro args
