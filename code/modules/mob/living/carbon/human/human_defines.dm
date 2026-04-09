@@ -95,8 +95,6 @@
 	dodgetime = 0
 
 	var/list/possibleclass
-	var/advsetup = 0
-
 
 //	var/alignment = ALIGNMENT_TN
 

@@ -189,14 +189,23 @@
 		H.AddSpell(F)
 		H.AddSpell(I)
 
+		to_chat(H, span_boldwarning("As a Gnoll, roleplaying expectations still apply. Gnolls are cunning hunters, not mindless beasts. \
+									The Dark Star expects much of you; there is little glory in slaughtering the meek."))
+		to_chat(H, span_biginfo("You are not interested in the lowest-hanging fruit, and effortless catches bore your Master. Rushing to take these quarries is <i>beneath you.</i> \n") \
+			+ span_notice("Rather, it is best to seek the worthiest among your prey, and to ensure a thrilling hunt for all involved."))
+		to_chat(H, span_biginfo("*-------*"))
+
 		var/mode = SSgnoll_scaling.get_gnoll_scaling()
 		if(mode == GNOLL_SCALING_NONE)
-			to_chat(H, span_bignotice("There are no scheduled gnoll reinforcements this week. I must rely on cunning over numbers."))
+			to_chat(H, span_smallnotice("There will not be any gnoll reinforcements this week, as far as I can tell. ") + span_info("I must rely on cunning over numbers."))
 		else if(mode != GNOLL_SCALING_DOUBLE)
-			to_chat(H, span_bignotice("I can expect to be joined by my pack this week. I should wait for them and group up."))
+			to_chat(H, span_smallnotice("I can expect to be joined by my pack this week. ") + span_info("I should wait for them and group up."))
 		else
-			to_chat(H, span_bignotice("My pack is small this week. I should regroup with the other gnoll and avoid reckless fights until we can hunt together."))
-		to_chat(H, span_bignotice("Graggar is patient, and values good strategy. I mustn't be hasty, especially if my marks prove difficult to isolate.\n Perhaps there is merit in forging alliances, or setting up camp."))
+			to_chat(H, span_smallnotice("My pack is small this week. ") + span_info("I should regroup with the other gnolls, and avoid reckless fights until we can hunt together."))
+		to_chat(H, span_info("Patience and careful planning are the virtues of my craft. If I can't isolate my mark, it would be wise to stalk another. \n\
+									When tracking difficult marks, I should set up camp and make alliances out in the field."))
+		to_chat(H, span_warning("The Bandit filth are unworthy of my assistance."))
+		to_chat(H, span_biginfo("*------*"))
 
 /mob/living/carbon/human/proc/gnoll_inspect_skin()
 	set name = "Inspect Pelt"
