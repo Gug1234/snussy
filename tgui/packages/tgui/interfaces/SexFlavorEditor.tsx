@@ -68,14 +68,22 @@ type CustomAction = {
   req_toy: number;
   /** User must have any intimate piercing equipped */
   req_user_piercing: boolean;
-  /** User must have a rear/genital plug equipped */
-  req_user_plug: boolean;
+  /** 0 = no req, 1 = any plug, 2 = rear plug, 3 = anal beads, 4 = genital plug, 5 = sounding rod */
+  req_user_plug: number;
   /** Target must have any intimate piercing equipped */
   req_target_piercing: boolean;
-  /** Target must have a rear/genital plug equipped */
-  req_target_plug: boolean;
+  /** 0 = no req, 1 = any plug, 2 = rear plug, 3 = anal beads, 4 = genital plug, 5 = sounding rod */
+  req_target_plug: number;
   /** Target's anus must NOT be blocked by a rear plug */
   req_no_rear_plug: boolean;
+  /** User must have a manticore tail organ */
+  req_user_manticore_tail: boolean;
+  /** Target must have a manticore tail organ */
+  req_target_manticore_tail: boolean;
+  /** User must have an Eora jelly equipped */
+  req_user_jelly: boolean;
+  /** Target must have an Eora jelly equipped */
+  req_target_jelly: boolean;
 };
 
 type BackendData = {
@@ -129,12 +137,28 @@ const PHASE_LABELS: Record<string, string> = {
   on_finish: 'On Finish',
 };
 
-/** Tokens the player can insert; resolved server-side at runtime. */
+/** Basic tokens the player can insert; resolved server-side at runtime. */
 const TOKENS = [
   '[USER]', '[TARGET]',
   '[THEY]', '[THEM]', '[THEIR]',
   '[TTHEY]', '[TTHEM]', '[TTHEIR]',
   '[FORCE]',
+];
+
+/** Anatomy-aware tokens resolved from the user/target's actual genitals. */
+const ANATOMY_TOKENS: { token: string; tip: string }[] = [
+  { token: '[UCOCK]', tip: "User's penis type (e.g. \"knotted cock\")" },
+  { token: '[TCOCK]', tip: "Target's penis type" },
+  { token: '[USHAFT]', tip: "User's shaft variant (e.g. \"barbed shaft\")" },
+  { token: '[TSHAFT]', tip: "Target's shaft variant" },
+  { token: '[USIZE]', tip: "User's penis size (e.g. \"impressive\")" },
+  { token: '[TSIZE]', tip: "Target's penis size" },
+  { token: '[UVAG]', tip: "User's vagina type (e.g. \"a delicate slit\")" },
+  { token: '[TVAG]', tip: "Target's vagina type" },
+  { token: '[UCUPSIZE]', tip: "User's breast size (e.g. \"plump\")" },
+  { token: '[TCUPSIZE]', tip: "Target's breast size" },
+  { token: '[UBREASTTYPE]', tip: "User's breast descriptor (e.g. \"a perky pair\")" },
+  { token: '[TBREASTTYPE]', tip: "Target's breast descriptor" },
 ];
 
 /** Phase → preview color mapping (matches in-game span colors). */
@@ -175,22 +199,53 @@ const TOY_OPTIONS: { value: number; label: string }[] = [
   { value: 3, label: 'Any Dildo' },
 ];
 
+/** Plug / insertable requirement options. */
+const PLUG_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: 'No Requirement' },
+  { value: 1, label: 'Any Plug' },
+  { value: 2, label: 'Rear Plug' },
+  { value: 3, label: 'Anal Beads' },
+  { value: 4, label: 'Genital Plug' },
+  { value: 5, label: 'Sounding Rod' },
+];
+
 /**
  * Client-side token resolution for preview.
- * All text is third-person; [USER] = performer name, [TARGET] = target name.
- * The perspective parameter just controls preview labeling.
+ *
+ * **giving** = "How the performer reads it" — [USER] → "You", user pronouns →
+ * second-person, target stays third-person.
+ *
+ * **receiving** = "How the target reads it" — [TARGET] → "You", target
+ * pronouns → second-person, performer stays third-person.
  */
-function resolvePreviewTokens(text: string, _perspective: 'giving' | 'receiving' = 'giving'): string {
+function resolvePreviewTokens(text: string, perspective: 'giving' | 'receiving' = 'giving'): string {
+  const giving = perspective === 'giving';
   return text
-    .replace(/\[USER\]/g, 'Performer')
-    .replace(/\[TARGET\]/g, 'Target')
-    .replace(/\[THEY\]/g, 'they')
-    .replace(/\[THEM\]/g, 'them')
-    .replace(/\[THEIR\]/g, 'their')
-    .replace(/\[TTHEY\]/g, 'they')
-    .replace(/\[TTHEM\]/g, 'them')
-    .replace(/\[TTHEIR\]/g, 'their')
-    .replace(/\[FORCE\]/g, 'firmly');
+    // Names — the "you" side swaps to second person
+    .replace(/\[USER\]/g, giving ? 'You' : 'Performer')
+    .replace(/\[TARGET\]/g, giving ? 'Target' : 'You')
+    // User pronouns
+    .replace(/\[THEY\]/g, giving ? 'you' : 'they')
+    .replace(/\[THEM\]/g, giving ? 'you' : 'them')
+    .replace(/\[THEIR\]/g, giving ? 'your' : 'their')
+    // Target pronouns
+    .replace(/\[TTHEY\]/g, giving ? 'they' : 'you')
+    .replace(/\[TTHEM\]/g, giving ? 'them' : 'you')
+    .replace(/\[TTHEIR\]/g, giving ? 'their' : 'your')
+    .replace(/\[FORCE\]/g, 'firmly')
+    // Anatomy tokens — illustrative placeholders, possessive flips with perspective
+    .replace(/\[UCOCK\]/g, giving ? 'your knotted cock' : 'their knotted cock')
+    .replace(/\[TCOCK\]/g, giving ? 'their barbed cock' : 'your barbed cock')
+    .replace(/\[USHAFT\]/g, giving ? 'your knotted shaft' : 'their knotted shaft')
+    .replace(/\[TSHAFT\]/g, giving ? 'their barbed shaft' : 'your barbed shaft')
+    .replace(/\[USIZE\]/g, giving ? 'your impressive' : 'their impressive')
+    .replace(/\[TSIZE\]/g, giving ? 'their modest' : 'your modest')
+    .replace(/\[UVAG\]/g, giving ? 'your delicate slit' : 'their delicate slit')
+    .replace(/\[TVAG\]/g, giving ? 'their glistening slit' : 'your glistening slit')
+    .replace(/\[UCUPSIZE\]/g, giving ? 'your plump' : 'their plump')
+    .replace(/\[TCUPSIZE\]/g, giving ? 'their ample' : 'your ample')
+    .replace(/\[UBREASTTYPE\]/g, giving ? 'your perky pair' : 'their perky pair')
+    .replace(/\[TBREASTTYPE\]/g, giving ? 'their heavy breasts' : 'your heavy breasts');
 }
 
 // ── Bitflag toggle helper ─────────────────────────────────────────────────────
@@ -497,17 +552,50 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
         </Stack>
         {/* Boolean accessory requirements — green = required, transparent = not */}
         <Stack wrap align="center" mt={0.5}>
+          <Stack.Item mr={1} mb={0.5}>
+            <Box fontSize="10px" opacity={0.7} mb={0.25}>User Plug/Insertable:</Box>
+            {PLUG_OPTIONS.map((opt) => (
+              <Button key={opt.value} compact
+                selected={action.req_user_plug === opt.value}
+                color={action.req_user_plug === opt.value
+                  ? (opt.value > 0 ? 'good' : 'default')
+                  : 'transparent'}
+                onClick={() => update({ req_user_plug: opt.value })}>
+                {opt.label}
+              </Button>
+            ))}
+          </Stack.Item>
+          <Stack.Item mb={0.5}>
+            <Box fontSize="10px" opacity={0.7} mb={0.25}>Target Plug/Insertable:</Box>
+            {PLUG_OPTIONS.map((opt) => (
+              <Button key={opt.value} compact
+                selected={action.req_target_plug === opt.value}
+                color={action.req_target_plug === opt.value
+                  ? (opt.value > 0 ? 'good' : 'default')
+                  : 'transparent'}
+                onClick={() => update({ req_target_plug: opt.value })}>
+                {opt.label}
+              </Button>
+            ))}
+          </Stack.Item>
+        </Stack>
+        <Stack wrap align="center" mt={0.5}>
           <Stack.Item mr={1}>
             <Box fontSize="10px" opacity={0.7} mb={0.25}>User must have:</Box>
             <Button compact
               color={action.req_user_piercing ? 'good' : 'transparent'}
               onClick={() => update({ req_user_piercing: !action.req_user_piercing })}>
-              {action.req_user_piercing ? '✓ Piercing Required' : '– Piercing'}
+              {action.req_user_piercing ? '✓ Piercing' : '– Piercing'}
             </Button>
             <Button compact
-              color={action.req_user_plug ? 'good' : 'transparent'}
-              onClick={() => update({ req_user_plug: !action.req_user_plug })}>
-              {action.req_user_plug ? '✓ Plug Required' : '– Plug'}
+              color={action.req_user_manticore_tail ? 'good' : 'transparent'}
+              onClick={() => update({ req_user_manticore_tail: !action.req_user_manticore_tail })}>
+              {action.req_user_manticore_tail ? '✓ Manticore Tail' : '– Manticore Tail'}
+            </Button>
+            <Button compact
+              color={action.req_user_jelly ? 'good' : 'transparent'}
+              onClick={() => update({ req_user_jelly: !action.req_user_jelly })}>
+              {action.req_user_jelly ? '✓ Jelly' : '– Jelly'}
             </Button>
           </Stack.Item>
           <Stack.Item mr={1}>
@@ -515,12 +603,17 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
             <Button compact
               color={action.req_target_piercing ? 'good' : 'transparent'}
               onClick={() => update({ req_target_piercing: !action.req_target_piercing })}>
-              {action.req_target_piercing ? '✓ Piercing Required' : '– Piercing'}
+              {action.req_target_piercing ? '✓ Piercing' : '– Piercing'}
             </Button>
             <Button compact
-              color={action.req_target_plug ? 'good' : 'transparent'}
-              onClick={() => update({ req_target_plug: !action.req_target_plug })}>
-              {action.req_target_plug ? '✓ Plug Required' : '– Plug'}
+              color={action.req_target_manticore_tail ? 'good' : 'transparent'}
+              onClick={() => update({ req_target_manticore_tail: !action.req_target_manticore_tail })}>
+              {action.req_target_manticore_tail ? '✓ Manticore Tail' : '– Manticore Tail'}
+            </Button>
+            <Button compact
+              color={action.req_target_jelly ? 'good' : 'transparent'}
+              onClick={() => update({ req_target_jelly: !action.req_target_jelly })}>
+              {action.req_target_jelly ? '✓ Jelly' : '– Jelly'}
             </Button>
           </Stack.Item>
           <Stack.Item>
@@ -538,7 +631,7 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
       <Stack.Item mt={0.5}>
         <Box fontSize="11px" bold mb={0.25}>Flavor Text</Box>
         <Box fontSize="10px" opacity={0.5} mb={0.5}>
-          Tokens: {TOKENS.join(' ')} — resolved at runtime. Click a token below to insert it into the active phase.
+          Tokens are resolved at runtime from the actual characters. Click a token below to insert it into the active phase.
         </Box>
         {/* Phase tabs for selecting which text to preview */}
         <Tabs>
@@ -576,10 +669,23 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
           </Stack.Item>
           {/* Token insertion buttons */}
           <Stack.Item>
+            <Box opacity={0.7} fontSize="10px" mb={0.25}>Basic:</Box>
             <Stack wrap>
               {TOKENS.map((token) => (
                 <Stack.Item key={token}>
                   <Button compact color="transparent" onClick={() => appendCustomToken(token)}>
+                    {token}
+                  </Button>
+                </Stack.Item>
+              ))}
+            </Stack>
+          </Stack.Item>
+          <Stack.Item>
+            <Box opacity={0.7} fontSize="10px" mb={0.25}>Anatomy (resolves from character):</Box>
+            <Stack wrap>
+              {ANATOMY_TOKENS.map(({ token, tip }) => (
+                <Stack.Item key={token}>
+                  <Button compact color="transparent" tooltip={tip} onClick={() => appendCustomToken(token)}>
                     {token}
                   </Button>
                 </Stack.Item>
@@ -635,6 +741,8 @@ export function SexFlavorEditor() {
   const [applyAllConfirm, setApplyAllConfirm] = useState<string | null>(null);
   /** Selected preset key for the global apply dropdown. */
   const [globalPresetKey, setGlobalPresetKey] = useState<string>('humanoid');
+  /** Which category sections are expanded in the action list. */
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   if (data.invalid) {
     return (
@@ -870,37 +978,82 @@ export function SexFlavorEditor() {
                 {show_all_actions ? 'Showing All Actions' : 'Showing Available Only'}
               </Button>
             </Box>
-            {/* Scrollable action list */}
+            {/* Scrollable action list — collapsible categories */}
             <Box style={{ flex: 1, overflowY: 'auto' }}>
-              {Object.entries(grouped).map(([category, entries]) => (
-                <Section key={category} title={category} mt={1}>
-                  {entries.map((entry) => {
-                    const isSelected = entry.path === selected_action;
-                    return (
-                      <Button
-                        key={entry.path}
-                        fluid
-                        selected={isSelected}
-                        color={!entry.can_use ? 'transparent' : undefined}
-                        style={{
-                          ...(isSelected
-                            ? { outline: '2px solid rgba(255,255,255,0.65)', outlineOffset: '-2px', fontWeight: 'bold' }
-                            : {}),
-                          ...(!entry.can_use ? { opacity: 0.5 } : {}),
-                        }}
-                        onClick={() => act('select_action', { path: entry.path })}
-                      >
-                        {!!entry.has_custom && (
-                          <Box inline color="good" mr={0.5} style={{ fontSize: '10px' }}>
-                            ✎
-                          </Box>
-                        )}
-                        {entry.name}
-                      </Button>
-                    );
-                  })}
-                </Section>
-              ))}
+              {Object.entries(grouped).map(([category, entries]) => {
+                // Auto-expand the category containing the selected action.
+                const containsSelected = entries.some((e) => e.path === selected_action);
+                const isExpanded = containsSelected || expandedCategories.has(category);
+                const customCount = entries.filter((e) => e.has_custom).length;
+                return (
+                  <Box key={category} mt={0.5}>
+                    <Button
+                      fluid
+                      color="transparent"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '4px 6px',
+                        background: 'rgba(255,255,255,0.07)',
+                        borderRadius: '3px',
+                        fontWeight: 'bold',
+                        fontSize: '11px',
+                      }}
+                      onClick={() =>
+                        setExpandedCategories((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(category)) {
+                            next.delete(category);
+                          } else {
+                            next.add(category);
+                          }
+                          return next;
+                        })
+                      }
+                    >
+                      <Box inline mr={0.5} style={{ fontSize: '10px', width: '1em', textAlign: 'center' }}>
+                        {isExpanded ? '▾' : '▸'}
+                      </Box>
+                      {category}
+                      <Box inline ml={0.5} opacity={0.5} style={{ fontSize: '10px' }}>
+                        ({entries.length})
+                      </Box>
+                      {customCount > 0 && (
+                        <Box inline color="good" ml={0.5} style={{ fontSize: '10px' }}>
+                          ✎{customCount}
+                        </Box>
+                      )}
+                    </Button>
+                    {isExpanded &&
+                      entries.map((entry) => {
+                        const isSelected = entry.path === selected_action;
+                        return (
+                          <Button
+                            key={entry.path}
+                            fluid
+                            selected={isSelected}
+                            color={!entry.can_use ? 'transparent' : undefined}
+                            style={{
+                              marginLeft: '8px',
+                              ...(isSelected
+                                ? { outline: '2px solid rgba(255,255,255,0.65)', outlineOffset: '-2px', fontWeight: 'bold' }
+                                : {}),
+                              ...(!entry.can_use ? { opacity: 0.5 } : {}),
+                            }}
+                            onClick={() => act('select_action', { path: entry.path })}
+                          >
+                            {!!entry.has_custom && (
+                              <Box inline color="good" mr={0.5} style={{ fontSize: '10px' }}>
+                                ✎
+                              </Box>
+                            )}
+                            {entry.name}
+                          </Button>
+                        );
+                      })}
+                  </Box>
+                );
+              })}
             </Box>
           </Stack.Item>
 
@@ -1123,11 +1276,23 @@ export function SexFlavorEditor() {
 
                       {/* Token buttons */}
                       <Stack.Item>
-                        <Box opacity={0.7} fontSize="10px" mb={0.25}>Insert token:</Box>
+                        <Box opacity={0.7} fontSize="10px" mb={0.25}>Basic:</Box>
                         <Stack wrap>
                           {TOKENS.map((token) => (
                             <Stack.Item key={token}>
                               <Button compact color="transparent" onClick={() => appendToken(token)}>
+                                {token}
+                              </Button>
+                            </Stack.Item>
+                          ))}
+                        </Stack>
+                      </Stack.Item>
+                      <Stack.Item>
+                        <Box opacity={0.7} fontSize="10px" mb={0.25}>Anatomy (resolves from character):</Box>
+                        <Stack wrap>
+                          {ANATOMY_TOKENS.map(({ token, tip }) => (
+                            <Stack.Item key={token}>
+                              <Button compact color="transparent" tooltip={tip} onClick={() => appendToken(token)}>
                                 {token}
                               </Button>
                             </Stack.Item>

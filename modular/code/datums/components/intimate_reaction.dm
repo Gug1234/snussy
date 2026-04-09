@@ -372,11 +372,11 @@
 		if(devout)
 			return "chastity_receive_devout"
 		if(has_penis_chastity && has_vagina_chastity)
-			return "chastity_intersex_anal_recieve"
+			return "chastity_intersex_anal_receive"
 		if(has_penis_chastity)
-			return "chastity_cock_anal_recieve"
+			return "chastity_cock_anal_receive"
 		if(has_vagina_chastity)
-			return "chastity_vagina_anal_recieve"
+			return "chastity_vagina_anal_receive"
 
 	// Self-touch: the wearer attempting to pleasure themselves through or against the device.
 	// Detected when the acting mob IS the wearer — covers masturbate_cage_penis, masturbate_vagina, etc.
@@ -484,6 +484,14 @@
 	if(!wearer_sexcon)
 		return null
 	if(!HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED))
+		// Non-spiked devices: cage pinching, chafing, rash, trapped-fluid irritation.
+		var/is_belt = wearer_sexcon.has_chastity_vagina() && !wearer_sexcon.has_chastity_cage()
+		if(pain_amt >= PAIN_HIGH_EFFECT)
+			return is_belt ? "chastity_nonspiked_belt_high" : "chastity_nonspiked_high"
+		if(pain_amt >= PAIN_MED_EFFECT)
+			return is_belt ? "chastity_nonspiked_belt_medium" : "chastity_nonspiked_medium"
+		if(pain_amt >= PAIN_MILD_EFFECT)
+			return is_belt ? "chastity_nonspiked_belt_low" : "chastity_nonspiked_low"
 		return null
 	// Devout/church wearers frame all spiked pain as mortification of the flesh offered to their patron.
 	// This takes priority over both the masochist and horror-tier banks — spiritual acceptance is its own register.
@@ -616,13 +624,17 @@
 	// - Devout (span_notice): serene acceptance, mortification framing — visible messages show composed endurance.
 	// - Masochist (span_love): eager, involuntary pleasure — visible messages show desperate enjoyment.
 	// - Standard (span_boldwarning): horror and pain — visible messages show distress.
+	// - Non-spiked (span_warning): mundane chafing/pinching — visible messages show discomfort, not horror.
 	// Routing in get_pain_key() already assigns the correct bank, so we just need to pick the right span.
-	var/devout_spiked = is_devout_chastity_wearer(source)
-	var/masochist_spiked = !devout_spiked && wearer_sexcon.is_masochist_in_spiked_chastity()
+	var/is_spiked = HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED)
+	var/devout_spiked = is_spiked && is_devout_chastity_wearer(source)
+	var/masochist_spiked = is_spiked && !devout_spiked && wearer_sexcon.is_masochist_in_spiked_chastity()
 	if(devout_spiked)
 		to_chat(source, span_notice(message))
 	else if(masochist_spiked)
 		to_chat(source, span_love(message))
+	else if(!is_spiked)
+		to_chat(source, span_warning(message))
 	else
 		to_chat(source, span_boldwarning(message))
 
@@ -631,33 +643,46 @@
 	var/show_reactions = !source.client?.prefs || source.client.prefs.show_intimate_examine
 
 	if(pain_amt >= PAIN_HIGH_EFFECT)
-		source.flash_fullscreen("redflash3")
+		if(is_spiked)
+			source.flash_fullscreen("redflash3")
+		else
+			source.flash_fullscreen("redflash2")
 		if(show_reactions && prob(70))
 			if(devout_spiked)
 				source.visible_message(span_notice("[source] goes very still, jaw set, as the chastity spikes bite deep — enduring it with deliberate composure."))
 			else if(masochist_spiked)
 				source.visible_message(span_warning("[source] shudders and whimpers as the chastity spikes bite in, seeming to savor the punishment."))
+			else if(!is_spiked)
+				source.visible_message(span_warning("[source] goes rigid, hand shooting to the front of their chastity device, face drained of color."))
 			else
 				source.visible_message(span_warning("[source] writhes in pain as the chastity spikes dig bloody into their tortured flesh!"))
 		return TRUE
 
 	if(pain_amt >= PAIN_MED_EFFECT)
-		source.flash_fullscreen("redflash2")
+		if(is_spiked)
+			source.flash_fullscreen("redflash2")
+		else
+			source.flash_fullscreen("redflash1")
 		if(show_reactions && prob(50))
 			if(devout_spiked)
 				source.visible_message(span_notice("[source] breathes carefully through the bite of the chastity spikes, expression drawn but steady."))
 			else if(masochist_spiked)
 				source.visible_message(span_warning("[source] trembles as the chastity spikes grind in, breathing out an eager, pained moan."))
+			else if(!is_spiked)
+				source.visible_message(span_warning("[source] flinches and adjusts their stance, jaw tight, one hand hovering near the device."))
 			else
 				source.visible_message(span_warning("[source] shudders in pain as the chastity spikes dig into their flesh!"))
 		return TRUE
 
-	source.flash_fullscreen("redflash1")
+	if(is_spiked)
+		source.flash_fullscreen("redflash1")
 	if(show_reactions && prob(30))
 		if(devout_spiked)
 			source.visible_message(span_notice("[source] shifts slightly as the chastity spikes catch, then stills themselves with quiet deliberateness."))
 		else if(masochist_spiked)
 			source.visible_message(span_warning("[source] shivers as the chastity spikes tease their flesh, eyes half-lidded."))
+		else if(!is_spiked)
+			source.visible_message(span_warning("[source] shifts uncomfortably, wincing as the chastity device pinches."))
 		else
 			source.visible_message(span_warning("[source] groans as the chastity spikes prod their flesh..."))
 	return TRUE

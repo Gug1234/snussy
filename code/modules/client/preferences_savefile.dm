@@ -261,6 +261,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["chastity_hardmode"]			>> chastity_hardmode
 	S["extreme_erp"]				>> extreme_erp
 	S["edging"]						>> edging
+	S["jelly_controller_enabled"]	>> jelly_controller_enabled
 	S["show_intimate_examine"]		>> show_intimate_examine
 	S["intimate_visual_widgets"]	>> intimate_visual_widgets
 	S["intimate_enabled"]			>> intimate_enabled
@@ -405,6 +406,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["chastity_hardmode"], chastity_hardmode)
 	WRITE_FILE(S["extreme_erp"], extreme_erp)
 	WRITE_FILE(S["edging"], edging)
+	WRITE_FILE(S["jelly_controller_enabled"], jelly_controller_enabled)
 	WRITE_FILE(S["show_intimate_examine"], show_intimate_examine)
 	WRITE_FILE(S["intimate_visual_widgets"], intimate_visual_widgets)
 	WRITE_FILE(S["intimate_enabled"], intimate_enabled)
@@ -790,6 +792,12 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["familiar_ooc_extra"]				>> familiar_prefs.familiar_ooc_extra
 	S["familiar_ooc_extra_link"]		>> familiar_prefs.familiar_ooc_extra_link
 
+/datum/preferences/proc/_load_jelly_prefs(S)
+	S["jelly_name"]					>> jelly_prefs.jelly_name
+	S["jelly_pronouns"]				>> jelly_prefs.jelly_pronouns
+	S["jelly_flavortext"]			>> jelly_prefs.jelly_flavortext
+	S["jelly_ooc_notes"]				>> jelly_prefs.jelly_ooc_notes
+
 /datum/preferences/proc/_load_gnoll_prefs(S)
 	S["gnoll_name"]						>> gnoll_prefs.gnoll_name
 	S["gnoll_pronouns"]					>> gnoll_prefs.gnoll_pronouns
@@ -881,6 +889,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	_load_appearence(S)
 	_load_height(S)
 	_load_familiar_prefs(S)
+	_load_jelly_prefs(S)
 	_load_gnoll_prefs(S)
 
 	var/patron_typepath
@@ -1360,6 +1369,11 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["familiar_ooc_notes"] , familiar_prefs?.familiar_ooc_notes)
 	WRITE_FILE(S["familiar_ooc_extra"] , familiar_prefs?.familiar_ooc_extra)
 	WRITE_FILE(S["familiar_ooc_extra_link"] , familiar_prefs?.familiar_ooc_extra_link)
+	//Jelly Controller Files
+	WRITE_FILE(S["jelly_name"] , jelly_prefs?.jelly_name)
+	WRITE_FILE(S["jelly_pronouns"] , jelly_prefs?.jelly_pronouns)
+	WRITE_FILE(S["jelly_flavortext"] , jelly_prefs?.jelly_flavortext)
+	WRITE_FILE(S["jelly_ooc_notes"] , jelly_prefs?.jelly_ooc_notes)
 	//Gnoll Files
 	WRITE_FILE(S["gnoll_name"] , gnoll_prefs?.gnoll_name)
 	WRITE_FILE(S["gnoll_pronouns"] , gnoll_prefs?.gnoll_pronouns)

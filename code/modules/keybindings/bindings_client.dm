@@ -36,6 +36,10 @@
 		qdel(src)
 		return
 
+	// Normalize space bar: BYOND [[*]] may send " " instead of "Space"
+	if(_key == " ")
+		_key = "Space"
+
 	//Focus Chat failsafe. Overrides movement checks to prevent WASD.
 	if(!prefs.hotkeys && length(_key) == 1 && _key != "Alt" && _key != "Ctrl" && _key != "Shift")
 		winset(src, null, "input.focus=true ; input.text=[url_encode(_key)]")
@@ -106,6 +110,10 @@
 		message_admins("Client [ckey] just attempted to send an invalid keyUp - [_key]. Keymessage was over [MAX_KEYPRESS_COMMANDLENGTH] characters, autokicking due to likely abuse.")
 		qdel(src)
 		return
+
+	// Normalize space bar: BYOND [[*]] may send " " instead of "Space"
+	if(_key == " ")
+		_key = "Space"
 
 	keys_held -= _key
 	var/movement = movement_keys[_key]

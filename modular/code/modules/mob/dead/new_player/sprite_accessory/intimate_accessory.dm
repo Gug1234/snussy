@@ -37,21 +37,42 @@
 		else if(ispath(breasts.accessory_type, /datum/sprite_accessory/breasts/sextuple))
 			amount_tag = "sextuple"
 
+	// Determine cross variant suffix for psydonic/zizite breast piercings.
+	var/cross_suffix = ""
+	if(ishuman(owner))
+		var/mob/living/carbon/human/H = owner
+		if(istype(H.intimate_breast_piercing, /obj/item/intimate_accessory/piercing/breast/psydonic))
+			cross_suffix = "_psy"
+		else if(istype(H.intimate_breast_piercing, /obj/item/intimate_accessory/piercing/breast/zizite))
+			cross_suffix = "_zizo"
+
 	if(amount_tag == "pair")
 		breast_size = clamp(breast_size, 0, 12)
 		if(breast_size == 0)
 			if(is_species(owner, /datum/species/goblinp))
-				return owner.gender == FEMALE ? "breast_pierce_pair_0gf" : "breast_pierce_pair_0g"
+				var/base_state = owner.gender == FEMALE ? "breast_pierce_pair_0gf" : "breast_pierce_pair_0g"
+				if(cross_suffix && icon_exists(icon, "[base_state][cross_suffix]"))
+					return "[base_state][cross_suffix]"
+				return base_state
 			if(owner.gender == FEMALE && is_species(owner, /datum/species/dwarf))
+				if(cross_suffix && icon_exists(icon, "breast_pierce_pair_0df[cross_suffix]"))
+					return "breast_pierce_pair_0df[cross_suffix]"
 				return "breast_pierce_pair_0df"
 			for(var/species_type in short_anthro_size_zero_species)
 				if(is_species(owner, species_type))
+					if(cross_suffix && icon_exists(icon, "breast_pierce_pair_0sf[cross_suffix]"))
+						return "breast_pierce_pair_0sf[cross_suffix]"
 					return "breast_pierce_pair_0sf"
+			if(cross_suffix && icon_exists(icon, "breast_pierce_pair_0[cross_suffix]"))
+				return "breast_pierce_pair_0[cross_suffix]"
 			return "breast_pierce_pair_0"
 	else
 		breast_size = clamp(breast_size, 0, 5)
 
-	return "breast_pierce_[amount_tag]_[breast_size]"
+	var/base_state = "breast_pierce_[amount_tag]_[breast_size]"
+	if(cross_suffix && icon_exists(icon, "[base_state][cross_suffix]"))
+		return "[base_state][cross_suffix]"
+	return base_state
 
 /datum/sprite_accessory/intimate_accessory/proc/get_genital_piercing_overlay(overlay_icon_state, color_string, passed_layer)
 	color_string = sanitize_color_string(color_string)

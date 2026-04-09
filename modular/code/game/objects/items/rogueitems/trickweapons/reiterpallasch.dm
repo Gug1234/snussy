@@ -9,7 +9,7 @@
 	attack_verb = list("thrusts", "jabs")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform1.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform2.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_stab_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_stab_meat2.ogg')
 	chargetime = 0
 	penfactor = 25
 	damfactor = 1
@@ -23,7 +23,7 @@
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform1.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform2.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_cut_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_cut_meat2.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 0.95
@@ -37,7 +37,7 @@
 	attack_verb = list("sweeps", "slashes")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform1.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform2.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_cut_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_cut_meat2.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 1.05
@@ -52,7 +52,7 @@
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform2.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform1.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_stab_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_stab_meat2.ogg')
 	chargetime = 5
 	chargedrain = 1
 	penfactor = 40
@@ -68,7 +68,7 @@
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform1.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform2.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_cut_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_cut_meat2.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 1
@@ -82,7 +82,7 @@
 	attack_verb = list("lunges into", "thrusts")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform1.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform2.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_stab_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_stab_meat2.ogg')
 	chargetime = 0
 	penfactor = 30
 	damfactor = 1.1
@@ -116,7 +116,7 @@
 	attack_verb = list("drives through", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/reiterpallasch/transform2.ogg', 'modular/sounds/trickweapons/reiterpallasch/transform1.ogg')
+	hitsound = list('modular/sounds/trickweapons/generic/iron_stab_meat1.ogg', 'modular/sounds/trickweapons/generic/iron_stab_meat2.ogg')
 	chargetime = 5
 	chargedrain = 1
 	penfactor = 40

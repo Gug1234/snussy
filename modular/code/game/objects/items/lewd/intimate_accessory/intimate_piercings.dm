@@ -16,6 +16,9 @@
 	/// When TRUE this piercing emits audible movement jingles (visible_message) via the reaction component.
 	/// Bell piercings set this to TRUE; plain bars, studs, hoops, and tongue bars are silent during movement.
 	var/emits_movement_sound = FALSE
+	/// Visual movement style for non-bell piercings. null = standard bars/studs/hoops.
+	/// Set to "psydonic" or "zizite" on cross-bearing variants to dispatch to specific visual string banks.
+	var/visual_movement_style = null
 	/// Direct reference to our reaction component, cached to avoid GetComponent() on a COMPONENT_DUPE_ALLOWED type.
 	/// Set during Initialize(); cleared on Destroy(). Each piercing item carries exactly one reaction instance.
 	var/datum/component/intimate_reaction/piercing/reaction_component = null
@@ -205,6 +208,84 @@
 	intimate_metal_color = "#A2CBE3"
 	sellprice = 165
 
+// --- Breast psydonic piercings ---
+// A nipple piercing set with a fixed psycross pendant that dangles from each bar.
+/obj/item/intimate_accessory/piercing/breast/psydonic
+	name = "psydonic nipple piercing"
+	desc = "A set of nipple bars, each hung with a tiny psycross pendant. The little devotionals dangle and sway from pierced flesh with pious indiscretion."
+	icon_state = "breast_pierce_item_psy"
+	item_state = "breast_pierce_item_psy"
+	item_base_state = "breast_pierce_item_psy"
+	item_gem_state = null
+	visual_movement_style = "psydonic"
+	intimate_metal_name = "stone"
+	intimate_metal_color = "#9BADB7"
+	intimate_gem_color = "#9BADB7"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/breast/psydonic/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] psydonic nipple piercing")
+
+/obj/item/intimate_accessory/piercing/breast/psydonic/update_dynamic_name()
+	name = "[lowertext(intimate_metal_name)] psydonic nipple piercing"
+
+/obj/item/intimate_accessory/piercing/breast/psydonic/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The psycross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/breast/psydonic/silver_cross
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	intimate_gem_color = "#C6D5E1"
+	sellprice = 40
+
+/obj/item/intimate_accessory/piercing/breast/psydonic/golden_cross
+	intimate_metal_name = "golden"
+	intimate_metal_color = "#C4B651"
+	intimate_gem_color = "#C4B651"
+	sellprice = 60
+
+/obj/item/intimate_accessory/piercing/breast/psydonic/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
+
+// --- Breast zizite piercings ---
+// A nipple piercing set with a fixed zcross and morbid skull beadwork.
+/obj/item/intimate_accessory/piercing/breast/zizite
+	name = "zizite nipple piercing"
+	desc = "A set of nipple bars hung with zcross pendants and tiny skull beads. The Dame of Progress's spite, threaded through tender flesh."
+	icon_state = "breast_pierce_item_zizo"
+	item_state = "breast_pierce_item_zizo"
+	item_base_state = "breast_pierce_item_zizo"
+	item_gem_state = null
+	visual_movement_style = "zizite"
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	intimate_gem_color = "#9EA48E"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/breast/zizite/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] zizite nipple piercing")
+
+/obj/item/intimate_accessory/piercing/breast/zizite/update_dynamic_name()
+	name = "[lowertext(intimate_metal_name)] zizite nipple piercing"
+
+/obj/item/intimate_accessory/piercing/breast/zizite/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The zcross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/breast/zizite/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
+
 // Genital piercing variants.
 /obj/item/intimate_accessory/piercing/genital
 	name = "steel genital piercing kit"
@@ -317,11 +398,10 @@
 	piercing_region_name = "genital bell"
 	emits_movement_sound = TRUE
 
-// Explicit Initialize so finalize_piercing_initialize() is called and update_dynamic_name() produces
-// "[metal] genital bell piercing" — the genital base type has no Initialize of its own.
+// Explicit Initialize so update_dynamic_name() produces
+// "[metal] genital bell piercing" — the genital base Initialize handles finalize_piercing_initialize.
 /obj/item/intimate_accessory/piercing/genital/bell/Initialize()
 	. = ..()
-	finalize_piercing_initialize()
 
 /obj/item/intimate_accessory/piercing/genital/bell/iron
 	intimate_metal_name = "iron"
@@ -366,28 +446,72 @@
 	item_state = "genital_pierce_item_psy"
 	item_base_state = "genital_pierce_item_psy"
 	item_gem_state = null
+	visual_movement_style = "psydonic"
+	intimate_metal_name = "stone"
+	intimate_metal_color = "#9BADB7"
+	intimate_gem_color = "#9BADB7"
+	sellprice = 15
 
 /obj/item/intimate_accessory/piercing/genital/psydonic/Initialize()
 	. = ..()
-	finalize_piercing_initialize("psydonic genital piercing")
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] psydonic genital piercing")
 
 /obj/item/intimate_accessory/piercing/genital/psydonic/update_dynamic_name()
 	if(is_beriddled())
 		return ..()
-	name = "psydonic genital piercing"
+	name = "[lowertext(intimate_metal_name)] psydonic genital piercing"
+
+/obj/item/intimate_accessory/piercing/genital/psydonic/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The psycross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/genital/psydonic/silver_cross
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	intimate_gem_color = "#C6D5E1"
+	sellprice = 40
+
+/obj/item/intimate_accessory/piercing/genital/psydonic/golden_cross
+	intimate_metal_name = "golden"
+	intimate_metal_color = "#C4B651"
+	intimate_gem_color = "#C4B651"
+	sellprice = 60
+
+/obj/item/intimate_accessory/piercing/genital/psydonic/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
 
 /obj/item/intimate_accessory/piercing/genital/zizite
 	name = "zizite genital piercing"
 	desc = "A genital piercing kit set with a fixed zcross and morbid beadwork. It carries the Dame of Progress's spite into the bedchamber."
+	visual_movement_style = "zizite"
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	intimate_gem_color = "#9EA48E"
+	sellprice = 15
 
 /obj/item/intimate_accessory/piercing/genital/zizite/Initialize()
 	. = ..()
-	finalize_piercing_initialize("zizite genital piercing")
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] zizite genital piercing")
 
 /obj/item/intimate_accessory/piercing/genital/zizite/update_dynamic_name()
 	if(is_beriddled())
 		return ..()
-	name = "zizite genital piercing"
+	name = "[lowertext(intimate_metal_name)] zizite genital piercing"
+
+/obj/item/intimate_accessory/piercing/genital/zizite/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The zcross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/genital/zizite/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
 
 // Tongue piercings reuse base piercing behavior and add speech/socket hooks.
 /obj/item/intimate_accessory/piercing/tongue
@@ -684,7 +808,11 @@
 		"strings/psysect2.txt",
 		"strings/psysect3.txt"
 	)
-	var/list/verses = world.file2list(pick(psybible_sections))
+	var/static/list/cached_verses = list()
+	var/section = pick(psybible_sections)
+	if(!cached_verses[section])
+		cached_verses[section] = world.file2list(section)
+	var/list/verses = cached_verses[section]
 	if(!length(verses))
 		to_chat(user, span_warning("No psydonic scripture comes to mind."))
 		return FALSE
@@ -720,8 +848,11 @@
 	return TRUE
 
 /obj/item/intimate_accessory/piercing/tongue/psydonic/attackby(obj/item/I, mob/living/user, params)
-	if(istype(I, /obj/item/rogueweapon/hammer) || istype(I, /obj/item/rogueweapon/chisel) || istype(I, /obj/item/roguegem) || istype(I, /obj/item/clothing/neck/roguetown/psicross))
+	if(istype(I, /obj/item/rogueweapon/hammer) || istype(I, /obj/item/rogueweapon/chisel) || istype(I, /obj/item/clothing/neck/roguetown/psicross))
 		return try_extract_socketed_item(user)
+	if(istype(I, /obj/item/roguegem))
+		to_chat(user, span_warning("The psycross fills the socket; there is no room for a gem."))
+		return TRUE
 	return ..()
 
 /obj/item/intimate_accessory/piercing/tongue/zizite
@@ -731,6 +862,19 @@
 	item_state = "tongue_pierce_item_zizo"
 	item_base_state = "tongue_pierce_item_zizo"
 	item_gem_state = null
+
+/obj/item/intimate_accessory/piercing/tongue/zizite/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("This zcross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/tongue/zizite/attackby(obj/item/I, mob/living/user, params)
+	if(istype(I, /obj/item/rogueweapon/hammer) || istype(I, /obj/item/rogueweapon/chisel) || istype(I, /obj/item/clothing/neck/roguetown/psicross))
+		return try_extract_socketed_item(user)
+	if(istype(I, /obj/item/roguegem))
+		to_chat(user, span_warning("The zcross fills the socket; there is no room for a gem."))
+		return TRUE
+	return ..()
 
 /obj/item/intimate_accessory/piercing/tongue/zizite/proc/refresh_zizite_verbs(mob/living/carbon/human/H)
 	if(!H)
@@ -746,7 +890,7 @@
 	if(!can_use_tongue_piercing_action(user))
 		return FALSE
 
-	var/chant_message = stripped_input(user, "What words do I offer to Zizo?", "Zizo Chant")
+	var/chant_message = tgui_input_text(user, "What words do I offer to Zizo?", "Zizo Chant", "", 200)
 	if(!chant_message)
 		return FALSE
 
@@ -861,12 +1005,245 @@
 /obj/item/intimate_accessory/piercing/mouth/blacksteel
 	parent_type = /obj/item/intimate_accessory/piercing/tongue/blacksteel
 
-// Rear plug variants.
+// Rear piercing variants.
 
 /obj/item/intimate_accessory/piercing/rear
-	name = "intimate rear piercing"
-	desc = "A piercing designed for the rear. It has a socket for a gem accent."
+	name = "steel rear piercing"
+	desc = "A discreet piercing designed for the rear. It has a socket for a gem accent."
 	icon_state = "rear_pierce_item"
 	item_state = "rear_pierce_item"
+	item_base_state = "rear_pierce_item"
+	item_gem_state = "rear_pierce_item_gem"
+	piercing_region_name = "rear"
 	intimate_slot = INTIMATE_SLOT_REAR
 	intimate_flags = INTIMATE_FLAG_PIERCING
+
+/obj/item/intimate_accessory/piercing/rear/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] rear piercing")
+
+/obj/item/intimate_accessory/piercing/rear/finalize_intimate_equip(mob/living/carbon/human/H)
+	. = ..()
+	play_piercing_sound(H, 'sound/foley/pierce.ogg')
+
+/obj/item/intimate_accessory/piercing/rear/remove_intimate_accessory(mob/living/carbon/human/H)
+	if(H && H.intimate_rear_piercing == src)
+		play_piercing_sound(H, 'sound/foley/equip/chain_equip.ogg')
+	return ..()
+
+// Metal variants for rear piercings.
+/obj/item/intimate_accessory/piercing/rear/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/rear/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/rear/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 10
+
+/obj/item/intimate_accessory/piercing/rear/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 12
+
+/obj/item/intimate_accessory/piercing/rear/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 30
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/rear/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 50
+
+/obj/item/intimate_accessory/piercing/rear/blacksteel // unbreakable gouch, the pintle will waver before this fuckass piercing does
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 150
+
+// --- Rear bell piercings ---
+// A rear ring fitted with a small dangling bell that chimes audibly during movement.
+// Inherits rear/Initialize(), so update_dynamic_name() picks up piercing_region_name and
+// produces "[metal] rear bell piercing" automatically without an extra Initialize override.
+/obj/item/intimate_accessory/piercing/rear/bell
+	desc = "A rear piercing fitted with a tiny dangling bell. Each step produces a soft, telltale chime from behind."
+	piercing_region_name = "rear bell"
+	emits_movement_sound = TRUE
+
+/obj/item/intimate_accessory/piercing/rear/bell/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 7
+
+/obj/item/intimate_accessory/piercing/rear/bell/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 8
+
+/obj/item/intimate_accessory/piercing/rear/bell/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/rear/bell/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 18
+
+/obj/item/intimate_accessory/piercing/rear/bell/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 40
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/rear/bell/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 65
+
+/obj/item/intimate_accessory/piercing/rear/bell/blacksteel
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 165
+
+// ════════════════════════════════════════════════════════════════════════════
+// UNFINISHED PIERCING — Crafted at the anvil, used in hand to pick a body
+// region and optional bell attachment. Replaces per-slot anvil recipes to
+// cut down on crafting menu clutter while also enabling rear and tongue
+// piercings to be crafted for the first time.
+// ════════════════════════════════════════════════════════════════════════════
+
+/obj/item/unfinished_piercing
+	name = "unfinished piercing"
+	desc = "An unfinished piercing blank. Use in hand to shape it for a particular body part."
+	icon = 'modular/icons/obj/lewd/intimate_accessories.dmi'
+	icon_state = "breast_pierce_item"
+	w_class = WEIGHT_CLASS_SMALL
+	var/piercing_metal_name
+	var/piercing_metal_color
+	var/piercing_is_silver = FALSE
+	var/base_sell = 10
+	var/bell_sell = 15
+
+/obj/item/unfinished_piercing/Initialize()
+	. = ..()
+	if(piercing_metal_name)
+		name = "unfinished [piercing_metal_name] piercing"
+	if(piercing_metal_color)
+		color = piercing_metal_color
+
+/obj/item/unfinished_piercing/examine(mob/user)
+	. = ..()
+	. += span_notice("Use in hand to shape it for a particular body part.")
+
+/obj/item/unfinished_piercing/attack_self(mob/living/user)
+	. = ..()
+	if(!istype(user) || user.incapacitated())
+		return
+	customize(user)
+
+/obj/item/unfinished_piercing/proc/customize(mob/living/user)
+	var/list/slot_choices = list(
+		"Breast (nipple piercings)",
+		"Genital (genital piercings)",
+		"Rear (rear piercing)",
+		"Tongue (tongue bar)",
+	)
+
+	var/slot_choice = tgui_input_list(user, "Where should the piercing go?", "Piercing Location", slot_choices)
+	if(!slot_choice || QDELETED(src) || user.incapacitated() || !in_range(user, src))
+		return
+
+	var/piercing_type
+	var/sell = base_sell
+
+	if(slot_choice == "Tongue (tongue bar)")
+		// Tongue piercings have no bell variant.
+		piercing_type = /obj/item/intimate_accessory/piercing/tongue
+	else
+		var/list/style_choices = list("Standard Piercing", "Bell Piercing")
+		var/style_choice = tgui_input_list(user, "Should it have a bell?", "Bell Option", style_choices)
+		if(!style_choice || QDELETED(src) || user.incapacitated() || !in_range(user, src))
+			return
+
+		var/is_bell = (style_choice == "Bell Piercing")
+		if(is_bell)
+			sell = bell_sell
+
+		switch(slot_choice)
+			if("Breast (nipple piercings)")
+				piercing_type = is_bell ? /obj/item/intimate_accessory/piercing/breast/bell : /obj/item/intimate_accessory/piercing/breast
+			if("Genital (genital piercings)")
+				piercing_type = is_bell ? /obj/item/intimate_accessory/piercing/genital/bell : /obj/item/intimate_accessory/piercing/genital
+			if("Rear (rear piercing)")
+				piercing_type = is_bell ? /obj/item/intimate_accessory/piercing/rear/bell : /obj/item/intimate_accessory/piercing/rear
+
+	if(!piercing_type)
+		return
+
+	var/obj/item/intimate_accessory/piercing/new_piercing = new piercing_type(get_turf(user))
+	if(piercing_metal_name)
+		new_piercing.intimate_metal_name = piercing_metal_name
+	if(piercing_metal_color)
+		new_piercing.intimate_metal_color = piercing_metal_color
+	new_piercing.is_silver = piercing_is_silver
+	new_piercing.sellprice = sell
+	new_piercing.update_dynamic_name()
+	new_piercing.update_item_visuals()
+
+	to_chat(user, span_notice("You shape the metal into \a [new_piercing]."))
+	if(!user.put_in_hands(new_piercing))
+		new_piercing.forceMove(get_turf(user))
+	qdel(src)
+
+// ── Metal Variants ──────────────────────────────────────────────────────────
+
+/obj/item/unfinished_piercing/iron
+	piercing_metal_name = "iron"
+	piercing_metal_color = "#9EA48E"
+	base_sell = 5
+	bell_sell = 7
+
+/obj/item/unfinished_piercing/copper
+	piercing_metal_name = "copper"
+	piercing_metal_color = "#8C4734"
+	base_sell = 5
+	bell_sell = 8
+
+/obj/item/unfinished_piercing/steel
+	piercing_metal_name = "steel"
+	piercing_metal_color = "#9BADB7"
+	base_sell = 10
+	bell_sell = 15
+
+/obj/item/unfinished_piercing/bronze
+	piercing_metal_name = "bronze"
+	piercing_metal_color = "#CBBF9A"
+	base_sell = 12
+	bell_sell = 18
+
+/obj/item/unfinished_piercing/silver
+	piercing_metal_name = "silver"
+	piercing_metal_color = "#C6D5E1"
+	piercing_is_silver = TRUE
+	base_sell = 30
+	bell_sell = 40
+
+/obj/item/unfinished_piercing/gold
+	piercing_metal_name = "gold"
+	piercing_metal_color = "#C4B651"
+	base_sell = 50
+	bell_sell = 65
+
+/obj/item/unfinished_piercing/blacksteel
+	piercing_metal_name = "blacksteel"
+	piercing_metal_color = "#A2CBE3"
+	base_sell = 150
+	bell_sell = 165

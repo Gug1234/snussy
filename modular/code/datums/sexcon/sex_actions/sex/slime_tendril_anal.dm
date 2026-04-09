@@ -19,10 +19,10 @@
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_rear_jelly(target)
 	if(jelly)
 		return jelly
-	// Fall back to the dedicated jelly slot — strange jelly can sprout tendrils from any region.
-	var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = target.intimate_jelly
-	if(istype(strange_jelly))
-		return strange_jelly
+	// Fall back to the dedicated jelly slot — any eora jelly can sprout tendrils from any region.
+	var/obj/item/intimate_accessory/jelly/eora/any_jelly = target.intimate_jelly
+	if(istype(any_jelly))
+		return any_jelly
 	return null
 
 /datum/sex_action/slime_tendril_anal/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)

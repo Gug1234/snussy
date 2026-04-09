@@ -27,9 +27,9 @@
 	jelly = get_genital_jelly(target)
 	if(jelly)
 		return jelly
-	var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = target.intimate_jelly
-	if(istype(strange_jelly))
-		return strange_jelly
+	var/obj/item/intimate_accessory/jelly/eora/any_jelly = target.intimate_jelly
+	if(istype(any_jelly))
+		return any_jelly
 	return null
 
 /datum/sex_action/slime_tendril_through/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)

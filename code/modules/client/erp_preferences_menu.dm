@@ -48,6 +48,7 @@
 		list("intimate_enabled",      "Intimate Accessories",        "Enable piercings, plugs, and other intimate accessories. Independent of chastity content."),
 		list("extreme_erp",           "Extreme ERP Content",         "Enable extreme content (gore, ryona, etc.) within the ERP panel."),
 		list("edging",                "Edging Content",              "Enable Psydonite edging and other edging-related content within the ERP panel."),
+		list("jelly_controller_enabled", "Jelly Controller Offers",  "Enable strange jelly controller volunteering and future jelly-role prompts. When off, you will not be surfaced for jelly controller content."),
 		list("show_intimate_examine", "Show Accessories on Examine", "Allow others to see the 'View intimate accessories' link when examining you."),
 		list("intimate_visual_widgets","Accessory Visual Widgets",   "Show detailed paper-doll item visuals inside your intimate accessories panel (reserved for future art assets)."),
 		list("intimate_reaction_enabled", "Intimate Reaction Text", "Master toggle: see intimate reaction flavor text (movement descriptions, body exposure, sex-action reactions) from yourself and others."),
@@ -67,6 +68,7 @@
 				background: [T["bg"]] url('flowers.png') repeat;
 				color: [T["text"]];
 				margin: 0; padding: 0;
+				overflow-y: auto;
 			}
 			.header {
 				text-align: center;
@@ -167,6 +169,12 @@
 		html += "<div class='section-header'>⬛ Taur Genitals — [tt::name]</div>"
 		html += "<p style='font-size:0.62em;color:[T["label"]];margin:0 0 6px;'>Genital layering is now automatic (vaginas overlay the rear, penises/testicles tuck behind). Enable <b>Taur Genital Sprites</b> in the <b>Character Creation</b> menu to use taur-specific sprite variants and pixel offset controls.</p>"
 
+	html += "<div class='section-header'>Jelly Controller Profile</div>"
+	html += "<div class='toggle-row'>"
+	html += "<div class='toggle-info'><div class='toggle-name'>Volunteer Profile</div><div class='toggle-desc'>Set the descriptive card a jelly wearer will inspect before accepting you.</div></div>"
+	html += "<a class='toggle-btn btn-off' href='byond://?src=\ref[src];erp_open=jelly_prefs'>Edit</a>"
+	html += "</div>"
+
 	html += "</div></body></html>"
 	return html
 
@@ -183,7 +191,7 @@
 	if(href_list["erp_toggle"])
 		var/key = href_list["erp_toggle"]
 		// Whitelist: only allow known safe boolean pref keys
-		if(!(key in list("sexable", "chastenable", "cursed_enabled", "intimate_enabled", "extreme_erp", "edging", "show_intimate_examine", "intimate_visual_widgets", "intimate_reaction_enabled", "intimate_reaction_show_chastity", "intimate_reaction_show_extreme", "intimate_reaction_show_accessory_free")))
+		if(!(key in list("sexable", "chastenable", "cursed_enabled", "intimate_enabled", "extreme_erp", "edging", "jelly_controller_enabled", "show_intimate_examine", "intimate_visual_widgets", "intimate_reaction_enabled", "intimate_reaction_show_chastity", "intimate_reaction_show_extreme", "intimate_reaction_show_accessory_free")))
 			return
 		vars[key] = !vars[key]
 
@@ -197,10 +205,18 @@
 		if(key == "extreme_erp" && !extreme_erp)
 			if(hascall(usr?.client, "modular_handle_extreme_erp_toggle_disable"))
 				call(usr.client, "modular_handle_extreme_erp_toggle_disable")()
+		if(key == "jelly_controller_enabled" && !jelly_controller_enabled && usr?.client)
+			GLOB.jelly_controller_queue -= usr.client
+			remove_jelly_controller_client_from_applications(usr.client, "Your jelly controller applications are cleared because role offers were disabled.")
 
 
 		save_preferences()
 		open_erp_preferences_menu(usr)
+		return
+
+	if(href_list["erp_open"])
+		if(href_list["erp_open"] == "jelly_prefs")
+			jelly_prefs?.jelly_show_ui()
 		return
 
 	if(href_list["erp_hardmode"])
@@ -211,7 +227,7 @@
 			return
 
 		// Mirror the full confirmation flow from /client/verb/toggle_Chastity_Hardmode
-		var/confirm = alert(usr,
+		var/confirm = tgui_alert(usr,
 			"PERMANENT CHASTITY BINDING:\n\n\
 			• Only the device's unique key can unlock it\n\
 			• Keys can be lost, stolen, or destroyed forever\n\
@@ -222,8 +238,7 @@
 			• You will remain bound until the key releases you\n\n\
 			Do you accept these terms of permanent binding?",
 			"Permanent Chastity Binding",
-			"I accept the binding",
-			"I refuse")
+			list("I accept the binding", "I refuse"))
 
 		if(confirm != "I accept the binding")
 			to_chat(usr, span_notice("You decline the permanent binding."))

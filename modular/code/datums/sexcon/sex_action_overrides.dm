@@ -467,6 +467,14 @@
  *   \[TCOCK\]   → target's penis type phrase
  *   \[USHAFT\]  → user's penis type as shaft variant ("knotted shaft", "shaft", etc)
  *   \[TSHAFT\]  → target's penis type as shaft variant
+ *   \[USIZE\]   → user's penis size descriptor ("massive", "average", etc)
+ *   \[TSIZE\]   → target's penis size descriptor
+ *   \[UVAG\]    → user's vagina type phrase ("pussy", "slit", etc)
+ *   \[TVAG\]    → target's vagina type phrase
+ *   \[UCUPSIZE\] → user's breast cup size ("D-cup", etc)
+ *   \[TCUPSIZE\] → target's breast cup size
+ *   \[UBREASTTYPE\] → user's breast descriptor ("breasts", "chest", etc)
+ *   \[TBREASTTYPE\] → target's breast descriptor
  *
  * @param text   Raw string from the player's custom flavor pool.
  * @param user   The performer mob.
@@ -509,8 +517,10 @@
 	// [USIZE] / [TSIZE] → visceral size descriptor (shaming for small, lusting for large).
 	var/obj/item/organ/penis/u_penis = user.getorganslot(ORGAN_SLOT_PENIS)
 	var/obj/item/organ/penis/t_penis = target ? target.getorganslot(ORGAN_SLOT_PENIS) : null
-	text = replacetext(text, "\[USIZE\]", u_penis ? _penis_size_descriptor(u_penis.penis_size) : "unremarkable")
-	text = replacetext(text, "\[TSIZE\]", t_penis ? _penis_size_descriptor(t_penis.penis_size) : "unremarkable")
+	var/u_size_desc = u_penis ? _penis_size_descriptor(u_penis.penis_size) : "unremarkable"
+	var/t_size_desc = t_penis ? _penis_size_descriptor(t_penis.penis_size) : "unremarkable"
+	text = replacetext(text, "\[USIZE\]", u_size_desc)
+	text = replacetext(text, "\[TSIZE\]", t_size_desc)
 
 	// --- Vagina type descriptor tokens ---
 	// [UVAG] / [TVAG] → visceral vagina type descriptor based on sprite accessory.
@@ -555,6 +565,18 @@
 // at runtime, allowing players to define entirely new sex actions.
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── Per-user getter procs for fields that custom actions override ─────────
+// The base implementations return the datum's own var so that vanilla actions
+// are unaffected.  Custom actions override these to read from player config.
+
+/// Returns the category bitflag for menu filtering.  Custom actions override.
+/datum/sex_action/proc/get_runtime_category(mob/living/carbon/human/user)
+	return category
+
+/// Returns the stamina cost per cycle.  Custom actions override.
+/datum/sex_action/proc/get_runtime_stamina_cost(mob/living/carbon/human/user)
+	return stamina_cost
+
 /**
  * Base type for custom action slots.
  * Each slot reads its configuration (name, flavor texts, stats) from the
@@ -589,6 +611,18 @@
 	if(config)
 		return config["name"]
 	return name
+
+/datum/sex_action/custom/get_runtime_category(mob/living/carbon/human/user)
+	var/list/config = get_slot_config(user)
+	if(config)
+		return clamp(config["category"], 1, 7)
+	return category
+
+/datum/sex_action/custom/get_runtime_stamina_cost(mob/living/carbon/human/user)
+	var/list/config = get_slot_config(user)
+	if(config)
+		return clamp(config["stamina_cost"], 0, 3)
+	return stamina_cost
 
 /**
  * Validates unique requirement checks (chastity, toy, piercings, plugs) against
@@ -626,10 +660,29 @@
 			&& !istype(user.intimate_genital_piercing, /obj/item/intimate_accessory/piercing) \
 			&& !istype(user.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing))
 			return FALSE
-	if(config["req_user_plug"])
-		if(!istype(user.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
-			&& !istype(user.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug))
-			return FALSE
+
+	// Plug requirement: 0=none, 1=any, 2=rear plug, 3=anal beads, 4=genital plug, 5=sounding rod
+	var/req_up = config["req_user_plug"]
+	if(req_up)
+		switch(req_up)
+			if(1) // any plug/insertable
+				if(!istype(user.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
+					&& !istype(user.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug))
+					return FALSE
+			if(2) // rear plug specifically (not beads)
+				if(!istype(user.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
+					|| istype(user.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug/analbeads))
+					return FALSE
+			if(3) // anal beads
+				if(!istype(user.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug/analbeads))
+					return FALSE
+			if(4) // genital plug (not sounding rod)
+				if(!istype(user.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug) \
+					|| istype(user.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+					return FALSE
+			if(5) // sounding rod
+				if(!istype(user.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+					return FALSE
 
 	// ── Target intimate accessory requirements ──
 	if(config["req_target_piercing"])
@@ -637,14 +690,48 @@
 			&& !istype(target.intimate_genital_piercing, /obj/item/intimate_accessory/piercing) \
 			&& !istype(target.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing))
 			return FALSE
-	if(config["req_target_plug"])
-		if(!istype(target.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
-			&& !istype(target.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug))
-			return FALSE
+
+	var/req_tp = config["req_target_plug"]
+	if(req_tp)
+		switch(req_tp)
+			if(1)
+				if(!istype(target.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
+					&& !istype(target.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug))
+					return FALSE
+			if(2)
+				if(!istype(target.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug) \
+					|| istype(target.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug/analbeads))
+					return FALSE
+			if(3)
+				if(!istype(target.intimate_rear_insertable, /obj/item/intimate_accessory/rear/plug/analbeads))
+					return FALSE
+			if(4)
+				if(!istype(target.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug) \
+					|| istype(target.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+					return FALSE
+			if(5)
+				if(!istype(target.intimate_genital_insertable, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+					return FALSE
 
 	// ── Rear plug block check ──
 	if(config["req_no_rear_plug"])
 		if(anal_blocked_by_rear_plug(user, target))
+			return FALSE
+
+	// ── Manticore tail requirements ──
+	if(config["req_user_manticore_tail"])
+		if(!istype(user.getorganslot(ORGAN_SLOT_TAIL), /obj/item/organ/tail/manticore))
+			return FALSE
+	if(config["req_target_manticore_tail"])
+		if(!istype(target.getorganslot(ORGAN_SLOT_TAIL), /obj/item/organ/tail/manticore))
+			return FALSE
+
+	// ── Jelly requirements ──
+	if(config["req_user_jelly"])
+		if(!istype(user.intimate_jelly, /obj/item/intimate_accessory/jelly))
+			return FALSE
+	if(config["req_target_jelly"])
+		if(!istype(target.intimate_jelly, /obj/item/intimate_accessory/jelly))
 			return FALSE
 
 	return TRUE

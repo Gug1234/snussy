@@ -1,0 +1,25 @@
+{
+	"rivalry_detected": [
+		"[JELLY] trembles with a sudden, focused hostility — it can sense [RIVAL] nearby.",
+		"A violent pulse rolls through [JELLY] as it detects the presence of [RIVAL] — the one who touched what belongs to it.",
+		"[JELLY] goes rigid against me, its mass quivering with jealous recognition. [RIVAL] is close.",
+		"The slime hisses internally, a bitter vibration that resonates through my core. [RIVAL] is here, and [JELLY] remembers."
+	],
+	"rivalry_during_cocoon": [
+		"The cocoon constricts possessively as [RIVAL] draws near — [JELLY] will not let them touch what it has claimed.",
+		"[JELLY] tightens its cocoon and drives its tendrils deeper — a territorial display aimed squarely at [RIVAL].",
+		"The living walls of the cocoon pulse with jealous fury. [RIVAL] is close, and [JELLY] will not share.",
+		"A low, menacing vibration emanates from the cocoon as [RIVAL] approaches — [JELLY] marking its territory."
+	],
+	"rivalry_escalation": [
+		"[JELLY]'s jealousy sharpens into something personal — every thought of [RIVAL] makes the slime clench tighter around me.",
+		"The slime's hostility has a name now. [RIVAL]. Every time [JELLY] thinks of them, it punishes me a little harder.",
+		"[JELLY] throbs with targeted spite. [RIVAL] did this. [RIVAL] made it feel this way.",
+		"I can feel [JELLY] fixating — its jealousy narrowing from diffuse unease to a razor-focused hatred of [RIVAL]."
+	],
+	"rivalry_cleared": [
+		"[JELLY] gradually relaxes its grip — the bitter fixation on [RIVAL] fading like a bruise. For now.",
+		"The slime eases, its jealous tension dissipating. [RIVAL] is no longer the center of its rage.",
+		"[JELLY] settles, its possessive fury cooling. The rivalry ends — not forgiven, but set aside."
+	]
+}

@@ -1,0 +1,30 @@
+{
+	"tendril_command": [
+		"I coax [JELLY]'s tendrils into motion — they respond eagerly, writhing to attention at my silent command.",
+		"[JELLY] shivers in recognition as I direct its tendrils with a deliberate flex of intent.",
+		"At my urging, [JELLY] extends a thick, probing tendril — ready and waiting for direction.",
+		"I reach inward with my will and [JELLY] answers, tendrils unfurling with eager obedience."
+	],
+	"voluntary_cocoon_request": [
+		"I surrender myself to [JELLY], and the slime rises in a possessive wave — ecstatic to claim me willingly.",
+		"[JELLY] trembles with delight as I offer myself, warm slime flooding upward to envelop me in a willing embrace.",
+		"At my invitation, [JELLY] surges outward — the cocoon forming with an almost reverent tenderness.",
+		"I whisper consent to [JELLY], and the living slime answers with a joyful, engulfing tide."
+	],
+	"voluntary_cocoon_denied": [
+		"[JELLY] stirs uncertainly — our bond isn't deep enough for it to understand this request.",
+		"The slime shifts but doesn't respond. [JELLY] needs a deeper connection before it can cocoon on command.",
+		"[JELLY] pulses with confusion. The bond between us isn't strong enough for willing cocooning."
+	],
+	"provoke": [
+		"I deliberately pull against [JELLY]'s grip, and it tightens with a possessive snarl of slime.",
+		"A sharp flex of defiance sends [JELLY] into a jealous frenzy — tendrils constricting in response.",
+		"I push [JELLY]'s patience, and it answers with a surge of possessive, angry heat.",
+		"[JELLY] bristles as I provoke it — the slime darkening with indignant jealousy."
+	],
+	"provoke_already_angry": [
+		"[JELLY] is already seething. Provoking it further would be... unwise. And yet.",
+		"The slime is taut with barely contained fury. Poking the beast seems redundant — and dangerous.",
+		"[JELLY] practically vibrates with resentment. There's nothing left to provoke."
+	]
+}

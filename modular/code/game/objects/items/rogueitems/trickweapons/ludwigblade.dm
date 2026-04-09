@@ -12,7 +12,7 @@
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/ludwigblade/hit.ogg')
+	hitsound = list('modular/sounds/trickweapons/ludwigblade/sword_hit1.ogg', 'modular/sounds/trickweapons/ludwigblade/sword_hit2.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 1.0
@@ -75,7 +75,7 @@
 	attack_verb = list("chops", "hacks")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
-	hitsound = list('modular/sounds/trickweapons/ludwigblade/greatsword_hit.ogg')
+	hitsound = list('modular/sounds/trickweapons/ludwigblade/greatsword_slash1.ogg', 'modular/sounds/trickweapons/ludwigblade/greatsword_slash2.ogg')
 	chargetime = 0
 	penfactor = 30
 	damfactor = 0.9
@@ -105,7 +105,7 @@
 	attack_verb = list("sweeps", "cleaves")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/ludwigblade/greatsword_hit.ogg')
+	hitsound = list('modular/sounds/trickweapons/ludwigblade/greatsword_slash1.ogg', 'modular/sounds/trickweapons/ludwigblade/greatsword_slash2.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 1.1
@@ -120,7 +120,7 @@
 	attack_verb = list("slams", "crushes")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
-	hitsound = list('modular/sounds/trickweapons/ludwigblade/greatsword_hit.ogg')
+	hitsound = list('modular/sounds/trickweapons/ludwigblade/greatsword_slash1.ogg', 'modular/sounds/trickweapons/ludwigblade/greatsword_slash2.ogg')
 	chargetime = 0
 	penfactor = BLUNT_DEFAULT_PENFACTOR
 	damfactor = 1.25

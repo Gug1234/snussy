@@ -36,7 +36,7 @@
 	attack_verb = list("jabs", "punches into")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg')
+	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg', 'modular/sounds/trickweapons/stakedriver/punch4.ogg', 'modular/sounds/trickweapons/stakedriver/punch5.ogg', 'modular/sounds/trickweapons/stakedriver/punch6.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 0.95
@@ -51,7 +51,7 @@
 	attack_verb = list("hammers down on", "overhand-slams")
 	animname = "chop"
 	blade_class = BCLASS_BLUNT
-	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg')
+	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg', 'modular/sounds/trickweapons/stakedriver/punch4.ogg', 'modular/sounds/trickweapons/stakedriver/punch5.ogg', 'modular/sounds/trickweapons/stakedriver/punch6.ogg')
 	chargetime = 0
 	penfactor = 20
 	damfactor = 1.35
@@ -70,7 +70,7 @@
 	attack_verb = list("jabs", "punches")
 	animname = "strike"
 	blade_class = BCLASS_BLUNT
-	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg')
+	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg', 'modular/sounds/trickweapons/stakedriver/punch4.ogg', 'modular/sounds/trickweapons/stakedriver/punch5.ogg', 'modular/sounds/trickweapons/stakedriver/punch6.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 0.97
@@ -87,7 +87,7 @@
 	attack_verb = list("punches", "strikes")
 	animname = "strike"
 	blade_class = BCLASS_BLUNT
-	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg')
+	hitsound = list('modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch2.ogg', 'modular/sounds/trickweapons/stakedriver/punch3.ogg', 'modular/sounds/trickweapons/stakedriver/punch4.ogg', 'modular/sounds/trickweapons/stakedriver/punch5.ogg', 'modular/sounds/trickweapons/stakedriver/punch6.ogg')
 	chargetime = 0
 	penfactor = 5
 	damfactor = 0.90
@@ -103,7 +103,7 @@
 	attack_verb = list("drives into", "extends into")
 	animname = "strike"
 	blade_class = BCLASS_SMASH
-	hitsound = list('modular/sounds/trickweapons/stakedriver/combo1.ogg', 'modular/sounds/trickweapons/stakedriver/punch1.ogg')
+	hitsound = list('modular/sounds/trickweapons/stakedriver/combo1.ogg', 'modular/sounds/trickweapons/stakedriver/punch1.ogg', 'modular/sounds/trickweapons/stakedriver/punch4.ogg', 'modular/sounds/trickweapons/stakedriver/punch5.ogg', 'modular/sounds/trickweapons/stakedriver/punch6.ogg')
 	chargetime = 0
 	penfactor = 35
 	damfactor = 1.37

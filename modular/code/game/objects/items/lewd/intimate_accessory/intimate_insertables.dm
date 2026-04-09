@@ -37,6 +37,13 @@
 	. = ..()
 	if(!.)
 		return FALSE
+	if(!check_genital_anatomy(H, user))
+		return FALSE
+	return TRUE
+
+/// Checks whether the target has the required anatomy for this genital plug.
+/// Base genital plugs require a vagina; sounding rods override to require a penis.
+/obj/item/intimate_accessory/genital/plug/proc/check_genital_anatomy(mob/living/carbon/human/H, mob/user)
 	if(!H.getorganslot(ORGAN_SLOT_VAGINA))
 		to_chat(user, span_warning("[H] lacks the anatomy to wear [src]."))
 		return FALSE
@@ -125,22 +132,10 @@
 	icon_state = "sounding_plug_item_1"
 	item_state = "sounding_plug_item_1"
 
-/// Sounding rods require a penis, not a vagina.
-/// We call the grandparent (intimate_accessory) directly, then do our own penis check.
-/obj/item/intimate_accessory/genital/plug/sounding_rod/can_attach_target(mob/living/carbon/human/H, mob/user)
-	// Grandparent checks: H exists, has mind, not werewolf, silver
-	if(!H)
-		return FALSE
-	if(!H.mind)
-		to_chat(user, span_warning("[H] cannot be fitted with [src] right now."))
-		return FALSE
-	if(istype(H, /mob/living/carbon/human/species/werewolf))
-		to_chat(user, span_warning("[H]'s transformed body cannot be fitted with [src]."))
-		return FALSE
-	if(is_silver && HAS_TRAIT(H, TRAIT_SILVER_WEAK))
-		to_chat(user, span_warning("[H] recoils from silver; [src] cannot be worn."))
-		return FALSE
-	// Require a penis instead of a vagina
+/// Sounding rods require a penis instead of a vagina.
+/// Calls grandparent (intimate_accessory) checks via ..(), then substitutes our own anatomy requirement.
+/// Sounding rods require a penis instead of a vagina.
+/obj/item/intimate_accessory/genital/plug/sounding_rod/check_genital_anatomy(mob/living/carbon/human/H, mob/user)
 	if(!H.getorganslot(ORGAN_SLOT_PENIS))
 		to_chat(user, span_warning("[H] lacks the anatomy to wear [src]."))
 		return FALSE
@@ -567,6 +562,8 @@
 	sprite_acc = /datum/sprite_accessory/intimate_overlays/rear_beads
 	default_desc = "A set of four anal beads designed for the rear. They have a ring of sockets around each bead."
 	rear_accessory_noun = "anal beads"
+	intimate_metal_name = null
+	intimate_metal_color = null
 	beriddled_desc = "A set of anal beads infused with a riddle of steel. What a horrid waste."
 	psydonic_desc = "A string of anal beads threaded with fixed psycross beadwork. Their quiet blue gleam makes the whole toy look half-wrought from star-and-clay."
 	zizite_desc = "A string of anal beads threaded with fixed zcross beadwork and morbid accents. It carries the Dame of Progress's spite bead by bead."
@@ -638,27 +635,69 @@
 	beads_inserted = 0
 	return ..(H)
 
+/// Override dynamic name: use the metal descriptor only when intimate_metal_name is set.
+/// Shape subtypes without a metal set will use just their rear_accessory_noun.
+/obj/item/intimate_accessory/rear/plug/analbeads/update_dynamic_name()
+	var/metal_descriptor = intimate_metal_name ? lowertext(intimate_metal_name) : null
+
+	if(is_beriddled())
+		if(metal_descriptor)
+			name = "beriddleed [metal_descriptor] [rear_accessory_noun]"
+		else
+			name = "beriddleed [rear_accessory_noun]"
+		return
+
+	if(blue_pearled && blue_pearled_name)
+		name = blue_pearled_name
+		return
+
+	if(zizite_socketed)
+		name = "zizite [rear_accessory_noun]"
+		return
+
+	if(psydonic_socketed)
+		name = "psydonic [rear_accessory_noun]"
+		return
+
+	if(current_gem_descriptor)
+		if(metal_descriptor)
+			name = "[current_gem_descriptor]-set [metal_descriptor] [rear_accessory_noun]"
+		else
+			name = "[current_gem_descriptor]-set [rear_accessory_noun]"
+	else
+		if(metal_descriptor)
+			name = "[metal_descriptor] [rear_accessory_noun]"
+		else
+			name = "[rear_accessory_noun]"
+
 /obj/item/intimate_accessory/rear/plug/analbeads/update_item_visuals()
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 
 	apply_intimate_item_tint()
 
 	var/length = get_bead_length()
-	var/lookup_state = "rear_beads_item_[length]"
+	// DMI uses "rear_beads_item_short" (plural) for the short variant only;
+	// all other lengths use "rear_bead_item_[length]" (singular).
+	var/lookup_state
+	if(length == "short")
+		lookup_state = "rear_beads_item_short"
+	else
+		lookup_state = "rear_bead_item_[length]"
 	item_state = lookup_state
 	icon_state = lookup_state
 
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", length)
+	var/special_prefix = (length == "short") ? "rear_beads_item" : "rear_bead_item"
+	var/special_overlay_state = get_special_rear_item_state(special_prefix, length)
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_[length]_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "[lookup_state]_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -680,6 +719,7 @@
 	new_beads.intimate_metal_color = intimate_metal_color
 	new_beads.is_silver = is_silver
 	new_beads.base_sellprice = base_sellprice
+	new_beads.socketed_item_type = pearl.type
 	new_beads.gem_value_bonus = max(0, pearl.sellprice)
 	new_beads.current_gem_descriptor = "blue pearl"
 	new_beads.intimate_gem_color = "#60C9FF"
@@ -703,14 +743,14 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/sixbeads
 	bead_count = "long"
 	desc = "A set of six anal beads designed for the rear. This is gonna be a tight fit. They have a ring of sockets around each bead."
-	default_desc = "A set of six anal beads designed for the rear. This is gonna be a tight fit They have a ring of sockets around each bead."
+	default_desc = "A set of six anal beads designed for the rear. This is gonna be a tight fit. They have a ring of sockets around each bead."
 
 /obj/item/intimate_accessory/rear/plug/analbeads/abyssor
 	name = "String of Eyes"
 	desc = "A string of dreamfiend eyes where once there were anal beads, warped by a blue pearl. Ahh, Abyssor, or some say Great Tide... Do you hear our dreams? As you once did for the everlurking Leviathan, Grant us eyes, grant us eyes. Shove eyes in our stomachs, to purify our rotfested lux..."
 	blue_pearled = TRUE
 	blue_pearled_name = "String of Eyes"
-e
+
 /obj/item/intimate_accessory/rear/plug/analbeads/abyssor/try_extract_socketed_item(mob/living/user)
 	if(user)
 		to_chat(user, span_warning("You can't un-eyeball the string of eyes, dullard."))

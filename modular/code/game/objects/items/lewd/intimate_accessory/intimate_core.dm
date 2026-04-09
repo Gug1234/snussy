@@ -141,6 +141,7 @@
 		if(INTIMATE_SLOT_JELLY)
 			return "intimate_jelly"
 		else
+			stack_trace("get_slot_var_name(): unhandled intimate slot '[get_effective_intimate_slot(slot_override)]' on [src]")
 			return is_piercing ? "intimate_mouth_piercing" : "intimate_mouth_insertable"
 
 /obj/item/intimate_accessory/proc/get_worn_in_slot(mob/living/carbon/human/H, slot_override = null)
@@ -365,12 +366,12 @@
 	SEND_SIGNAL(victim, COMSIG_FORCE_UNDISGUISE)
 	var/datum/component/silverbless/blesscomp = GetComponent(/datum/component/silverbless)
 	if(blesscomp?.is_blessed)
-		if(!victim.has_status_effect(/datum/status_effect/fire_handler/fire_stacks/sunder))
-			to_chat(victim, span_danger("Silver rebukes my presence! My vitae smolders, and my powers wane!"))
-		victim.adjust_fire_stacks(3, /datum/status_effect/fire_handler/fire_stacks/sunder/blessed)
-	else
 		if(!victim.has_status_effect(/datum/status_effect/fire_handler/fire_stacks/sunder/blessed))
 			to_chat(victim, span_danger("Blessed silver rebukes my presence! These fires are lashing at my very soul!"))
+		victim.adjust_fire_stacks(3, /datum/status_effect/fire_handler/fire_stacks/sunder/blessed)
+	else
+		if(!victim.has_status_effect(/datum/status_effect/fire_handler/fire_stacks/sunder))
+			to_chat(victim, span_danger("Silver rebukes my presence! My vitae smolders, and my powers wane!"))
 		victim.adjust_fire_stacks(3, /datum/status_effect/fire_handler/fire_stacks/sunder)
 	victim.ignite_mob()
 
@@ -420,8 +421,10 @@
 	refresh_intimate_mood_effects(wearer)
 
 	// Refresh body overlays when this accessory changes state so visuals stay in sync.
+	// Avoid updateappearance() — it overwrites gender from stale dna.uni_identity.
 	wearer.update_body()
-	wearer.update_body_parts(TRUE)
+	wearer.update_hair()
+	wearer.update_body_parts()
 
 /obj/item/intimate_accessory/proc/clear_intimate_mood_effects(mob/living/carbon/human/H)
 	return

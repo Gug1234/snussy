@@ -4,6 +4,8 @@
 		return
 	var/mob/living/carbon/human/H = user
 	if(get_worn_in_slot(H) == src)
+		if(!passes_access_checks(H, user))
+			return
 		remove_intimate_accessory(H)
 		forceMove(get_turf(H))
 		to_chat(user, span_notice("I remove [src]."))
@@ -21,6 +23,10 @@
 
 	user.visible_message(span_notice("[user] starts fitting [src]."))
 	if(!do_after(user, 30, needhand = 1, target = H))
+		set_current_intimate_slot(null)
+		return
+
+	if(!can_attach_to_intimate_slot(H, user, slot))
 		set_current_intimate_slot(null)
 		return
 
@@ -49,6 +55,10 @@
 
 	user.visible_message(span_notice("[user] starts fitting [src] on [H]."))
 	if(!do_after(user, 40, needhand = 1, target = H))
+		set_current_intimate_slot(null)
+		return
+
+	if(!can_attach_to_intimate_slot(H, user, slot))
 		set_current_intimate_slot(null)
 		return
 
@@ -109,8 +119,10 @@
 
 	var/mob/living/carbon/human/target = src
 	if(length(target_options) > 1)
-		target = input(src, "Remove accessory from whom?", "Intimate Accessory") as null|anything in target_options
+		target = tgui_input_list(src, "Remove accessory from whom?", "Intimate Accessory", target_options)
 	if(!target)
+		return
+	if(target != src && !src.Adjacent(target))
 		return
 
 	var/list/options = target.get_intimate_accessory_options()
@@ -122,7 +134,7 @@
 		return
 
 	var/prompt = (target == src) ? "Remove which accessory?" : "Remove which accessory from [target]?"
-	var/obj/item/intimate_accessory/choice = input(src, prompt, "Intimate Accessory") as null|anything in options
+	var/obj/item/intimate_accessory/choice = tgui_input_list(src, prompt, "Intimate Accessory", options)
 	if(!choice)
 		return
 	if(choice.get_worn_in_slot(target) != choice)
@@ -138,6 +150,10 @@
 
 	var/remove_delay = (target == src) ? 25 : 35
 	if(!do_after(src, remove_delay, needhand = 1, target = target))
+		return
+
+	if(choice.get_worn_in_slot(target) != choice)
+		to_chat(src, span_warning("That accessory is no longer worn."))
 		return
 
 	choice.remove_intimate_accessory(target)

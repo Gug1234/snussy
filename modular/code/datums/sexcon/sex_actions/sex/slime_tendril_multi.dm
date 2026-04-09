@@ -17,8 +17,8 @@
 /datum/sex_action/slime_tendril_multi/proc/has_multi_tendril_setup(mob/living/carbon/human/target)
 	if(!target)
 		return FALSE
-	// Strange jelly can sprout several tendrils independently.
-	if(istype(target.intimate_jelly, /obj/item/intimate_accessory/jelly/eora/strange))
+	// Any eora jelly can sprout several tendrils independently.
+	if(istype(target.intimate_jelly, /obj/item/intimate_accessory/jelly/eora))
 		return TRUE
 	// Otherwise needs a mouth jelly AND a rear-or-genital jelly simultaneously.
 	if(!get_mouth_jelly(target))
@@ -27,9 +27,9 @@
 
 /// Returns the primary jelly driving this action (for cocoon flavour lookup).
 /datum/sex_action/slime_tendril_multi/proc/get_primary_jelly(mob/living/carbon/human/target)
-	var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = target.intimate_jelly
-	if(istype(strange_jelly))
-		return strange_jelly
+	var/obj/item/intimate_accessory/jelly/eora/any_jelly = target.intimate_jelly
+	if(istype(any_jelly))
+		return any_jelly
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_rear_jelly(target)
 	if(jelly)
 		return jelly

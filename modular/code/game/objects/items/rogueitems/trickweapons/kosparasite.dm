@@ -87,14 +87,14 @@
 
 /// Kos Parasite transformed - arcane burst. Heavy charged smash, eldritch energy.
 /// Simulates the L2 AOE burst from Bloodborne. High cost, high reward.
-/// Uses the soul drain + parasite attack sounds for an otherworldly impact.
+/// Uses the kosexplode + parasite attack sounds for an otherworldly impact.
 /datum/intent/kosparasite/arcaneburst
 	name = "arcane burst"
 	icon_state = "incrush"
 	attack_verb = list("bursts into", "erupts upon")
 	animname = "strike"
 	blade_class = BCLASS_SMASH
-	hitsound = list('modular/sounds/trickweapons/kosparasite/soul_drain.ogg', 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg')
+	hitsound = list('modular/sounds/trickweapons/kosparasite/kosexplode.ogg', 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg')
 	chargetime = 8
 	chargedrain = 3
 	penfactor = 50
@@ -272,7 +272,7 @@
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
 	transform_sound = 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/kosparasite/tendril_land.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/kosparasite/parasite_birth.ogg'
 	throwforce = 0
 	thrown_bclass = null
 	sellprice = 0
@@ -287,8 +287,8 @@
 	transformed_force_wielded = 24
 	transformed_intents = list(/datum/intent/kosparasite/dualswipe, /datum/intent/kosparasite/leapslam)
 	transformed_gripped_intents = list(/datum/intent/kosparasite/dualswipe, /datum/intent/kosparasite/dualthrust, /datum/intent/kosparasite/arcaneburst, /datum/intent/kosparasite/leapslam)
-	transformed_swingsound = list('modular/sounds/trickweapons/kosparasite/tendril_swing1.ogg', 'modular/sounds/trickweapons/kosparasite/tendril_swing2.ogg')
-	transformed_wlength = WLENGTH_LONG
+	transformed_swingsound = list('modular/sounds/trickweapons/kosparasite/koshit1.ogg', 'modular/sounds/trickweapons/kosparasite/koshit2.ogg', 'modular/sounds/trickweapons/kosparasite/koshit3.ogg')
+	transformed_wlength = WLENGTH_LONG // tendrils are long
 	transformed_wbalance = WBALANCE_NORMAL
 	transformed_wdefense = 2
 	transformed_wdefense_wbonus = 2

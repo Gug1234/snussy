@@ -9,8 +9,10 @@
  *
  * Produces coverage-aware jingle emotes on movement and private flavor text during sex actions.
  * Multiple piercing components may coexist on the same wearer simultaneously — see COMPONENT_DUPE_ALLOW_ALL.
- * Movement reactions only fire when the parent piercing has emits_movement_sound = TRUE (i.e. bell variants).
- * Plain bars, studs, hoops, and tongue piercings are silent during movement and never register a movement signal.
+ * Bell piercings (emits_movement_sound = TRUE) produce audible jingles at all coverage tiers up to light armor.
+ * Non-bell breast and genital piercings produce visual-only movement emotes that require bare skin.
+ * Psydonic and zizite cross variants dispatch to specific visual string banks via visual_movement_style.
+ * Plain bars, studs, hoops, and tongue piercings never register movement signals.
  */
 /datum/component/intimate_reaction/piercing
 	dupe_mode = COMPONENT_DUPE_ALLOWED
@@ -35,10 +37,13 @@
 	if(already_bound)
 		return TRUE
 	var/obj/item/intimate_accessory/piercing/piercing = parent
-	// Only bell piercings (emits_movement_sound = TRUE) produce an audible visible_message jingle.
-	// Plain bars, studs, hoops, and tongue bars are always silent during movement.
 	if(piercing.emits_movement_sound)
 		register_movement_reaction(H)
+	else
+		// Non-bell breast and genital piercings produce visual movement emotes when bare.
+		var/slot = piercing.get_effective_intimate_slot()
+		if(slot == INTIMATE_SLOT_BREAST || slot == INTIMATE_SLOT_GENITAL)
+			register_movement_reaction(H)
 	return TRUE
 
 /datum/component/intimate_reaction/piercing/unbind_from_wearer(mob/living/carbon/human/H)
@@ -49,6 +54,10 @@
 	var/obj/item/intimate_accessory/piercing/piercing = parent
 	if(piercing.emits_movement_sound)
 		unregister_movement_reaction(H)
+	else
+		var/slot = piercing.get_effective_intimate_slot()
+		if(slot == INTIMATE_SLOT_BREAST || slot == INTIMATE_SLOT_GENITAL)
+			unregister_movement_reaction(H)
 	return ..(H)
 
 /// Extends base validity to confirm the parent piercing is still worn in its slot on the wearer.
@@ -70,6 +79,7 @@
 
 /// Returns the movement string bank key for this piercing's slot and armor coverage tier.
 /// Medium and heavy armor fully suppress the sound — returns null so no message fires.
+/// Non-bell breast and genital piercings produce visual-only emotes that require bare skin.
 /datum/component/intimate_reaction/piercing/proc/get_movement_string_key(mob/living/carbon/human/source)
 	var/obj/item/intimate_accessory/piercing/piercing = parent
 	var/slot = piercing.get_effective_intimate_slot()
@@ -85,6 +95,14 @@
 			return null // Mouth piercings produce no movement jingle.
 	var/body_zone = get_body_zone()
 	var/cover_tier = get_cover_tier_for_zone(source, body_zone)
+	// Non-bell piercings: visual movement only, requires bare skin to be seen.
+	if(!piercing.emits_movement_sound)
+		if(!isnull(cover_tier))
+			return null // Clothing hides non-bell piercings from view.
+		if(piercing.visual_movement_style)
+			return "piercing_visual_[slot_name]_[piercing.visual_movement_style]"
+		return "piercing_visual_[slot_name]_bare"
+	// Bell piercings: audible jingle, graded by coverage tier.
 	if(isnull(cover_tier))
 		return "piercing_[slot_name]_bare"
 	switch(cover_tier)

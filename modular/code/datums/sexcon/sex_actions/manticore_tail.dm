@@ -356,7 +356,7 @@
 	return TRUE
 
 /datum/sex_action/manticore_frot_engulf/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	user.visible_message(span_warning("[user] presses [user.p_their()] barbed cock against [target]'s, grinding the two together before [user.p_their()] tail maw blooms open and descends, engulfing both shafts in warm, feeler-lined flesh."))
+	user.visible_message(span_warning("[user] presses [user.p_their()] cock against [target]'s, grinding the two together before [user.p_their()] tail maw blooms open and descends, engulfing both shafts in warm, feeler-lined flesh."))
 	playsound(user, 'sound/misc/mat/insert (1).ogg', 25, TRUE, ignore_walls = FALSE)
 
 /datum/sex_action/manticore_frot_engulf/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)

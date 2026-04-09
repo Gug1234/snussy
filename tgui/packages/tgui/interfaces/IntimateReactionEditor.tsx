@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import { Box, Button, Input, NoticeBox, Section, Stack, TextArea } from 'tgui-core/components';
+import type { BooleanLike } from 'tgui-core/react';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -29,11 +30,19 @@ type Category = {
   key: string;
   label: string;
   count: number;
+  hidden?: boolean;
+  group?: string;
 };
 
-type Preset = {
+type PresetOption = {
   id: string;
   label: string;
+};
+
+type PresetStage = {
+  id: string;
+  label: string;
+  has_genital: BooleanLike;
 };
 
 type BackendData = {
@@ -47,7 +56,11 @@ type BackendData = {
   current_strings: string[];
   default_strings: string[];
   tokens: string[];
-  presets?: Preset[];
+  preset_species?: PresetOption[];
+  preset_stages?: PresetStage[];
+  preset_genitals?: PresetOption[];
+  preset_result?: string;
+  preset_result_success?: BooleanLike;
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -63,6 +76,14 @@ export function IntimateReactionEditor() {
   const [previewText, setPreviewText] = useState('');
   /** Index (0-based) of the custom string being edited, or -1 for "add new" mode. */
   const [editingIndex, setEditingIndex] = useState(-1);
+  /** Preset dropdown state */
+  const [selectedSpecies, setSelectedSpecies] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
+  const [selectedGenital, setSelectedGenital] = useState('');
+  /** Set of group names that are currently collapsed in the sidebar. */
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
 
   if (data.invalid) {
     return (
@@ -86,9 +107,26 @@ export function IntimateReactionEditor() {
     current_strings,
     default_strings,
     tokens,
-    presets,
+    preset_species,
+    preset_stages,
+    preset_genitals,
+    preset_result,
+    preset_result_success,
   } = data;
   const atLimit = current_strings.length >= max_strings;
+
+  // Filter hidden categories from the sidebar display.
+  const visibleCategories = categories.filter((cat) => !cat.hidden);
+
+  // Determine if the currently selected stage needs a genital selection.
+  const currentStageInfo = preset_stages?.find(
+    (s) => s.id === selectedStage,
+  );
+  const needsGenital = !!currentStageInfo?.has_genital;
+  const canLoadPreset =
+    !!selectedSpecies &&
+    !!selectedStage &&
+    (!needsGenital || !!selectedGenital);
 
   /** Adds a default string to the player's custom pool. */
   const adoptDefault = (str: string) => {
@@ -99,7 +137,7 @@ export function IntimateReactionEditor() {
 
   return (
     <Window title="Intimate Reaction Editor" width={780} height={700}>
-      <Window.Content scrollable>
+      <Window.Content>
         <Stack fill>
           {/* ── Left sidebar: bank + categories ── */}
           <Stack.Item
@@ -107,6 +145,8 @@ export function IntimateReactionEditor() {
             style={{
               borderRight: '1px solid rgba(255,255,255,0.15)',
               paddingRight: '6px',
+              overflowY: 'auto',
+              overflowX: 'hidden',
             }}
           >
             {/* Bank selector dropdown */}
@@ -138,50 +178,214 @@ export function IntimateReactionEditor() {
             </Section>
 
             <Section title="Categories">
-              {categories.map((cat) => {
-                const isActive = cat.key === selected_category;
-                return (
-                  <Button
-                    key={cat.key}
-                    fluid
-                    selected={isActive}
-                    onClick={() => {
-                      act('select_category', { category: cat.key });
-                      setEditingIndex(-1);
-                      setInputText('');
-                    }}
-                    style={
-                      isActive
-                        ? {
-                            borderLeft: '3px solid #4fc3f7',
-                            fontWeight: 'bold',
-                          }
-                        : { borderLeft: '3px solid transparent' }
-                    }
-                  >
-                    {cat.label} ({cat.count})
-                  </Button>
-                );
-              })}
+              {(() => {
+                // Check if categories have group metadata.
+                const hasGroups = visibleCategories.some((c) => c.group);
+                if (!hasGroups) {
+                  // Flat list (non-jelly banks).
+                  return visibleCategories.map((cat) => {
+                    const isActive = cat.key === selected_category;
+                    return (
+                      <Button
+                        key={cat.key}
+                        fluid
+                        selected={isActive}
+                        onClick={() => {
+                          act('select_category', { category: cat.key });
+                          setEditingIndex(-1);
+                          setInputText('');
+                        }}
+                        style={
+                          isActive
+                            ? {
+                                borderLeft: '3px solid #4fc3f7',
+                                fontWeight: 'bold',
+                              }
+                            : { borderLeft: '3px solid transparent' }
+                        }
+                      >
+                        {cat.label} ({cat.count})
+                      </Button>
+                    );
+                  });
+                }
+                // Grouped rendering (jelly bank).
+                const groups: { name: string; cats: Category[] }[] = [];
+                let currentGroup: { name: string; cats: Category[] } | null =
+                  null;
+                for (const cat of visibleCategories) {
+                  const g = cat.group || 'Other';
+                  if (!currentGroup || currentGroup.name !== g) {
+                    currentGroup = { name: g, cats: [] };
+                    groups.push(currentGroup);
+                  }
+                  currentGroup.cats.push(cat);
+                }
+                return groups.map((group) => {
+                  const isCollapsed = collapsedGroups.has(group.name);
+                  const groupCount = group.cats.reduce(
+                    (s, c) => s + c.count,
+                    0,
+                  );
+                  const hasActive = group.cats.some(
+                    (c) => c.key === selected_category,
+                  );
+                  return (
+                    <Box key={group.name} mb={0.5}>
+                      <Button
+                        fluid
+                        icon={isCollapsed ? 'chevron-right' : 'chevron-down'}
+                        onClick={() => {
+                          setCollapsedGroups((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(group.name)) {
+                              next.delete(group.name);
+                            } else {
+                              next.add(group.name);
+                            }
+                            return next;
+                          });
+                        }}
+                        style={{
+                          fontWeight: 'bold',
+                          fontSize: '11px',
+                          borderLeft: hasActive
+                            ? '3px solid #4fc3f7'
+                            : '3px solid transparent',
+                          background: 'rgba(255,255,255,0.04)',
+                        }}
+                      >
+                        {group.name} ({groupCount})
+                      </Button>
+                      {!isCollapsed &&
+                        group.cats.map((cat) => {
+                          const isActive = cat.key === selected_category;
+                          return (
+                            <Button
+                              key={cat.key}
+                              fluid
+                              selected={isActive}
+                              onClick={() => {
+                                act('select_category', {
+                                  category: cat.key,
+                                });
+                                setEditingIndex(-1);
+                                setInputText('');
+                              }}
+                              style={{
+                                paddingLeft: '16px',
+                                fontSize: '11px',
+                                borderLeft: isActive
+                                  ? '3px solid #4fc3f7'
+                                  : '3px solid transparent',
+                                fontWeight: isActive ? 'bold' : 'normal',
+                              }}
+                            >
+                              {cat.label} ({cat.count})
+                            </Button>
+                          );
+                        })}
+                    </Box>
+                  );
+                });
+              })()}
             </Section>
 
             {/* ── Species/Biology presets (character bank only) ── */}
-            {presets && presets.length > 0 && (
-              <Section title="Presets">
+            {preset_species && preset_stages && (
+              <Section title="Load Preset">
                 <Box fontSize="11px" opacity={0.6} mb={0.5}>
-                  Load a species template into Movement &amp; Sex Received.
-                  <b> Replaces</b> existing strings in those categories.
+                  Populate categories with pre-written strings for a given
+                  species and arousal tier. This will{' '}
+                  <b>replace all existing strings</b> in the affected
+                  categories (Movement, Sex Received, and Anal Received
+                  where applicable).
                 </Box>
-                {presets.map((p) => (
+
+                {/* Species */}
+                <Box mb={0.5} fontSize="11px" opacity={0.8}>
+                  Species:
+                </Box>
+                {preset_species.map((sp) => (
                   <Button
-                    key={p.id}
-                    fluid
-                    icon="palette"
-                    onClick={() => act('load_preset', { preset: p.id })}
+                    key={sp.id}
+                    compact
+                    selected={sp.id === selectedSpecies}
+                    onClick={() => setSelectedSpecies(sp.id)}
                   >
-                    {p.label}
+                    {sp.label}
                   </Button>
                 ))}
+
+                {/* Stage */}
+                <Box mt={0.5} mb={0.5} fontSize="11px" opacity={0.8}>
+                  Stage:
+                </Box>
+                {preset_stages.map((st) => (
+                  <Button
+                    key={st.id}
+                    compact
+                    selected={st.id === selectedStage}
+                    onClick={() => {
+                      setSelectedStage(st.id);
+                      if (!st.has_genital) {
+                        setSelectedGenital('');
+                      }
+                    }}
+                  >
+                    {st.label}
+                  </Button>
+                ))}
+
+                {/* Genital (only when stage requires it) */}
+                {needsGenital && preset_genitals && (
+                  <>
+                    <Box mt={0.5} mb={0.5} fontSize="11px" opacity={0.8}>
+                      Genital:
+                    </Box>
+                    {preset_genitals.map((g) => (
+                      <Button
+                        key={g.id}
+                        compact
+                        selected={g.id === selectedGenital}
+                        onClick={() => setSelectedGenital(g.id)}
+                      >
+                        {g.label}
+                      </Button>
+                    ))}
+                  </>
+                )}
+
+                {/* Load button */}
+                <Box mt={1}>
+                  <Button
+                    fluid
+                    icon="download"
+                    color="good"
+                    disabled={!canLoadPreset}
+                    onClick={() =>
+                      act('load_preset', {
+                        species: selectedSpecies,
+                        stage: selectedStage,
+                        genital: needsGenital ? selectedGenital : null,
+                      })
+                    }
+                  >
+                    Load Preset
+                  </Button>
+                </Box>
+
+                {/* Inline feedback after loading */}
+                {!!preset_result &&
+                  (preset_result_success ? (
+                    <NoticeBox mt={1} success>
+                      {preset_result}
+                    </NoticeBox>
+                  ) : (
+                    <NoticeBox mt={1} danger>
+                      {preset_result}
+                    </NoticeBox>
+                  ))}
               </Section>
             )}
 
@@ -224,7 +428,12 @@ export function IntimateReactionEditor() {
           {/* ── Right panel: string editor ── */}
           <Stack.Item
             grow
-            style={{ display: 'flex', flexDirection: 'column' }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+            }}
           >
             <Stack vertical fill>
               {/* Import panel (toggled) */}

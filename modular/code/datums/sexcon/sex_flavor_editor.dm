@@ -361,6 +361,10 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				"req_target_piercing" = ca["req_target_piercing"],
 				"req_target_plug"     = ca["req_target_plug"],
 				"req_no_rear_plug"    = ca["req_no_rear_plug"],
+				"req_user_manticore_tail"  = ca["req_user_manticore_tail"],
+				"req_target_manticore_tail" = ca["req_target_manticore_tail"],
+				"req_user_jelly"      = ca["req_user_jelly"],
+				"req_target_jelly"    = ca["req_target_jelly"],
 			))
 	data["custom_actions"] = custom_actions_out
 	data["max_custom_actions"] = MAX_CUSTOM_SEX_ACTIONS
@@ -646,6 +650,10 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				"req_target_piercing" = !!params["req_target_piercing"],
 				"req_target_plug"     = !!params["req_target_plug"],
 				"req_no_rear_plug"    = !!params["req_no_rear_plug"],
+				"req_user_manticore_tail"  = !!params["req_user_manticore_tail"],
+				"req_target_manticore_tail" = !!params["req_target_manticore_tail"],
+				"req_user_jelly"      = !!params["req_user_jelly"],
+				"req_target_jelly"    = !!params["req_target_jelly"],
 			)
 			prefs.custom_sex_actions += list(new_action)
 			selected_custom_slot = free_slot
@@ -709,6 +717,14 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					entry["req_target_plug"] = !!params["req_target_plug"]
 				if("req_no_rear_plug" in params)
 					entry["req_no_rear_plug"] = !!params["req_no_rear_plug"]
+				if("req_user_manticore_tail" in params)
+					entry["req_user_manticore_tail"] = !!params["req_user_manticore_tail"]
+				if("req_target_manticore_tail" in params)
+					entry["req_target_manticore_tail"] = !!params["req_target_manticore_tail"]
+				if("req_user_jelly" in params)
+					entry["req_user_jelly"] = !!params["req_user_jelly"]
+				if("req_target_jelly" in params)
+					entry["req_target_jelly"] = !!params["req_target_jelly"]
 				prefs.save_character()
 				return TRUE
 			return FALSE
@@ -808,6 +824,9 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				prefs.custom_sex_actions = imported_actions
 			else
 				prefs.custom_sex_actions = null
+			// Sanitize imported data through the same validators used on savefile load.
+			prefs.validate_custom_sex_flavors()
+			prefs.validate_custom_sex_actions()
 			prefs.save_character()
 			to_chat(usr, span_notice("Import successful! Your custom sex flavors and actions have been updated."))
 			return TRUE

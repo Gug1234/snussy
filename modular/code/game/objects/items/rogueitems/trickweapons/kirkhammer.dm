@@ -7,7 +7,7 @@
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/generic/swing_sword1.ogg', 'modular/sounds/trickweapons/generic/swing_sword2.ogg')
+	hitsound = list('modular/sounds/trickweapons/kirkhammer/sword_hit1.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 1
@@ -21,7 +21,7 @@
 	attack_verb = list("uppercuts", "slashes upward")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/generic/swing_sword2.ogg', 'modular/sounds/trickweapons/generic/swing_sword1.ogg')
+	hitsound = list('modular/sounds/trickweapons/kirkhammer/sword_hit1.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 0.95

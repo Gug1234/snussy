@@ -25,11 +25,13 @@
 #define INTIMATE_EDITOR_ACCESSORY_PATH "modular/code/game/objects/items/lewd/intimate_accessory/strings"
 /// Root directory for chastity JSON banks.
 #define INTIMATE_EDITOR_CHASTITY_PATH "modular/code/game/objects/items/lewd/chastity/strings"
+/// Root directory for jelly JSON banks.
+#define INTIMATE_EDITOR_JELLY_PATH "modular/code/game/objects/items/lewd/intimate_accessory/strings"
 /// Root directory for preset template JSON files.
 #define INTIMATE_EDITOR_PRESETS_PATH "modular/code/datums/sexcon/strings"
 
 /// Valid string bank IDs.
-#define INTIMATE_REACTION_BANK_IDS list("character", "piercing", "insertable", "chastity", "manticore_tail")
+#define INTIMATE_REACTION_BANK_IDS list("character", "piercing", "insertable", "chastity", "manticore_tail", "jelly")
 
 /// IC verb available to any player with intimate reactions enabled.
 /mob/living/carbon/human/verb/open_intimate_reaction_editor()
@@ -55,6 +57,10 @@
 	var/selected_category = "movement"
 	/// Currently selected string bank ID (one of INTIMATE_REACTION_BANK_IDS).
 	var/selected_bank = "character"
+	/// Feedback message from the last preset load attempt (cleared on next ui_data).
+	var/preset_result
+	/// Whether the last preset result was a success (TRUE) or failure (FALSE).
+	var/preset_result_success = FALSE
 
 /datum/intimate_reaction_editor/New(mob/living/carbon/human/H)
 	if(!istype(H))
@@ -84,24 +90,70 @@
  * Each bank contains a list of category definitions with JSON source info.
  */
 /datum/intimate_reaction_editor/proc/get_bank_definitions(datum/preferences/prefs)
+	var/static/list/banks
+	if(!banks)
+		banks = _build_bank_structure()
+	// Apply per-call availability flags — the only dynamic part.
+	banks["character"]["available"] = TRUE
+	var/pierce_avail = !!(prefs?.intimate_enabled)
+	banks["piercing"]["available"] = pierce_avail
+	banks["insertable"]["available"] = pierce_avail
+	banks["chastity"]["available"] = !!(prefs?.chastenable)
+	banks["manticore_tail"]["available"] = pierce_avail
+	banks["jelly"]["available"] = pierce_avail
+	return banks
+
+/// Builds the static bank/category structure once. Called lazily by get_bank_definitions().
+/datum/intimate_reaction_editor/proc/_build_bank_structure()
 	var/list/banks = list()
 
-	// ── Character bank — always available ──────────────────────────────
+	// ── Character bank ─────────────────────────────────────────────────
+	// Tier-aware categories: each arousal tier gets its own movement + sex_received slots.
+	// Legacy flat keys ("movement", "sex_received") are kept for backward compatibility
+	// and are treated as aliases for "neutral_movement" / "neutral_sex_received" at runtime.
+	var/list/character_categories = list(
+		// Legacy flat keys — still accepted by the validator for old saves.
+		list("key" = "movement", "label" = "Movement (Legacy)", "file" = "character_movement_messages.json", "json_key" = "character_movement", "path" = INTIMATE_EDITOR_STRINGS_PATH, "hidden" = TRUE),
+		list("key" = "sex_received", "label" = "Sex Received (Legacy)", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received", "path" = INTIMATE_EDITOR_STRINGS_PATH, "hidden" = TRUE),
+	)
+	// Build tier-aware categories dynamically.
+	var/static/list/tier_labels = list(
+		INTIMATE_TIER_NEUTRAL     = "Neutral",
+		INTIMATE_TIER_LUSTY       = "Lusty",
+		INTIMATE_TIER_BUILDING    = "Building",
+		INTIMATE_TIER_OVERWHELMED = "Overwhelmed",
+		INTIMATE_TIER_AFTERGLOW   = "Afterglow",
+		INTIMATE_TIER_WITHDRAWAL  = "Withdrawal",
+		INTIMATE_TIER_ROUGHUSE    = "Rough-Use",
+		INTIMATE_TIER_BROKEN      = "Broken",
+	)
+	var/static/list/context_defs = list(
+		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement"),
+		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received"),
+		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received"),
+	)
+	for(var/tier in tier_labels)
+		var/tier_label = tier_labels[tier]
+		for(var/list/ctx in context_defs)
+			var/cat_key = "[tier]_[ctx["suffix"]]"
+			character_categories += list(list(
+				"key" = cat_key,
+				"label" = "[tier_label] — [ctx["label"]]",
+				"file" = "intimate_reaction_presets.json",
+				"json_key" = cat_key,
+				"path" = INTIMATE_EDITOR_PRESETS_PATH,
+			))
+
 	banks["character"] = list(
 		"label" = "Character",
-		"available" = TRUE,
-		"categories" = list(
-			list("key" = "movement", "label" = "Movement", "file" = "character_movement_messages.json", "json_key" = "character_movement", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-			list("key" = "sex_received", "label" = "Sex Received", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-
-		),
+		"available" = FALSE,
+		"categories" = character_categories,
 	)
 
-	// ── Piercing bank — gated behind intimate_enabled ──────────────────
-	var/pierce_avail = !!(prefs?.intimate_enabled)
+	// ── Piercing bank ──────────────────────────────────────────────────
 	banks["piercing"] = list(
 		"label" = "Piercings",
-		"available" = pierce_avail,
+		"available" = FALSE,
 		"categories" = list(
 			list("key" = "piercing_breast_bare", "label" = "Breast Move (Bare)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 			list("key" = "piercing_breast_cloth", "label" = "Breast Move (Clothed)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
@@ -121,10 +173,10 @@
 		),
 	)
 
-	// ── Insertable (Plug) bank — gated behind intimate_enabled ─────────
+	// ── Insertable (Plug) bank ─────────────────────────────────────────
 	banks["insertable"] = list(
 		"label" = "Plugs",
-		"available" = pierce_avail,
+		"available" = FALSE,
 		"categories" = list(
 			list("key" = "insertable_genital_shift", "label" = "Genital Plug Move", "file" = "insertable_movement_messages.json", "json_key" = "insertable_genital_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 			list("key" = "insertable_rear_shift", "label" = "Rear Plug Move", "file" = "insertable_movement_messages.json", "json_key" = "insertable_rear_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
@@ -133,11 +185,10 @@
 		),
 	)
 
-	// ── Chastity bank — gated behind chastenable ───────────────────────
-	var/chaste_avail = !!(prefs?.chastenable)
+	// ── Chastity bank ──────────────────────────────────────────────────
 	banks["chastity"] = list(
 		"label" = "Chastity",
-		"available" = chaste_avail,
+		"available" = FALSE,
 		"categories" = list(
 			list("key" = "chastity_jingle_emotes", "label" = "Jingle (Bare)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_emotes", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_movement_pain", "label" = "Move Pain", "file" = "chastity_movement_messages.json", "json_key" = "chastity_movement_pain", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
@@ -146,10 +197,10 @@
 			list("key" = "chastity_jingle_light_armor", "label" = "Jingle (Lt. Armor)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_light_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_jingle_medium_armor", "label" = "Jingle (Med. Armor)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_medium_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_jingle_heavy_armor", "label" = "Jingle (Hvy. Armor)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_heavy_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_cock_anal_recieve", "label" = "Cock Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_anal_recieve", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_cock_anal_receive", "label" = "Cock Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_cock_general_receive", "label" = "Cock General", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_vagina_anal_recieve", "label" = "Vagina Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_anal_recieve", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_intersex_anal_recieve", "label" = "Intersex Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_anal_recieve", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_vagina_anal_receive", "label" = "Vagina Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_intersex_anal_receive", "label" = "Intersex Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_vagina_general_receive", "label" = "Vagina General", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_receive_devout", "label" = "Devout Receive", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_receive_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_intersex_general_receive", "label" = "Intersex General", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
@@ -164,10 +215,10 @@
 		),
 	)
 
-	// ── Manticore Tail bank — gated behind intimate_enabled ────────────
+	// ── Manticore Tail bank ────────────────────────────────────────────
 	banks["manticore_tail"] = list(
 		"label" = "Manticore Tail",
-		"available" = pierce_avail,
+		"available" = FALSE,
 		"categories" = list(
 			list("key" = "manticore_tail_idle", "label" = "Tail Move (Idle)", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_idle", "path" = INTIMATE_EDITOR_STRINGS_PATH),
 			list("key" = "manticore_tail_aroused", "label" = "Tail Move (Aroused)", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_aroused", "path" = INTIMATE_EDITOR_STRINGS_PATH),
@@ -175,6 +226,127 @@
 			list("key" = "manticore_tail_wrapping", "label" = "Tail Wrapping", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_wrapping", "path" = INTIMATE_EDITOR_STRINGS_PATH),
 			list("key" = "manticore_tail_oral", "label" = "Tail Oral", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_oral", "path" = INTIMATE_EDITOR_STRINGS_PATH),
 			list("key" = "manticore_tail_climax", "label" = "Tail Climax", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_climax", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+		),
+	)
+
+	// ── Jelly bank ─────────────────────────────────────────────────────
+	banks["jelly"] = list(
+		"label" = "Eora Jelly",
+		"available" = FALSE,
+		"categories" = list(
+			// ── Mood emotes (visible + self pairs) ──
+			list("key" = "sated_visible", "label" = "Sated (Visible)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "sated_visible", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "sated_self", "label" = "Sated (Self)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "sated_self", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "needy_visible", "label" = "Needy (Visible)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "needy_visible", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "needy_self", "label" = "Needy (Self)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "needy_self", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "jealous_visible", "label" = "Jealous (Visible)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "jealous_visible", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "jealous_self", "label" = "Jealous (Self)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "jealous_self", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "resentful_visible", "label" = "Resentful (Visible)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "resentful_visible", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "resentful_self", "label" = "Resentful (Self)", "group" = "Mood", "file" = "jelly_mood_emotes.json", "json_key" = "resentful_self", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Ambient messages ──
+			list("key" = "ambient_insistence", "label" = "Insistence", "group" = "Ambient", "file" = "jelly_ambient_messages.json", "json_key" = "ambient_insistence", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "removal_resist", "label" = "Removal Resist", "group" = "Ambient", "file" = "jelly_ambient_messages.json", "json_key" = "removal_resist", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Feeding flavor templates ──
+			list("key" = "feeding_passive", "label" = "Passive", "group" = "Feeding", "file" = "jelly_feeding_messages.json", "json_key" = "feeding_passive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "feeding_aggressive", "label" = "Aggressive", "group" = "Feeding", "file" = "jelly_feeding_messages.json", "json_key" = "feeding_aggressive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "feeding_orgasm", "label" = "Orgasm", "group" = "Feeding", "file" = "jelly_feeding_messages.json", "json_key" = "feeding_orgasm", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "feeding_cocoon_tendril", "label" = "Cocoon Tendril", "group" = "Feeding", "file" = "jelly_feeding_messages.json", "json_key" = "feeding_cocoon_tendril", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "feeding_sated_pulse", "label" = "Sated Pulse", "group" = "Feeding", "file" = "jelly_feeding_messages.json", "json_key" = "feeding_sated_pulse", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Sated reward flavor templates ──
+			list("key" = "sated_reward_tier0", "label" = "Tier 0", "group" = "Sated Rewards", "file" = "jelly_sated_reward_messages.json", "json_key" = "sated_reward_tier0", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "sated_reward_tier1", "label" = "Tier 1", "group" = "Sated Rewards", "file" = "jelly_sated_reward_messages.json", "json_key" = "sated_reward_tier1", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "sated_reward_tier2", "label" = "Tier 2", "group" = "Sated Rewards", "file" = "jelly_sated_reward_messages.json", "json_key" = "sated_reward_tier2", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "sated_reward_tier3", "label" = "Tier 3", "group" = "Sated Rewards", "file" = "jelly_sated_reward_messages.json", "json_key" = "sated_reward_tier3", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Resentment flavor templates ──
+			list("key" = "resentment_pain", "label" = "Pain", "group" = "Resentment", "file" = "jelly_resentment_messages.json", "json_key" = "resentment_pain", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "resentment_sabotage", "label" = "Sabotage", "group" = "Resentment", "file" = "jelly_resentment_messages.json", "json_key" = "resentment_sabotage", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "resentment_refusal", "label" = "Refusal", "group" = "Resentment", "file" = "jelly_resentment_messages.json", "json_key" = "resentment_refusal", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "resentment_denial", "label" = "Denial", "group" = "Resentment", "file" = "jelly_resentment_messages.json", "json_key" = "resentment_denial", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Rivalry flavor templates ──
+			list("key" = "rivalry_detected", "label" = "Detected", "group" = "Rivalry", "file" = "jelly_rivalry_messages.json", "json_key" = "rivalry_detected", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "rivalry_during_cocoon", "label" = "Cocoon", "group" = "Rivalry", "file" = "jelly_rivalry_messages.json", "json_key" = "rivalry_during_cocoon", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "rivalry_escalation", "label" = "Escalation", "group" = "Rivalry", "file" = "jelly_rivalry_messages.json", "json_key" = "rivalry_escalation", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "rivalry_cleared", "label" = "Cleared", "group" = "Rivalry", "file" = "jelly_rivalry_messages.json", "json_key" = "rivalry_cleared", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Transfer trauma flavor templates ──
+			list("key" = "transfer_equip", "label" = "Equip", "group" = "Transfer", "file" = "jelly_transfer_messages.json", "json_key" = "transfer_equip", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "transfer_persistent", "label" = "Persistent", "group" = "Transfer", "file" = "jelly_transfer_messages.json", "json_key" = "transfer_persistent", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "transfer_removal_relief", "label" = "Removal Relief", "group" = "Transfer", "file" = "jelly_transfer_messages.json", "json_key" = "transfer_removal_relief", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Doppelganger flavor templates ──
+			list("key" = "doppel_summon", "label" = "Summon", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_summon", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_dismiss", "label" = "Dismiss", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_dismiss", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_idle", "label" = "Idle", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_idle", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_project", "label" = "Project", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_project", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_return", "label" = "Return", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_return", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_vaginal_start", "label" = "Vaginal Start", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_vaginal_start", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_vaginal_perform", "label" = "Vaginal Perform", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_vaginal_perform", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_vaginal_finish", "label" = "Vaginal Finish", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_vaginal_finish", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_anal_start", "label" = "Anal Start", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_anal_start", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_anal_perform", "label" = "Anal Perform", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_anal_perform", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_anal_finish", "label" = "Anal Finish", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_anal_finish", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_oral_start", "label" = "Oral Start", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_oral_start", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_oral_perform", "label" = "Oral Perform", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_oral_perform", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_self_oral_finish", "label" = "Oral Finish", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_self_oral_finish", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_gangbang_dp_start", "label" = "DP Start", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_gangbang_dp_start", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_gangbang_dp_perform", "label" = "DP Perform", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_gangbang_dp_perform", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_gangbang_dp_finish", "label" = "DP Finish", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_gangbang_dp_finish", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_gangbang_spit_start", "label" = "Spit Start", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_gangbang_spit_start", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_gangbang_spit_perform", "label" = "Spit Perform", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_gangbang_spit_perform", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "doppel_gangbang_spit_finish", "label" = "Spit Finish", "group" = "Doppelganger", "file" = "jelly_doppelganger_messages.json", "json_key" = "doppel_gangbang_spit_finish", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Cocoon action templates ──
+			list("key" = "cocoon_resist", "label" = "Resist", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_resist", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_anal", "label" = "Anal", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_anal", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_throat", "label" = "Throat", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_throat", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_through", "label" = "Through", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_through", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_ear", "label" = "Ear", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_ear", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_asphyxiation", "label" = "Asphyxiation", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_asphyxiation", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_sounding", "label" = "Sounding", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_sounding", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "cocoon_multi", "label" = "Multi", "group" = "Cocoon Actions", "file" = "jelly_cocoon_messages.json", "json_key" = "cocoon_multi", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Cocoon escalation stage templates ──
+			list("key" = "stage_enter_enveloping", "label" = "Enter Enveloping", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_enter_enveloping", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_enter_settling", "label" = "Enter Settling", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_enter_settling", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_enter_gripping", "label" = "Enter Gripping", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_enter_gripping", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_enter_overwhelming", "label" = "Enter Overwhelming", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_enter_overwhelming", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_ambient_enveloping", "label" = "Ambient Enveloping", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_ambient_enveloping", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_ambient_settling", "label" = "Ambient Settling", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_ambient_settling", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_ambient_gripping", "label" = "Ambient Gripping", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_ambient_gripping", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "stage_ambient_overwhelming", "label" = "Ambient Overwhelming", "group" = "Cocoon Stages", "file" = "jelly_cocoon_escalation_messages.json", "json_key" = "stage_ambient_overwhelming", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Player command flavor templates ──
+			list("key" = "tendril_command", "label" = "Tendril", "group" = "Commands", "file" = "jelly_command_messages.json", "json_key" = "tendril_command", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "voluntary_cocoon_request", "label" = "Cocoon Request", "group" = "Commands", "file" = "jelly_command_messages.json", "json_key" = "voluntary_cocoon_request", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "voluntary_cocoon_denied", "label" = "Cocoon Denied", "group" = "Commands", "file" = "jelly_command_messages.json", "json_key" = "voluntary_cocoon_denied", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "provoke", "label" = "Provoke", "group" = "Commands", "file" = "jelly_command_messages.json", "json_key" = "provoke", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "provoke_already_angry", "label" = "Provoke (Already Angry)", "group" = "Commands", "file" = "jelly_command_messages.json", "json_key" = "provoke_already_angry", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Tendril action templates ──
+			list("key" = "tendril_anal", "label" = "Anal", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_anal", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "tendril_throat", "label" = "Throat", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_throat", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "tendril_through", "label" = "Through", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_through", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "tendril_ear", "label" = "Ear", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_ear", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "tendril_asphyxiation", "label" = "Asphyxiation", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_asphyxiation", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "tendril_sounding", "label" = "Sounding", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_sounding", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "tendril_multi", "label" = "Multi", "group" = "Tendrils", "file" = "jelly_tendril_messages.json", "json_key" = "tendril_multi", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Autonomy flavor (base jelly) ──
+			list("key" = "bead_push", "label" = "Bead Push", "group" = "Autonomy", "file" = "jelly_autonomy_flavor.json", "json_key" = "bead_push", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "bead_pull", "label" = "Bead Pull", "group" = "Autonomy", "file" = "jelly_autonomy_flavor.json", "json_key" = "bead_pull", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "aroused", "label" = "Aroused", "group" = "Autonomy", "file" = "jelly_autonomy_flavor.json", "json_key" = "aroused", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "restless", "label" = "Restless", "group" = "Autonomy", "file" = "jelly_autonomy_flavor.json", "json_key" = "restless", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "idle", "label" = "Idle", "group" = "Autonomy", "file" = "jelly_autonomy_flavor.json", "json_key" = "idle", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			// ── Autonomy flavor (strange jelly bond overrides) ──
+			list("key" = "bead_push_possessive", "label" = "Bead Push (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "bead_push_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "bead_push_bonded", "label" = "Bead Push (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "bead_push_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "bead_pull_possessive", "label" = "Bead Pull (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "bead_pull_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "bead_pull_bonded", "label" = "Bead Pull (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "bead_pull_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "aroused_possessive", "label" = "Aroused (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "aroused_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "aroused_bonded", "label" = "Aroused (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "aroused_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "idle_possessive", "label" = "Idle (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "idle_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "idle_bonded", "label" = "Idle (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "idle_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "combat_possessive", "label" = "Combat (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "combat_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "combat_bonded", "label" = "Combat (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "combat_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "combat_base", "label" = "Combat (Base)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "combat_base", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "plug_possessive", "label" = "Plug React (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "plug_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "plug_bonded", "label" = "Plug React (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "plug_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "plug_base", "label" = "Plug React (Base)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "plug_base", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "restless_bonded", "label" = "Restless (Bonded)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "restless_bonded", "path" = INTIMATE_EDITOR_JELLY_PATH),
+			list("key" = "restless_possessive", "label" = "Restless (Possessive)", "group" = "Autonomy (Bond)", "file" = "jelly_autonomy_flavor.json", "json_key" = "restless_possessive", "path" = INTIMATE_EDITOR_JELLY_PATH),
 		),
 	)
 
@@ -196,14 +368,29 @@
  * Used for validation — accepts any category from any bank regardless of toggles.
  */
 /datum/intimate_reaction_editor/proc/get_all_valid_categories()
-	var/list/valid = list()
-	var/list/banks = get_bank_definitions(null)
-	for(var/bank_id in banks)
-		var/list/bank = banks[bank_id]
-		var/list/cats = bank["categories"]
-		for(var/list/cat_def in cats)
-			valid += cat_def["key"]
-	return valid
+	return get_all_intimate_reaction_categories()
+
+/**
+ * Global proc returning a cached flat list of every valid intimate reaction
+ * category key across all banks. Safe to call from the validator without
+ * needing an editor instance — builds the list lazily on first call by
+ * instantiating a temporary editor datum to access the static bank cache.
+ */
+/proc/get_all_intimate_reaction_categories()
+	var/static/list/all_categories
+	if(!all_categories)
+		all_categories = list()
+		// Temporarily bypass the istype check by creating a bare datum.
+		// get_bank_definitions() only needs the static cache, not an owner.
+		var/datum/intimate_reaction_editor/tmp_editor = new /datum/intimate_reaction_editor()
+		var/list/banks = tmp_editor.get_bank_definitions(null)
+		for(var/bank_id in banks)
+			var/list/bank = banks[bank_id]
+			var/list/cats = bank["categories"]
+			for(var/list/cat_def in cats)
+				all_categories += cat_def["key"]
+		qdel(tmp_editor)
+	return all_categories
 
 /datum/intimate_reaction_editor/ui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -249,11 +436,16 @@
 		var/cat_key = cdef["key"]
 		var/list/cat_strings = all_reactions[cat_key]
 		var/count = islist(cat_strings) ? cat_strings.len : 0
-		categories += list(list(
+		var/list/cat_entry = list(
 			"key"   = cat_key,
 			"label" = cdef["label"],
 			"count" = count,
-		))
+		)
+		if(cdef["hidden"])
+			cat_entry["hidden"] = TRUE
+		if(cdef["group"])
+			cat_entry["group"] = cdef["group"]
+		categories += list(cat_entry)
 	data["categories"] = categories
 
 	// ── Current strings for the selected category ─────────────────────
@@ -267,40 +459,58 @@
 	// Find current category definition to get JSON source info
 	for(var/list/cdef in cat_defs)
 		if(cdef["key"] == selected_category && cdef["file"] && cdef["path"])
-			var/loaded = strings(cdef["file"], cdef["json_key"], cdef["path"])
-			if(islist(loaded))
-				default_strings = loaded
+			// Guard against missing keys — preset files are species-keyed,
+			// so the generic category key may not exist as a JSON index.
+			try
+				var/loaded = strings(cdef["file"], cdef["json_key"], cdef["path"])
+				if(islist(loaded))
+					default_strings = loaded
+			catch
+				// Key not found in JSON — no defaults for this category.
 			break
 	data["default_strings"] = default_strings
 
-	// ── Presets (only for character bank) ─────────────────────────────
+	// ── Preset dropdown data (only for character bank) ───────────────
 	if(selected_bank == "character")
-		data["presets"] = list(
-			list("id" = "humanoid_neutral",       "label" = "Humanoid — Neutral"),
-			list("id" = "humanoid_lusty_penis",    "label" = "Humanoid — Lusty Penis"),
-			list("id" = "humanoid_lusty_vagina",   "label" = "Humanoid — Lusty Vagina"),
-			list("id" = "tauric_neutral",          "label" = "Tauric — Neutral"),
-			list("id" = "tauric_lusty_penis",      "label" = "Tauric — Lusty Penis"),
-			list("id" = "tauric_lusty_vagina",     "label" = "Tauric — Lusty Vagina"),
-			list("id" = "lamia_neutral",            "label" = "Lamia — Neutral"),
-			list("id" = "lamia_lusty_penis",        "label" = "Lamia — Lusty Penis"),
-			list("id" = "lamia_lusty_vagina",       "label" = "Lamia — Lusty Vagina"),
-			list("id" = "anthro_neutral",           "label" = "Anthro — Neutral"),
-			list("id" = "anthro_lusty_penis",       "label" = "Anthro — Lusty Penis"),
-			list("id" = "anthro_lusty_vagina",      "label" = "Anthro — Lusty Vagina"),
-			list("id" = "moth_neutral",             "label" = "Moth — Neutral"),
-			list("id" = "moth_lusty_penis",         "label" = "Moth — Lusty Penis"),
-			list("id" = "moth_lusty_vagina",        "label" = "Moth — Lusty Vagina"),
-			list("id" = "lizard_neutral",           "label" = "Lizard — Neutral"),
-			list("id" = "lizard_lusty_penis",       "label" = "Lizard — Lusty Penis"),
-			list("id" = "lizard_lusty_vagina",      "label" = "Lizard — Lusty Vagina"),
+		data["preset_species"] = list(
+			list("id" = "humanoid",  "label" = "Humanoid"),
+			list("id" = "tauric",    "label" = "Tauric"),
+			list("id" = "lamia",     "label" = "Lamia"),
+			list("id" = "anthro",    "label" = "Anthro"),
+			list("id" = "moth",      "label" = "Moth"),
+			list("id" = "lizard",    "label" = "Lizard"),
+			list("id" = "insectoid", "label" = "Insectoid"),
+			list("id" = "avian",     "label" = "Avian"),
+			list("id" = "aquatic",   "label" = "Aquatic"),
+			list("id" = "demonic",   "label" = "Demonic"),
 		)
+		data["preset_stages"] = list(
+			list("id" = INTIMATE_TIER_NEUTRAL,     "label" = "Neutral",     "has_genital" = FALSE),
+			list("id" = INTIMATE_TIER_LUSTY,       "label" = "Lusty",       "has_genital" = TRUE),
+			list("id" = INTIMATE_TIER_BUILDING,    "label" = "Building",    "has_genital" = TRUE),
+			list("id" = INTIMATE_TIER_OVERWHELMED, "label" = "Overwhelmed", "has_genital" = TRUE),
+			list("id" = INTIMATE_TIER_AFTERGLOW,   "label" = "Afterglow",   "has_genital" = TRUE),
+			list("id" = INTIMATE_TIER_WITHDRAWAL,  "label" = "Withdrawal",  "has_genital" = TRUE),
+			list("id" = INTIMATE_TIER_ROUGHUSE,    "label" = "Rough-Use",   "has_genital" = TRUE),
+			list("id" = INTIMATE_TIER_BROKEN,      "label" = "Broken",      "has_genital" = FALSE),
+		)
+		data["preset_genitals"] = list(
+			list("id" = "penis",  "label" = "Penis"),
+			list("id" = "vagina", "label" = "Vagina"),
+		)
+
+	// ── Preset result feedback ────────────────────────────────────────
+	if(preset_result)
+		data["preset_result"] = preset_result
+		data["preset_result_success"] = preset_result_success
+		preset_result = null
 
 	// Token reference for the frontend help panel.
 	data["tokens"] = list(
 		"\[USER]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]",
 		"\[TTHEY]", "\[TTHEM]", "\[TTHEIR]",
 		"\[PENIS_TYPE]", "\[CUPSIZE]", "\[TAUR]", "\[SHEATH]", "\[GENITAL_DESC]",
+		"\[FORCE]", "\[THEIR_CAP]", "\[JELLY]", "\[PLUG]",
 	)
 
 	return data
@@ -426,9 +636,9 @@
 				to_chat(usr, span_warning("Nothing to export — no custom intimate reaction strings configured."))
 				return FALSE
 			var/json_str = json_encode(list("reactions" = prefs.custom_intimate_reactions))
-			var/encoded = url_encode(json_str)
+			var/encoded = rustg_encode_base64(json_str)
 			to_chat(usr, span_notice("Copy the string below to share your intimate reaction text:"))
-			to_chat(usr, "<tt>[encoded]</tt>")
+			to_chat(usr, "<span class='notice' style='word-break:break-all;'>[encoded]</span>")
 			return TRUE
 
 		if("import_data")
@@ -436,9 +646,10 @@
 			if(!istext(raw) || !length(raw))
 				to_chat(usr, span_warning("Import failed: empty payload."))
 				return FALSE
-			var/decoded_str = url_decode(raw)
-			if(!decoded_str)
-				to_chat(usr, span_warning("Import failed: could not decode payload."))
+			raw = trim(raw)
+			var/decoded_str = rustg_decode_base64(raw)
+			if(!istext(decoded_str) || !length(decoded_str))
+				to_chat(usr, span_warning("Import failed: could not decode the string. Make sure you copied it exactly."))
 				return FALSE
 			var/list/payload
 			try
@@ -472,10 +683,31 @@
 		if("load_preset")
 			if(selected_bank != "character")
 				return FALSE
-			var/preset_id = params["preset"]
-			if(!istext(preset_id))
+			var/species = params["species"]
+			var/stage = params["stage"]
+			var/genital = params["genital"]
+			if(!istext(species) || !istext(stage))
 				return FALSE
-			// Load from the presets JSON. Movement key = "<id>_movement", sex received key = "<id>_sex_received".
+			// Validate species against known list.
+			var/static/list/valid_species = list("humanoid", "tauric", "lamia", "anthro", "moth", "lizard", "insectoid", "avian", "aquatic", "demonic")
+			if(!(species in valid_species))
+				return FALSE
+			// Validate stage against known tiers.
+			var/static/list/valid_stages = INTIMATE_TIER_LIST
+			if(!(stage in valid_stages))
+				return FALSE
+			// Stages with genital split require a genital selection.
+			var/static/list/genital_stages = list(INTIMATE_TIER_LUSTY, INTIMATE_TIER_BUILDING, INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_AFTERGLOW, INTIMATE_TIER_WITHDRAWAL, INTIMATE_TIER_ROUGHUSE)
+			var/has_genital = (stage in genital_stages)
+			// Build the preset ID for JSON lookup.
+			var/preset_id
+			if(has_genital)
+				if(!istext(genital) || !(genital in list("penis", "vagina")))
+					return FALSE
+				preset_id = "[species]_[stage]_[genital]"
+			else
+				preset_id = "[species]_[stage]"
+			// Load from the presets JSON.
 			var/move_key = "[preset_id]_movement"
 			var/sex_key = "[preset_id]_sex_received"
 			var/list/move_strings = strings("intimate_reaction_presets.json", move_key, INTIMATE_EDITOR_PRESETS_PATH)
@@ -483,16 +715,43 @@
 			if(!islist(move_strings) && !islist(sex_strings))
 				to_chat(usr, span_warning("Preset not found: [preset_id]"))
 				return FALSE
-			// Initialize reactions list if needed
+			// Build anal preset key — "anal" sits between stage and genital in JSON keys.
+			var/anal_preset_id
+			if(has_genital)
+				anal_preset_id = "[species]_[stage]_anal_[genital]"
+			else
+				anal_preset_id = "[species]_[stage]_anal"
+			var/anal_key = "[anal_preset_id]_sex_received"
+			var/list/anal_strings
+			try
+				anal_strings = strings("intimate_reaction_presets.json", anal_key, INTIMATE_EDITOR_PRESETS_PATH)
+			catch
+				// Anal key not found — not all presets have anal variants.
+			// Initialize reactions list if needed.
 			if(!islist(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = list()
-			// Replace movement and sex_received with the preset strings
+			// Store into tier-specific category keys.
+			var/move_cat = "[stage]_[INTIMATE_CONTEXT_MOVEMENT]"
+			var/sex_cat = "[stage]_[INTIMATE_CONTEXT_SEX_RECEIVED]"
+			var/anal_cat = "[stage]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]"
+			var/list/loaded_cats = list()
 			if(islist(move_strings) && length(move_strings))
-				prefs.custom_intimate_reactions["movement"] = move_strings.Copy()
+				prefs.custom_intimate_reactions[move_cat] = move_strings.Copy()
+				loaded_cats += "Movement ([length(move_strings)])"
 			if(islist(sex_strings) && length(sex_strings))
-				prefs.custom_intimate_reactions["sex_received"] = sex_strings.Copy()
+				prefs.custom_intimate_reactions[sex_cat] = sex_strings.Copy()
+				loaded_cats += "Sex Received ([length(sex_strings)])"
+			if(islist(anal_strings) && length(anal_strings))
+				prefs.custom_intimate_reactions[anal_cat] = anal_strings.Copy()
+				loaded_cats += "Anal Received ([length(anal_strings)])"
 			prefs.save_character()
-			to_chat(usr, span_notice("Preset loaded: [preset_id]. Movement and Sex Received strings have been replaced."))
+			// Navigate to the first affected category so the user sees the result.
+			selected_category = move_cat
+			// Set feedback for the TGUI.
+			var/summary = "Loaded [jointext(loaded_cats, ", ")] for [capitalize(stage)]."
+			preset_result = summary
+			preset_result_success = TRUE
+			to_chat(usr, span_notice(summary))
 			return TRUE
 
 	return FALSE
@@ -537,5 +796,6 @@
 #undef INTIMATE_EDITOR_STRINGS_PATH
 #undef INTIMATE_EDITOR_ACCESSORY_PATH
 #undef INTIMATE_EDITOR_CHASTITY_PATH
+#undef INTIMATE_EDITOR_JELLY_PATH
 #undef INTIMATE_EDITOR_PRESETS_PATH
 #undef INTIMATE_REACTION_BANK_IDS

@@ -118,6 +118,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/chastity_hardmode = CHASTITY_HARDMODE_DISABLED
 	var/extreme_erp = FALSE
 	var/edging = FALSE
+	/// When TRUE the player can volunteer for consensual strange jelly controller roles.
+	var/jelly_controller_enabled = FALSE
 	/// When TRUE the "View intimate accessories…" examine link is shown to eligible observers.
 	/// Toggled via the ERP Preferences menu. Defaults TRUE so existing wearers are unaffected.
 	var/show_intimate_examine = TRUE
@@ -413,6 +415,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/list/nsfw_img_gallery = list()
 
 	var/datum/familiar_prefs/familiar_prefs
+	var/datum/jelly_prefs/jelly_prefs
 	var/datum/gnoll_prefs/gnoll_prefs
 
 	var/taur_type = null
@@ -450,6 +453,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	parent = C
 	migrant  = new /datum/migrant_pref(src)
 	familiar_prefs = new /datum/familiar_prefs(src)
+	jelly_prefs = new /datum/jelly_prefs(src)
 	gnoll_prefs = new /datum/gnoll_prefs(src)
 
 	for(var/custom_name_id in GLOB.preferences_custom_names)
@@ -756,6 +760,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<b>Unrevivable:</b> <a href='?_src_=prefs;preference=dnr;task=input'>[dnr_pref ? "Yes" : "No"]</a><BR>"
 
 			dat += "<b>Be a Familiar:</b><a href='?_src_=prefs;preference=familiar_prefs;task=input'>Familiar Preferences</a>"
+			dat += "<br><b>Be a Jelly Controller:</b><a href='?_src_=prefs;preference=jelly_prefs;task=input'>Jelly Controller Preferences</a>"
 
 			dat += "<br><b>Gnoll Customization:</b><a href='?_src_=prefs;preference=gnoll_prefs;task=input'>Gnoll Preferences</a>"
 
@@ -2551,6 +2556,9 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 				if("familiar_prefs")
 					familiar_prefs.fam_show_ui()
+
+				if("jelly_prefs")
+					jelly_prefs.jelly_show_ui()
 
 				if("gnoll_prefs")
 					gnoll_prefs.gnoll_show_ui(user)

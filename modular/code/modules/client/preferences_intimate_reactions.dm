@@ -26,7 +26,7 @@
  * Validates and sanitizes custom_intimate_reactions after loading from the savefile.
  *
  * Enforces:
- *   - Category keys must be one of INTIMATE_REACTION_CATEGORIES.
+ *   - Category keys must be one of the valid keys from all bank definitions.
  *   - String lists are trimmed to INTIMATE_REACTION_MAX_STRINGS entries.
  *   - Individual strings are clamped to INTIMATE_REACTION_MAX_LENGTH characters.
  *
@@ -37,8 +37,24 @@
 		custom_intimate_reactions = null
 		return
 
+	// ── Legacy migration: bare "movement"/"sex_received" → "neutral_movement"/"neutral_sex_received" ──
+	var/static/list/legacy_migration = list(
+		"movement"     = "neutral_movement",
+		"sex_received" = "neutral_sex_received",
+	)
+	for(var/old_key in legacy_migration)
+		if(islist(custom_intimate_reactions[old_key]) && length(custom_intimate_reactions[old_key]))
+			var/new_key = legacy_migration[old_key]
+			// Only migrate if the new key doesn't already have data.
+			if(!islist(custom_intimate_reactions[new_key]) || !length(custom_intimate_reactions[new_key]))
+				custom_intimate_reactions[new_key] = custom_intimate_reactions[old_key]
+			custom_intimate_reactions.Remove(old_key)
+
+	var/list/valid_cats = get_all_intimate_reaction_categories()
 	var/list/validated = list()
-	for(var/category in INTIMATE_REACTION_CATEGORIES)
+	for(var/category in custom_intimate_reactions)
+		if(!(category in valid_cats))
+			continue
 		var/list/strings = custom_intimate_reactions[category]
 		if(!islist(strings) || !strings.len)
 			continue

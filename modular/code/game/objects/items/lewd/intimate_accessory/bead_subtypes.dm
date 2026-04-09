@@ -17,7 +17,6 @@
 	bead_count = "glass"
 	intimate_flags = INTIMATE_FLAG_INSERTABLE
 	intimate_metal_name = "glass"
-	intimate_metal_color = "#B8D4E3"
 	sellprice = 3
 	resistance_flags = NONE
 	/// Whether we've registered our z-fall listener.
@@ -31,11 +30,13 @@
 
 /obj/item/intimate_accessory/rear/plug/analbeads/glass/update_item_visuals()
 	cut_overlays()
-	apply_intimate_item_tint()
 	icon_state = "glass_main"
 	item_state = "glass_main"
-	// Glass overlay on top of the base
+	// Tint the base layer (metal caps) with the crafting metal color.
+	apply_intimate_item_tint()
+	// Glass overlay sits on top, untinted.
 	var/mutable_appearance/overlay = mutable_appearance(icon, "glass_overlay")
+	overlay.color = null
 	add_overlay(overlay)
 	update_icon()
 
@@ -54,10 +55,10 @@
 		// Violent ripcord shatters a bead inside — same consequence as z-fall
 		playsound(target, 'sound/foley/glassbreak.ogg', 60, TRUE)
 		target.emote("scream", forced = TRUE)
-		var/obj/item/bodypart/chest/chest = target.get_bodypart(BODY_ZONE_CHEST)
-		if(chest)
-			chest.add_wound(/datum/wound/slash/large)
-			chest.add_wound(/datum/wound/slash/large)
+		var/obj/item/bodypart/groin = target.get_bodypart(check_zone(BODY_ZONE_PRECISE_GROIN))
+		if(groin)
+			groin.add_wound(/datum/wound/slash/large)
+			groin.add_wound(/datum/wound/slash/large)
 		target.visible_message(span_userdanger("Bloody glass shards fall from between [target]'s legs along with the remaining beads."))
 		target.Knockdown(30)
 		// Destroy the beads — they're shattered
@@ -118,10 +119,10 @@
 	playsound(victim, 'sound/foley/glassbreak.ogg', 60, TRUE)
 
 	// Apply a grievous slash wound to the groin
-	var/obj/item/bodypart/chest/chest = victim.get_bodypart(BODY_ZONE_CHEST)
-	if(chest)
-		chest.add_wound(/datum/wound/slash/large)
-		chest.add_wound(/datum/wound/slash/large)
+	var/obj/item/bodypart/groin = victim.get_bodypart(check_zone(BODY_ZONE_PRECISE_GROIN))
+	if(groin)
+		groin.add_wound(/datum/wound/slash/large)
+		groin.add_wound(/datum/wound/slash/large)
 
 	// Remove and destroy the beads
 	beads_inserted = 0
@@ -138,9 +139,10 @@
 	name = "small anal beads"
 	desc = "A lengthy string of twelve small beads, each barely larger than a marble. What they lack in girth they make up for in number."
 	default_desc = "A lengthy string of twelve small beads, each barely larger than a marble. What they lack in girth they make up for in number."
-	icon_state = "rear_beads_item_12"
-	item_state = "rear_beads_item_12"
+	icon_state = "rear_bead_item_12"
+	item_state = "rear_bead_item_12"
 	bead_count = "12small"
+	rear_accessory_noun = "small anal beads"
 	sellprice = 15
 
 /obj/item/intimate_accessory/rear/plug/analbeads/small12/get_max_beads()
@@ -153,18 +155,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_12"
-	item_state = "rear_beads_item_12"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "12")
+	icon_state = "rear_bead_item_12"
+	item_state = "rear_bead_item_12"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "12")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_12_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_12_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -198,9 +200,10 @@
 	name = "medium pyramid anal beads"
 	desc = "A graduated string of five beads, each one larger than the last — a gentle escalation from marble-sized to fist-clenching."
 	default_desc = "A graduated string of five beads, each one larger than the last — a gentle escalation from marble-sized to fist-clenching."
-	icon_state = "rear_beads_item_pyramid_medium"
-	item_state = "rear_beads_item_pyramid_medium"
+	icon_state = "rear_bead_item_pyramid_medium"
+	item_state = "rear_bead_item_pyramid_medium"
 	bead_count = "pyramid_medium"
+	rear_accessory_noun = "medium pyramid anal beads"
 	sellprice = 18
 
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_medium/get_max_beads()
@@ -213,18 +216,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_pyramid_medium"
-	item_state = "rear_beads_item_pyramid_medium"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "pyramid_medium")
+	icon_state = "rear_bead_item_pyramid_medium"
+	item_state = "rear_bead_item_pyramid_medium"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "pyramid_medium")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_pyramid_medium_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_pyramid_medium_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -288,9 +291,10 @@
 	name = "inflexible anal beads"
 	desc = "A rigid rod of four bulbous beads fused to an unyielding spine. It does not bend. You do."
 	default_desc = "A rigid rod of four bulbous beads fused to an unyielding spine. It does not bend. You do."
-	icon_state = "rear_beads_item_inflexible"
-	item_state = "rear_beads_item_inflexible"
+	icon_state = "rear_bead_item_inflexible"
+	item_state = "rear_bead_item_inflexible"
 	bead_count = "inflexible"
+	rear_accessory_noun = "inflexible anal beads"
 	sellprice = 20
 
 /obj/item/intimate_accessory/rear/plug/analbeads/inflexible/get_max_beads()
@@ -303,18 +307,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_inflexible"
-	item_state = "rear_beads_item_inflexible"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "inflexible")
+	icon_state = "rear_bead_item_inflexible"
+	item_state = "rear_bead_item_inflexible"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "inflexible")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_inflexible_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_inflexible_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -374,9 +378,10 @@
 	name = "small pyramid anal beads"
 	desc = "A short string of four graduating beads, starting from a pinprick and ending at something that makes you wince."
 	default_desc = "A short string of four graduating beads, starting from a pinprick and ending at something that makes you wince."
-	icon_state = "rear_beads_item_pyramid_small"
-	item_state = "rear_beads_item_pyramid_small"
+	icon_state = "rear_bead_item_pyramid_small"
+	item_state = "rear_bead_item_pyramid_small"
 	bead_count = "pyramid_small"
+	rear_accessory_noun = "small pyramid anal beads"
 	sellprice = 12
 
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_small/get_max_beads()
@@ -389,18 +394,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_pyramid_small"
-	item_state = "rear_beads_item_pyramid_small"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "pyramid_small")
+	icon_state = "rear_bead_item_pyramid_small"
+	item_state = "rear_bead_item_pyramid_small"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "pyramid_small")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_pyramid_small_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_pyramid_small_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -460,9 +465,10 @@
 	name = "mixed small-medium anal beads"
 	desc = "A lengthy string of twelve beads alternating between small and medium in a rhythm designed to massage every inch of the way in."
 	default_desc = "A lengthy string of twelve beads alternating between small and medium in a rhythm designed to massage every inch of the way in."
-	icon_state = "rear_beads_item_mixed_12"
-	item_state = "rear_beads_item_mixed_12"
+	icon_state = "rear_bead_item_mixedbeads_12"
+	item_state = "rear_bead_item_mixedbeads_12"
 	bead_count = "mixed_12"
+	rear_accessory_noun = "mixed small-medium anal beads"
 	sellprice = 20
 
 /obj/item/intimate_accessory/rear/plug/analbeads/mixed12/get_max_beads()
@@ -475,18 +481,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_mixed_12"
-	item_state = "rear_beads_item_mixed_12"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "mixed_12")
+	icon_state = "rear_bead_item_mixedbeads_12"
+	item_state = "rear_bead_item_mixedbeads_12"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "mixedbeads_12")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_mixed_12_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_mixedbeads_12_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -561,9 +567,10 @@
 	name = "mixed medium-large anal beads"
 	desc = "Eight beads in alternating medium and large, each one a fresh challenge on the way in. The rhythm of relief and stretch makes every insertion its own ordeal."
 	default_desc = "Eight beads in alternating medium and large, each one a fresh challenge on the way in. The rhythm of relief and stretch makes every insertion its own ordeal."
-	icon_state = "rear_beads_item_mixed_8"
-	item_state = "rear_beads_item_mixed_8"
+	icon_state = "rear_bead_item_mixed_8"
+	item_state = "rear_bead_item_mixed_8"
 	bead_count = "mixed_8"
+	rear_accessory_noun = "mixed medium-large anal beads"
 	sellprice = 25
 
 /obj/item/intimate_accessory/rear/plug/analbeads/mixed8/get_max_beads()
@@ -576,18 +583,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_mixed_8"
-	item_state = "rear_beads_item_mixed_8"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "mixed_8")
+	icon_state = "rear_bead_item_mixed_8"
+	item_state = "rear_bead_item_mixed_8"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "mixed_8")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_mixed_8_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_mixed_8_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -661,9 +668,10 @@
 	name = "snaking anal beads"
 	desc = "Twenty-seven beads on a seemingly endless cord, designed to coil deep into the rectum like a serpent finding its den. The pull ring at the end is your only guarantee of getting them all back."
 	default_desc = "Twenty-seven beads on a seemingly endless cord, designed to coil deep into the rectum like a serpent finding its den. The pull ring at the end is your only guarantee of getting them all back."
-	icon_state = "rear_beads_item_snake"
-	item_state = "rear_beads_item_snake"
+	icon_state = "rear_bead_item_snake"
+	item_state = "rear_bead_item_snake"
 	bead_count = "snake"
+	rear_accessory_noun = "snaking anal beads"
 	sellprice = 35
 
 /obj/item/intimate_accessory/rear/plug/analbeads/snake/get_max_beads()
@@ -676,18 +684,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_snake"
-	item_state = "rear_beads_item_snake"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "snake")
+	icon_state = "rear_bead_item_snake"
+	item_state = "rear_bead_item_snake"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "snake")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_snake_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_snake_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -763,12 +771,13 @@
 	name = "spiked anal beads"
 	desc = "Six steel balls bristling with short, cruel spikes. Less a sex toy, more a string of miniature morningstars. The kind of thing found in an inquisitor's footlocker."
 	default_desc = "Six steel balls bristling with short, cruel spikes. Less a sex toy, more a string of miniature morningstars. The kind of thing found in an inquisitor's footlocker."
-	icon_state = "rear_beads_item_spiked"
-	item_state = "rear_beads_item_spiked"
+	icon_state = "rear_bead_item_spiked"
+	item_state = "rear_bead_item_spiked"
 	bead_count = "spiked"
 	intimate_flags = INTIMATE_FLAG_INSERTABLE
 	intimate_metal_name = "spiked iron"
 	intimate_metal_color = "#4A4A4A"
+	rear_accessory_noun = "spiked anal beads"
 	sellprice = 30
 
 /obj/item/intimate_accessory/rear/plug/analbeads/spiked/get_max_beads()
@@ -780,8 +789,8 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/spiked/update_item_visuals()
 	cut_overlays()
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_spiked"
-	item_state = "rear_beads_item_spiked"
+	icon_state = "rear_bead_item_spiked"
+	item_state = "rear_bead_item_spiked"
 	update_icon()
 
 /// Bespoke insertion messages for spiked beads — every single one hurts.
@@ -882,9 +891,10 @@
 	name = "large pyramid anal beads"
 	desc = "Eight beads in a merciless graduation from pebble to plum, each step larger than the last. The final bead is the size of a closed fist."
 	default_desc = "Eight beads in a merciless graduation from pebble to plum, each step larger than the last. The final bead is the size of a closed fist."
-	icon_state = "rear_beads_item_pyramid_large"
-	item_state = "rear_beads_item_pyramid_large"
+	icon_state = "rear_bead_item_pyramid_large"
+	item_state = "rear_bead_item_pyramid_large"
 	bead_count = "pyramid_large"
+	rear_accessory_noun = "large pyramid anal beads"
 	sellprice = 30
 
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_large/get_max_beads()
@@ -897,18 +907,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_pyramid_large"
-	item_state = "rear_beads_item_pyramid_large"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "pyramid_large")
+	icon_state = "rear_bead_item_pyramid_large"
+	item_state = "rear_bead_item_pyramid_large"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "pyramid_large")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_pyramid_large_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_pyramid_large_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -981,9 +991,10 @@
 	name = "giant anal beads"
 	desc = "Six fist-sized balls on a thick cord, each one a genuine test of anatomy. Likely intended for tauric bodies with the accommodating biology to match — although nothing is stopping those of smaller build from unwisely attempting the full set."
 	default_desc = "Six fist-sized balls on a thick cord, each one a genuine test of anatomy. Likely intended for tauric bodies with the accommodating biology to match — although nothing is stopping those of smaller build from unwisely attempting the full set."
-	icon_state = "rear_beads_item_giant"
-	item_state = "rear_beads_item_giant"
+	icon_state = "rear_bead_item_giant"
+	item_state = "rear_bead_item_giant"
 	bead_count = "giant"
+	rear_accessory_noun = "giant anal beads"
 	sellprice = 40
 
 /obj/item/intimate_accessory/rear/plug/analbeads/giant/get_max_beads()
@@ -996,18 +1007,18 @@
 	cut_overlays()
 	if(src.blue_pearled)
 		color = initial(color)
-		item_state = "rear_beads_item_abyssor"
-		icon_state = "rear_beads_item_abyssor"
+		item_state = "rear_bead_item_abyssor"
+		icon_state = "rear_bead_item_abyssor"
 		update_icon()
 		return
 	apply_intimate_item_tint()
-	icon_state = "rear_beads_item_giant"
-	item_state = "rear_beads_item_giant"
-	var/special_overlay_state = get_special_rear_item_state("rear_beads_item", "giant")
+	icon_state = "rear_bead_item_giant"
+	item_state = "rear_bead_item_giant"
+	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "giant")
 	if(special_overlay_state)
 		add_overlay(mutable_appearance(icon, special_overlay_state))
 	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_beads_item_giant_gem")
+		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_giant_gem")
 		if(intimate_gem_color)
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
@@ -1075,3 +1086,153 @@
 			target.visible_message(span_userdanger("Something cracks inside [target]'s pelvis as the last ball tears free."))
 			playsound(target, 'sound/combat/fracture/fracturewet (1).ogg', 50, TRUE)
 		target.Knockdown(30)
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// UNFINISHED ANAL BEADS — Crafted at the anvil, used in hand to pick a shape.
+// Works like the dildo crafting system: one recipe per metal, shape is chosen
+// on use rather than flooding the anvil with every possible subtype.
+// ════════════════════════════════════════════════════════════════════════════
+
+/obj/item/unfinished_analbeads
+	name = "unfinished anal beads"
+	desc = "An unfinished set of anal beads. Use in hand to shape them."
+	icon = 'modular/icons/obj/lewd/intimate_accessories.dmi'
+	icon_state = "rear_beads_item_short"
+	w_class = WEIGHT_CLASS_SMALL
+	var/bead_metal_name
+	var/bead_metal_color
+	var/bead_is_silver = FALSE
+	var/base_sell = 10
+
+/obj/item/unfinished_analbeads/Initialize()
+	. = ..()
+	if(bead_metal_name)
+		name = "unfinished [bead_metal_name] anal beads"
+	if(bead_metal_color)
+		color = bead_metal_color
+
+/obj/item/unfinished_analbeads/examine(mob/user)
+	. = ..()
+	. += span_notice("Use in hand to choose a bead shape.")
+
+/obj/item/unfinished_analbeads/attack_self(mob/living/user)
+	. = ..()
+	if(!istype(user) || user.incapacitated())
+		return
+	customize(user)
+
+/obj/item/unfinished_analbeads/proc/customize(mob/living/user)
+	var/list/shape_choices = list(
+		"Standard (4 beads)",
+		"Five Beads (5)",
+		"Six Beads (6)",
+		"Small (12 beads)",
+		"Small Pyramid (4 graduating)",
+		"Medium Pyramid (5 graduating)",
+		"Large Pyramid (8 graduating)",
+		"Inflexible (4 rigid)",
+		"Mixed Small+Medium (12)",
+		"Mixed Medium+Large (8)",
+		"Snake (27 beads)",
+		"Giant (6 fist-sized)",
+		"Glass (4, fragile)",
+		"Spiked (6, extreme)",
+	)
+
+	var/choice = tgui_input_list(user, "Choose a shape for the anal beads.", "Anal Bead Shape", shape_choices)
+	if(!choice || QDELETED(src) || user.incapacitated() || !in_range(user, src))
+		return
+
+	var/bead_type
+	switch(choice)
+		if("Standard (4 beads)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads
+		if("Five Beads (5)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/fivebeads
+		if("Six Beads (6)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/sixbeads
+		if("Small (12 beads)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/small12
+		if("Small Pyramid (4 graduating)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_small
+		if("Medium Pyramid (5 graduating)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_medium
+		if("Large Pyramid (8 graduating)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_large
+		if("Inflexible (4 rigid)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/inflexible
+		if("Mixed Small+Medium (12)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/mixed12
+		if("Mixed Medium+Large (8)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/mixed8
+		if("Snake (27 beads)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/snake
+		if("Giant (6 fist-sized)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/giant
+		if("Glass (4, fragile)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/glass
+		if("Spiked (6, extreme)")
+			bead_type = /obj/item/intimate_accessory/rear/plug/analbeads/spiked
+
+	if(!bead_type)
+		return
+
+	var/obj/item/intimate_accessory/rear/plug/analbeads/new_beads = new bead_type(get_turf(user))
+
+	// Spiked beads have fully hardcoded metal properties — skip transfer.
+	// Glass beads keep their own metal name ("glass") but accept the metal color for their caps.
+	var/is_spiked = istype(new_beads, /obj/item/intimate_accessory/rear/plug/analbeads/spiked)
+	if(!is_spiked)
+		if(!istype(new_beads, /obj/item/intimate_accessory/rear/plug/analbeads/glass))
+			if(bead_metal_name)
+				new_beads.intimate_metal_name = bead_metal_name
+		if(bead_metal_color)
+			new_beads.intimate_metal_color = bead_metal_color
+		new_beads.is_silver = bead_is_silver
+	new_beads.sellprice = base_sell
+	new_beads.base_sellprice = base_sell
+	new_beads.refresh_rear_plug_state()
+
+	to_chat(user, span_notice("You shape the metal into \a [new_beads]."))
+	if(!user.put_in_hands(new_beads))
+		new_beads.forceMove(get_turf(user))
+	qdel(src)
+
+// ── Metal Variants ──────────────────────────────────────────────────────────
+
+/obj/item/unfinished_analbeads/iron
+	bead_metal_name = "iron"
+	bead_metal_color = "#9EA48E"
+	base_sell = 5
+
+/obj/item/unfinished_analbeads/copper
+	bead_metal_name = "copper"
+	bead_metal_color = "#8C4734"
+	base_sell = 5
+
+/obj/item/unfinished_analbeads/steel
+	bead_metal_name = "steel"
+	bead_metal_color = "#9BADB7"
+	base_sell = 10
+
+/obj/item/unfinished_analbeads/bronze
+	bead_metal_name = "bronze"
+	bead_metal_color = "#CBBF9A"
+	base_sell = 12
+
+/obj/item/unfinished_analbeads/silver
+	bead_metal_name = "silver"
+	bead_metal_color = "#C6D5E1"
+	bead_is_silver = TRUE
+	base_sell = 30
+
+/obj/item/unfinished_analbeads/gold
+	bead_metal_name = "gold"
+	bead_metal_color = "#C4B651"
+	base_sell = 50
+
+/obj/item/unfinished_analbeads/blacksteel
+	bead_metal_name = "blacksteel"
+	bead_metal_color = "#A2CBE3"
+	base_sell = 150

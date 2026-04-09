@@ -836,7 +836,7 @@
 	if(prob(50))
 		return
 	last_pain = world.time
-	if(allow_intimate_item_reaction && user?.chastity_device && HAS_TRAIT(user, TRAIT_CHASTITY_SPIKED))
+	if(allow_intimate_item_reaction && user?.chastity_device)
 		return
 	if(pain_amt >= PAIN_HIGH_EFFECT)
 		var/pain_msg = pick(list("IT HURTS!!!", "IT NEEDS TO STOP!!!", "I CAN'T TAKE IT ANYMORE!!!"))
@@ -1061,7 +1061,7 @@
 		target.sexcon.update_all_accessible_body_zones()
 	for(var/action_type in GLOB.sex_actions)
 		var/datum/sex_action/action = SEX_ACTION(action_type)
-		if(!(action_category&action.category))
+		if(!(action_category&action.get_runtime_category(user)))
 			continue
 		if(istype(action, /datum/sex_action/chastityplay) && !chastity_content_enabled_for_pair())
 			continue
@@ -1206,7 +1206,7 @@
 	while(TRUE)
 		if(!isnull(target.client) && target.client.prefs.sexable == FALSE) //Vrell - Needs changed to let me test sex mechanics solo
 			break
-		if(!user.stamina_add(action.stamina_cost * get_stamina_cost_multiplier()))
+		if(!user.stamina_add(action.get_runtime_stamina_cost(user) * get_stamina_cost_multiplier()))
 			break
 		if(!do_after(user, (action.do_time / get_speed_multiplier()), target = target, progress = show_progress))
 			break

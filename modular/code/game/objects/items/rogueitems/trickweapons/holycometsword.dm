@@ -7,7 +7,7 @@
 	attack_verb = list("slashes", "swings")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/holycomet/hit.ogg', 'modular/sounds/trickweapons/holycomet/swing.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/hit.ogg', 'modular/sounds/trickweapons/holycomet/moonlight_hit.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 1
@@ -21,7 +21,7 @@
 	attack_verb = list("slams", "pounds")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
-	hitsound = list('modular/sounds/trickweapons/holycomet/hit.ogg', 'modular/sounds/trickweapons/holycomet/swing.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/hit.ogg', 'modular/sounds/trickweapons/holycomet/moonlight_hit.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 0.9
@@ -35,7 +35,7 @@
 	attack_verb = list("thrusts", "lunges")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/holycomet/energy_hit.ogg', 'modular/sounds/trickweapons/holycomet/hit.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/moonlight_stab.ogg', 'modular/sounds/trickweapons/holycomet/energy_hit.ogg')
 	chargetime = 0
 	penfactor = 30
 	damfactor = 1.3
@@ -50,7 +50,7 @@
 	attack_verb = list("drives into", "impales")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/holycomet/energy_hit.ogg', 'modular/sounds/trickweapons/holycomet/swing.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/moonlight_stab.ogg', 'modular/sounds/trickweapons/holycomet/energy_hit.ogg')
 	chargetime = 5
 	chargedrain = 1
 	penfactor = 45
@@ -67,7 +67,7 @@
 	attack_verb = list("cleaves", "carves")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/holycomet/soul_strike.ogg', 'modular/sounds/trickweapons/holycomet/energy_hit.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/soul_strike.ogg', 'modular/sounds/trickweapons/holycomet/moonlight_hit.ogg')
 	chargetime = 0
 	penfactor = 20
 	damfactor = 1
@@ -82,7 +82,7 @@
 	attack_verb = list("blasts through", "moonlight-sweeps")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/holycomet/activate.ogg', 'modular/sounds/trickweapons/holycomet/soul_strike.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/soul_strike.ogg', 'modular/sounds/trickweapons/holycomet/moonlight_hit.ogg')
 	chargetime = 3
 	chargedrain = 1
 	penfactor = 50
@@ -98,7 +98,7 @@
 	attack_verb = list("detonates upon", "moonlight-blasts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/holycomet/activate.ogg', 'modular/sounds/trickweapons/holycomet/arcane_thrust.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/moonlight_hit.ogg', 'modular/sounds/trickweapons/holycomet/arcane_thrust.ogg')
 	chargetime = 6
 	chargedrain = 2
 	penfactor = 60
@@ -117,7 +117,7 @@
 	attack_verb = list("pierces with light", "arcane-thrusts")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/holycomet/arcane_thrust.ogg', 'modular/sounds/trickweapons/holycomet/activate.ogg')
+	hitsound = list('modular/sounds/trickweapons/holycomet/moonlight_stab.ogg', 'modular/sounds/trickweapons/holycomet/arcane_thrust.ogg')
 	chargetime = 4
 	chargedrain = 1
 	penfactor = 40

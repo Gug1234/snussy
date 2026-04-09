@@ -9,7 +9,7 @@
 	attack_verb = list("slashes", "cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_swing.ogg', 'modular/sounds/trickweapons/chikage/katana_draw1.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 1.0
@@ -24,7 +24,7 @@
 	attack_verb = list("swipes", "sweeps")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_swing.ogg', 'modular/sounds/trickweapons/chikage/katana_draw2.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 0
 	penfactor = 5
 	damfactor = 0.95
@@ -39,7 +39,7 @@
 	attack_verb = list("thrusts", "stabs")
 	animname = "thrust"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_draw1.ogg', 'modular/sounds/trickweapons/chikage/katana_draw2.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 0
 	penfactor = 30
 	damfactor = 1.1
@@ -54,7 +54,7 @@
 	attack_verb = list("cleaves", "chops")
 	animname = "chop"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_swing.ogg', 'modular/sounds/trickweapons/chikage/katana_draw1.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 4
 	chargedrain = 1
 	penfactor = 20
@@ -70,7 +70,7 @@
 	attack_verb = list("lacerates", "rends")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_swing.ogg', 'modular/sounds/trickweapons/chikage/katana_draw1.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 0
 	penfactor = 15
 	damfactor = 1.05
@@ -85,7 +85,7 @@
 	attack_verb = list("sweeps", "carves")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_swing.ogg', 'modular/sounds/trickweapons/chikage/katana_draw2.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 1.1
@@ -100,7 +100,7 @@
 	attack_verb = list("draws through", "flash-cuts")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_draw1.ogg', 'modular/sounds/trickweapons/chikage/katana_draw2.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg', 'modular/sounds/trickweapons/chikage/katana_draw1.ogg')
 	chargetime = 5
 	chargedrain = 1
 	penfactor = 25
@@ -116,7 +116,7 @@
 	attack_verb = list("impales", "pierces")
 	animname = "thrust"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/chikage/katana_draw1.ogg', 'modular/sounds/trickweapons/chikage/katana_draw2.ogg')
+	hitsound = list('modular/sounds/trickweapons/chikage/katana_iai_strike1.ogg', 'modular/sounds/trickweapons/chikage/katana_iai_strike2.ogg')
 	chargetime = 0
 	penfactor = 35
 	damfactor = 1.15
@@ -197,20 +197,32 @@
 				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
 
 /**
- * Drains the user's HP on each successful melee hit while in blood mode.
- * Uses adjustBruteLoss for raw, unblockable self-damage (the wielder's
- * own blood is the fuel, not an external attack).
+ * Extends the base serrated signal management to also handle blood drain
+ * in transformed (blood) mode. Both mechanics share COMSIG_ITEM_ATTACK_SUCCESS,
+ * so we register a single combined handler that checks for each independently.
  */
-/obj/item/rogueweapon/trickweapon/chikage/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
-	. = ..()
-	if(!transformed)
-		return
-	if(!proximity_flag)
-		return
-	if(!isliving(user))
-		return
-	var/mob/living/L = user
-	L.adjustBruteLoss(blood_drain_per_hit)
-	to_chat(user, span_danger("[src] drinks deep of your blood..."))
+/obj/item/rogueweapon/trickweapon/chikage/update_serrated_signal()
+	UnregisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS)
+	if(serrated || transformed)
+		RegisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS, PROC_REF(on_chikage_hit))
+
+/**
+ * Combined COMSIG_ITEM_ATTACK_SUCCESS handler for serrated bonus and blood drain.
+ * Only fires on confirmed successful melee hits — misses and blocks don't trigger.
+ */
+/obj/item/rogueweapon/trickweapon/chikage/proc/on_chikage_hit(datum/source, mob/living/target, mob/living/user)
+	SIGNAL_HANDLER
+	// Serrated bonus (same logic as parent apply_serrated_bonus)
+	if(serrated && isliving(target))
+		var/multiplier = get_serrated_multiplier(target)
+		if(multiplier)
+			var/bonus = round(force_dynamic * serrated_bonus * multiplier)
+			if(bonus > 0)
+				target.apply_damage(bonus, BRUTE)
+	// Blood drain in transformed mode
+	if(transformed && isliving(user))
+		var/mob/living/L = user
+		L.adjustBruteLoss(blood_drain_per_hit)
+		to_chat(user, span_danger("[src] drinks deep of your blood..."))
 
 

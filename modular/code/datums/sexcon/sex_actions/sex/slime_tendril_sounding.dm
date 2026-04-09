@@ -21,13 +21,13 @@
 /datum/sex_action/slime_tendril_sounding/proc/get_sounding_jelly(mob/living/carbon/human/target)
 	if(!target)
 		return null
-	// Genital-slot jelly is the primary source; strange jelly in any slot can also reach.
+	// Genital-slot jelly is the primary source; any eora jelly in any slot can also reach.
 	var/obj/item/intimate_accessory/jelly/eora/jelly = get_genital_jelly(target)
 	if(jelly)
 		return jelly
-	var/obj/item/intimate_accessory/jelly/eora/strange/strange_jelly = target.intimate_jelly
-	if(istype(strange_jelly))
-		return strange_jelly
+	var/obj/item/intimate_accessory/jelly/eora/any_jelly = target.intimate_jelly
+	if(istype(any_jelly))
+		return any_jelly
 	return null
 
 /datum/sex_action/slime_tendril_sounding/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)

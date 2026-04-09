@@ -65,6 +65,64 @@
 		"'s armor shifts with a muted clink from behind — the ring grinding against the leather's inner lining with each stride.",
 		"'s leathers carry a hollow tap from somewhere inside, the padded seat doing nothing to stop the hardware from pressing inward.",
 		"'s padded layers muffle a short metallic grind as they stride forward — something back there shifting against raw skin."
+	],
+
+	"piercing_visual_breast_bare": [
+		"'s bare nipple bars catch the light with each step, the metal sitting heavy through flushed, swollen flesh that dimples where the studs press outward.",
+		"'s exposed nipple piercings shift with every stride, the hoops tugging gently at pierced skin rubbed pink and tender around the metal.",
+		"'s chest piercings glint between the sway of bare breasts, the bars sitting snug through puffy nubs that pull taut with each step.",
+		"'s nipple studs press outward with each shift of weight, the metal warm from body heat and catching dull light against the flushed skin they're threaded through.",
+		"'s bare nipple piercings sway with the bounce of each stride, the hardware dragging at tender flesh — the reddened skin around each bar impossible to miss.",
+		"'s exposed piercings sit heavy through swollen teat-flesh, the bars tilting as breasts shift with each step, pulling pierced skin tight before settling.",
+		"'s nipple hoops rock gently with each stride, the loops of metal tugging at tender, heat-darkened flesh — every step making the hardware sway and catch the eye.",
+		"'s bare chest hardware glints dully with each movement, the small metal bars snug through swollen nipple-flesh, shifting with every breath and stride."
+	],
+
+	"piercing_visual_genital_bare": [
+		"'s genital piercings catch the light between bare thighs with each step, the metal sitting snug through flushed, heat-swollen skin.",
+		"'s exposed intimate hardware shifts with every stride, the studs and bars glinting from between their legs — pressed through tender, reddened flesh.",
+		"'s genital jewelry sways with the roll of their hips, the bar heavy against bare skin that dimples and pulls around the piercing with each step.",
+		"'s intimate piercings glint obscenely from exposed genitals, the hoops tugging at swollen flesh rubbed slick and pink from the constant friction of metal.",
+		"'s bare genital bars shift with each stride, the hardware pressing outward from puffy, heat-flushed skin — impossible to ignore at this distance.",
+		"'s genital piercing drags against exposed skin with each step, the metal warm and glinting between their thighs, pulling tender flesh taut.",
+		"'s intimate studs catch the light as they walk, the piercings sitting flush against bare, swollen genital skin that tightens visibly around each bar.",
+		"'s exposed genital piercings sway with each shift of weight, the metal heavy against flushed tissue — the kind of hardware that draws stares."
+	],
+
+	"piercing_visual_breast_psydonic": [
+		"'s psydonic crosses sway beneath bare nipples with each step, the tiny metal devotionals pulling at pierced flesh, their polished surfaces catching the light.",
+		"'s dangling psycrosses bounce against the underside of exposed breasts, the small crosses tugging at swollen, flushed nubs with each stride.",
+		"'s nipple-hung psycrosses swing freely with each step, the devotional charms dragging their weight against tender pierced skin — faith made intimate and visible.",
+		"'s psydonic crosses dangle and twist from bare, puffy nipples, the metal warm from body heat, shifting with each stride and pulling at reddened pierced flesh.",
+		"'s dangling psycrosses catch the light as they move, the crosses swaying beneath pierced teats — the weight of the charms tugging swollen skin downward with each step.",
+		"'s psydonic nipple crosses bounce softly against bare chest, the small devotionals twisting on their loops, dragging pierced flesh taut before settling against warm skin."
+	],
+
+	"piercing_visual_breast_zizite": [
+		"'s zizite crosses hang from pierced nipples, the zcross charms and skull beads swaying with each step, dragging at tender, flushed skin.",
+		"'s chest hardware drips with morbid beadwork — skull-tipped chains and zcross charms swinging from each bare nipple, pulling pierced flesh taut with their weight.",
+		"'s nipple-hung zcrosses sway with each stride, the skull beads jostling softly against one another where they rest against bare, heat-flushed teat-flesh.",
+		"'s zizite piercings dangle from swollen nipples, the zcross charms and bone-colored beads pulling at tender pierced skin with each step.",
+		"'s bare chest bears dangling zcrosses, the morbid beadwork shifting and swaying with each stride — skull beads warm from the flesh they bounce against.",
+		"'s nipple piercings drip with zizite hardware — zcross charms and skull beads swinging from reddened, pierced nubs, each step jostling the grim ornaments against bare skin."
+	],
+
+	"piercing_visual_genital_psydonic": [
+		"'s psydonic genital piercings catch the light between bare thighs, the ornate metalwork and tiny cross-charms shifting against flushed skin with each stride.",
+		"'s intimate psydonic hardware sways with the roll of their hips, the devotional filigree tugging at swollen genital flesh — polished metal and holy geometry on full display.",
+		"'s exposed psydonic piercings glint between their legs with each step, the cross-worked bars sitting heavy through tender, heat-darkened skin.",
+		"'s psydonic genital jewelry shifts with every stride, the ornate devotional metalwork pressing against bare, reddened flesh — craftsmanship and obscenity in equal measure.",
+		"'s psydonic piercings dangle between bare thighs, the cross-adorned bars pulling at swollen genital skin with each step, the polished metal catching light.",
+		"'s intimate psydonic hardware catches the eye — devotional crosses and ornate bars pressed through flushed genital flesh, the metalwork swaying heavy with each stride."
+	],
+
+	"piercing_visual_genital_zizite": [
+		"'s zizite genital piercings hang heavy between bare thighs, the zcross ornaments and skull beads swaying against flushed skin with each stride.",
+		"'s intimate zizite hardware shifts with each step, the morbid beadwork and zcross charms tugging at swollen genital flesh — grim devotionals on indecent display.",
+		"'s exposed zizite piercings glint between their legs, the skull-tipped chains and zcross bars dragging against tender, heat-reddened skin with each stride.",
+		"'s zizite genital jewelry sways with the roll of their hips, the zcross ornaments and bone-colored beads pressing against bare, swollen flesh.",
+		"'s zizite piercings dangle between bare thighs, the grim zcross charms and skull beads pulling at tender genital skin with each step.",
+		"'s intimate hardware drips with zizite menace — zcross charms and skull beadwork swinging from flushed genital flesh, shifting obscenely with each stride."
 	]
 }
 

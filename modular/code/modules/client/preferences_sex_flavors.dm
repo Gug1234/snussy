@@ -80,8 +80,16 @@
 			continue
 
 		var/list/valid_action = list()
+		// Validate both legacy bare phase keys and perspective-prefixed keys.
+		var/static/list/all_perspectives = list("performer", "target", "observer")
+		var/list/all_phase_keys = list()
 		for(var/phase in SEX_FLAVOR_PHASES)
-			var/list/phase_strings = action_data[phase]
+			all_phase_keys += phase
+			for(var/persp in all_perspectives)
+				all_phase_keys += "[persp]_[phase]"
+
+		for(var/phase_key in all_phase_keys)
+			var/list/phase_strings = action_data[phase_key]
 			if(!islist(phase_strings) || !phase_strings.len)
 				continue
 
@@ -95,7 +103,19 @@
 					break
 
 			if(valid_strings.len)
-				valid_action[phase] = valid_strings
+				valid_action[phase_key] = valid_strings
+
+			// Validate parallel weight list for this phase key.
+			var/weight_key = "weight_[phase_key]"
+			var/list/phase_weights = action_data[weight_key]
+			if(islist(phase_weights) && phase_weights.len)
+				var/list/valid_weights = list()
+				for(var/w in phase_weights)
+					valid_weights += clamp(round(w), 1, 1000)
+					if(valid_weights.len >= valid_strings.len)
+						break
+				if(valid_weights.len)
+					valid_action[weight_key] = valid_weights
 
 		// Preserve the suppress sub-map — only carry forward TRUE entries for valid phases.
 		var/list/raw_suppress = action_data["suppress"]
@@ -170,6 +190,10 @@
 		clean["req_target_piercing"] = !!entry["req_target_piercing"]
 		clean["req_target_plug"] = !!entry["req_target_plug"]
 		clean["req_no_rear_plug"] = !!entry["req_no_rear_plug"]
+		clean["req_user_manticore_tail"] = !!entry["req_user_manticore_tail"]
+		clean["req_target_manticore_tail"] = !!entry["req_target_manticore_tail"]
+		clean["req_user_jelly"] = !!entry["req_user_jelly"]
+		clean["req_target_jelly"] = !!entry["req_target_jelly"]
 		validated += list(clean)
 
 	custom_sex_actions = validated.len ? validated : null

@@ -36,11 +36,25 @@
 		)
 	return options
 
-/// Returns piercing options for the REAR slot (currently none, placeholder).
+/// Returns piercing options for the REAR slot.
 /datum/preferences/proc/get_intimate_rear_piercing_options()
 	var/static/list/options
 	if(!options)
-		options = list("None" = null)
+		options = list(
+			"None"                        = null,
+			"Iron Rear Piercing"          = /obj/item/intimate_accessory/piercing/rear/iron,
+			"Copper Rear Piercing"        = /obj/item/intimate_accessory/piercing/rear/copper,
+			"Steel Rear Piercing"         = /obj/item/intimate_accessory/piercing/rear/steel,
+			"Bronze Rear Piercing"        = /obj/item/intimate_accessory/piercing/rear/bronze,
+			"Silver Rear Piercing"        = /obj/item/intimate_accessory/piercing/rear/silver,
+			"Gold Rear Piercing"          = /obj/item/intimate_accessory/piercing/rear/gold,
+			"Iron Bell Rear Piercing"     = /obj/item/intimate_accessory/piercing/rear/bell/iron,
+			"Copper Bell Rear Piercing"   = /obj/item/intimate_accessory/piercing/rear/bell/copper,
+			"Steel Bell Rear Piercing"    = /obj/item/intimate_accessory/piercing/rear/bell/steel,
+			"Bronze Bell Rear Piercing"   = /obj/item/intimate_accessory/piercing/rear/bell/bronze,
+			"Silver Bell Rear Piercing"   = /obj/item/intimate_accessory/piercing/rear/bell/silver,
+			"Gold Bell Rear Piercing"     = /obj/item/intimate_accessory/piercing/rear/bell/gold,
+		)
 	return options
 
 /// Returns insertable options for the GENITAL slot (vaginal plugs, sounding rods).
@@ -82,6 +96,12 @@
 			"Bronze Genital Bell Piercing"= /obj/item/intimate_accessory/piercing/genital/bell/bronze,
 			"Silver Genital Bell Piercing"= /obj/item/intimate_accessory/piercing/genital/bell/silver,
 			"Gold Genital Bell Piercing"  = /obj/item/intimate_accessory/piercing/genital/bell/gold,
+			"Stone Psydonic Genital Piercing"    = /obj/item/intimate_accessory/piercing/genital/psydonic,
+			"Silver Psydonic Genital Piercing"   = /obj/item/intimate_accessory/piercing/genital/psydonic/silver_cross,
+			"Golden Psydonic Genital Piercing"   = /obj/item/intimate_accessory/piercing/genital/psydonic/golden_cross,
+			"Ancient Psydonic Genital Piercing"  = /obj/item/intimate_accessory/piercing/genital/psydonic/ancient_cross,
+			"Iron Zizite Genital Piercing"       = /obj/item/intimate_accessory/piercing/genital/zizite,
+			"Ancient Zizite Genital Piercing"    = /obj/item/intimate_accessory/piercing/genital/zizite/ancient_cross,
 		)
 	return options
 
@@ -103,6 +123,12 @@
 			"Bronze Bell Nipple Piercing"  = /obj/item/intimate_accessory/piercing/breast/bell/bronze,
 			"Silver Bell Nipple Piercing"  = /obj/item/intimate_accessory/piercing/breast/bell/silver,
 			"Gold Bell Nipple Piercing"    = /obj/item/intimate_accessory/piercing/breast/bell/gold,
+			"Stone Psydonic Nipple Piercing"     = /obj/item/intimate_accessory/piercing/breast/psydonic,
+			"Silver Psydonic Nipple Piercing"    = /obj/item/intimate_accessory/piercing/breast/psydonic/silver_cross,
+			"Golden Psydonic Nipple Piercing"    = /obj/item/intimate_accessory/piercing/breast/psydonic/golden_cross,
+			"Ancient Psydonic Nipple Piercing"   = /obj/item/intimate_accessory/piercing/breast/psydonic/ancient_cross,
+			"Iron Zizite Nipple Piercing"        = /obj/item/intimate_accessory/piercing/breast/zizite,
+			"Ancient Zizite Nipple Piercing"     = /obj/item/intimate_accessory/piercing/breast/zizite/ancient_cross,
 		)
 	return options
 

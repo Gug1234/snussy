@@ -113,9 +113,9 @@
 			var/name_input = params["name"]
 			if(!istext(name_input) || !length(name_input))
 				return FALSE
-			// Basic sanitization — strip leading/trailing whitespace
-			name_input = trim(name_input)
-			if(!length(name_input))
+			// Sanitize and cap length to prevent abuse
+			name_input = trim(sanitize_text(name_input))
+			if(!length(name_input) || length(name_input) > MAX_NAME_LEN)
 				return FALSE
 			if(!prefs.pref_chastity_key_stashes)
 				prefs.pref_chastity_key_stashes = list()

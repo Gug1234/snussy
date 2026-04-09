@@ -256,6 +256,8 @@
 
 	// Determine which arm is holding the weapon
 	var/held_idx = user.get_held_index_of_item(src)
+	if(isnull(held_idx))
+		held_idx = 1 // Default to left arm if weapon was already dropped
 	var/arm_zone = (held_idx % 2) ? BODY_ZONE_L_ARM : BODY_ZONE_R_ARM // Odd = left, Even = right
 
 	// Drop and destroy the weapon
@@ -331,16 +333,27 @@
 // requiring ammo consumption. Shot intents are identified by having
 // a `requires_ammo` var set to TRUE on the intent datum.
 
+/// consume_ammo return: ammo found and consumed successfully.
+#define AMMO_RESULT_CONSUMED 1
+/// consume_ammo return: no ammo of any kind found.
+#define AMMO_RESULT_NONE 2
+/// consume_ammo return: ammo found, but wrong type for this weapon.
+#define AMMO_RESULT_WRONG_TYPE 3
+
 /**
  * Searches the user's inventory for one unit of the weapon's shot_ammo_type.
  * Checks hands first, then all carried items (including quiver/bullet pouches
  * which store ammo in their `arrows` list rather than `contents`).
  *
- * Returns TRUE and deletes 1 ammo on success, FALSE on failure.
+ * Returns AMMO_RESULT_CONSUMED on success, AMMO_RESULT_NONE or
+ * AMMO_RESULT_WRONG_TYPE on failure. This single-pass approach avoids
+ * calling get_contents() twice when the failure path needs wrong-ammo info.
  */
 /obj/item/rogueweapon/trickweapon/proc/consume_ammo(mob/living/user)
 	if(!shot_ammo_type)
-		return FALSE
+		return AMMO_RESULT_NONE
+
+	var/found_wrong_ammo = FALSE
 
 	// Check hands first
 	for(var/obj/item/I in user.held_items)
@@ -348,14 +361,18 @@
 			continue
 		if(istype(I, shot_ammo_type))
 			qdel(I)
-			return TRUE
+			return AMMO_RESULT_CONSUMED
+		if(istype(I, /obj/item/ammo_casing))
+			found_wrong_ammo = TRUE
 
 	// Check all carried items, including inside quiver/bullet pouches
 	for(var/obj/item/carried in user.get_contents())
 		// Direct ammo in inventory
 		if(istype(carried, shot_ammo_type))
 			qdel(carried)
-			return TRUE
+			return AMMO_RESULT_CONSUMED
+		if(istype(carried, /obj/item/ammo_casing))
+			found_wrong_ammo = TRUE
 		// Ammo stored in bullet pouches (uses `arrows` list, not `contents`)
 		if(istype(carried, /obj/item/quiver/bullet))
 			var/obj/item/quiver/bullet/pouch = carried
@@ -364,9 +381,11 @@
 					pouch.arrows -= ammo
 					qdel(ammo)
 					pouch.update_icon()
-					return TRUE
+					return AMMO_RESULT_CONSUMED
+			if(length(pouch.arrows))
+				found_wrong_ammo = TRUE
 
-	return FALSE
+	return found_wrong_ammo ? AMMO_RESULT_WRONG_TYPE : AMMO_RESULT_NONE
 
 /**
  * Pre-attack hook for gun-trick weapons. If the user's current intent
@@ -377,8 +396,13 @@
 	if(shot_ammo_type && user.used_intent)
 		var/datum/intent/I = user.used_intent
 		if(I.vars.Find("requires_ammo") && I.vars["requires_ammo"])
-			if(!consume_ammo(user))
-				to_chat(user, span_warning("[src] clicks — no ammunition!"))
+			var/ammo_result = consume_ammo(user)
+			if(ammo_result != AMMO_RESULT_CONSUMED)
+				if(ammo_result == AMMO_RESULT_WRONG_TYPE)
+					var/obj/item/ammo_type_ref = shot_ammo_type
+					to_chat(user, span_warning("[src] clicks — wrong ammunition! It requires [initial(ammo_type_ref.name)]."))
+				else
+					to_chat(user, span_warning("[src] clicks — no ammunition!"))
 				playsound(loc, 'sound/combat/parry/bladed/bladedthin (1).ogg', 50, TRUE)
 				user.changeNext_move(CLICK_CD_MELEE)
 				return TRUE

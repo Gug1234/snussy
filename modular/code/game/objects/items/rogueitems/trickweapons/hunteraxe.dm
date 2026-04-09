@@ -105,7 +105,7 @@
 	attack_verb = list("jabs", "thrusts")
 	animname = "stab"
 	blade_class = BCLASS_STAB
-	hitsound = list('modular/sounds/trickweapons/hunteraxe/thrust1.ogg', 'modular/sounds/trickweapons/hunteraxe/thrust_deep.ogg')
+	hitsound = list('modular/sounds/trickweapons/hunteraxe/haft_thrust1.ogg', 'modular/sounds/trickweapons/hunteraxe/haft_thrust2.ogg')
 	chargetime = 0
 	penfactor = 20
 	damfactor = 0.9

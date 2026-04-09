@@ -66,6 +66,8 @@ SUBSYSTEM_DEF(input)
 	macroset_classic_hotkey = list(
 	"Any" = "\"KeyDown \[\[*\]\]\"",
 	"Any+UP" = "\"KeyUp \[\[*\]\]\"",
+	"Space" = "\"KeyDown Space\"",
+	"Space+UP" = "\"KeyUp Space\"",
 	"Tab" = "\".winset \\\"mainwindow.macro=[SKIN_MACROSET_CLASSIC_INPUT] input.focus=true input.background-color=[COLOR_INPUT_ENABLED]\\\"\"",
 	"Escape" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
 	"Back" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
@@ -75,6 +77,8 @@ SUBSYSTEM_DEF(input)
 	macroset_hotkey = list(
 	"Any" = "\"KeyDown \[\[*\]\]\"",
 	"Any+UP" = "\"KeyUp \[\[*\]\]\"",
+	"Space" = "\"KeyDown Space\"",
+	"Space+UP" = "\"KeyUp Space\"",
 	"Tab" = "\".winset \\\"input.focus=true?map.focus=true input.background-color=[COLOR_INPUT_DISABLED]:input.focus=true input.background-color=[COLOR_INPUT_ENABLED]\\\"\"",
 	"Escape" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",
 	"Back" = "\".winset \\\"input.text=\\\"\\\"\\\"\"",

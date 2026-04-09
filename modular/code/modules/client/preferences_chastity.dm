@@ -157,21 +157,20 @@
 /datum/preferences/proc/distribute_chastity_key_stashes(mob/living/carbon/human/owner, obj/item/chastity/device)
 	if(!device || !pref_chastity_key_stashes)
 		return
+	// Build a lowered name → mob lookup table once for O(1) per stash name.
+	var/list/name_to_mob = list()
+	for(var/client/C in GLOB.clients)
+		var/mob/living/carbon/human/candidate = C.mob
+		if(!istype(candidate) || !candidate.mind)
+			continue
+		name_to_mob[LOWER_TEXT(candidate.real_name)] = candidate
 	for(var/target_name in pref_chastity_key_stashes)
 		if(!istext(target_name) || !length(target_name))
 			continue
-		// Search all connected clients for a human mob with a matching character name
-		var/mob/living/carbon/human/target_mob
-		for(var/client/C in GLOB.clients)
-			var/mob/living/carbon/human/candidate = C.mob
-			if(!istype(candidate) || !candidate.mind)
-				continue
-			if(LOWER_TEXT(candidate.real_name) == LOWER_TEXT(target_name))
-				target_mob = candidate
-				break
+		var/lower_name = LOWER_TEXT(target_name)
+		var/mob/living/carbon/human/target_mob = name_to_mob[lower_name]
 		if(!target_mob)
 			// Target not online yet — register for latejoin delivery
-			var/lower_name = LOWER_TEXT(target_name)
 			LAZYINITLIST(GLOB.pending_chastity_keys[lower_name])
 			GLOB.pending_chastity_keys[lower_name] += list(list(
 				"lockhash" = device.lockhash,
@@ -256,4 +255,3 @@
 	key_copy.desc = "A small key for [owner_name]'s chastity device."
 	if(!target.put_in_hands(key_copy))
 		key_copy.forceMove(get_turf(target))
-	to_chat(target, span_notice("A copy of [owner_name]'s chastity key has been placed in my possession."))

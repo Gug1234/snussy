@@ -78,6 +78,8 @@ SUBSYSTEM_DEF(role_class_handler)
 	We will cache it per server session via an assc list with a ckey leading to the datum.
 */
 /datum/controller/subsystem/role_class_handler/proc/setup_class_handler(mob/living/carbon/human/H, advclass_rolls_override = null, register_id = null)
+	if(!H?.client)
+		return
 	if(!register_id)
 		if(H.job == "Towner")
 			register_id = "towner"
@@ -114,6 +116,9 @@ SUBSYSTEM_DEF(role_class_handler)
 	XTRA_MEATY.register_id = register_id
 	if(!XTRA_MEATY.initial_setup())
 		return // There was just one advclass that got automatically selected
+	if(!H.client)
+		qdel(XTRA_MEATY)
+		return
 	class_select_handlers[H.client.ckey] = XTRA_MEATY
 
 

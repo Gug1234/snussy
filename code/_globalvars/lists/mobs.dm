@@ -31,6 +31,10 @@ GLOBAL_LIST_EMPTY(spidermobs)				//all sentient spider mobs
 GLOBAL_LIST_EMPTY(bots_list)
 GLOBAL_LIST_EMPTY(aiEyes)
 GLOBAL_LIST_EMPTY(familiar_queue)			//all the registered familiars's clients, ready to spawn.
+GLOBAL_LIST_EMPTY(jelly_controller_queue)	//all volunteer clients who opted into strange jelly controller content.
+GLOBAL_LIST_EMPTY(open_jelly_controller_applications)	//strange jellies currently accepting targeted controller applications.
+GLOBAL_LIST_INIT(jelly_controller_application_targets, list())	//candidate ckey -> strange jelly they currently applied to.
+GLOBAL_LIST_INIT(jelly_controller_application_cooldowns, list())	//candidate ckey -> world.time of next allowed application action.
 
 GLOBAL_LIST_EMPTY(language_datum_instances)
 GLOBAL_LIST_EMPTY(all_languages)

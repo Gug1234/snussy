@@ -215,6 +215,9 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 				var/mob/living/carbon/C = usr
 				C.put_in_hands(legwear_socks)
 			legwear_socks = null
+	if(href_list["chastitytoything"])
+		modular_handle_chastity_toy_removal(usr)
+		return
 	if(href_list["chastitything"])
 		modular_handle_chastitything(usr)
 		return
