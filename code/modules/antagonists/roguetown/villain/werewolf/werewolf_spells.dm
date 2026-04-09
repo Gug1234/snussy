@@ -9,12 +9,29 @@
 	var/list/howl_sounds = list('sound/vo/mobs/wwolf/howl (1).ogg','sound/vo/mobs/wwolf/howl (2).ogg')
 	var/list/howl_sounds_far = list('sound/vo/mobs/wwolf/howldist (1).ogg','sound/vo/mobs/wwolf/howldist (2).ogg')
 	var/howl_antag_type = /datum/antagonist/werewolf
-	var/howl_spies_allowed = TRUE
-	var/howl_distance_limit = 500
+	// Who can hear this howl. Use HOWL_CHANNEL_* constants. Default: werewolves and druids.
+	var/list/howl_channels = list(HOWL_CHANNEL_WEREWOLF, HOWL_CHANNEL_DRUID)
+	var/howl_distance_limit = 50
 	var/howl_distance_volume = 50
 	var/howl_prompt_text = "Howl at the hidden moon..."
 	var/howl_prompt_title = "MOONCURSED"
 	var/howl_announcement_target = "hidden moon"
+
+/obj/effect/proc_holder/spell/self/howl/proc/is_druid_howl_listener(mob/player)
+	if(!player?.mind)
+		return FALSE
+
+	if(player.mind.assigned_role == "Druid" || player.mind.assigned_role == "Druidess")
+		return TRUE
+
+	var/mob/living/carbon/human/human_player = player
+	if(istype(human_player) && human_player.patron?.type == /datum/patron/divine/dendor && player.mind.assigned_role == "Acolyte")
+		return TRUE
+
+	if(player.mind.get_spell(/obj/effect/proc_holder/spell/self/howl/call_of_the_moon))
+		return TRUE
+
+	return FALSE
 
 /obj/effect/proc_holder/spell/self/howl/cast(mob/user = usr)
 	..()
@@ -37,8 +54,15 @@
 			to_chat(player, span_notice("[speaker_name] howls to the [howl_announcement_target]: [message]"))
 			continue
 
-		// Announcement to matching antags and beast-language listeners
-		if(player.mind.has_antag_datum(howl_antag_type) || (player.has_language(/datum/language/beast)) && howl_spies_allowed)
+		// Check each named channel to see if this player qualifies to hear the howl
+		var/can_hear = FALSE
+		if(HOWL_CHANNEL_WEREWOLF in howl_channels)
+			can_hear = can_hear || player.mind.has_antag_datum(/datum/antagonist/werewolf)
+		if(HOWL_CHANNEL_DRUID in howl_channels)
+			can_hear = can_hear || is_druid_howl_listener(player)
+		if(HOWL_CHANNEL_GNOLL in howl_channels)
+			can_hear = can_hear || player.mind.has_antag_datum(/datum/antagonist/gnoll)
+		if(can_hear)
 			to_chat(player, span_boldannounce("[speaker_name] howls to the [howl_announcement_target]: [message]"))
 
 		//sound played for other players
