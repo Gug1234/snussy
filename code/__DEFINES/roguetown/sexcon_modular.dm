@@ -85,6 +85,15 @@
 /// Arousal must have been at or above this level to trigger withdrawal on drop.
 #define INTIMATE_WITHDRAWAL_AROUSAL_PEAK 80
 
+// ── Intimate Visible Message Content Flags ─────────────────────────────────
+// Bitflags passed to get_intimate_excluded_mobs() so viewer pref filtering
+// can be resolved in a single hearers pass per visible_message call.
+
+/// Message relates to chastity devices (jingles, arousal, denial, pain).
+#define INTIMATE_CONTENT_CHASTITY (1<<0)
+/// Message contains extreme/spike/pain content.
+#define INTIMATE_CONTENT_EXTREME  (1<<1)
+
 /// Legacy flat category list — kept for backward compatibility with old saves.
 /// New code should use tier-prefixed keys (e.g., "neutral_movement").
 #define INTIMATE_REACTION_CATEGORIES  list("movement", "sex_received")

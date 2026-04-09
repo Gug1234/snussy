@@ -121,8 +121,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	/// When TRUE the player can volunteer for consensual strange jelly controller roles.
 	var/jelly_controller_enabled = FALSE
 	/// When TRUE the "View intimate accessories…" examine link is shown to eligible observers.
-	/// Toggled via the ERP Preferences menu. Defaults TRUE so existing wearers are unaffected.
-	var/show_intimate_examine = TRUE
+	/// Toggled via the ERP Preferences menu.
+	var/show_intimate_examine = FALSE
 	/// When TRUE the intimate accessories panel will attempt to render paper-doll item visuals.
 	/// Reserved for future art-asset work; toggling it now prepares the pref without visible effect.
 	var/intimate_visual_widgets = FALSE
@@ -133,11 +133,11 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	/// reactions) from themselves and others. When FALSE all intimate_reaction visible_messages and to_chats are suppressed.
 	var/intimate_reaction_enabled = FALSE
 	/// Sub-toggle: when FALSE, suppresses chastity-device reaction text (jingles, arousal, pain, etc.).
-	var/intimate_reaction_show_chastity = TRUE
+	var/intimate_reaction_show_chastity = FALSE
 	/// Sub-toggle: when FALSE, suppresses extreme/pain/spike intimate reaction text.
-	var/intimate_reaction_show_extreme = TRUE
+	var/intimate_reaction_show_extreme = FALSE
 	/// Sub-toggle: when FALSE, suppresses accessory-free character flavor text (custom movement, flash, sex-received).
-	var/intimate_reaction_show_accessory_free = TRUE
+	var/intimate_reaction_show_accessory_free = FALSE
 	/// Typepath of the piercing to equip in the genital slot at round-start. Null = none.
 	var/pref_intimate_genital_piercing = null
 	/// Typepath of the insertable to equip in the genital slot at round-start. Null = none.

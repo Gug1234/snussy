@@ -552,12 +552,16 @@
 		return TRUE
 
 	var/custom_push_msg = beads.get_push_bead_message(user, wearer)
+	// Spiked and glass beads have extreme insertion text — filter bystanders.
+	var/list/excluded
+	if(istype(beads, /obj/item/intimate_accessory/rear/plug/analbeads/spiked) || istype(beads, /obj/item/intimate_accessory/rear/plug/analbeads/glass))
+		excluded = get_extreme_content_excluded_mobs(wearer)
 	if(custom_push_msg)
-		user.visible_message(span_notice(custom_push_msg))
+		user.visible_message(span_notice(custom_push_msg), ignored_mobs = excluded)
 	else if(user == wearer)
-		user.visible_message(span_notice("[user] slowly pushes another bead in..."))
+		user.visible_message(span_notice("[user] slowly pushes another bead in..."), ignored_mobs = excluded)
 	else
-		user.visible_message(span_notice("[user] slowly pushes another bead into [wearer]..."))
+		user.visible_message(span_notice("[user] slowly pushes another bead into [wearer]..."), ignored_mobs = excluded)
 
 	if(!do_after(user, 20, needhand = 1, target = wearer))
 		return TRUE
@@ -590,12 +594,16 @@
 		return TRUE
 
 	var/custom_pull_msg = beads.get_pull_bead_message(user, wearer)
+	// Spiked and glass beads have extreme removal text — filter bystanders.
+	var/list/excluded
+	if(istype(beads, /obj/item/intimate_accessory/rear/plug/analbeads/spiked) || istype(beads, /obj/item/intimate_accessory/rear/plug/analbeads/glass))
+		excluded = get_extreme_content_excluded_mobs(wearer)
 	if(custom_pull_msg)
-		user.visible_message(span_notice(custom_pull_msg))
+		user.visible_message(span_notice(custom_pull_msg), ignored_mobs = excluded)
 	else if(user == wearer)
-		user.visible_message(span_notice("[user] starts pulling a bead out..."))
+		user.visible_message(span_notice("[user] starts pulling a bead out..."), ignored_mobs = excluded)
 	else
-		user.visible_message(span_notice("[user] starts pulling a bead out of [wearer]..."))
+		user.visible_message(span_notice("[user] starts pulling a bead out of [wearer]..."), ignored_mobs = excluded)
 
 	if(!do_after(user, 20, needhand = 1, target = wearer))
 		return TRUE
@@ -646,8 +654,12 @@
 
 	// Show the ripcord message
 	var/ripcord_msg = beads.get_ripcord_message(user, wearer, violent)
+	// Extreme bead types — filter bystanders who opted out of extreme content.
+	var/list/excluded
+	if(istype(beads, /obj/item/intimate_accessory/rear/plug/analbeads/spiked) || istype(beads, /obj/item/intimate_accessory/rear/plug/analbeads/glass))
+		excluded = get_extreme_content_excluded_mobs(wearer)
 	if(ripcord_msg)
-		user.visible_message(span_warning(ripcord_msg))
+		user.visible_message(span_warning(ripcord_msg), ignored_mobs = excluded)
 
 	// Ripcord delay — violent is fast, gentle is slow
 	var/delay = violent ? 10 : (count * 5)

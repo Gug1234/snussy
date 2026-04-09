@@ -156,11 +156,13 @@
 		return FALSE
 	last_movement_message_time = world.time
 	mark_reaction_fired(source, "movement")
+	// Filter out viewers whose master intimate‐reaction toggle is off.
+	var/list/excluded = get_intimate_excluded_mobs(source)
 	// Jingle messages begin with "'s" and concatenate directly onto the name without a separating space.
 	if(copytext(message, 1, 3) == "'s")
-		source.visible_message(span_notice("[source][message]"))
+		source.visible_message(span_notice("[source][message]"), ignored_mobs = excluded)
 	else
-		source.visible_message(span_notice("[source] [message]"))
+		source.visible_message(span_notice("[source] [message]"), ignored_mobs = excluded)
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message to the wearer.

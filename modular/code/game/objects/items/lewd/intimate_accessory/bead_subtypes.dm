@@ -59,7 +59,8 @@
 		if(groin)
 			groin.add_wound(/datum/wound/slash/large)
 			groin.add_wound(/datum/wound/slash/large)
-		target.visible_message(span_userdanger("Bloody glass shards fall from between [target]'s legs along with the remaining beads."))
+		var/list/excluded = get_extreme_content_excluded_mobs(target)
+		target.visible_message(span_userdanger("Bloody glass shards fall from between [target]'s legs along with the remaining beads."), ignored_mobs = excluded)
 		target.Knockdown(30)
 		// Destroy the beads — they're shattered
 		remove_intimate_accessory(target)
@@ -113,9 +114,11 @@
 	if(!victim || QDELETED(src) || src.wearer != victim)
 		return
 	// Shatter the beads
+	var/list/excluded = get_extreme_content_excluded_mobs(victim)
 	victim.visible_message(
 		span_userdanger("The glass beads inside [victim] shatter on impact, jagged shards ripping through [victim]'s insides!"),
-		span_userdanger("WHITE-HOT AGONY — the glass beads inside you shatter, shards tearing through your guts!"))
+		span_userdanger("WHITE-HOT AGONY — the glass beads inside you shatter, shards tearing through your guts!"),
+		ignored_mobs = excluded)
 	playsound(victim, 'sound/foley/glassbreak.ogg', 60, TRUE)
 
 	// Apply a grievous slash wound to the groin
@@ -128,7 +131,7 @@
 	beads_inserted = 0
 	remove_intimate_accessory(victim)
 	if(!QDELETED(src))
-		victim.visible_message(span_warning("Bloody glass shards fall from between [victim]'s legs."))
+		victim.visible_message(span_warning("Bloody glass shards fall from between [victim]'s legs."), ignored_mobs = excluded)
 		qdel(src)
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -761,7 +764,8 @@
 			var/obj/item/bodypart/chest/chest = target.get_bodypart(BODY_ZONE_CHEST)
 			if(chest)
 				chest.add_wound(/datum/wound/slash/small)
-			target.visible_message(span_userdanger("The endless chain of beads drags through [target]'s guts with enough friction to burn — [target] can taste bile."))
+			var/list/excluded = get_extreme_content_excluded_mobs(target)
+			target.visible_message(span_userdanger("The endless chain of beads drags through [target]'s guts with enough friction to burn — [target] can taste bile."), ignored_mobs = excluded)
 		target.Knockdown(25)
 // ════════════════════════════════════════════════════════════════════════════
 // SPIKED — 6 spiked morningstar balls. Unsocketable. Extreme ERP only.
@@ -855,7 +859,8 @@
 		var/obj/item/bodypart/groin = target.get_bodypart(check_zone(BODY_ZONE_PRECISE_GROIN))
 		if(groin)
 			groin.add_wound(/datum/wound/fracture)
-		target.visible_message(span_userdanger("[target]'s insides are shredded — blood pours from between [target.p_their()] legs as the spiked chain tears free."))
+		var/list/excluded = get_extreme_content_excluded_mobs(target)
+		target.visible_message(span_userdanger("[target]'s insides are shredded — blood pours from between [target.p_their()] legs as the spiked chain tears free."), ignored_mobs = excluded)
 		playsound(target, 'sound/combat/fracture/fracturewet (1).ogg', 55, TRUE)
 		target.Knockdown(40)
 /// Block ALL socketing — spiked beads have no sockets.
@@ -1083,7 +1088,8 @@
 			var/obj/item/bodypart/groin = target.get_bodypart(check_zone(BODY_ZONE_PRECISE_GROIN))
 			if(groin)
 				groin.add_wound(/datum/wound/fracture)
-			target.visible_message(span_userdanger("Something cracks inside [target]'s pelvis as the last ball tears free."))
+			var/list/excluded = get_extreme_content_excluded_mobs(target)
+			target.visible_message(span_userdanger("Something cracks inside [target]'s pelvis as the last ball tears free."), ignored_mobs = excluded)
 			playsound(target, 'sound/combat/fracture/fracturewet (1).ogg', 50, TRUE)
 		target.Knockdown(30)
 
