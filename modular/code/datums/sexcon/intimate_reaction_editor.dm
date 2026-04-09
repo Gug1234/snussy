@@ -10,9 +10,11 @@
  * preferences_intimate_reactions.dm) and persisted as JSON in the character savefile.
  *
  * Token placeholders resolved at runtime (see resolve_intimate_reaction_tokens):
- *   [USER]   [TARGET]  [THEY]  [THEM]  [THEIR]
+ *   [USER]   [TARGET]  [THEY]  [THEM]  [THEIR]  [THEIR_CAP]
  *   [TTHEY]  [TTHEM]   [TTHEIR]
- *   [PENIS_TYPE]  [CUPSIZE]  [TAUR]  [SHEATH]  [GENITAL_DESC]
+ *   [PENIS_TYPE]  [SHEATH]  [SIZEADJ]  [COCKSIZE]
+ *   [VAGADJ]  [VAGTYPE]  [CUPADJ]  [CUPSIZE]  [BREASTTYPE]
+ *   [TAUR]  [GENITAL_DESC]
  *
  * Categories:
  *   "movement"     — walk/move flavor (fires on COMSIG_MOVABLE_MOVED)
@@ -61,6 +63,8 @@
 	var/preset_result
 	/// Whether the last preset result was a success (TRUE) or failure (FALSE).
 	var/preset_result_success = FALSE
+	/// The last resolved preview text (cleared when a new preview is requested).
+	var/resolved_preview_text
 
 /datum/intimate_reaction_editor/New(mob/living/carbon/human/H)
 	if(!istype(H))
@@ -127,18 +131,30 @@
 		INTIMATE_TIER_ROUGHUSE    = "Rough-Use",
 		INTIMATE_TIER_BROKEN      = "Broken",
 	)
+	var/static/list/tier_descs = list(
+		INTIMATE_TIER_NEUTRAL     = "Default state — no arousal. Fires during normal movement and non-sexual touch.",
+		INTIMATE_TIER_LUSTY       = "Low-to-moderate arousal. Fires when lust is present but hasn't peaked.",
+		INTIMATE_TIER_BUILDING    = "High arousal, actively building toward climax.",
+		INTIMATE_TIER_OVERWHELMED = "At or near climax. Peak arousal and orgasm.",
+		INTIMATE_TIER_AFTERGLOW   = "Post-climax cooldown. Lust is dropping after orgasm.",
+		INTIMATE_TIER_WITHDRAWAL  = "Frustrated arousal that was denied or interrupted — aroused with no outlet.",
+		INTIMATE_TIER_ROUGHUSE    = "Being used roughly or forcefully during aggressive sex.",
+		INTIMATE_TIER_BROKEN      = "Past the point of coherent reaction — extreme or repeated overstimulation.",
+	)
 	var/static/list/context_defs = list(
-		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement"),
-		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received"),
-		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received"),
+		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around. Only you see these."),
+		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you. Only you see these."),
+		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you. Only you see these."),
 	)
 	for(var/tier in tier_labels)
 		var/tier_label = tier_labels[tier]
+		var/tier_desc = tier_descs[tier]
 		for(var/list/ctx in context_defs)
 			var/cat_key = "[tier]_[ctx["suffix"]]"
 			character_categories += list(list(
 				"key" = cat_key,
 				"label" = "[tier_label] — [ctx["label"]]",
+				"desc" = "[tier_desc] [ctx["desc"]]",
 				"file" = "intimate_reaction_presets.json",
 				"json_key" = cat_key,
 				"path" = INTIMATE_EDITOR_PRESETS_PATH,
@@ -146,6 +162,7 @@
 
 	banks["character"] = list(
 		"label" = "Character",
+		"desc" = "Your body's reactions to arousal and sex, organized by arousal stage and context (movement vs. receiving).",
 		"available" = FALSE,
 		"categories" = character_categories,
 	)
@@ -153,85 +170,90 @@
 	// ── Piercing bank ──────────────────────────────────────────────────
 	banks["piercing"] = list(
 		"label" = "Piercings",
+		"desc" = "Reactions to piercing jewelry shifting against or stimulating your body during movement and sex.",
 		"available" = FALSE,
 		"categories" = list(
-			list("key" = "piercing_breast_bare", "label" = "Breast Move (Bare)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_breast_cloth", "label" = "Breast Move (Clothed)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_breast_light_armor", "label" = "Breast Move (Lt. Armor)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_light_armor", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_genital_bare", "label" = "Genital Move (Bare)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_genital_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_genital_cloth", "label" = "Genital Move (Clothed)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_genital_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_genital_light_armor", "label" = "Genital Move (Lt. Armor)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_genital_light_armor", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_rear_bare", "label" = "Rear Move (Bare)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_rear_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_rear_cloth", "label" = "Rear Move (Clothed)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_rear_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_rear_light_armor", "label" = "Rear Move (Lt. Armor)", "file" = "piercing_movement_messages.json", "json_key" = "piercing_rear_light_armor", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_breast_receive", "label" = "Breast Receive", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_breast_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_genital_cock_receive", "label" = "Genital Receive (Cock)", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_genital_cock_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_genital_cunt_receive", "label" = "Genital Receive (Cunt)", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_genital_cunt_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_genital_general_receive", "label" = "Genital Receive (Gen.)", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_genital_general_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_rear_receive", "label" = "Rear Receive", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_rear_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "piercing_mouth_receive", "label" = "Mouth Receive", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_mouth_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_breast_bare", "label" = "Breast Move (Bare)", "desc" = "Breast piercing shifting while exposed.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_breast_cloth", "label" = "Breast Move (Clothed)", "desc" = "Breast piercing rubbing under clothing.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_breast_light_armor", "label" = "Breast Move (Lt. Armor)", "desc" = "Breast piercing pressing against light armor.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_breast_light_armor", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_genital_bare", "label" = "Genital Move (Bare)", "desc" = "Genital piercing swinging freely while exposed.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_genital_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_genital_cloth", "label" = "Genital Move (Clothed)", "desc" = "Genital piercing catching on fabric.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_genital_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_genital_light_armor", "label" = "Genital Move (Lt. Armor)", "desc" = "Genital piercing grinding against armor.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_genital_light_armor", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_rear_bare", "label" = "Rear Move (Bare)", "desc" = "Rear piercing shifting while exposed.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_rear_bare", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_rear_cloth", "label" = "Rear Move (Clothed)", "desc" = "Rear piercing rubbing under clothing.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_rear_cloth", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_rear_light_armor", "label" = "Rear Move (Lt. Armor)", "desc" = "Rear piercing pressing against light armor.", "file" = "piercing_movement_messages.json", "json_key" = "piercing_rear_light_armor", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_breast_receive", "label" = "Breast Receive", "desc" = "Someone interacts with your breast piercing.", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_breast_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_genital_cock_receive", "label" = "Genital Receive (Cock)", "desc" = "Someone interacts with your genital piercing (cock-specific).", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_genital_cock_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_genital_cunt_receive", "label" = "Genital Receive (Cunt)", "desc" = "Someone interacts with your genital piercing (cunt-specific).", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_genital_cunt_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_genital_general_receive", "label" = "Genital Receive (Gen.)", "desc" = "Someone interacts with your genital piercing (general).", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_genital_general_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_rear_receive", "label" = "Rear Receive", "desc" = "Someone interacts with your rear piercing.", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_rear_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "piercing_mouth_receive", "label" = "Mouth Receive", "desc" = "Someone interacts with your mouth piercing.", "file" = "piercing_receive_flavor.json", "json_key" = "piercing_mouth_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 		),
 	)
 
 	// ── Insertable (Plug) bank ─────────────────────────────────────────
 	banks["insertable"] = list(
 		"label" = "Plugs",
+		"desc" = "Reactions to insertable toys (plugs) shifting during movement or being interacted with.",
 		"available" = FALSE,
 		"categories" = list(
-			list("key" = "insertable_genital_shift", "label" = "Genital Plug Move", "file" = "insertable_movement_messages.json", "json_key" = "insertable_genital_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "insertable_rear_shift", "label" = "Rear Plug Move", "file" = "insertable_movement_messages.json", "json_key" = "insertable_rear_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "insertable_genital_receive", "label" = "Genital Plug Receive", "file" = "insertable_receive_flavor.json", "json_key" = "insertable_genital_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
-			list("key" = "insertable_rear_receive", "label" = "Rear Plug Receive", "file" = "insertable_receive_flavor.json", "json_key" = "insertable_rear_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "insertable_genital_shift", "label" = "Genital Plug Move", "desc" = "A plug in your genitals shifts as you walk.", "file" = "insertable_movement_messages.json", "json_key" = "insertable_genital_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "insertable_rear_shift", "label" = "Rear Plug Move", "desc" = "A plug in your rear shifts as you walk.", "file" = "insertable_movement_messages.json", "json_key" = "insertable_rear_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "insertable_genital_receive", "label" = "Genital Plug Receive", "desc" = "Someone interacts with the plug in your genitals.", "file" = "insertable_receive_flavor.json", "json_key" = "insertable_genital_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "insertable_rear_receive", "label" = "Rear Plug Receive", "desc" = "Someone interacts with the plug in your rear.", "file" = "insertable_receive_flavor.json", "json_key" = "insertable_rear_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 		),
 	)
 
 	// ── Chastity bank ──────────────────────────────────────────────────
 	banks["chastity"] = list(
 		"label" = "Chastity",
+		"desc" = "Reactions while wearing a chastity device — movement discomfort, frustrated arousal, and device interaction.",
 		"available" = FALSE,
 		"categories" = list(
-			list("key" = "chastity_jingle_emotes", "label" = "Jingle (Bare)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_emotes", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_movement_pain", "label" = "Move Pain", "file" = "chastity_movement_messages.json", "json_key" = "chastity_movement_pain", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_movement_struggle", "label" = "Move Struggle", "file" = "chastity_movement_messages.json", "json_key" = "chastity_movement_struggle", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_jingle_cloth", "label" = "Jingle (Clothed)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_cloth", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_jingle_light_armor", "label" = "Jingle (Lt. Armor)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_light_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_jingle_medium_armor", "label" = "Jingle (Med. Armor)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_medium_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_jingle_heavy_armor", "label" = "Jingle (Hvy. Armor)", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_heavy_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_cock_anal_receive", "label" = "Cock Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_cock_general_receive", "label" = "Cock General", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_vagina_anal_receive", "label" = "Vagina Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_intersex_anal_receive", "label" = "Intersex Anal", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_vagina_general_receive", "label" = "Vagina General", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_receive_devout", "label" = "Devout Receive", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_receive_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_intersex_general_receive", "label" = "Intersex General", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_cock_masturbation", "label" = "Cock Masturbation", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_masturbation", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_vagina_masturbation", "label" = "Vagina Masturbation", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_masturbation", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_intersex_masturbation", "label" = "Intersex Masturbation", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_masturbation", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_cock_outercourse", "label" = "Cock Outercourse", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_vagina_outercourse", "label" = "Vagina Outercourse", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_intersex_outercourse", "label" = "Intersex Outercourse", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_masturbation_devout", "label" = "Masturbation (Devout)", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_masturbation_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
-			list("key" = "chastity_outercourse_devout", "label" = "Outercourse (Devout)", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_outercourse_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_jingle_emotes", "label" = "Jingle (Bare)", "desc" = "The chastity device jingles audibly while you're exposed.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_emotes", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_movement_pain", "label" = "Move Pain", "desc" = "The device causes pain as you move.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_movement_pain", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_movement_struggle", "label" = "Move Struggle", "desc" = "You struggle against the device as you move.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_movement_struggle", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_jingle_cloth", "label" = "Jingle (Clothed)", "desc" = "The device jingles under clothing.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_cloth", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_jingle_light_armor", "label" = "Jingle (Lt. Armor)", "desc" = "The device jingles under light armor.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_light_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_jingle_medium_armor", "label" = "Jingle (Med. Armor)", "desc" = "The device jingles under medium armor.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_medium_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_jingle_heavy_armor", "label" = "Jingle (Hvy. Armor)", "desc" = "The device jingles under heavy armor.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_heavy_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_cock_anal_receive", "label" = "Cock Anal", "desc" = "Anal sex while caged (cock).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_cock_general_receive", "label" = "Cock General", "desc" = "General sex while caged (cock).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_vagina_anal_receive", "label" = "Vagina Anal", "desc" = "Anal sex while belted (vagina).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_intersex_anal_receive", "label" = "Intersex Anal", "desc" = "Anal sex while caged and belted (intersex).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_vagina_general_receive", "label" = "Vagina General", "desc" = "General sex while belted (vagina).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_receive_devout", "label" = "Devout Receive", "desc" = "Sex/contact while devoutly wearing chastity.", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_receive_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_intersex_general_receive", "label" = "Intersex General", "desc" = "General sex while caged and belted (intersex).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_cock_masturbation", "label" = "Cock Masturbation", "desc" = "Attempting to masturbate while caged (cock).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_masturbation", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_vagina_masturbation", "label" = "Vagina Masturbation", "desc" = "Attempting to masturbate while belted (vagina).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_masturbation", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_intersex_masturbation", "label" = "Intersex Masturbation", "desc" = "Attempting to masturbate while caged and belted (intersex).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_masturbation", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_cock_outercourse", "label" = "Cock Outercourse", "desc" = "Outercourse while caged (cock).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_vagina_outercourse", "label" = "Vagina Outercourse", "desc" = "Outercourse while belted (vagina).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_intersex_outercourse", "label" = "Intersex Outercourse", "desc" = "Outercourse while caged and belted (intersex).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_intersex_outercourse", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_masturbation_devout", "label" = "Masturbation (Devout)", "desc" = "Attempting to masturbate while devoutly wearing chastity.", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_masturbation_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_outercourse_devout", "label" = "Outercourse (Devout)", "desc" = "Outercourse while devoutly wearing chastity.", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_outercourse_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 		),
 	)
 
 	// ── Manticore Tail bank ────────────────────────────────────────────
 	banks["manticore_tail"] = list(
 		"label" = "Manticore Tail",
+		"desc" = "Reactions from your manticore stinger tail — idle fidgeting, aroused behavior, and sexual use.",
 		"available" = FALSE,
 		"categories" = list(
-			list("key" = "manticore_tail_idle", "label" = "Tail Move (Idle)", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_idle", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-			list("key" = "manticore_tail_aroused", "label" = "Tail Move (Aroused)", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_aroused", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-			list("key" = "manticore_tail_penetrated", "label" = "Tail Penetrated", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_penetrated", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-			list("key" = "manticore_tail_wrapping", "label" = "Tail Wrapping", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_wrapping", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-			list("key" = "manticore_tail_oral", "label" = "Tail Oral", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_oral", "path" = INTIMATE_EDITOR_STRINGS_PATH),
-			list("key" = "manticore_tail_climax", "label" = "Tail Climax", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_climax", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_idle", "label" = "Tail Move (Idle)", "desc" = "The tail shifts and fidgets while you're unaroused.", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_idle", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_aroused", "label" = "Tail Move (Aroused)", "desc" = "The tail reacts while you're aroused.", "file" = "manticore_tail_movement_messages.json", "json_key" = "manticore_tail_aroused", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_penetrated", "label" = "Tail Penetrated", "desc" = "Something enters or stimulates the tail's opening.", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_penetrated", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_wrapping", "label" = "Tail Wrapping", "desc" = "The tail wraps around someone or something.", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_wrapping", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_oral", "label" = "Tail Oral", "desc" = "Oral contact with the tail.", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_oral", "path" = INTIMATE_EDITOR_STRINGS_PATH),
+			list("key" = "manticore_tail_climax", "label" = "Tail Climax", "desc" = "The tail's reaction during orgasm.", "file" = "manticore_tail_receive_flavor.json", "json_key" = "manticore_tail_climax", "path" = INTIMATE_EDITOR_STRINGS_PATH),
 		),
 	)
 
 	// ── Jelly bank ─────────────────────────────────────────────────────
 	banks["jelly"] = list(
 		"label" = "Eora Jelly",
+		"desc" = "Reactions from your bonded Eora jelly parasite — moods, feeding, autonomy, cocoon events, and more.",
 		"available" = FALSE,
 		"categories" = list(
 			// ── Mood emotes (visible + self pairs) ──
@@ -421,11 +443,14 @@
 	var/list/banks_out = list()
 	for(var/bank_id in bank_defs)
 		var/list/bdef = bank_defs[bank_id]
-		banks_out += list(list(
+		var/list/bank_entry = list(
 			"id"        = bank_id,
 			"label"     = bdef["label"],
 			"available" = bdef["available"],
-		))
+		)
+		if(bdef["desc"])
+			bank_entry["desc"] = bdef["desc"]
+		banks_out += list(bank_entry)
 	data["banks"] = banks_out
 
 	// ── Build category list for the selected bank ─────────────────────
@@ -441,6 +466,8 @@
 			"label" = cdef["label"],
 			"count" = count,
 		)
+		if(cdef["desc"])
+			cat_entry["desc"] = cdef["desc"]
 		if(cdef["hidden"])
 			cat_entry["hidden"] = TRUE
 		if(cdef["group"])
@@ -454,19 +481,30 @@
 		current_strings = all_reactions[selected_category]
 	data["current_strings"] = current_strings
 
+	// ── Current weights for the selected category ─────────────────────
+	var/list/current_weights = list()
+	var/weight_key = "weight_[selected_category]"
+	if(islist(all_reactions[weight_key]))
+		current_weights = all_reactions[weight_key]
+	// Pad weights to match string count, defaulting to 100.
+	while(current_weights.len < current_strings.len)
+		current_weights += 100
+	data["current_weights"] = current_weights
+
 	// ── Default strings from JSON bank ────────────────────────────────
 	var/list/default_strings = list()
 	// Find current category definition to get JSON source info
 	for(var/list/cdef in cat_defs)
 		if(cdef["key"] == selected_category && cdef["file"] && cdef["path"])
-			// Guard against missing keys — preset files are species-keyed,
-			// so the generic category key may not exist as a JSON index.
-			try
-				var/loaded = strings(cdef["file"], cdef["json_key"], cdef["path"])
+			// Load the file into the global cache (no-op if already cached),
+			// then look up the key directly. This avoids strings() which
+			// CRASH()s on missing keys — and BYOND's try/catch does not
+			// reliably catch CRASH().
+			load_strings_file(cdef["file"], cdef["path"])
+			if((cdef["file"] in GLOB.string_cache) && (cdef["json_key"] in GLOB.string_cache[cdef["file"]]))
+				var/list/loaded = GLOB.string_cache[cdef["file"]][cdef["json_key"]]
 				if(islist(loaded))
 					default_strings = loaded
-			catch
-				// Key not found in JSON — no defaults for this category.
 			break
 	data["default_strings"] = default_strings
 
@@ -485,14 +523,14 @@
 			list("id" = "demonic",   "label" = "Demonic"),
 		)
 		data["preset_stages"] = list(
-			list("id" = INTIMATE_TIER_NEUTRAL,     "label" = "Neutral",     "has_genital" = FALSE),
-			list("id" = INTIMATE_TIER_LUSTY,       "label" = "Lusty",       "has_genital" = TRUE),
-			list("id" = INTIMATE_TIER_BUILDING,    "label" = "Building",    "has_genital" = TRUE),
-			list("id" = INTIMATE_TIER_OVERWHELMED, "label" = "Overwhelmed", "has_genital" = TRUE),
-			list("id" = INTIMATE_TIER_AFTERGLOW,   "label" = "Afterglow",   "has_genital" = TRUE),
-			list("id" = INTIMATE_TIER_WITHDRAWAL,  "label" = "Withdrawal",  "has_genital" = TRUE),
-			list("id" = INTIMATE_TIER_ROUGHUSE,    "label" = "Rough-Use",   "has_genital" = TRUE),
-			list("id" = INTIMATE_TIER_BROKEN,      "label" = "Broken",      "has_genital" = FALSE),
+			list("id" = INTIMATE_TIER_NEUTRAL,     "label" = "Neutral",     "has_genital" = FALSE, "desc" = "Default state — no arousal. Fires during normal movement and non-sexual touch."),
+			list("id" = INTIMATE_TIER_LUSTY,       "label" = "Lusty",       "has_genital" = TRUE,  "desc" = "Low-to-moderate arousal. Fires when lust is present but hasn't peaked."),
+			list("id" = INTIMATE_TIER_BUILDING,    "label" = "Building",    "has_genital" = TRUE,  "desc" = "High arousal, actively building toward climax."),
+			list("id" = INTIMATE_TIER_OVERWHELMED, "label" = "Overwhelmed", "has_genital" = TRUE,  "desc" = "At or near climax. Peak arousal and orgasm."),
+			list("id" = INTIMATE_TIER_AFTERGLOW,   "label" = "Afterglow",   "has_genital" = TRUE,  "desc" = "Post-climax cooldown. Lust is dropping after orgasm."),
+			list("id" = INTIMATE_TIER_WITHDRAWAL,  "label" = "Withdrawal",  "has_genital" = TRUE,  "desc" = "Frustrated arousal that was denied or interrupted — aroused with no outlet."),
+			list("id" = INTIMATE_TIER_ROUGHUSE,    "label" = "Rough-Use",   "has_genital" = TRUE,  "desc" = "Being used roughly or forcefully during aggressive sex."),
+			list("id" = INTIMATE_TIER_BROKEN,      "label" = "Broken",      "has_genital" = FALSE, "desc" = "Past the point of coherent reaction — extreme or repeated overstimulation."),
 		)
 		data["preset_genitals"] = list(
 			list("id" = "penis",  "label" = "Penis"),
@@ -507,11 +545,17 @@
 
 	// Token reference for the frontend help panel.
 	data["tokens"] = list(
-		"\[USER]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]",
+		"\[USER]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]", "\[THEIR_CAP]",
 		"\[TTHEY]", "\[TTHEM]", "\[TTHEIR]",
-		"\[PENIS_TYPE]", "\[CUPSIZE]", "\[TAUR]", "\[SHEATH]", "\[GENITAL_DESC]",
-		"\[FORCE]", "\[THEIR_CAP]", "\[JELLY]", "\[PLUG]",
+		"\[PENIS_TYPE]", "\[SHEATH]", "\[SIZEADJ]", "\[COCKSIZE]",
+		"\[VAGADJ]", "\[VAGTYPE]", "\[CUPADJ]", "\[CUPSIZE]", "\[BREASTTYPE]",
+		"\[TAUR]", "\[GENITAL_DESC]",
+		"\[FORCE]", "\[JELLY]", "\[PLUG]",
 	)
+
+	// ── Resolved preview text ─────────────────────────────────────────
+	if(resolved_preview_text)
+		data["resolved_preview"] = resolved_preview_text
 
 	return data
 
@@ -553,7 +597,7 @@
 			return TRUE
 
 		if("add_string")
-			var/new_str = sanitize(params["text"])
+			var/new_str = strip_html_simple(sanitize_simple(params["text"]))
 			if(!istext(new_str) || !length(new_str))
 				return FALSE
 			new_str = copytext(new_str, 1, INTIMATE_REACTION_MAX_LENGTH + 1)
@@ -579,6 +623,13 @@
 			if(!islist(cat_list) || idx > cat_list.len)
 				return FALSE
 			cat_list.Cut(idx, idx + 1)
+			// Also remove the corresponding weight entry.
+			var/weight_key = "weight_[selected_category]"
+			var/list/weight_list = prefs.custom_intimate_reactions[weight_key]
+			if(islist(weight_list) && idx <= weight_list.len)
+				weight_list.Cut(idx, idx + 1)
+				if(!weight_list.len)
+					prefs.custom_intimate_reactions.Remove(weight_key)
 			// Clean up empty category.
 			if(!cat_list.len)
 				prefs.custom_intimate_reactions.Remove(selected_category)
@@ -592,7 +643,7 @@
 			var/idx = text2num(params["index"])
 			if(!idx || idx < 1)
 				return FALSE
-			var/new_str = sanitize(params["text"])
+			var/new_str = strip_html_simple(sanitize_simple(params["text"]))
 			if(!istext(new_str) || !length(new_str))
 				return FALSE
 			new_str = copytext(new_str, 1, INTIMATE_REACTION_MAX_LENGTH + 1)
@@ -609,6 +660,7 @@
 			if(!islist(prefs.custom_intimate_reactions))
 				return FALSE
 			prefs.custom_intimate_reactions.Remove(selected_category)
+			prefs.custom_intimate_reactions.Remove("weight_[selected_category]")
 			if(!length(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = null
 			prefs.save_character()
@@ -670,13 +722,31 @@
 		if("preview_string")
 			var/preview_text = params["text"]
 			if(!istext(preview_text) || !length(preview_text))
+				resolved_preview_text = null
+				return TRUE
+			resolved_preview_text = resolve_preview(preview_text)
+			return TRUE
+
+		// ── Weight adjustment ────────────────────────────────────────────
+		if("set_weight")
+			var/idx = text2num(params["index"])
+			if(!idx || idx < 1)
 				return FALSE
-			var/mob/living/carbon/human/H = null
-			if(istype(owner))
-				H = owner
-			if(H)
-				preview_text = resolve_intimate_reaction_tokens(preview_text, H)
-			to_chat(usr, span_notice("<b>Preview:</b> [preview_text]"))
+			var/weight = clamp(text2num(params["weight"]), 0, 100)
+			if(!islist(prefs.custom_intimate_reactions))
+				return FALSE
+			var/list/cat_list = prefs.custom_intimate_reactions[selected_category]
+			if(!islist(cat_list) || idx > cat_list.len)
+				return FALSE
+			var/weight_key = "weight_[selected_category]"
+			if(!islist(prefs.custom_intimate_reactions[weight_key]))
+				prefs.custom_intimate_reactions[weight_key] = list()
+			var/list/weight_list = prefs.custom_intimate_reactions[weight_key]
+			// Pad weight list to match string count.
+			while(weight_list.len < cat_list.len)
+				weight_list += 100
+			weight_list[idx] = weight
+			prefs.save_character()
 			return TRUE
 
 		// ── Preset loading ──────────────────────────────────────────────
@@ -710,8 +780,10 @@
 			// Load from the presets JSON.
 			var/move_key = "[preset_id]_movement"
 			var/sex_key = "[preset_id]_sex_received"
-			var/list/move_strings = strings("intimate_reaction_presets.json", move_key, INTIMATE_EDITOR_PRESETS_PATH)
-			var/list/sex_strings = strings("intimate_reaction_presets.json", sex_key, INTIMATE_EDITOR_PRESETS_PATH)
+			load_strings_file("intimate_reaction_presets.json", INTIMATE_EDITOR_PRESETS_PATH)
+			var/list/file_data = GLOB.string_cache?["intimate_reaction_presets.json"]
+			var/list/move_strings = islist(file_data) ? file_data[move_key] : null
+			var/list/sex_strings = islist(file_data) ? file_data[sex_key] : null
 			if(!islist(move_strings) && !islist(sex_strings))
 				to_chat(usr, span_warning("Preset not found: [preset_id]"))
 				return FALSE
@@ -722,11 +794,7 @@
 			else
 				anal_preset_id = "[species]_[stage]_anal"
 			var/anal_key = "[anal_preset_id]_sex_received"
-			var/list/anal_strings
-			try
-				anal_strings = strings("intimate_reaction_presets.json", anal_key, INTIMATE_EDITOR_PRESETS_PATH)
-			catch
-				// Anal key not found — not all presets have anal variants.
+			var/list/anal_strings = islist(file_data) ? file_data[anal_key] : null
 			// Initialize reactions list if needed.
 			if(!islist(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = list()
@@ -754,7 +822,84 @@
 			to_chat(usr, span_notice(summary))
 			return TRUE
 
+		// ── Load ALL presets for a species ───────────────────────────────
+		if("load_all_presets")
+			if(selected_bank != "character")
+				return FALSE
+			var/species = params["species"]
+			if(!istext(species))
+				return FALSE
+			var/static/list/valid_species_all = list("humanoid", "tauric", "lamia", "anthro", "moth", "lizard", "insectoid", "avian", "aquatic", "demonic")
+			if(!(species in valid_species_all))
+				return FALSE
+
+			load_strings_file("intimate_reaction_presets.json", INTIMATE_EDITOR_PRESETS_PATH)
+			var/list/file_data = GLOB.string_cache?["intimate_reaction_presets.json"]
+			if(!islist(file_data))
+				preset_result = "Could not load preset data."
+				preset_result_success = FALSE
+				return FALSE
+
+			// Auto-detect genital type from the character's anatomy.
+			var/genital_type = "penis" // default
+			if(istype(owner))
+				var/has_penis = !!owner.getorganslot(ORGAN_SLOT_PENIS)
+				var/has_vagina = !!owner.getorganslot(ORGAN_SLOT_VAGINA)
+				if(has_vagina && !has_penis)
+					genital_type = "vagina"
+			var/genital_label = genital_type == "penis" ? "penis" : "vagina"
+
+			if(!islist(prefs.custom_intimate_reactions))
+				prefs.custom_intimate_reactions = list()
+
+			var/total_cats = 0
+			var/static/list/all_stages = INTIMATE_TIER_LIST
+			var/static/list/genital_stages_all = list(INTIMATE_TIER_LUSTY, INTIMATE_TIER_BUILDING, INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_AFTERGLOW, INTIMATE_TIER_WITHDRAWAL, INTIMATE_TIER_ROUGHUSE)
+
+			for(var/stage in all_stages)
+				var/has_genital = (stage in genital_stages_all)
+				var/preset_id = has_genital ? "[species]_[stage]_[genital_type]" : "[species]_[stage]"
+				// Movement
+				var/move_key = "[preset_id]_movement"
+				var/list/move_strings = file_data[move_key]
+				if(islist(move_strings) && length(move_strings))
+					var/move_cat = "[stage]_[INTIMATE_CONTEXT_MOVEMENT]"
+					prefs.custom_intimate_reactions[move_cat] = move_strings.Copy()
+					total_cats++
+				// Sex received
+				var/sex_key = "[preset_id]_sex_received"
+				var/list/sex_strings = file_data[sex_key]
+				if(islist(sex_strings) && length(sex_strings))
+					var/sex_cat = "[stage]_[INTIMATE_CONTEXT_SEX_RECEIVED]"
+					prefs.custom_intimate_reactions[sex_cat] = sex_strings.Copy()
+					total_cats++
+				// Anal received
+				var/anal_preset_id = has_genital ? "[species]_[stage]_anal_[genital_type]" : "[species]_[stage]_anal"
+				var/anal_key = "[anal_preset_id]_sex_received"
+				var/list/anal_strings = file_data[anal_key]
+				if(islist(anal_strings) && length(anal_strings))
+					var/anal_cat = "[stage]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]"
+					prefs.custom_intimate_reactions[anal_cat] = anal_strings.Copy()
+					total_cats++
+
+			prefs.save_character()
+			selected_category = "[INTIMATE_TIER_NEUTRAL]_[INTIMATE_CONTEXT_MOVEMENT]"
+			var/summary = "Applied all [capitalize(species)] presets ([total_cats] categories, [genital_label] variant)."
+			preset_result = summary
+			preset_result_success = TRUE
+			to_chat(usr, span_notice(summary))
+			return TRUE
+
 	return FALSE
+
+/**
+ * Resolves token placeholders in a preview string. Base version uses the
+ * owner mob; the lobby subtype overrides to resolve from preferences.
+ */
+/datum/intimate_reaction_editor/proc/resolve_preview(text)
+	if(istype(owner))
+		return resolve_intimate_reaction_tokens(text, owner)
+	return text
 
 
 // ── Lobby subtype ────────────────────────────────────────────────────────────
@@ -792,6 +937,117 @@
 
 /datum/intimate_reaction_editor/lobby/ui_state(mob/user)
 	return GLOB.always_state
+
+/**
+ * Lobby-side token resolution: pulls character data entirely from preferences
+ * and customizer entries so the preview works without a spawned mob.
+ */
+/datum/intimate_reaction_editor/lobby/resolve_preview(text)
+	if(!prefs)
+		return text
+
+	// --- Name ---
+	text = replacetext(text, "\[USER]", prefs.real_name || "Unknown")
+	text = replacetext(text, "\[TARGET]", "someone")
+
+	// --- Pronouns from prefs ---
+	var/p_they = "they"
+	var/p_them = "them"
+	var/p_their = "their"
+	switch(prefs.pronouns)
+		if(HE_HIM, HE_HIM_F)
+			p_they = "he"
+			p_them = "him"
+			p_their = "his"
+		if(SHE_HER, SHE_HER_M)
+			p_they = "she"
+			p_them = "her"
+			p_their = "her"
+		if(IT_ITS)
+			p_they = "it"
+			p_them = "it"
+			p_their = "its"
+
+	text = replacetext(text, "\[THEY]", p_they)
+	text = replacetext(text, "\[THEM]", p_them)
+	text = replacetext(text, "\[THEIR_CAP]", capitalize(p_their))
+	text = replacetext(text, "\[THEIR]", p_their)
+	text = replacetext(text, "\[TTHEY]", "they")
+	text = replacetext(text, "\[TTHEM]", "them")
+	text = replacetext(text, "\[TTHEIR]", "their")
+
+	// --- Penis data from customizer ---
+	var/penis_type_label = "none"
+	var/cocksize_label = "none"
+	var/sizeadj_label = "none"
+	var/sheath_label = "none"
+	var/datum/customizer_entry/organ/penis/pe = prefs.get_customizer_entry_of_type(/datum/customizer_entry/organ/penis)
+	if(pe && !pe.disabled && pe.customizer_choice_type)
+		var/datum/customizer_choice/organ/penis/choice = CUSTOMIZER_CHOICE(pe.customizer_choice_type)
+		if(choice)
+			var/organ_path = choice.organ_type
+			var/ptype = initial(organ_path:penis_type)
+			var/stype = initial(organ_path:sheath_type)
+			penis_type_label = get_penis_type_label(ptype)
+			cocksize_label = _penis_size_descriptor(pe.penis_size)
+			sizeadj_label = _penis_size_adjective(pe.penis_size)
+			switch(stype)
+				if(SHEATH_TYPE_NORMAL)
+					sheath_label = "sheath"
+				if(SHEATH_TYPE_SLIT)
+					sheath_label = "genital slit"
+	text = replacetext(text, "\[PENIS_TYPE]", penis_type_label)
+	text = replacetext(text, "\[COCKSIZE]", cocksize_label)
+	text = replacetext(text, "\[SIZEADJ]", sizeadj_label)
+	text = replacetext(text, "\[SHEATH]", sheath_label)
+
+	// --- Breast data from customizer ---
+	var/cup_label = "none"
+	var/cup_short_label = "none"
+	var/cupadj_label = "none"
+	var/breast_type_label = "none"
+	var/datum/customizer_entry/organ/breasts/be = prefs.get_customizer_entry_of_type(/datum/customizer_entry/organ/breasts)
+	if(be && !be.disabled)
+		cup_label = _breast_size_descriptor(be.breast_size)
+		cup_short_label = find_key_by_value(GLOB.named_breast_sizes, be.breast_size) || "unknown"
+		cupadj_label = _breast_size_adjective(be.breast_size)
+		breast_type_label = _breast_type_descriptor(be.accessory_type, be.breast_size)
+	text = replacetext(text, "\[CUPSIZE]", cup_label)
+	text = replacetext(text, "\[CUPADJ]", cupadj_label)
+	text = replacetext(text, "\[BREASTTYPE]", breast_type_label)
+
+	// --- Vagina data from customizer ---
+	var/vagtype_label = "none"
+	var/vagadj_label = "none"
+	var/datum/customizer_entry/organ/vagina/ve = prefs.get_customizer_entry_of_type(/datum/customizer_entry/organ/vagina)
+	if(ve && !ve.disabled)
+		vagtype_label = _vagina_type_descriptor(ve.accessory_type)
+		vagadj_label = _vagina_type_adjective(ve.accessory_type)
+	text = replacetext(text, "\[VAGTYPE]", vagtype_label)
+	text = replacetext(text, "\[VAGADJ]", vagadj_label)
+
+	// --- Taur ---
+	var/taur_label = "none"
+	if(prefs.taur_type)
+		taur_label = initial(prefs.taur_type:name)
+	text = replacetext(text, "\[TAUR]", taur_label)
+
+	// --- Genital descriptor ---
+	var/genital_desc = "smooth groin"
+	if(pe && !pe.disabled && be && !be.disabled)
+		genital_desc = "[penis_type_label] cock and [cup_short_label] chest"
+	else if(pe && !pe.disabled)
+		genital_desc = "[penis_type_label] cock"
+	else if(ve && !ve.disabled)
+		if(be && !be.disabled)
+			genital_desc = "slit and [cup_short_label] chest"
+		else
+			genital_desc = "slit"
+	else if(be && !be.disabled)
+		genital_desc = "[cup_short_label] chest"
+	text = replacetext(text, "\[GENITAL_DESC]", genital_desc)
+
+	return text
 
 #undef INTIMATE_EDITOR_STRINGS_PATH
 #undef INTIMATE_EDITOR_ACCESSORY_PATH

@@ -273,6 +273,7 @@
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
 	transform_sound = 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg'
 	untransform_sound = 'modular/sounds/trickweapons/kosparasite/parasite_birth.ogg'
+	dropshrink = 0.3
 	throwforce = 0
 	thrown_bclass = null
 	sellprice = 0

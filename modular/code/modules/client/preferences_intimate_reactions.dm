@@ -53,6 +53,20 @@
 	var/list/valid_cats = get_all_intimate_reaction_categories()
 	var/list/validated = list()
 	for(var/category in custom_intimate_reactions)
+		// Handle weight keys — "weight_<category>" is a parallel list of numbers.
+		if(copytext(category, 1, 8) == "weight_")
+			var/base_cat = copytext(category, 8)
+			if(base_cat in valid_cats)
+				var/list/weights = custom_intimate_reactions[category]
+				if(islist(weights) && weights.len)
+					var/list/valid_weights = list()
+					for(var/w in weights)
+						valid_weights += clamp(round(w), 0, 100)
+						if(valid_weights.len >= INTIMATE_REACTION_MAX_STRINGS)
+							break
+					if(valid_weights.len)
+						validated[category] = valid_weights
+			continue
 		if(!(category in valid_cats))
 			continue
 		var/list/strings = custom_intimate_reactions[category]
@@ -63,7 +77,10 @@
 		for(var/str in strings)
 			if(!istext(str) || !length(str))
 				continue
-			valid_strings += sanitize(copytext(str, 1, INTIMATE_REACTION_MAX_LENGTH + 1))
+			// html_decode() repairs legacy strings that were double-encoded
+			// by old sanitize() calls; strip_html_simple() prevents HTML
+			// injection at runtime without encoding entities for TGUI.
+			valid_strings += strip_html_simple(sanitize_simple(html_decode(copytext(str, 1, INTIMATE_REACTION_MAX_LENGTH + 1))))
 			if(valid_strings.len >= INTIMATE_REACTION_MAX_STRINGS)
 				break
 
@@ -113,6 +130,7 @@
 	// --- User pronoun tokens (leverage existing mob procs which respect disguises & pronoun prefs) ---
 	text = replacetext(text, "\[THEY]", user.p_they())
 	text = replacetext(text, "\[THEM]", user.p_them())
+	text = replacetext(text, "\[THEIR_CAP]", capitalize(user.p_their()))
 	text = replacetext(text, "\[THEIR]", user.p_their())
 
 	// --- Target pronoun tokens ---
@@ -139,6 +157,14 @@
 		cocksize_label = _penis_size_descriptor(user_penis.penis_size)
 	text = replacetext(text, "\[COCKSIZE]", cocksize_label)
 
+	// --- Short penis-size adjective ---
+	// [SIZEADJ] resolves to a single word: "pitiful", "modest", or "massive".
+	// Designed to precede nouns: "[THEIR] [SIZEADJ] [PENIS_TYPE]".
+	var/sizeadj_label = "none"
+	if(user_penis)
+		sizeadj_label = _penis_size_adjective(user_penis.penis_size)
+	text = replacetext(text, "\[SIZEADJ]", sizeadj_label)
+
 	// --- Sheath token ---
 	var/sheath_label = "none"
 	if(user_penis)
@@ -163,6 +189,14 @@
 			cup_short_label = "unknown"
 	text = replacetext(text, "\[CUPSIZE]", cup_label)
 
+	// --- Short breast-size adjective ---
+	// [CUPADJ] resolves to a single word: "flat", "small", "modest", "generous", "heavy", "obscene".
+	// Designed to slot before nouns: "[THEIR] [CUPADJ] breasts" / "[CUPADJ] chest".
+	var/cupadj_label = "none"
+	if(user_breasts)
+		cupadj_label = _breast_size_adjective(user_breasts.breast_size)
+	text = replacetext(text, "\[CUPADJ]", cupadj_label)
+
 	// --- Breast type token ---
 	// [BREASTTYPE] resolves to a descriptive phrase aware of pair/quad/sextuple
 	// arrangement and the current breast_size, with unique text for multi-breast bodies.
@@ -178,6 +212,14 @@
 	if(user_vagina)
 		vagtype_label = _vagina_type_descriptor(user_vagina.accessory_type)
 	text = replacetext(text, "\[VAGTYPE]", vagtype_label)
+
+	// --- Short vagina-type adjective ---
+	// [VAGADJ] resolves to a single word: "smooth", "hairy", "trimmed", "spaded", "furred", "gaping", "cloacal".
+	// Designed for: "[THEIR] [VAGADJ] cunt" / "the [VAGADJ] slit".
+	var/vagadj_label = "none"
+	if(user_vagina)
+		vagadj_label = _vagina_type_adjective(user_vagina.accessory_type)
+	text = replacetext(text, "\[VAGADJ]", vagadj_label)
 
 	// --- Taur token ---
 	var/taur_label = "none"
@@ -411,6 +453,70 @@
 				"a reptilian vent, its opening deceptively narrow and slick with mucosal wet",\
 				"a cloacal opening, warm and pulsing, its muscular walls rippling on contact")
 	return "a nondescript slit"
+
+/**
+ * Returns a single-word adjective for penis size, suitable for pre-noun use:
+ *   "[THEIR] [SIZEADJ] [PENIS_TYPE]" → "their pitiful knotted"
+ */
+/proc/_penis_size_adjective(size)
+	switch(size)
+		if(1)
+			return pick("pitiful", "meager", "puny")
+		if(2)
+			return pick("modest", "average", "unremarkable")
+		if(3)
+			return pick("massive", "monstrous", "brutish")
+	return "unremarkable"
+
+/**
+ * Returns a single-word adjective for breast size, suitable for pre-noun use:
+ *   "[THEIR] [CUPADJ] breasts" → "their generous breasts"
+ */
+/proc/_breast_size_adjective(size)
+	switch(size)
+		if(0)
+			return "flat"
+		if(1)
+			return "slight"
+		if(2)
+			return "small"
+		if(3)
+			return "modest"
+		if(4)
+			return "full"
+		if(5)
+			return "generous"
+		if(6)
+			return "heavy"
+		if(7)
+			return "massive"
+		if(8)
+			return "heaping"
+		if(9)
+			return "obscene"
+	return "modest"
+
+/**
+ * Returns a single-word adjective for vagina sprite type, suitable for pre-noun use:
+ *   "[THEIR] [VAGADJ] cunt" → "their furred cunt"
+ */
+/proc/_vagina_type_adjective(accessory_type)
+	switch(accessory_type)
+		if(/datum/sprite_accessory/vagina/human)
+			return "smooth"
+		if(/datum/sprite_accessory/vagina/hairy)
+			return "hairy"
+		if(/datum/sprite_accessory/vagina/trimmed)
+			return "trimmed"
+		if(/datum/sprite_accessory/vagina/spade)
+			return "spaded"
+		if(/datum/sprite_accessory/vagina/furred)
+			return "furred"
+		if(/datum/sprite_accessory/vagina/gaping)
+			return "gaping"
+		if(/datum/sprite_accessory/vagina/cloaca)
+			return "cloacal"
+	return "smooth"
 
 /**
  * Attaches the character_flavor component to the mob for accessory-free

@@ -456,7 +456,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 		if("add_string")
 			if(!selected_action_path)
 				return FALSE
-			var/new_str = sanitize(params["text"])
+			var/new_str = strip_html_simple(sanitize_simple(params["text"]))
 			if(!istext(new_str) || !length(new_str))
 				return FALSE
 			new_str = copytext(new_str, 1, SEX_FLAVOR_MAX_LENGTH + 1)
@@ -515,7 +515,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			var/idx = text2num(params["index"])
 			if(!idx || idx < 1)
 				return FALSE
-			var/new_str = sanitize(params["text"])
+			var/new_str = strip_html_simple(sanitize_simple(params["text"]))
 			if(!istext(new_str) || !length(new_str))
 				return FALSE
 			new_str = copytext(new_str, 1, SEX_FLAVOR_MAX_LENGTH + 1)
@@ -622,16 +622,16 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					break
 			if(!free_slot)
 				return FALSE
-			var/action_name = sanitize(copytext("[params["name"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+			var/action_name = strip_html_simple(sanitize_simple(copytext("[params["name"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)))
 			if(!length(action_name))
 				action_name = "Custom Action [free_slot]"
 			var/list/new_action = list(
 				"slot"            = free_slot,
 				"name"            = action_name,
-				"template"        = sanitize(copytext("[params["template"]]", 1, 64)),
-				"on_start_text"   = sanitize(copytext("[params["on_start_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)),
-				"on_perform_text" = sanitize(copytext("[params["on_perform_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)),
-				"on_finish_text"  = sanitize(copytext("[params["on_finish_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)),
+				"template"        = strip_html_simple(sanitize_simple(copytext("[params["template"]]", 1, 64))),
+				"on_start_text"   = strip_html_simple(sanitize_simple(copytext("[params["on_start_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))),
+				"on_perform_text" = strip_html_simple(sanitize_simple(copytext("[params["on_perform_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))),
+				"on_finish_text"  = strip_html_simple(sanitize_simple(copytext("[params["on_finish_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))),
 				"user_arousal"    = clamp(text2num("[params["user_arousal"]]"), 0, 5),
 				"target_arousal"  = clamp(text2num("[params["target_arousal"]]"), 0, 5),
 				"user_pain"       = clamp(text2num("[params["user_pain"]]"), 0, 15),
@@ -646,9 +646,9 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				"req_target_chastity" = clamp(text2num("[params["req_target_chastity"]]"), 0, 2),
 				"req_toy"             = clamp(text2num("[params["req_toy"]]"), 0, 3),
 				"req_user_piercing"   = !!params["req_user_piercing"],
-				"req_user_plug"       = !!params["req_user_plug"],
+				"req_user_plug"       = clamp(text2num("[params["req_user_plug"]]"), 0, 5),
 				"req_target_piercing" = !!params["req_target_piercing"],
-				"req_target_plug"     = !!params["req_target_plug"],
+				"req_target_plug"     = clamp(text2num("[params["req_target_plug"]]"), 0, 5),
 				"req_no_rear_plug"    = !!params["req_no_rear_plug"],
 				"req_user_manticore_tail"  = !!params["req_user_manticore_tail"],
 				"req_target_manticore_tail" = !!params["req_target_manticore_tail"],
@@ -674,13 +674,13 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					continue
 				// Update only supplied fields.
 				if(params["name"])
-					entry["name"] = sanitize(copytext("[params["name"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+					entry["name"] = strip_html_simple(sanitize_simple(copytext("[params["name"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)))
 				if("on_start_text" in params)
-					entry["on_start_text"] = sanitize(copytext("[params["on_start_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+					entry["on_start_text"] = strip_html_simple(sanitize_simple(copytext("[params["on_start_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)))
 				if("on_perform_text" in params)
-					entry["on_perform_text"] = sanitize(copytext("[params["on_perform_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+					entry["on_perform_text"] = strip_html_simple(sanitize_simple(copytext("[params["on_perform_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)))
 				if("on_finish_text" in params)
-					entry["on_finish_text"] = sanitize(copytext("[params["on_finish_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+					entry["on_finish_text"] = strip_html_simple(sanitize_simple(copytext("[params["on_finish_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1)))
 				if("user_arousal" in params)
 					entry["user_arousal"] = clamp(text2num("[params["user_arousal"]]"), 0, 5)
 				if("target_arousal" in params)
@@ -710,11 +710,11 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				if("req_user_piercing" in params)
 					entry["req_user_piercing"] = !!params["req_user_piercing"]
 				if("req_user_plug" in params)
-					entry["req_user_plug"] = !!params["req_user_plug"]
+					entry["req_user_plug"] = clamp(text2num("[params["req_user_plug"]]"), 0, 5)
 				if("req_target_piercing" in params)
 					entry["req_target_piercing"] = !!params["req_target_piercing"]
 				if("req_target_plug" in params)
-					entry["req_target_plug"] = !!params["req_target_plug"]
+					entry["req_target_plug"] = clamp(text2num("[params["req_target_plug"]]"), 0, 5)
 				if("req_no_rear_plug" in params)
 					entry["req_no_rear_plug"] = !!params["req_no_rear_plug"]
 				if("req_user_manticore_tail" in params)

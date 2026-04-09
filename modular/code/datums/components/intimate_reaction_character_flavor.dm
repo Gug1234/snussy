@@ -145,7 +145,7 @@
 
 	// Try the exact requested category first.
 	if(islist(custom_strings[category]) && length(custom_strings[category]))
-		return pick(custom_strings[category])
+		return _weighted_pick(category)
 
 	// Extract the tier and context from the category key (e.g., "overwhelmed" + "sex_received").
 	var/underscore_pos = findtext(category, "_")
@@ -161,13 +161,36 @@
 		for(var/fallback_tier in fallbacks)
 			var/fallback_key = "[fallback_tier]_[context]"
 			if(islist(custom_strings[fallback_key]) && length(custom_strings[fallback_key]))
-				return pick(custom_strings[fallback_key])
+				return _weighted_pick(fallback_key)
 
 	// Also check legacy bare keys as last resort (e.g., "movement", "sex_received").
 	if(islist(custom_strings[context]) && length(custom_strings[context]))
-		return pick(custom_strings[context])
+		return _weighted_pick(context)
 
 	return null
+
+/**
+ * Picks a random string from the given category, respecting per-string weights.
+ * Each weight is an independent prob() gate (0-100%). Strings that pass the gate
+ * enter the eligible pool and one is chosen uniformly at random.
+ * If no strings pass, returns a uniformly random pick as fallback.
+ */
+/datum/component/intimate_reaction/character_flavor/proc/_weighted_pick(category)
+	var/list/strings = custom_strings[category]
+	if(!islist(strings) || !length(strings))
+		return null
+	var/weight_key = "weight_[category]"
+	var/list/weights = custom_strings[weight_key]
+	if(!islist(weights) || !length(weights))
+		return pick(strings)
+	var/list/eligible = list()
+	for(var/i in 1 to strings.len)
+		var/w = (i <= weights.len) ? weights[i] : 100
+		if(prob(w))
+			eligible += strings[i]
+	if(!eligible.len)
+		return pick(strings)
+	return pick(eligible)
 
 /**
  * Determines the current arousal/state tier for the wearer.

@@ -12,7 +12,7 @@
  */
 
 import { useState } from 'react';
-import { Box, Button, Input, NoticeBox, Section, Stack, TextArea } from 'tgui-core/components';
+import { Box, Button, NoticeBox, NumberInput, Section, Stack, TextArea } from 'tgui-core/components';
 import type { BooleanLike } from 'tgui-core/react';
 
 import { useBackend } from '../backend';
@@ -24,6 +24,7 @@ type Bank = {
   id: string;
   label: string;
   available: boolean;
+  desc?: string;
 };
 
 type Category = {
@@ -32,6 +33,7 @@ type Category = {
   count: number;
   hidden?: boolean;
   group?: string;
+  desc?: string;
 };
 
 type PresetOption = {
@@ -43,6 +45,7 @@ type PresetStage = {
   id: string;
   label: string;
   has_genital: BooleanLike;
+  desc?: string;
 };
 
 type BackendData = {
@@ -54,6 +57,7 @@ type BackendData = {
   banks: Bank[];
   categories: Category[];
   current_strings: string[];
+  current_weights: number[];
   default_strings: string[];
   tokens: string[];
   preset_species?: PresetOption[];
@@ -61,9 +65,37 @@ type BackendData = {
   preset_genitals?: PresetOption[];
   preset_result?: string;
   preset_result_success?: BooleanLike;
+  resolved_preview?: string;
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
+
+/** Static tooltip descriptions for each token. */
+const TOKEN_DESCS: Record<string, string> = {
+  '[USER]': 'Your character\'s name.',
+  '[TARGET]': 'The other participant\'s name.',
+  '[THEY]': 'Your pronoun (they/she/he).',
+  '[THEM]': 'Your pronoun (them/her/him).',
+  '[THEIR]': 'Your possessive (their/her/his).',
+  '[THEIR_CAP]': 'Capitalized possessive (Their/Her/His) — use at sentence starts.',
+  '[TTHEY]': 'Target\'s pronoun (they/she/he).',
+  '[TTHEM]': 'Target\'s pronoun (them/her/him).',
+  '[TTHEIR]': 'Target\'s possessive (their/her/his).',
+  '[PENIS_TYPE]': 'Your penis noun (cock, shaft, member, etc.).',
+  '[SHEATH]': 'Your sheath type (sheath, slit, foreskin, etc.).',
+  '[SIZEADJ]': 'Single-word penis size adjective (e.g. "massive", "modest", "pitiful").',
+  '[COCKSIZE]': 'Full descriptive phrase for penis size.',
+  '[VAGADJ]': 'Single-word vagina type adjective (e.g. "smooth", "furred", "cloacal").',
+  '[VAGTYPE]': 'Full descriptive phrase for vagina type.',
+  '[CUPADJ]': 'Single-word breast size adjective (e.g. "heavy", "generous", "flat").',
+  '[CUPSIZE]': 'Full descriptive phrase for breast size.',
+  '[BREASTTYPE]': 'Full descriptive phrase for breast type.',
+  '[TAUR]': 'Your taur body type name, if applicable.',
+  '[GENITAL_DESC]': 'Full genital description string.',
+  '[FORCE]': 'Force/intensity level of the current action.',
+  '[JELLY]': 'Your jelly\'s name (Eora Jelly bank only).',
+  '[PLUG]': 'Your plug\'s name (Plug bank only).',
+};
 
 export function IntimateReactionEditor() {
   const { act, data } = useBackend<BackendData>();
@@ -105,6 +137,7 @@ export function IntimateReactionEditor() {
     banks,
     categories,
     current_strings,
+    current_weights = [],
     default_strings,
     tokens,
     preset_species,
@@ -112,6 +145,7 @@ export function IntimateReactionEditor() {
     preset_genitals,
     preset_result,
     preset_result_success,
+    resolved_preview,
   } = data;
   const atLimit = current_strings.length >= max_strings;
 
@@ -136,7 +170,7 @@ export function IntimateReactionEditor() {
   };
 
   return (
-    <Window title="Intimate Reaction Editor" width={780} height={700}>
+    <Window title="Intimate Reaction Editor" width={780} height={750}>
       <Window.Content>
         <Stack fill>
           {/* ── Left sidebar: bank + categories ── */}
@@ -158,6 +192,8 @@ export function IntimateReactionEditor() {
                     key={b.id}
                     fluid
                     selected={b.id === selected_bank}
+                    tooltip={b.desc}
+                    tooltipPosition="right"
                     onClick={() => {
                       act('change_bank', { bank: b.id });
                       setEditingIndex(-1);
@@ -190,6 +226,8 @@ export function IntimateReactionEditor() {
                         key={cat.key}
                         fluid
                         selected={isActive}
+                        tooltip={cat.desc}
+                        tooltipPosition="right"
                         onClick={() => {
                           act('select_category', { category: cat.key });
                           setEditingIndex(-1);
@@ -265,6 +303,8 @@ export function IntimateReactionEditor() {
                               key={cat.key}
                               fluid
                               selected={isActive}
+                              tooltip={cat.desc}
+                              tooltipPosition="right"
                               onClick={() => {
                                 act('select_category', {
                                   category: cat.key,
@@ -306,57 +346,97 @@ export function IntimateReactionEditor() {
                 <Box mb={0.5} fontSize="11px" opacity={0.8}>
                   Species:
                 </Box>
-                {preset_species.map((sp) => (
-                  <Button
-                    key={sp.id}
-                    compact
-                    selected={sp.id === selectedSpecies}
-                    onClick={() => setSelectedSpecies(sp.id)}
-                  >
-                    {sp.label}
-                  </Button>
-                ))}
+                {preset_species.map((sp) => {
+                  const active = sp.id === selectedSpecies;
+                  return (
+                    <Button
+                      key={sp.id}
+                      compact
+                      selected={active}
+                      onClick={() => setSelectedSpecies(sp.id)}
+                      style={{
+                        borderBottom: active
+                          ? '2px solid #81c784'
+                          : '2px solid transparent',
+                        fontWeight: active ? 'bold' : 'normal',
+                      }}
+                    >
+                      {sp.label}
+                    </Button>
+                  );
+                })}
 
                 {/* Stage */}
                 <Box mt={0.5} mb={0.5} fontSize="11px" opacity={0.8}>
                   Stage:
                 </Box>
-                {preset_stages.map((st) => (
-                  <Button
-                    key={st.id}
-                    compact
-                    selected={st.id === selectedStage}
-                    onClick={() => {
-                      setSelectedStage(st.id);
-                      if (!st.has_genital) {
-                        setSelectedGenital('');
-                      }
-                    }}
-                  >
-                    {st.label}
-                  </Button>
-                ))}
+                {preset_stages.map((st) => {
+                  const active = st.id === selectedStage;
+                  return (
+                    <Button
+                      key={st.id}
+                      compact
+                      selected={active}
+                      tooltip={st.desc}
+                      tooltipPosition="right"
+                      onClick={() => {
+                        setSelectedStage(st.id);
+                        if (!st.has_genital) {
+                          setSelectedGenital('');
+                        }
+                      }}
+                      style={{
+                        borderBottom: active
+                          ? '2px solid #81c784'
+                          : '2px solid transparent',
+                        fontWeight: active ? 'bold' : 'normal',
+                      }}
+                    >
+                      {st.label}
+                    </Button>
+                  );
+                })}
 
-                {/* Genital (only when stage requires it) */}
-                {needsGenital && preset_genitals && (
+                {/* Genital (shown when any stage needs it; disabled when current stage doesn't) */}
+                {preset_genitals && (
                   <>
-                    <Box mt={0.5} mb={0.5} fontSize="11px" opacity={0.8}>
+                    <Box
+                      mt={0.5}
+                      mb={0.5}
+                      fontSize="11px"
+                      opacity={needsGenital ? 0.8 : 0.4}
+                    >
                       Genital:
+                      {!needsGenital && selectedStage && (
+                        <Box as="span" ml={0.5} italic>
+                          (not needed for this stage)
+                        </Box>
+                      )}
                     </Box>
-                    {preset_genitals.map((g) => (
-                      <Button
-                        key={g.id}
-                        compact
-                        selected={g.id === selectedGenital}
-                        onClick={() => setSelectedGenital(g.id)}
-                      >
-                        {g.label}
-                      </Button>
-                    ))}
+                    {preset_genitals.map((g) => {
+                      const active = g.id === selectedGenital && needsGenital;
+                      return (
+                        <Button
+                          key={g.id}
+                          compact
+                          selected={active}
+                          disabled={!needsGenital}
+                          onClick={() => setSelectedGenital(g.id)}
+                          style={{
+                            borderBottom: active
+                              ? '2px solid #81c784'
+                              : '2px solid transparent',
+                            fontWeight: active ? 'bold' : 'normal',
+                          }}
+                        >
+                          {g.label}
+                        </Button>
+                      );
+                    })}
                   </>
                 )}
 
-                {/* Load button */}
+                {/* Load buttons */}
                 <Box mt={1}>
                   <Button
                     fluid
@@ -372,6 +452,21 @@ export function IntimateReactionEditor() {
                     }
                   >
                     Load Preset
+                  </Button>
+                  <Button
+                    fluid
+                    icon="download"
+                    color="average"
+                    disabled={!selectedSpecies}
+                    tooltip="Load ALL tiers for this species (replaces all character bank strings)"
+                    onClick={() =>
+                      act('load_all_presets', {
+                        species: selectedSpecies,
+                      })
+                    }
+                    mt={0.5}
+                  >
+                    Apply All ({selectedSpecies || '…'})
                   </Button>
                 </Box>
 
@@ -596,6 +691,32 @@ export function IntimateReactionEditor() {
                         >
                           {idx + 1}. {str}
                         </Box>
+                        <Box
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <NumberInput
+                            width="50px"
+                            step={5}
+                            stepPixelSize={4}
+                            value={current_weights[idx] ?? 100}
+                            minValue={0}
+                            maxValue={100}
+                            onChange={(value) =>
+                              act('set_weight', {
+                                index: idx + 1,
+                                weight: value,
+                              })
+                            }
+                          />
+                          <Box fontSize="10px" opacity={0.5}>
+                            %
+                          </Box>
+                        </Box>
                         <Button
                           compact
                           icon="pencil"
@@ -641,92 +762,73 @@ export function IntimateReactionEditor() {
                       : 'Add String'
                   }
                 >
-                  <Stack>
-                    <Stack.Item grow>
-                      <Input
-                        fluid
-                        maxLength={max_length}
-                        placeholder={
-                          editingIndex >= 0
-                            ? 'Edit this string…'
-                            : atLimit
-                              ? 'Limit reached'
-                              : 'Type a new flavor string…'
-                        }
-                        disabled={editingIndex < 0 && atLimit}
-                        value={inputText}
-                        onChange={(val) => setInputText(val)}
-                        onEnter={() => {
-                          if (!inputText.trim()) return;
-                          if (editingIndex >= 0) {
+                  <TextArea
+                    fluid
+                    height="4rem"
+                    maxLength={max_length}
+                    placeholder={
+                      editingIndex >= 0
+                        ? 'Edit this string…'
+                        : atLimit
+                          ? 'Limit reached'
+                          : 'Type a new flavor string…'
+                    }
+                    disabled={editingIndex < 0 && atLimit}
+                    value={inputText}
+                    onChange={(val) => setInputText(val)}
+                  />
+                  <Box mt={0.5}>
+                    {editingIndex >= 0 ? (
+                      <>
+                        <Button
+                          icon="check"
+                          color="good"
+                          disabled={!inputText.trim()}
+                          onClick={() => {
                             act('update_string', {
                               index: editingIndex + 1,
                               text: inputText.trim(),
                             });
                             setEditingIndex(-1);
                             setInputText('');
-                          } else {
-                            act('add_string', { text: inputText.trim() });
-                            setInputText('');
-                          }
-                        }}
-                      />
-                    </Stack.Item>
-                    <Stack.Item>
-                      {editingIndex >= 0 ? (
-                        <>
-                          <Button
-                            icon="check"
-                            color="good"
-                            disabled={!inputText.trim()}
-                            onClick={() => {
-                              act('update_string', {
-                                index: editingIndex + 1,
-                                text: inputText.trim(),
-                              });
-                              setEditingIndex(-1);
-                              setInputText('');
-                            }}
-                          >
-                            Update
-                          </Button>
-                          <Button
-                            icon="times"
-                            onClick={() => {
-                              setEditingIndex(-1);
-                              setInputText('');
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        </>
-                      ) : (
+                          }}
+                        >
+                          Update
+                        </Button>
                         <Button
-                          icon="plus"
-                          disabled={atLimit || !inputText.trim()}
+                          icon="times"
                           onClick={() => {
-                            act('add_string', { text: inputText.trim() });
+                            setEditingIndex(-1);
                             setInputText('');
                           }}
                         >
-                          Add
+                          Cancel
                         </Button>
-                      )}
-                    </Stack.Item>
-                    <Stack.Item>
+                      </>
+                    ) : (
                       <Button
-                        icon="search"
-                        disabled={!inputText.trim()}
-                        tooltip="Preview with token resolution"
+                        icon="plus"
+                        disabled={atLimit || !inputText.trim()}
                         onClick={() => {
-                          setPreviewText(inputText.trim());
-                          act('preview_string', { text: inputText.trim() });
+                          act('add_string', { text: inputText.trim() });
+                          setInputText('');
                         }}
                       >
-                        Preview
+                        Add
                       </Button>
-                    </Stack.Item>
-                  </Stack>
+                    )}
+                    <Button
+                      icon="search"
+                      disabled={!inputText.trim()}
+                      tooltip="Preview with token resolution"
+                      onClick={() => {
+                        setPreviewText(inputText.trim());
+                        act('preview_string', { text: inputText.trim() });
+                      }}
+                    >
+                      Preview
+                    </Button>
+                  </Box>
                   <Box fontSize="10px" opacity={0.5} mt={0.5}>
                     Max {max_length} characters per string. {max_strings}{' '}
                     strings per category.
@@ -748,8 +850,7 @@ export function IntimateReactionEditor() {
                     }
                   >
                     <Box fontSize="11px" opacity={0.6} mb={0.5}>
-                      The resolved preview is printed to your chat. Raw
-                      template shown here:
+                      Raw template:
                     </Box>
                     <Box
                       fontSize="12px"
@@ -763,6 +864,25 @@ export function IntimateReactionEditor() {
                     >
                       {previewText}
                     </Box>
+                    {resolved_preview && (
+                      <>
+                        <Box fontSize="11px" opacity={0.6} mt={0.5} mb={0.5}>
+                          Resolved:
+                        </Box>
+                        <Box
+                          fontSize="12px"
+                          bold
+                          style={{
+                            padding: '6px',
+                            background: 'rgba(129,199,132,0.1)',
+                            borderRadius: '3px',
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {resolved_preview}
+                        </Box>
+                      </>
+                    )}
                   </Section>
                 </Stack.Item>
               )}
@@ -799,6 +919,7 @@ export function IntimateReactionEditor() {
                             key={token}
                             compact
                             fontSize="11px"
+                            tooltip={TOKEN_DESCS[token]}
                             onClick={() =>
                               setInputText((prev) => prev + token)
                             }

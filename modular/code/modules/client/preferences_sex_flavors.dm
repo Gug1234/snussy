@@ -97,8 +97,10 @@
 			for(var/str in phase_strings)
 				if(!istext(str) || !length(str))
 					continue
-				// Clamp to max length; sanitize removes dangerous tags.
-				valid_strings += sanitize(copytext(str, 1, SEX_FLAVOR_MAX_LENGTH + 1))
+				// html_decode() repairs legacy double-encoded entities;
+				// strip_html_simple() prevents HTML injection without
+				// encoding entities that TGUI would render literally.
+				valid_strings += strip_html_simple(sanitize_simple(html_decode(copytext(str, 1, SEX_FLAVOR_MAX_LENGTH + 1))))
 				if(valid_strings.len >= SEX_FLAVOR_MAX_STRINGS)
 					break
 
@@ -165,13 +167,13 @@
 
 		var/list/clean = list()
 		clean["slot"] = slot
-		clean["template"] = sanitize(copytext("[entry["template"]]", 1, 64))
-		clean["name"] = sanitize(copytext("[entry["name"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+		clean["template"] = strip_html_simple(sanitize_simple(html_decode(copytext("[entry["template"]]", 1, 64))))
+		clean["name"] = strip_html_simple(sanitize_simple(html_decode(copytext("[entry["name"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))))
 		if(!length(clean["name"]))
 			clean["name"] = "Custom Action [slot]"
-		clean["on_start_text"] = sanitize(copytext("[entry["on_start_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
-		clean["on_perform_text"] = sanitize(copytext("[entry["on_perform_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
-		clean["on_finish_text"] = sanitize(copytext("[entry["on_finish_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))
+		clean["on_start_text"] = strip_html_simple(sanitize_simple(html_decode(copytext("[entry["on_start_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))))
+		clean["on_perform_text"] = strip_html_simple(sanitize_simple(html_decode(copytext("[entry["on_perform_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))))
+		clean["on_finish_text"] = strip_html_simple(sanitize_simple(html_decode(copytext("[entry["on_finish_text"]]", 1, SEX_FLAVOR_MAX_LENGTH + 1))))
 		clean["user_arousal"] = clamp(text2num("[entry["user_arousal"]]"), 0, 5)
 		clean["target_arousal"] = clamp(text2num("[entry["target_arousal"]]"), 0, 5)
 		clean["user_pain"] = clamp(text2num("[entry["user_pain"]]"), 0, 15)
@@ -186,9 +188,9 @@
 		clean["req_target_chastity"] = clamp(text2num("[entry["req_target_chastity"]]"), 0, 2)
 		clean["req_toy"] = clamp(text2num("[entry["req_toy"]]"), 0, 3)
 		clean["req_user_piercing"] = !!entry["req_user_piercing"]
-		clean["req_user_plug"] = !!entry["req_user_plug"]
+		clean["req_user_plug"] = clamp(text2num("[entry["req_user_plug"]]"), 0, 5)
 		clean["req_target_piercing"] = !!entry["req_target_piercing"]
-		clean["req_target_plug"] = !!entry["req_target_plug"]
+		clean["req_target_plug"] = clamp(text2num("[entry["req_target_plug"]]"), 0, 5)
 		clean["req_no_rear_plug"] = !!entry["req_no_rear_plug"]
 		clean["req_user_manticore_tail"] = !!entry["req_user_manticore_tail"]
 		clean["req_target_manticore_tail"] = !!entry["req_target_manticore_tail"]

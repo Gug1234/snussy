@@ -821,6 +821,21 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	path = /obj/item/chastity/cursed
 	triumph_cost = 4
 
+/datum/loadout_item/unfinished_piercing
+	name = "Unfinished Steel Piercing"
+	path = /obj/item/unfinished_piercing/steel
+	triumph_cost = 1
+
+/datum/loadout_item/unfinished_dildo
+	name = "Unfinished Steel Dildo"
+	path = /obj/item/dildo/steel
+	triumph_cost = 1
+
+/datum/loadout_item/unfinished_analbeads
+	name = "Unfinished Steel Anal Beads"
+	path = /obj/item/unfinished_analbeads/steel
+	triumph_cost = 1
+
 /datum/loadout_item/cloth_blindfold
 	name = "Cloth Blindfold"
 	path = /obj/item/clothing/mask/rogue/blindfold
