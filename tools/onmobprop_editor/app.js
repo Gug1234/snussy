@@ -139,6 +139,7 @@ const state = {
   behind: false,
   mirrored: false,
   wielded: false,
+  handMask: true,
   propPreset: "custom",
   dmOutputFocused: false,
   dmOutputDraft: "",
@@ -154,6 +155,7 @@ const dom = {
   behindToggle: document.querySelector("#behind-toggle"),
   mirroredToggle: document.querySelector("#mirrored-toggle"),
   wieldedToggle: document.querySelector("#wielded-toggle"),
+  handMaskToggle: document.querySelector("#hand-mask-toggle"),
   propPreset: document.querySelector("#prop-preset"),
   spriteSize: document.querySelector("#sprite-size"),
   iconStateInput: document.querySelector("#icon-state-input"),
@@ -259,6 +261,11 @@ function bindEvents() {
 
   dom.mirroredToggle.addEventListener("change", () => {
     state.mirrored = dom.mirroredToggle.checked;
+    render();
+  });
+
+  dom.handMaskToggle.addEventListener("change", () => {
+    state.handMask = dom.handMaskToggle.checked;
     render();
   });
 
@@ -540,6 +547,7 @@ function syncUiFromState() {
   dom.behindToggle.checked = state.behind;
   dom.mirroredToggle.checked = state.mirrored;
   dom.wieldedToggle.checked = state.wielded;
+  dom.handMaskToggle.checked = state.handMask;
 
   for (const input of dom.propControls.querySelectorAll("input[data-prop-key]")) {
     const key = input.dataset.propKey;
@@ -886,6 +894,13 @@ function renderDmApproximation(spriteSource, directionKey, renderState) {
 }
 
 function applyDirectionMask(sourceImage, directionKey) {
+  if (!state.handMask) {
+    const canvas = document.createElement("canvas");
+    canvas.width = sourceImage.width;
+    canvas.height = sourceImage.height;
+    canvas.getContext("2d").drawImage(sourceImage, 0, 0);
+    return canvas;
+  }
   const maskCanvas = getHelperMaskCanvas(directionKey, sourceImage.width, sourceImage.height);
   if (maskCanvas) {
     return multiplyCanvasWithMask(sourceImage, maskCanvas);
