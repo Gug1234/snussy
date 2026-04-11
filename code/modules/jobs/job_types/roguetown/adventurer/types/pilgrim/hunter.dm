@@ -106,12 +106,10 @@
 	shoes = /obj/item/clothing/shoes/roguetown/boots/furlinedboots
 	neck = /obj/item/storage/belt/rogue/pouch/coins/poor
 	cloak = /obj/item/clothing/cloak/raincloak/furcloak/brown
-	backr = /obj/item/rogueweapon/scabbard/gwstrap
 	backl = /obj/item/storage/backpack/rogue/backpack
 	belt = /obj/item/storage/belt/rogue/leather
 	beltr = /obj/item/storage/meatbag
 	beltl = /obj/item/flashlight/flare/torch/lantern
-	l_hand = /obj/item/rogueweapon/spear
 	backpack_contents = list(
 				/obj/item/flint = 1,
 				/obj/item/bait = 1,
@@ -123,4 +121,14 @@
 	gloves = /obj/item/clothing/gloves/roguetown/fingerless_leather
 	if(H.mind)
 		H.mind.AddSpell(new /obj/effect/proc_holder/spell/invoked/huntersyell)
+		var/weapons = list("Spear", "Saw Spear (Trick Weapon)")
+		var/weapon_choice = input(H, "Choose your weapon.", "ARM YOURSELF") as anything in weapons
+		switch(weapon_choice)
+			if("Spear")
+				backr = /obj/item/rogueweapon/scabbard/gwstrap
+				l_hand = /obj/item/rogueweapon/spear
+			// --- Trick Weapon ---
+			if("Saw Spear (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE) // Base state uses swords
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawspear(H), TRUE)
 	return

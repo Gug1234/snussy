@@ -55,7 +55,7 @@
 		)
 	H.dna.species.soundpack_m = new /datum/voicepack/male/warrior()
 	if(H.mind)
-		var/weapons = list("Discipline - Unarmed","Katar","Knuckledusters","Punch Dagger","Battle Axe","Grand Mace","Falx")
+		var/weapons = list("Discipline - Unarmed","Katar","Knuckledusters","Punch Dagger","Battle Axe","Grand Mace","Falx","Beast Claw (Trick Weapon)")
 		var/weapon_choice = input(H, "Choose your WEAPON.", "SPILL THEIR ENTRAILS.") as anything in weapons
 		H.set_blindness(0)
 		switch(weapon_choice)
@@ -81,6 +81,10 @@
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 				beltr = /obj/item/rogueweapon/scabbard/sword
 				r_hand = /obj/item/rogueweapon/sword/falx
+			// --- Trick Weapon ---
+			if("Beast Claw (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_MASTER, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastclaws(H), TRUE)
 		var/helmets = list("Berserker's Volfskulle Bascinet","Steel Kettle + Wildguard")
 		var/helmet_choice = input(H, "Choose your HELMET.", "STEEL YOURSELF.") as anything in helmets
 		switch(helmet_choice)

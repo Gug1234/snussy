@@ -57,6 +57,10 @@
 	var/obj/item/intimate_accessory/intimate_mouth_insertable = null
 	/// Dedicated slot for the Eora jelly — doesn't compete with piercings or insertables.
 	var/obj/item/intimate_accessory/intimate_jelly = null
+	/// Non-sexual piercing-only slots.
+	var/obj/item/intimate_accessory/intimate_ear_piercing = null
+	var/obj/item/intimate_accessory/intimate_nose_piercing = null
+	var/obj/item/intimate_accessory/intimate_belly_piercing = null
 	var/list/intimate_accessories = list()
 
 

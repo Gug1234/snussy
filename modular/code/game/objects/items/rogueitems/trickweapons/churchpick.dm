@@ -201,6 +201,8 @@
 	transformed_associated_skill = /datum/skill/combat/axes
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/church_pick_sweep
+	transformed_special = /datum/special_intent/church_pick_impale
 
 /// Mob render properties for one-handed and wielded display.
 /// Branches on `transformed` to use different render profiles per form.

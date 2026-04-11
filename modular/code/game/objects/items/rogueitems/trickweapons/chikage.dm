@@ -185,16 +185,25 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_NORMAL
+	special = /datum/special_intent/chikage_quickdraw
+	transformed_special = /datum/special_intent/chikage_blood_rend
 
 /// Mob render properties for one-handed and wielded display (katana-sized).
 /obj/item/rogueweapon/trickweapon/chikage/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -16,"sy" = -13,"nx" = 14,"ny" = -10,"wx" = -15,"wy" = -11,"ex" = 9,"ey" = -10,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 80,"sturn" = -90,"wturn" = -75,"eturn" = 75,"nflip" = 0,"sflip" = 4,"wflip" = -4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = 10,"sy" = 0,"nx" = -9,"ny" = 0,"wx" = -9,"wy" = 11,"ex" = 9,"ey" = 11,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -10,"sturn" = 10,"wturn" = 39,"eturn" = -39,"nflip" = 4,"sflip" = 0,"wflip" = -4,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.5,"sx" = -16,"sy" = -13,"nx" = 19,"ny" = -8,"wx" = -14,"wy" = -5,"ex" = 9,"ey" = -6,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 67,"sturn" = -90,"wturn" = -55,"eturn" = 55,"nflip" = 0,"sflip" = 4,"wflip" = -4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = 9,"sy" = -1,"nx" = -10,"ny" = 0,"wx" = 11,"wy" = -7,"ex" = 12,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 28,"eturn" = -17,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 /**
  * Extends the base serrated signal management to also handle blood drain

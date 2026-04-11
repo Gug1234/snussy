@@ -113,15 +113,15 @@
 	swingdelay = 6
 	item_d_type = "blunt"
 
-/// Boom Hammer transformed - explosive slam. Charged R2 overhead with AoE explosion.
-/// The signature move: massive fire-infused ground pound.
+/// Boom Hammer transformed - crushing overhead. Charged R2 overhead blow with the full weight of the hammer.
+/// A brutal single-target overhead slam that crushes armor.
 /datum/intent/boomhammer/explosiveslam
-	name = "explosive slam"
+	name = "crushing overhead"
 	icon_state = "incrush"
-	attack_verb = list("detonates upon", "explodes into")
+	attack_verb = list("crushes", "smashes down upon")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
-	hitsound = list('modular/sounds/trickweapons/boomhammer/explosion1.ogg', 'modular/sounds/trickweapons/boomhammer/explosion2.ogg')
+	hitsound = list('modular/sounds/trickweapons/boomhammer/hammer_hit1.ogg', 'modular/sounds/trickweapons/boomhammer/hammer_hit2.ogg')
 	chargetime = 6
 	chargedrain = 2
 	penfactor = 50
@@ -187,15 +187,31 @@
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/boom_hammer_strike
+	transformed_special = /datum/special_intent/boom_hammer_ignition
 
 /// Mob render properties for one-handed and wielded display.
 /obj/item/rogueweapon/trickweapon/boomhammer/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -5,"sy" = -1,"nx" = 6,"ny" = -3,"wx" = 0,"wy" = 3,"ex" = -2,"ey" = 0,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = 77,"eturn" = -55,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = 2,"sy" = -2,"nx" = 0,"ny" = -3,"wx" = 3,"wy" = -4,"ex" = 4,"ey" = -1,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -9,"sturn" = 9,"wturn" = 31,"eturn" = -3,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -5,"sy" = -1,"nx" = 6,"ny" = -3,"wx" = 0,"wy" = 3,"ex" = -2,"ey" = 0,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = 77,"eturn" = -55,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = 2,"sy" = 0,"nx" = 0,"ny" = -1,"wx" = 3,"wy" = -1,"ex" = 4,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -9,"sturn" = 9,"wturn" = 31,"eturn" = -3,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+
+/obj/item/rogueweapon/trickweapon/boomhammer/transform_weapon(mob/living/user)
+	. = ..()
+	if(transformed)
+		set_light(2, 1, l_color = "#e87430")
+	else
+		set_light(0)
 
 

@@ -9,6 +9,9 @@
 		return FALSE
 	if(has_status_effect(/datum/status_effect/debuff/exposed))
 		return FALSE
+	if(has_status_effect(/datum/status_effect/debuff/pressured))
+		if(prob(50))
+			return FALSE
 	last_dodge = world.time
 	if(src.loc == user.loc)
 		return FALSE

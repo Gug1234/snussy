@@ -136,8 +136,8 @@
 /obj/item/rogueweapon/trickweapon/simonsbowblade
 	name = "ranger's bowblade"
 	desc = "A trick weapon favored by Ferentian outriders and frontier rangers. In its folded form, a sleek curved sword designed for swift, precise cuts. When unfolded, the blade's halves separate and arc outward, forming a lethal bow-like frame that can strike at considerable distance. A weapon for those who patrol the wilds beyond the duchy walls."
-	icon_state = "simonsbowblade"
-	item_state = "simonsbowblade"
+	icon_state = "bowblade"
+	item_state = "bowblade"
 	force = 20
 	force_wielded = 24
 	possible_item_intents = list(/datum/intent/bowblade/diagslash, /datum/intent/bowblade/thrust, /datum/intent/bowblade/backswipe)
@@ -166,8 +166,8 @@
 	// --- Transformed state: Bow-blade ---
 	transformed_name = "ranger's bowblade"
 	transformed_desc = "The ranger's bowblade, now unfolded into its bow configuration. The curved halves of the blade arc outward, forming a lethal frame that can lash out at considerable distance with piercing thrusts. A weapon for those who prefer to keep their distance."
-	transformed_icon_state = "simonsbowblade_t"
-	transformed_item_state = "simonsbowblade_t"
+	transformed_icon_state = "bowblade_t"
+	transformed_item_state = "bowblade_t"
 	transformed_force = 12 // Weaker up close
 	transformed_force_wielded = 22 // Better at range with 2H
 	transformed_intents = list(/datum/intent/bowblade/bowswipe, /datum/intent/bowblade/bowthrust)
@@ -181,6 +181,8 @@
 	transformed_associated_skill = /datum/skill/combat/polearms
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/simons_arcing_slash
+	transformed_special = /datum/special_intent/simons_bowblade_shot
 
 /// Mob render properties for one-handed and wielded display.
 /// Branches on `transformed` to use different render profiles per form.

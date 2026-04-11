@@ -139,8 +139,8 @@
 /obj/item/rogueweapon/trickweapon/reiterpallasch
 	name = "reiterpallasch"
 	desc = "A trick weapon favored by the dueling aristocracy of Ferentia. In its base form, a slender silver rapier built for precise, lightning-fast thrusts. Attached to it is a firing mechanism that allows for shots amidst the duel."
-	icon_state = "reiterpallasch"
-	item_state = "reiterpallasch"
+	icon_state = "reiter"
+	item_state = "reiter"
 	force = 20
 	force_wielded = 23
 	possible_item_intents = list(/datum/intent/reiter/thrust, /datum/intent/reiter/quickslash, /datum/intent/reiter/sweepslash, /datum/intent/reiter/chargedthrust)
@@ -174,8 +174,8 @@
 	// --- Transformed state: Pistol-Sword ---
 	transformed_name = "reiterpallasch"
 	transformed_desc = "The reiterpallasch, now extended into its pistol-sword form. The blade is fully deployed and a hidden firing mechanism is revealed near the hilt. A pull of the trigger fires a lead sphere at point-blank range â€” a lethal surprise mid-duel."
-	transformed_icon_state = "reiterpallasch_t"
-	transformed_item_state = "reiterpallasch_t"
+	transformed_icon_state = "reiter_t"
+	transformed_item_state = "reiter_t"
 	transformed_force = 21
 	transformed_force_wielded = 24
 	transformed_intents = list(/datum/intent/reiter/t_quickslash, /datum/intent/reiter/lungethrust, /datum/intent/reiter/pistolshot, /datum/intent/reiter/extendingthrust)
@@ -189,6 +189,8 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_NORMAL
+	special = /datum/special_intent/reiterpallasch_shot
+	transformed_special = /datum/special_intent/reiterpallasch_riposte
 
 /// Mob render properties for one-handed and wielded display (rapier-sized).
 /// Branches on `transformed` to use different render profiles per form.

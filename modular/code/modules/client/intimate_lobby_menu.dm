@@ -46,6 +46,9 @@
 		list("key" = "breast_insertable",   "label" = "Breast Insertable",   "pref" = prefs.pref_intimate_breast_insertable),
 		list("key" = "mouth_piercing",      "label" = "Mouth Piercing",      "pref" = prefs.pref_intimate_mouth_piercing),
 		list("key" = "mouth_insertable",    "label" = "Mouth Insertable",    "pref" = prefs.pref_intimate_mouth_insertable),
+		list("key" = "ear_piercing",        "label" = "Ear Piercing",        "pref" = prefs.pref_intimate_ear_piercing),
+		list("key" = "nose_piercing",       "label" = "Nose Piercing",       "pref" = prefs.pref_intimate_nose_piercing),
+		list("key" = "belly_piercing",      "label" = "Belly Piercing",      "pref" = prefs.pref_intimate_belly_piercing),
 	)
 
 	for(var/list/def in slot_defs)
@@ -84,6 +87,12 @@
 			return prefs.get_intimate_mouth_piercing_options()
 		if("mouth_insertable")
 			return prefs.get_intimate_mouth_insertable_options()
+		if("ear_piercing")
+			return prefs.get_intimate_ear_piercing_options()
+		if("nose_piercing")
+			return prefs.get_intimate_nose_piercing_options()
+		if("belly_piercing")
+			return prefs.get_intimate_belly_piercing_options()
 	return list()
 
 /datum/intimate_lobby_menu/ui_act(action, list/params, datum/tgui/ui)
@@ -119,6 +128,12 @@
 					prefs.pref_intimate_mouth_piercing = typepath
 				if("mouth_insertable")
 					prefs.pref_intimate_mouth_insertable = typepath
+				if("ear_piercing")
+					prefs.pref_intimate_ear_piercing = typepath
+				if("nose_piercing")
+					prefs.pref_intimate_nose_piercing = typepath
+				if("belly_piercing")
+					prefs.pref_intimate_belly_piercing = typepath
 				else
 					return FALSE
 
@@ -145,6 +160,12 @@
 					prefs.pref_intimate_mouth_piercing = null
 				if("mouth_insertable")
 					prefs.pref_intimate_mouth_insertable = null
+				if("ear_piercing")
+					prefs.pref_intimate_ear_piercing = null
+				if("nose_piercing")
+					prefs.pref_intimate_nose_piercing = null
+				if("belly_piercing")
+					prefs.pref_intimate_belly_piercing = null
 				else
 					return FALSE
 

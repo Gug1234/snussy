@@ -55,6 +55,7 @@
 		list("intimate_reaction_show_chastity", "  ↳ Chastity Reactions", "Sub-toggle: show chastity device reaction text (jingles, arousal, denial, pain messages)."),
 		list("intimate_reaction_show_extreme", "  ↳ Extreme Reactions", "Sub-toggle: show extreme/pain/spike intimate reaction text."),
 		list("intimate_reaction_show_accessory_free", "  ↳ Character Flavor", "Sub-toggle: show accessory-free character flavor text (custom movement, body exposure, sex-received)."),
+		list("intimate_reaction_share_with_partner", "  ↳ Share With Partner", "When enabled, your intimate reaction flavor text is also sent to the partner performing the sex action on you."),
 		list("ghost_protection",       "Ghost Protection",            "Prevent ghosts from seeing you, orbiting you, or reading your speech bubbles."),
 		list("masked_examine",         "Masked Examine",              "Allow others to see your flavortext, OOC notes, and examine info even when your face is obscured by a mask or helm."),
 		list("nsfw_examine_always",     "NSFW Examine Always",         "Allow viewing NSFW flavortext, galleries, and images on others even when they are clothed.")
@@ -216,7 +217,7 @@
 	if(href_list["erp_toggle"])
 		var/key = href_list["erp_toggle"]
 		// Whitelist: only allow known safe boolean pref keys
-		if(!(key in list("sexable", "chastenable", "cursed_enabled", "intimate_enabled", "extreme_erp", "edging", "jelly_controller_enabled", "show_intimate_examine", "intimate_visual_widgets", "intimate_reaction_enabled", "intimate_reaction_show_chastity", "intimate_reaction_show_extreme", "intimate_reaction_show_accessory_free", "ghost_protection", "masked_examine", "nsfw_examine_always")))
+		if(!(key in list("sexable", "chastenable", "cursed_enabled", "intimate_enabled", "extreme_erp", "edging", "jelly_controller_enabled", "show_intimate_examine", "intimate_visual_widgets", "intimate_reaction_enabled", "intimate_reaction_show_chastity", "intimate_reaction_show_extreme", "intimate_reaction_show_accessory_free", "intimate_reaction_share_with_partner", "ghost_protection", "masked_examine", "nsfw_examine_always")))
 			return
 		vars[key] = !vars[key]
 

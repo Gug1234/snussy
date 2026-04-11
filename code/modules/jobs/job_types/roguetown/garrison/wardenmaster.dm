@@ -109,7 +109,7 @@
 		)
 	H.adjust_blindness(-3)
 	if(H.mind)
-		var/weapons = list("Greataxe","Javelins & Shield","Blackhorn Longbow","Handgonne")	//competent at both sides of wardenry so it's more a matter of what weapon you start with
+		var/weapons = list("Greataxe","Javelins & Shield","Blackhorn Longbow","Handgonne","Rifle Spear (Trick Weapon)")	//competent at both sides of wardenry so it's more a matter of what weapon you start with
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		var/armor_options = list("Light Armor", "Medium Armor")
 		var/armor_choice = input(H, "Choose your armor.", "TAKE UP ARMS") as anything in armor_options
@@ -128,6 +128,10 @@
 				r_hand = /obj/item/gun/ballistic/firearm/handgonne
 				l_hand = /obj/item/powderflask
 				beltr = /obj/item/quiver/bullet/lead
+			// --- Trick Weapon ---
+			if("Rifle Spear (Trick Weapon)")
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/riflespear(H), TRUE)
+				beltr = /obj/item/quiver/bullet/grapeshot
 		switch(armor_choice)
 			if("Light Armor")
 				shirt = /obj/item/clothing/suit/roguetown/armor/gambeson/heavy

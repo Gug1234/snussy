@@ -3012,6 +3012,7 @@
 #include "modular\code\game\objects\items\rogueitems\chastity\chastityitems.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\_base.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\keybinding_transform.dm"
+#include "modular\code\game\objects\items\rogueitems\trickweapons\trickweapon_specials.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\amygdalanarm.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\beastclaws.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\beastcutter.dm"

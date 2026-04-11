@@ -28,6 +28,9 @@
 			return FALSE
 	if(has_status_effect(/datum/status_effect/debuff/exposed))
 		return FALSE
+	if(has_status_effect(/datum/status_effect/debuff/pressured))
+		if(prob(50))
+			return FALSE
 	if(has_status_effect(/datum/status_effect/debuff/riposted))
 		return FALSE
 	last_parry = world.time

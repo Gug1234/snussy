@@ -16,7 +16,7 @@
 /// Maximum number of custom intimate reaction strings allowed per category.
 #define INTIMATE_REACTION_MAX_STRINGS 10
 /// Maximum character length of any single custom intimate reaction string.
-#define INTIMATE_REACTION_MAX_LENGTH  280
+#define INTIMATE_REACTION_MAX_LENGTH  750
 
 // ── Intimate Reaction Arousal Tiers ─────────────────────────────────────────
 // String constants identifying each arousal/state tier. Used as category key

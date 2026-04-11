@@ -184,6 +184,10 @@
 	transformed_associated_skill = /datum/skill/combat/knives
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_SMALL
+	special = /datum/special_intent/blades_of_mercy_quick
+	transformed_special = /datum/special_intent/blades_of_mercy_flurry
+	/// Separate icon file for transformed on-mob rendering (dual daggers).
+	var/inhand_icon = 'modular/icons/obj/trickweapons/rakuyo_and_bladesofmercy_onmob.dmi'
 	// --- Dual wielder scaling: rewards TRAIT_DUALWIELDER users ---
 	dualwielder_force_bonus = 3
 	dualwielder_wdefense_bonus = 2
@@ -191,14 +195,32 @@
 	anti_trickweapon_dodge_bonus = 15
 	anti_trickweapon_parry_bonus = 15
 
-/// Mob render properties for one-handed and wielded display (small dagger).
+/// Override generateonmob to pull from the dual-wield on-mob DMI when transformed.
+/// Base form uses normal weapon on-mob behavior.
+/obj/item/rogueweapon/trickweapon/bladesofmercy/generateonmob(tag, prop, behind = FALSE, mirrored = FALSE, used_index = null)
+	if(!transformed)
+		return ..(tag, prop, behind, mirrored, used_index)
+	var/cached_icon = icon
+	icon = inhand_icon
+	var/onmob_state = wielded ? "bladesofmercyonmob_twohands" : "bladesofmercyonmob_onehands"
+	. = ..(tag, prop, behind, mirrored, onmob_state)
+	icon = cached_icon
+
+/// Mob render properties — small dagger (base), full dual-dagger overlay (transformed).
 /obj/item/rogueweapon/trickweapon/bladesofmercy/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.5,"sx" = -7,"sy" = -4,"nx" = 7,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 110,"sturn" = -110,"wturn" = -110,"eturn" = 110,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.5,"sx" = 3,"sy" = -3,"nx" = -3,"ny" = -2,"wx" = -3,"wy" = -1,"ex" = 1,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 1,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 1,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.5,"sx" = -15,"sy" = -10,"nx" = 12,"ny" = -10,"wx" = -12,"wy" = -9,"ex" = 5,"ey" = -10,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 1,"sflip" = -1,"wflip" = -1,"eflip" = 1)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 7,"sy" = -2,"nx" = -5,"ny" = -3,"wx" = 10,"wy" = -4,"ex" = -14,"ey" = -3,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 42,"sturn" = -41,"wturn" = -37,"eturn" = 41,"nflip" = -1,"sflip" = 1,"wflip" = 1,"eflip" = -1)
 
 

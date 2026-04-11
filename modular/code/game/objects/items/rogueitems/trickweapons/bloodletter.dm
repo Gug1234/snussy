@@ -199,16 +199,25 @@
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/bloodletter_crush
+	transformed_special = /datum/special_intent/bloodletter_eruption
 
 /// Mob render properties for one-handed and wielded display (mace-sized).
 /obj/item/rogueweapon/trickweapon/bloodletter/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.5,"sx" = -7,"sy" = -4,"nx" = 7,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 110,"sturn" = -110,"wturn" = -110,"eturn" = 110,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.8,"sx" = -2,"sy" = 5,"nx" = 7,"ny" = -2,"wx" = 0,"wy" = 5,"ex" = -1,"ey" = 3,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = -37,"sturn" = -26,"wturn" = -24,"eturn" = -73,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 1,"sx" = 3,"sy" = -1,"nx" = 0,"ny" = 0,"wx" = 6,"wy" = -7,"ex" = 4,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 11,"wturn" = 57,"eturn" = -13,"nflip" = -4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.3,"sx" = -10,"sy" = -7,"nx" = 10,"ny" = -6,"wx" = -7,"wy" = -6,"ex" = 2,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 90,"nflip" = 1,"sflip" = -1,"wflip" = -1,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.4,"sx" = 0,"sy" = -1,"nx" = 0,"ny" = 0,"wx" = 1,"wy" = -3,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 42,"eturn" = 0,"nflip" = -4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 /**
  * Override transform_weapon to apply HP cost when transforming INTO

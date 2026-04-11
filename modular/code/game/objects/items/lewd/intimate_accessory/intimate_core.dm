@@ -90,6 +90,12 @@
 			return "Mouth"
 		if(INTIMATE_SLOT_JELLY)
 			return "Jelly"
+		if(INTIMATE_SLOT_EAR)
+			return "Ear"
+		if(INTIMATE_SLOT_NOSE)
+			return "Nose"
+		if(INTIMATE_SLOT_BELLY)
+			return "Belly"
 		else
 			return "Misc"
 
@@ -140,6 +146,12 @@
 			return is_piercing ? "intimate_mouth_piercing" : "intimate_mouth_insertable"
 		if(INTIMATE_SLOT_JELLY)
 			return "intimate_jelly"
+		if(INTIMATE_SLOT_EAR)
+			return "intimate_ear_piercing"
+		if(INTIMATE_SLOT_NOSE)
+			return "intimate_nose_piercing"
+		if(INTIMATE_SLOT_BELLY)
+			return "intimate_belly_piercing"
 		else
 			stack_trace("get_slot_var_name(): unhandled intimate slot '[get_effective_intimate_slot(slot_override)]' on [src]")
 			return is_piercing ? "intimate_mouth_piercing" : "intimate_mouth_insertable"
@@ -175,6 +187,12 @@
 		H.intimate_mouth_insertable = null
 	if(H.intimate_jelly == src)
 		H.intimate_jelly = null
+	if(H.intimate_ear_piercing == src)
+		H.intimate_ear_piercing = null
+	if(H.intimate_nose_piercing == src)
+		H.intimate_nose_piercing = null
+	if(H.intimate_belly_piercing == src)
+		H.intimate_belly_piercing = null
 
 /obj/item/intimate_accessory/proc/is_slot_available(mob/living/carbon/human/H, slot_override = null)
 	return !get_worn_in_slot(H, slot_override)
@@ -273,6 +291,24 @@
 		if(!get_location_accessible(H, BODY_ZONE_PRECISE_MOUTH))
 			if(!silent)
 				to_chat(user, span_warning("I cannot access [H]'s mouth."))
+			return FALSE
+		return TRUE
+	if(effective_slot == INTIMATE_SLOT_EAR)
+		if(!get_location_accessible(H, BODY_ZONE_PRECISE_EARS))
+			if(!silent)
+				to_chat(user, span_warning("I cannot access [H]'s ears."))
+			return FALSE
+		return TRUE
+	if(effective_slot == INTIMATE_SLOT_NOSE)
+		if(!get_location_accessible(H, BODY_ZONE_PRECISE_NOSE))
+			if(!silent)
+				to_chat(user, span_warning("I cannot access [H]'s nose."))
+			return FALSE
+		return TRUE
+	if(effective_slot == INTIMATE_SLOT_BELLY)
+		if(!get_location_accessible(H, BODY_ZONE_PRECISE_STOMACH))
+			if(!silent)
+				to_chat(user, span_warning("I cannot access [H]'s stomach."))
 			return FALSE
 		return TRUE
 	if(!get_location_accessible(H, BODY_ZONE_PRECISE_GROIN))

@@ -159,21 +159,24 @@
 	transformed_associated_skill = /datum/skill/combat/axes
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/saw_cleaver_charge
+	transformed_special = /datum/special_intent/saw_cleaver_rend
 
 /// Mob render properties for one-handed and wielded display.
 /// Branches on `transformed` to use different render profiles per form.
 /obj/item/rogueweapon/trickweapon/sawcleaver/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				if(transformed) // --- Transformed (extended) one-handed ---
-					return list("shrink" = 0.7,"sx" = -14,"sy" = -6,"nx" = 11,"ny" = -2,"wx" = -9,"wy" = -2,"ex" = 8,"ey" = -2,"northabove" = 0,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 29,"sturn" = -222,"wturn" = -198,"eturn" = 17,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
-				// --- Base (folded) one-handed ---
-				return list("shrink" = 0.4,"sx" = -4,"sy" = -5,"nx" = 1,"ny" = -5,"wx" = 0,"wy" = -5,"ex" = 1,"ey" = -5,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 29,"sturn" = -222,"wturn" = -170,"eturn" = -20,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
-			if("wielded")
-				if(transformed) // --- Transformed (extended) two-handed ---
-					return list("shrink" = 0.6,"sx" = 9,"sy" = -9,"nx" = -10,"ny" = -7,"wx" = -8,"wy" = -7,"ex" = 11,"ey" = -7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -230,"sturn" = 61,"wturn" = -230,"eturn" = 43,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
-				// --- Base (folded) two-handed ---
-				return list("shrink" = 0.4,"sx" = 0,"sy" = -8,"nx" = 0,"ny" = -8,"wx" = 0,"wy" = -7,"ex" = 3,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -230,"sturn" = 61,"wturn" = -230,"eturn" = 38,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -9,"sy" = -10,"nx" = 7,"ny" = -8,"wx" = -5,"wy" = -7,"ex" = 5,"ey" = -10,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = 90,"wturn" = -75,"eturn" = 75,"nflip" = 0,"sflip" = 1,"wflip" = 4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.8,"sx" = 11,"sy" = -3,"nx" = -11,"ny" = -3,"wx" = 9,"wy" = -8,"ex" = 13,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -10,"sturn" = 10,"wturn" = 30,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.4,"sx" = -5,"sy" = -6,"nx" = 5,"ny" = -6,"wx" = 2,"wy" = -4,"ex" = -4,"ey" = -6,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -90,"eturn" = 90,"nflip" = 0,"sflip" = -4,"wflip" = 4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.5,"sx" = 0,"sy" = -3,"nx" = 0,"ny" = -3,"wx" = -1,"wy" = -3,"ex" = 2,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 6,"sturn" = 21,"wturn" = 21,"eturn" = -19,"nflip" = -4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 

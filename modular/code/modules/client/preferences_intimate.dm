@@ -161,6 +161,66 @@
 		options = list("None" = null)
 	return options
 
+/// Returns piercing options for the EAR slot.
+/datum/preferences/proc/get_intimate_ear_piercing_options()
+	var/static/list/options
+	if(!options)
+		options = list(
+			"None"                        = null,
+			"Iron Earring"                = /obj/item/intimate_accessory/piercing/ear/iron,
+			"Copper Earring"              = /obj/item/intimate_accessory/piercing/ear/copper,
+			"Steel Earring"               = /obj/item/intimate_accessory/piercing/ear/steel,
+			"Bronze Earring"              = /obj/item/intimate_accessory/piercing/ear/bronze,
+			"Silver Earring"              = /obj/item/intimate_accessory/piercing/ear/silver,
+			"Gold Earring"                = /obj/item/intimate_accessory/piercing/ear/gold,
+			"Blacksteel Earring"          = /obj/item/intimate_accessory/piercing/ear/blacksteel,
+			"Stone Psydonic Earring"      = /obj/item/intimate_accessory/piercing/ear/psydonic,
+			"Silver Psydonic Earring"     = /obj/item/intimate_accessory/piercing/ear/psydonic/silver_cross,
+			"Golden Psydonic Earring"     = /obj/item/intimate_accessory/piercing/ear/psydonic/golden_cross,
+			"Ancient Psydonic Earring"    = /obj/item/intimate_accessory/piercing/ear/psydonic/ancient_cross,
+			"Iron Zizite Earring"         = /obj/item/intimate_accessory/piercing/ear/zizite,
+			"Ancient Zizite Earring"      = /obj/item/intimate_accessory/piercing/ear/zizite/ancient_cross,
+		)
+	return options
+
+/// Returns piercing options for the NOSE slot.
+/datum/preferences/proc/get_intimate_nose_piercing_options()
+	var/static/list/options
+	if(!options)
+		options = list(
+			"None"                        = null,
+			"Iron Nose Piercing"          = /obj/item/intimate_accessory/piercing/nose/iron,
+			"Copper Nose Piercing"        = /obj/item/intimate_accessory/piercing/nose/copper,
+			"Steel Nose Piercing"         = /obj/item/intimate_accessory/piercing/nose/steel,
+			"Bronze Nose Piercing"        = /obj/item/intimate_accessory/piercing/nose/bronze,
+			"Silver Nose Piercing"        = /obj/item/intimate_accessory/piercing/nose/silver,
+			"Gold Nose Piercing"          = /obj/item/intimate_accessory/piercing/nose/gold,
+			"Blacksteel Nose Piercing"    = /obj/item/intimate_accessory/piercing/nose/blacksteel,
+		)
+	return options
+
+/// Returns piercing options for the BELLY slot.
+/datum/preferences/proc/get_intimate_belly_piercing_options()
+	var/static/list/options
+	if(!options)
+		options = list(
+			"None"                             = null,
+			"Iron Belly Button Piercing"       = /obj/item/intimate_accessory/piercing/belly/iron,
+			"Copper Belly Button Piercing"     = /obj/item/intimate_accessory/piercing/belly/copper,
+			"Steel Belly Button Piercing"      = /obj/item/intimate_accessory/piercing/belly/steel,
+			"Bronze Belly Button Piercing"     = /obj/item/intimate_accessory/piercing/belly/bronze,
+			"Silver Belly Button Piercing"     = /obj/item/intimate_accessory/piercing/belly/silver,
+			"Gold Belly Button Piercing"       = /obj/item/intimate_accessory/piercing/belly/gold,
+			"Blacksteel Belly Button Piercing" = /obj/item/intimate_accessory/piercing/belly/blacksteel,
+			"Stone Psydonic Belly Piercing"    = /obj/item/intimate_accessory/piercing/belly/psydonic,
+			"Silver Psydonic Belly Piercing"   = /obj/item/intimate_accessory/piercing/belly/psydonic/silver_cross,
+			"Golden Psydonic Belly Piercing"   = /obj/item/intimate_accessory/piercing/belly/psydonic/golden_cross,
+			"Ancient Psydonic Belly Piercing"  = /obj/item/intimate_accessory/piercing/belly/psydonic/ancient_cross,
+			"Iron Zizite Belly Piercing"       = /obj/item/intimate_accessory/piercing/belly/zizite,
+			"Ancient Zizite Belly Piercing"    = /obj/item/intimate_accessory/piercing/belly/zizite/ancient_cross,
+		)
+	return options
+
 /// Given a typepath, search all option lists and return the display name.
 /// Falls back to the typepath string if not found.
 /datum/preferences/proc/get_intimate_option_display_name(typepath)
@@ -169,7 +229,9 @@
 	var/list/all_options = get_intimate_rear_insertable_options() + get_intimate_rear_piercing_options() \
 		+ get_intimate_genital_insertable_options() + get_intimate_genital_piercing_options() \
 		+ get_intimate_breast_piercing_options() + get_intimate_breast_insertable_options() \
-		+ get_intimate_mouth_piercing_options() + get_intimate_mouth_insertable_options()
+		+ get_intimate_mouth_piercing_options() + get_intimate_mouth_insertable_options() \
+		+ get_intimate_ear_piercing_options() + get_intimate_nose_piercing_options() \
+		+ get_intimate_belly_piercing_options()
 	for(var/label in all_options)
 		if(all_options[label] == typepath)
 			return label
@@ -200,6 +262,9 @@
 		"[INTIMATE_SLOT_BREAST]_i"  = pref_intimate_breast_insertable,
 		"[INTIMATE_SLOT_MOUTH]_p"   = pref_intimate_mouth_piercing,
 		"[INTIMATE_SLOT_MOUTH]_i"   = pref_intimate_mouth_insertable,
+		"[INTIMATE_SLOT_EAR]_p"     = pref_intimate_ear_piercing,
+		"[INTIMATE_SLOT_NOSE]_p"    = pref_intimate_nose_piercing,
+		"[INTIMATE_SLOT_BELLY]_p"   = pref_intimate_belly_piercing,
 	)
 
 	for(var/slot_key in slot_prefs)

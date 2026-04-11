@@ -207,6 +207,17 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		return
 	path = "data/player_saves/[copytext(ckey,1,2)]/[ckey]/[filename]"
 
+/// Returns the directory path for sidecar JSON files (large blobs stored
+/// outside the savefile to bypass the 64 KB per-entry limit).
+/// Derives the directory from the savefile `path` var.
+/datum/preferences/proc/_sidecar_dir()
+	// path is like "data/player_saves/y/yuckuza/preferences.sav"
+	// We want "data/player_saves/y/yuckuza"
+	var/dir_end = findlasttext(path, "/")
+	if(dir_end)
+		return copytext(path, 1, dir_end)
+	return "data/player_saves"
+
 /datum/preferences/proc/load_preferences()
 	if(!path)
 		return FALSE
@@ -270,6 +281,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["intimate_reaction_show_chastity"]	>> intimate_reaction_show_chastity
 	S["intimate_reaction_show_extreme"]		>> intimate_reaction_show_extreme
 	S["intimate_reaction_show_accessory_free"]	>> intimate_reaction_show_accessory_free
+	S["intimate_reaction_share_with_partner"]	>> intimate_reaction_share_with_partner
 	// Intimate accessory prefs — global load (legacy migration handled in character load)
 	// These are no longer used directly; character-level load in load_character handles the split vars.
 	S["shake"]				>> shake
@@ -415,6 +427,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["intimate_reaction_show_chastity"], intimate_reaction_show_chastity)
 	WRITE_FILE(S["intimate_reaction_show_extreme"], intimate_reaction_show_extreme)
 	WRITE_FILE(S["intimate_reaction_show_accessory_free"], intimate_reaction_show_accessory_free)
+	WRITE_FILE(S["intimate_reaction_share_with_partner"], intimate_reaction_share_with_partner)
 	// NOTE: pref_intimate_* accessory prefs are now saved per-character in save_character().
 	WRITE_FILE(S["shake"], shake)
 	WRITE_FILE(S["lastclass"], lastclass)
@@ -623,7 +636,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	// Load and validate preset 1
 	if(preset1_json)
-		var/decoded = json_decode(preset1_json)
+		var/decoded = safe_json_decode(preset1_json)
 		if(decoded && istype(decoded, /list))
 			loadout_preset_1 = decoded
 		else
@@ -633,7 +646,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	// Load and validate preset 2
 	if(preset2_json)
-		var/decoded = json_decode(preset2_json)
+		var/decoded = safe_json_decode(preset2_json)
 		if(decoded && istype(decoded, /list))
 			loadout_preset_2 = decoded
 		else
@@ -643,7 +656,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	// Load and validate preset 3
 	if(preset3_json)
-		var/decoded = json_decode(preset3_json)
+		var/decoded = safe_json_decode(preset3_json)
 		if(decoded && istype(decoded, /list))
 			loadout_preset_3 = decoded
 		else
@@ -1111,29 +1124,48 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	if(raw_val && ispath(raw_val))
 		pref_intimate_mouth_insertable = raw_val
 	raw_val = null
+	// Ear piercing
+	S["pref_intimate_ear_piercing"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_ear_piercing = raw_val
+	raw_val = null
+	// Nose piercing
+	S["pref_intimate_nose_piercing"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_nose_piercing = raw_val
+	raw_val = null
+	// Belly piercing
+	S["pref_intimate_belly_piercing"] >> raw_val
+	if(raw_val && ispath(raw_val))
+		pref_intimate_belly_piercing = raw_val
+	raw_val = null
 
 	// Custom sex flavor text — stored as a JSON string; decoded back to a list here.
 	var/sex_flavors_json
 	S["custom_sex_flavors_json"] >> sex_flavors_json
 	if(istext(sex_flavors_json) && length(sex_flavors_json))
-		var/decoded = json_decode(sex_flavors_json)
+		var/decoded = safe_json_decode(sex_flavors_json)
 		custom_sex_flavors = islist(decoded) ? decoded : null
 	validate_custom_sex_flavors()
 
-	// Custom sex action definitions — stored as JSON.
-	var/sex_actions_json
-	S["custom_sex_actions_json"] >> sex_actions_json
-	if(istext(sex_actions_json) && length(sex_actions_json))
-		var/decoded = json_decode(sex_actions_json)
-		custom_sex_actions = islist(decoded) ? decoded : null
+	// Custom sex action definitions — loaded from sidecar JSON file to avoid
+	// the 64 KB per-entry savefile limit.
+	var/sa_dir = _sidecar_dir()
+	var/sa_path = "[sa_dir]/sex_actions_[slot].json"
+	if(fexists(sa_path))
+		var/sa_raw = rustg_file_read(sa_path)
+		var/decoded_sa = safe_json_decode(sa_raw)
+		custom_sex_actions = islist(decoded_sa) ? decoded_sa : null
 	validate_custom_sex_actions()
 
-	// Custom intimate reaction strings — stored as JSON; decoded back to a list here.
-	var/intimate_reactions_json
-	S["custom_intimate_reactions_json"] >> intimate_reactions_json
-	if(istext(intimate_reactions_json) && length(intimate_reactions_json))
-		var/decoded = json_decode(intimate_reactions_json)
-		custom_intimate_reactions = islist(decoded) ? decoded : null
+	// Custom intimate reaction strings — loaded from sidecar JSON file.
+	var/ir_path = "[sa_dir]/intimate_reactions_[slot].json"
+	if(fexists(ir_path))
+		var/ir_raw = rustg_file_read(ir_path)
+		var/decoded_ir = safe_json_decode(ir_raw)
+		custom_intimate_reactions = islist(decoded_ir) ? decoded_ir : null
+	else
+		custom_intimate_reactions = null
 	validate_custom_intimate_reactions()
 
 	// Chastity device prefs — per-character toggle system.
@@ -1171,7 +1203,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	var/chastity_stashes_json
 	S["pref_chastity_key_stashes_json"] >> chastity_stashes_json
 	if(istext(chastity_stashes_json) && length(chastity_stashes_json))
-		var/decoded = json_decode(chastity_stashes_json)
+		var/decoded = safe_json_decode(chastity_stashes_json)
 		pref_chastity_key_stashes = islist(decoded) ? decoded : null
 
 	var/raw_chastity_random_keys
@@ -1399,6 +1431,9 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["pref_intimate_breast_insertable"], preferences_typepath_or_null(pref_intimate_breast_insertable))
 	WRITE_FILE(S["pref_intimate_mouth_piercing"], preferences_typepath_or_null(pref_intimate_mouth_piercing))
 	WRITE_FILE(S["pref_intimate_mouth_insertable"], preferences_typepath_or_null(pref_intimate_mouth_insertable))
+	WRITE_FILE(S["pref_intimate_ear_piercing"], preferences_typepath_or_null(pref_intimate_ear_piercing))
+	WRITE_FILE(S["pref_intimate_nose_piercing"], preferences_typepath_or_null(pref_intimate_nose_piercing))
+	WRITE_FILE(S["pref_intimate_belly_piercing"], preferences_typepath_or_null(pref_intimate_belly_piercing))
 
 	// Custom sex flavor text — serialized to JSON for storage.
 	// Local var required: WRITE_FILE is a macro and ternary exprs in macro args
@@ -1406,13 +1441,21 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	var/sex_flavors_out = islist(custom_sex_flavors) ? json_encode(custom_sex_flavors) : null
 	WRITE_FILE(S["custom_sex_flavors_json"], sex_flavors_out)
 
-	// Custom sex action definitions — serialized to JSON for storage.
-	var/sex_actions_out = islist(custom_sex_actions) ? json_encode(custom_sex_actions) : null
-	WRITE_FILE(S["custom_sex_actions_json"], sex_actions_out)
+	// Custom sex action definitions — saved to sidecar JSON file to avoid
+	// the 64 KB per-entry savefile limit.
+	var/sa_dir = _sidecar_dir()
+	var/sa_path = "[sa_dir]/sex_actions_[slot].json"
+	if(islist(custom_sex_actions) && length(custom_sex_actions))
+		rustg_file_write(json_encode(custom_sex_actions), sa_path)
+	else if(fexists(sa_path))
+		fdel(sa_path)
 
-	// Custom intimate reaction strings — serialized to JSON for storage.
-	var/intimate_reactions_out = islist(custom_intimate_reactions) ? json_encode(custom_intimate_reactions) : null
-	WRITE_FILE(S["custom_intimate_reactions_json"], intimate_reactions_out)
+	// Custom intimate reaction strings — saved to sidecar JSON file.
+	var/ir_path = "[sa_dir]/intimate_reactions_[slot].json"
+	if(islist(custom_intimate_reactions) && length(custom_intimate_reactions))
+		rustg_file_write(json_encode(custom_intimate_reactions), ir_path)
+	else if(fexists(ir_path))
+		fdel(ir_path)
 
 	// Chastity device prefs — per-character toggle system.
 	WRITE_FILE(S["pref_chastity_enabled"], pref_chastity_enabled)

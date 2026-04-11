@@ -153,8 +153,8 @@
 /obj/item/rogueweapon/trickweapon/amygdalanarm
 	name = "abyssal arm"
 	desc = "A trick weapon fashioned from the severed limb of a deep-sea leviathan, dredged from waters where Abyssor's dreams bleed into reality. In its compact form, a grotesque but effective club of calcified alien flesh and bone. When commanded, the arm unfurls to its full terrible length, sweeping through the air with the reach of the creature it once belonged to. Those who gaze upon it too long often feel watched in return."
-	icon_state = "amygdalanarm"
-	item_state = "amygdalanarm"
+	icon_state = "dreamfiendarm"
+	item_state = "dreamfiendarm"
 	force = 24
 	force_wielded = 28
 	possible_item_intents = list(/datum/intent/amygdala/jab, /datum/intent/amygdala/sweep, /datum/intent/amygdala/slam)
@@ -183,8 +183,8 @@
 	// --- Transformed state: Extended whip-scythe ---
 	transformed_name = "abyssal arm"
 	transformed_desc = "The abyssal arm, now fully extended. The alien limb unfurls to its true length, its clawed fingers splayed wide, sweeping through the air with terrible reach. Each lash carries the weight and malice of Abyssor's dreaming grasp."
-	transformed_icon_state = "amygdalanarm_t"
-	transformed_item_state = "amygdalanarm_t"
+	transformed_icon_state = "dreamfiendarm_t"
+	transformed_item_state = "dreamfiendarm_t"
 	transformed_force = 14 // Weak 1H - designed for 2H range
 	transformed_force_wielded = 28
 	transformed_intents = list(/datum/intent/amygdala/lash, /datum/intent/amygdala/tendsweep)
@@ -198,22 +198,25 @@
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/amygdalan_bash
+	transformed_special = /datum/special_intent/amygdalan_smash
 
 /// Mob render properties for one-handed and wielded display.
 /// Branches on `transformed` to use different render profiles per form.
 /obj/item/rogueweapon/trickweapon/amygdalanarm/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				if(transformed) // --- Transformed (dreamfiend) one-handed ---
-					return list("shrink" = 0.5,"sx" = -15,"sy" = -7,"nx" = 15,"ny" = -7,"wx" = -15,"wy" = -6,"ex" = 5,"ey" = -6,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 70,"sturn" = -70,"wturn" = -60,"eturn" = 60,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
-				// --- Base (arm) one-handed ---
-				return list("shrink" = 0.5,"sx" = -15,"sy" = -7,"nx" = 15,"ny" = -7,"wx" = -15,"wy" = -6,"ex" = 5,"ey" = -6,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 70,"sturn" = -70,"wturn" = -60,"eturn" = 60,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
-			if("wielded")
-				if(transformed) // --- Transformed (dreamfiend) two-handed ---
-					return list("shrink" = 0.5,"sx" = 6,"sy" = -3,"nx" = -6,"ny" = -3,"wx" = 2,"wy" = 7,"ex" = -6,"ey" = 7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = -53,"eturn" = 53,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 4)
-				// --- Base (arm) two-handed ---
-				return list("shrink" = 0.5,"sx" = 6,"sy" = -3,"nx" = -6,"ny" = -3,"wx" = 2,"wy" = 7,"ex" = -6,"ey" = 7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = -53,"eturn" = 53,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 4)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -12,"sy" = -8,"nx" = 3,"ny" = 4,"wx" = 0,"wy" = 6,"ex" = -3,"ey" = 4,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = -73,"sturn" = 12,"wturn" = 64,"eturn" = -64,"nflip" = 0,"sflip" = -1,"wflip" = -4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 6,"sy" = 2,"nx" = -3,"ny" = 4,"wx" = -7,"wy" = 6,"ex" = 2,"ey" = 6,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = -73,"sturn" = 12,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = -4,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.5,"sx" = -15,"sy" = -9,"nx" = 9,"ny" = -8,"wx" = -9,"wy" = -7,"ex" = 0,"ey" = -8,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = -90,"wturn" = -80,"eturn" = 0,"nflip" = 1,"sflip" = 4,"wflip" = 4,"eflip" = 1)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 6,"sy" = 1,"nx" = -7,"ny" = 1,"wx" = 8,"wy" = -2,"ex" = 7,"ey" = 6,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 18,"eturn" = -27,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 

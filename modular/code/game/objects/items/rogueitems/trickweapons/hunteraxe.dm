@@ -113,14 +113,14 @@
 	swingdelay = 2
 	item_d_type = "stab"
 
-/// 360-degree spin â€” the signature Hunter Axe charged R2. Full rotation greataxe sweep.
+/// Heavy cleave – a devastating overhead chop with the extended axe. High commitment, punishing damage.
 /datum/intent/hunteraxe/spin
-	name = "360 spin"
-	icon_state = "insweep"
-	attack_verb = list("reaps", "scythes", "carves")
-	animname = "cut"
-	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/hunteraxe/pole_hit1.ogg', 'modular/sounds/trickweapons/hunteraxe/pole_hit2.ogg')
+	name = "heavy cleave"
+	icon_state = "incrush"
+	attack_verb = list("cleaves", "hews", "chops")
+	animname = "chop"
+	blade_class = BCLASS_CHOP
+	hitsound = list('modular/sounds/trickweapons/hunteraxe/axe_hit1.ogg', 'modular/sounds/trickweapons/hunteraxe/axe_hit2.ogg')
 	chargetime = 6
 	penfactor = 20
 	damfactor = 2.0
@@ -181,6 +181,8 @@
 	transformed_associated_skill = /datum/skill/combat/axes
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/hunter_axe_cleave
+	transformed_special = /datum/special_intent/hunter_axe_spin
 
 /// Mob render properties for one-handed and wielded display.
 /// Branches on `transformed` to use different render profiles per form.

@@ -156,10 +156,7 @@
 	gloves = /obj/item/clothing/gloves/roguetown/chain/iron
 	shirt = /obj/item/clothing/suit/roguetown/armor/chainmail/iron
 	pants = /obj/item/clothing/under/roguetown/chainlegs/iron
-	backl = /obj/item/rogueweapon/scabbard/gwstrap
-	beltr = /obj/item/rogueweapon/stoneaxe/woodcut/wardenpick
 	beltl = /obj/item/rogueweapon/huntingknife
-	r_hand = /obj/item/rogueweapon/spear
 	backpack_contents = list(
 		/obj/item/storage/keyring/guard = 1,
 		/obj/item/flashlight/flare/torch/lantern = 1,
@@ -168,6 +165,18 @@
 		)
 	H.verbs |= /mob/proc/haltyell
 	H.set_blindness(0)
+
+	if(H.mind)
+		var/weapons = list("Warden's Pick + Spear", "Hunter Axe (Trick Weapon)")
+		var/weapon_choice = input(H, "Choose your weapon.", "ARM YOURSELF") as anything in weapons
+		switch(weapon_choice)
+			if("Warden's Pick + Spear")
+				backl = /obj/item/rogueweapon/scabbard/gwstrap
+				beltr = /obj/item/rogueweapon/stoneaxe/woodcut/wardenpick
+				r_hand = /obj/item/rogueweapon/spear
+			// --- Trick Weapon ---
+			if("Hunter Axe (Trick Weapon)")
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/hunteraxe(H), TRUE)
 
 	if(H.mind)
 		var/helmets = list(

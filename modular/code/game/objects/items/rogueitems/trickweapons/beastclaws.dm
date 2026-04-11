@@ -190,13 +190,35 @@
 	transformed_associated_skill = /datum/skill/combat/unarmed
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_SMALL
+	special = /datum/special_intent/beast_claws_rake
+	transformed_special = /datum/special_intent/beast_claws_rush
+	/// Separate icon file for transformed on-mob rendering.
+	var/inhand_icon = 'modular/icons/obj/trickweapons/beastclawonmob.dmi'
 
-/// Mob render properties â€” small claw gauntlet on fist.
+/// Override generateonmob to pull from beastclawonmob.dmi when transformed.
+/// Base form uses normal weapon on-mob behavior.
+/obj/item/rogueweapon/trickweapon/beastclaws/generateonmob(tag, prop, behind = FALSE, mirrored = FALSE, used_index = null)
+	if(!transformed)
+		return ..(tag, prop, behind, mirrored, used_index)
+	var/cached_icon = icon
+	icon = inhand_icon
+	var/onmob_state = wielded ? "beastclawonmob_twohand" : "beastclawonmob_onehand"
+	. = ..(tag, prop, behind, mirrored, onmob_state)
+	icon = cached_icon
+
+/// Mob render properties — small claw gauntlet on fist (base), full-body claws (transformed).
 /obj/item/rogueweapon/trickweapon/beastclaws/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.4,"sx" = -7,"sy" = -4,"nx" = 7,"ny" = -4,"wx" = -3,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 110,"sturn" = -110,"wturn" = -110,"eturn" = 110,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.5,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 1,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 1,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.3,"sx" = -8,"sy" = -7,"nx" = 6,"ny" = -6,"wx" = -3,"wy" = -8,"ex" = 0,"ey" = -7,"northabove" = 1,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 125,"sturn" = 50,"wturn" = 136,"eturn" = 34,"nflip" = 0,"sflip" = 1,"wflip" = 0,"eflip" = 1)
+				if("wielded")
+					return list("shrink" = 0.3,"sx" = -8,"sy" = -7,"nx" = 6,"ny" = -6,"wx" = -3,"wy" = -8,"ex" = 0,"ey" = -7,"northabove" = 1,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 125,"sturn" = 50,"wturn" = 136,"eturn" = 34,"nflip" = 0,"sflip" = 1,"wflip" = 0,"eflip" = 1)

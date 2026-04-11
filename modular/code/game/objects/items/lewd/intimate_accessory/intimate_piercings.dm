@@ -1247,3 +1247,351 @@
 	piercing_metal_color = "#A2CBE3"
 	base_sell = 150
 	bell_sell = 165
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Earring piercings — visible on mob via sprite accessory overlay.
+// ═══════════════════════════════════════════════════════════════════════════
+/obj/item/intimate_accessory/piercing/ear
+	name = "steel earring"
+	desc = "A small hoop earring. Simple, decorative, and not remotely scandalous."
+	icon_state = "ear_pierce_item"
+	item_state = "ear_pierce_item"
+	item_base_state = "ear_pierce_item"
+	item_gem_state = "ear_pierce_item_gem"
+	piercing_region_name = "ear"
+	intimate_slot = INTIMATE_SLOT_EAR
+	sprite_acc = /datum/sprite_accessory/intimate_overlays/piercing_ear
+
+/obj/item/intimate_accessory/piercing/ear/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] earring")
+
+/obj/item/intimate_accessory/piercing/ear/finalize_intimate_equip(mob/living/carbon/human/H)
+	. = ..()
+	play_piercing_sound(H, 'sound/foley/pierce.ogg')
+
+/obj/item/intimate_accessory/piercing/ear/remove_intimate_accessory(mob/living/carbon/human/H)
+	if(H && H.intimate_ear_piercing == src)
+		play_piercing_sound(H, 'sound/foley/equip/chain_equip.ogg')
+	return ..()
+
+// Metal variants for earrings.
+/obj/item/intimate_accessory/piercing/ear/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/ear/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/ear/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 10
+
+/obj/item/intimate_accessory/piercing/ear/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 12
+
+/obj/item/intimate_accessory/piercing/ear/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 30
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/ear/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 50
+
+/obj/item/intimate_accessory/piercing/ear/blacksteel
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 150
+
+// --- Ear psydonic piercings ---
+/obj/item/intimate_accessory/piercing/ear/psydonic
+	name = "psydonic earring"
+	desc = "An earring hung with a tiny psycross pendant. A small, quiet devotion worn close to the skull."
+	icon_state = "ear_pierce_item_psy"
+	item_state = "ear_pierce_item_psy"
+	item_base_state = "ear_pierce_item_psy"
+	item_gem_state = null
+	visual_movement_style = "psydonic"
+	intimate_metal_name = "stone"
+	intimate_metal_color = "#9BADB7"
+	intimate_gem_color = "#9BADB7"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/ear/psydonic/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] psydonic earring")
+
+/obj/item/intimate_accessory/piercing/ear/psydonic/update_dynamic_name()
+	name = "[lowertext(intimate_metal_name)] psydonic earring"
+
+/obj/item/intimate_accessory/piercing/ear/psydonic/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The psycross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/ear/psydonic/silver_cross
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	intimate_gem_color = "#C6D5E1"
+	sellprice = 40
+
+/obj/item/intimate_accessory/piercing/ear/psydonic/golden_cross
+	intimate_metal_name = "golden"
+	intimate_metal_color = "#C4B651"
+	intimate_gem_color = "#C4B651"
+	sellprice = 60
+
+/obj/item/intimate_accessory/piercing/ear/psydonic/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
+
+// --- Ear zizite piercings ---
+/obj/item/intimate_accessory/piercing/ear/zizite
+	name = "zizite earring"
+	desc = "An earring hung with a zcross pendant and a tiny skull bead. A surefire way to attract the worst sort of attention."
+	icon_state = "ear_pierce_item_zizo"
+	item_state = "ear_pierce_item_zizo"
+	item_base_state = "ear_pierce_item_zizo"
+	item_gem_state = null
+	visual_movement_style = "zizite"
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	intimate_gem_color = "#9EA48E"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/ear/zizite/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] zizite earring")
+
+/obj/item/intimate_accessory/piercing/ear/zizite/update_dynamic_name()
+	name = "[lowertext(intimate_metal_name)] zizite earring"
+
+/obj/item/intimate_accessory/piercing/ear/zizite/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The zcross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/ear/zizite/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Nose piercings — examine-only (no sprite overlay on mob).
+// ═══════════════════════════════════════════════════════════════════════════
+/obj/item/intimate_accessory/piercing/nose
+	name = "steel nose piercing"
+	desc = "A small metal stud for the nose. Decorative, understated, and mildly painful to install."
+	icon_state = "nose_pierce_item"
+	item_state = "nose_pierce_item"
+	item_base_state = "nose_pierce_item"
+	item_gem_state = "nose_pierce_item_gem"
+	piercing_region_name = "nose"
+	intimate_slot = INTIMATE_SLOT_NOSE
+
+/obj/item/intimate_accessory/piercing/nose/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] nose piercing")
+
+/obj/item/intimate_accessory/piercing/nose/attach_intimate_feature(mob/living/carbon/human/H)
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/nose/finalize_intimate_equip(mob/living/carbon/human/H)
+	. = ..()
+	play_piercing_sound(H, 'sound/foley/pierce.ogg')
+
+/obj/item/intimate_accessory/piercing/nose/remove_intimate_accessory(mob/living/carbon/human/H)
+	if(H && H.intimate_nose_piercing == src)
+		play_piercing_sound(H, 'sound/foley/equip/chain_equip.ogg')
+	return ..()
+
+// Metal variants for nose piercings.
+/obj/item/intimate_accessory/piercing/nose/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/nose/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/nose/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 10
+
+/obj/item/intimate_accessory/piercing/nose/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 12
+
+/obj/item/intimate_accessory/piercing/nose/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 30
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/nose/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 50
+
+/obj/item/intimate_accessory/piercing/nose/blacksteel
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 150
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Belly button piercings — examine-only (no sprite overlay on mob).
+// ═══════════════════════════════════════════════════════════════════════════
+/obj/item/intimate_accessory/piercing/belly
+	name = "steel belly button piercing"
+	desc = "A curved barbell for the navel. The kind of thing a bored merchant's daughter gets on a dare."
+	icon_state = "belly_pierce_item"
+	item_state = "belly_pierce_item"
+	item_base_state = "belly_pierce_item"
+	item_gem_state = "belly_pierce_item_gem"
+	piercing_region_name = "belly button"
+	intimate_slot = INTIMATE_SLOT_BELLY
+
+/obj/item/intimate_accessory/piercing/belly/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] belly button piercing")
+
+/obj/item/intimate_accessory/piercing/belly/attach_intimate_feature(mob/living/carbon/human/H)
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/belly/finalize_intimate_equip(mob/living/carbon/human/H)
+	. = ..()
+	play_piercing_sound(H, 'sound/foley/pierce.ogg')
+
+/obj/item/intimate_accessory/piercing/belly/remove_intimate_accessory(mob/living/carbon/human/H)
+	if(H && H.intimate_belly_piercing == src)
+		play_piercing_sound(H, 'sound/foley/equip/chain_equip.ogg')
+	return ..()
+
+// Metal variants for belly button piercings.
+/obj/item/intimate_accessory/piercing/belly/iron
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/belly/copper
+	intimate_metal_name = "copper"
+	intimate_metal_color = "#8C4734"
+	sellprice = 5
+
+/obj/item/intimate_accessory/piercing/belly/steel
+	intimate_metal_name = "steel"
+	intimate_metal_color = "#9BADB7"
+	sellprice = 10
+
+/obj/item/intimate_accessory/piercing/belly/bronze
+	intimate_metal_name = "bronze"
+	intimate_metal_color = "#CBBF9A"
+	sellprice = 12
+
+/obj/item/intimate_accessory/piercing/belly/silver
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	sellprice = 30
+	is_silver = TRUE
+
+/obj/item/intimate_accessory/piercing/belly/gold
+	intimate_metal_name = "gold"
+	intimate_metal_color = "#C4B651"
+	sellprice = 50
+
+/obj/item/intimate_accessory/piercing/belly/blacksteel
+	intimate_metal_name = "blacksteel"
+	intimate_metal_color = "#A2CBE3"
+	sellprice = 150
+
+// --- Belly psydonic piercings ---
+/obj/item/intimate_accessory/piercing/belly/psydonic
+	name = "psydonic belly button piercing"
+	desc = "A navel barbell hung with a small psycross charm. Pious vanity, tucked under the shirt."
+	icon_state = "belly_pierce_item_psy"
+	item_state = "belly_pierce_item_psy"
+	item_base_state = "belly_pierce_item_psy"
+	item_gem_state = null
+	visual_movement_style = "psydonic"
+	intimate_metal_name = "stone"
+	intimate_metal_color = "#9BADB7"
+	intimate_gem_color = "#9BADB7"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/belly/psydonic/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] psydonic belly button piercing")
+
+/obj/item/intimate_accessory/piercing/belly/psydonic/update_dynamic_name()
+	name = "[lowertext(intimate_metal_name)] psydonic belly button piercing"
+
+/obj/item/intimate_accessory/piercing/belly/psydonic/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The psycross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/belly/psydonic/silver_cross
+	intimate_metal_name = "silver"
+	intimate_metal_color = "#C6D5E1"
+	intimate_gem_color = "#C6D5E1"
+	sellprice = 40
+
+/obj/item/intimate_accessory/piercing/belly/psydonic/golden_cross
+	intimate_metal_name = "golden"
+	intimate_metal_color = "#C4B651"
+	intimate_gem_color = "#C4B651"
+	sellprice = 60
+
+/obj/item/intimate_accessory/piercing/belly/psydonic/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50
+
+// --- Belly zizite piercings ---
+/obj/item/intimate_accessory/piercing/belly/zizite
+	name = "zizite belly button piercing"
+	desc = "A navel barbell strung with a zcross and skull beadwork. At least this one's more hidden."
+	icon_state = "belly_pierce_item_zizo"
+	item_state = "belly_pierce_item_zizo"
+	item_base_state = "belly_pierce_item_zizo"
+	item_gem_state = null
+	visual_movement_style = "zizite"
+	intimate_metal_name = "iron"
+	intimate_metal_color = "#9EA48E"
+	intimate_gem_color = "#9EA48E"
+	sellprice = 15
+
+/obj/item/intimate_accessory/piercing/belly/zizite/Initialize()
+	. = ..()
+	finalize_piercing_initialize("[lowertext(intimate_metal_name)] zizite belly button piercing")
+
+/obj/item/intimate_accessory/piercing/belly/zizite/update_dynamic_name()
+	name = "[lowertext(intimate_metal_name)] zizite belly button piercing"
+
+/obj/item/intimate_accessory/piercing/belly/zizite/try_extract_socketed_item(mob/living/user)
+	if(user)
+		to_chat(user, span_warning("The zcross is fixed in place and cannot be removed."))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/belly/zizite/ancient_cross
+	intimate_metal_name = "ancient"
+	intimate_metal_color = "#BB9696"
+	intimate_gem_color = "#BB9696"
+	sellprice = 50

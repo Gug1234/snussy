@@ -16,7 +16,7 @@
  * defines two states (base and transformed) with separate names, descs,
  * icon_states, forces, intents, and sound profiles.
  *
- * Transformation is triggered via rmb_self (right-click while held).
+ * Transformation is triggered via rmb_self or the space bar (right-click while held).
  * The base class caches the "other" state's data and swaps everything
  * on transform, then calls update_a_intents() to refresh the HUD.
  *
@@ -32,6 +32,7 @@
 	resistance_flags = FIRE_PROOF
 	obj_flags = CAN_BE_HIT | UNIQUE_RENAME
 	dropshrink = 0.5
+	hudshrink = 0
 	gripsprite = FALSE
 
 	/// Whether the weapon is currently in its transformed state.
@@ -103,6 +104,10 @@
 	/// Bonus parry chance when defending against an attacker using a trick weapon. 0 = no bonus.
 	var/anti_trickweapon_parry_bonus = 0
 
+	// --- Transform cooldown ---
+	/// Cooldown timer to prevent keyboard-repeat double-fires on the Space keybinding.
+	COOLDOWN_DECLARE(transform_cd)
+
 	// --- Transform spam detection vars ---
 	/// Number of transforms recorded in the current rolling window.
 	var/transform_spam_count = 0
@@ -118,6 +123,14 @@
 	var/shot_damage = 0
 	/// Armor penetration for the shot intent.
 	var/shot_ap = 0
+
+	// --- Per-form weapon special vars ---
+	/// Weapon special (strong intent right-click ability) for the transformed state.
+	/// Set as a path on the subtype; instantiated on Initialize.
+	/// Null = no special in that form. Each form can have a different special or none.
+	var/datum/special_intent/transformed_special
+	/// Cached base form weapon special (populated on Initialize from the inherited `special` var).
+	var/datum/special_intent/base_special
 
 	// --- Cached base state vars (populated on Initialize) ---
 	var/base_name
@@ -163,6 +176,12 @@
 	base_sharpness = sharpness
 	base_w_class = w_class
 
+	// Cache the base form special (already instantiated by parent Initialize)
+	base_special = special
+	// Instantiate the transformed special if set as a path
+	if(ispath(transformed_special))
+		transformed_special = new transformed_special()
+
 	// Cache the initial serrated state as the base form value
 	base_serrated = serrated
 	// If transformed_serrated was never set, default it to match base
@@ -189,6 +208,11 @@
  *     bold visible_message, and admin log
  */
 /obj/item/rogueweapon/trickweapon/proc/transform_weapon(mob/living/user)
+	// --- Transform cooldown (prevents keyboard-repeat double-fires) ---
+	if(!COOLDOWN_FINISHED(src, transform_cd))
+		return
+	COOLDOWN_START(src, transform_cd, 3) // 0.3 seconds
+
 	// --- Transform spam detection ---
 	var/now = world.time
 	if(now - transform_spam_window_start > TRANSFORM_SPAM_WINDOW)
@@ -224,6 +248,10 @@
 		apply_transformed_state()
 	else
 		apply_base_state()
+
+	// Invalidate the cached onmob property data so update_inv_hands()
+	// fetches fresh offsets from getonmobprop() for the new form.
+	onprop = null
 
 	// Update the visual and combat state
 	update_icon()
@@ -303,6 +331,7 @@
 	associated_skill = transformed_associated_skill
 	sharpness = transformed_sharpness
 	w_class = transformed_w_class
+	special = transformed_special
 	serrated = transformed_serrated
 	update_serrated_signal()
 
@@ -325,6 +354,7 @@
 	associated_skill = base_associated_skill
 	sharpness = base_sharpness
 	w_class = base_w_class
+	special = base_special
 	serrated = base_serrated
 	update_serrated_signal()
 

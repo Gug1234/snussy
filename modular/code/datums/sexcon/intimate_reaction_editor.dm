@@ -113,13 +113,7 @@
 
 	// ── Character bank ─────────────────────────────────────────────────
 	// Tier-aware categories: each arousal tier gets its own movement + sex_received slots.
-	// Legacy flat keys ("movement", "sex_received") are kept for backward compatibility
-	// and are treated as aliases for "neutral_movement" / "neutral_sex_received" at runtime.
-	var/list/character_categories = list(
-		// Legacy flat keys — still accepted by the validator for old saves.
-		list("key" = "movement", "label" = "Movement (Legacy)", "file" = "character_movement_messages.json", "json_key" = "character_movement", "path" = INTIMATE_EDITOR_STRINGS_PATH, "hidden" = TRUE),
-		list("key" = "sex_received", "label" = "Sex Received (Legacy)", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received", "path" = INTIMATE_EDITOR_STRINGS_PATH, "hidden" = TRUE),
-	)
+	var/list/character_categories = list()
 	// Build tier-aware categories dynamically.
 	var/static/list/tier_labels = list(
 		INTIMATE_TIER_NEUTRAL     = "Neutral",
@@ -199,8 +193,10 @@
 		"categories" = list(
 			list("key" = "insertable_genital_shift", "label" = "Genital Plug Move", "desc" = "A plug in your genitals shifts as you walk.", "file" = "insertable_movement_messages.json", "json_key" = "insertable_genital_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 			list("key" = "insertable_rear_shift", "label" = "Rear Plug Move", "desc" = "A plug in your rear shifts as you walk.", "file" = "insertable_movement_messages.json", "json_key" = "insertable_rear_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "insertable_sounding_shift", "label" = "Sounding Rod Move", "desc" = "A sounding rod in your urethra shifts as you walk.", "file" = "insertable_sounding_movement_messages.json", "json_key" = "insertable_sounding_shift", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 			list("key" = "insertable_genital_receive", "label" = "Genital Plug Receive", "desc" = "Someone interacts with the plug in your genitals.", "file" = "insertable_receive_flavor.json", "json_key" = "insertable_genital_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 			list("key" = "insertable_rear_receive", "label" = "Rear Plug Receive", "desc" = "Someone interacts with the plug in your rear.", "file" = "insertable_receive_flavor.json", "json_key" = "insertable_rear_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
+			list("key" = "insertable_sounding_receive", "label" = "Sounding Rod Receive", "desc" = "Someone interacts with the sounding rod in your urethra.", "file" = "insertable_sounding_receive_flavor.json", "json_key" = "insertable_sounding_receive", "path" = INTIMATE_EDITOR_ACCESSORY_PATH),
 		),
 	)
 
@@ -405,7 +401,7 @@
 		// Temporarily bypass the istype check by creating a bare datum.
 		// get_bank_definitions() only needs the static cache, not an owner.
 		var/datum/intimate_reaction_editor/tmp_editor = new /datum/intimate_reaction_editor()
-		var/list/banks = tmp_editor.get_bank_definitions(null)
+		var/list/banks = tmp_editor?.get_bank_definitions(null)
 		for(var/bank_id in banks)
 			var/list/bank = banks[bank_id]
 			var/list/cats = bank["categories"]
@@ -840,9 +836,12 @@
 				preset_result_success = FALSE
 				return FALSE
 
-			// Auto-detect genital type from the character's anatomy.
-			var/genital_type = "penis" // default
-			if(istype(owner))
+			// Determine genital type: prefer explicit param, fall back to auto-detect.
+			var/genital_type = "penis"
+			var/explicit_genital = params["genital"]
+			if(istext(explicit_genital) && (explicit_genital in list("penis", "vagina")))
+				genital_type = explicit_genital
+			else if(istype(owner))
 				var/has_penis = !!owner.getorganslot(ORGAN_SLOT_PENIS)
 				var/has_vagina = !!owner.getorganslot(ORGAN_SLOT_VAGINA)
 				if(has_vagina && !has_penis)

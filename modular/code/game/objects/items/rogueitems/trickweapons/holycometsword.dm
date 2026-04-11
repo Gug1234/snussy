@@ -190,6 +190,8 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/holy_comet_smite
+	transformed_special = /datum/special_intent/holy_comet_nova
 	/// Damage dealt by the Holy Burst AOE (arcanethrust full-charge effect).
 	var/burst_damage = 25
 	/// Range of the Holy Burst AOE in tiles.
@@ -214,19 +216,22 @@
 /obj/item/rogueweapon/trickweapon/holycometsword/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				if(transformed) // --- Transformed (arcane) one-handed ---
-					return list("shrink" = 0.6,"sx" = -21,"sy" = -10,"nx" = 20,"ny" = -10,"wx" = 0,"wy" = 10,"ex" = -2,"ey" = 9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 74,"sturn" = -70,"wturn" = 54,"eturn" = -56,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-				// --- Base (greatsword) one-handed ---
-				return list("shrink" = 0.6,"sx" = -5,"sy" = 9,"nx" = 4,"ny" = 10,"wx" = 0,"wy" = 10,"ex" = -2,"ey" = 9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -62,"sturn" = 53,"wturn" = 54,"eturn" = -56,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				if(transformed) // --- Transformed (arcane) two-handed ---
-					return list("shrink" = 0.7,"sx" = 10,"sy" = -5,"nx" = -7,"ny" = 1,"wx" = -13,"wy" = 2,"ex" = 12,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 1,"eflip" = 0)
-				// --- Base (greatsword) two-handed ---
-				return list("shrink" = 0.6,"sx" = 9,"sy" = -8,"nx" = -7,"ny" = 1,"wx" = -9,"wy" = 2,"ex" = 10,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 1,"eflip" = 0)
-			if("onback")
-				return list("shrink" = 0.6,"sx" = -1,"sy" = 2,"nx" = 0,"ny" = 2,"wx" = 2,"wy" = 1,"ex" = 0,"ey" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 70,"eturn" = 15,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -18,"sy" = -15,"nx" = 17,"ny" = -15,"wx" = -16,"wy" = -12,"ex" = 9,"ey" = -15,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 7,"eturn" = 0,"nflip" = 1,"sflip" = -1,"wflip" = -1,"eflip" = 1)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = -14,"sy" = 10,"nx" = 4,"ny" = 9,"wx" = -13,"wy" = 10,"ex" = 4,"ey" = 12,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -75,"sturn" = -110,"wturn" = -120,"eturn" = -60,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				if("onback")
+					return list("shrink" = 0.6,"sx" = -1,"sy" = 2,"nx" = 0,"ny" = 2,"wx" = 2,"wy" = 1,"ex" = 0,"ey" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 70,"eturn" = 15,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -9,"sy" = 10,"nx" = 6,"ny" = 9,"wx" = -3,"wy" = 11,"ex" = -1,"ey" = 7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -50,"sturn" = 40,"wturn" = 50,"eturn" = -50,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = 9,"sy" = -7,"nx" = -9,"ny" = 3,"wx" = 9,"wy" = -11,"ex" = 10,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 4,"eflip" = 0)
+				if("onback")
+					return list("shrink" = 0.6,"sx" = -1,"sy" = 2,"nx" = 0,"ny" = 2,"wx" = 2,"wy" = 1,"ex" = 0,"ey" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 70,"eturn" = 15,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
 
 /**
  * Afterattack hook — fires psycross spell effects when conditions are met.

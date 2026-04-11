@@ -203,6 +203,8 @@
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_NORMAL
+	special = /datum/special_intent/tonitrus_strike
+	transformed_special = /datum/special_intent/tonitrus_discharge
 
 /// Mob render properties for one-handed and wielded display (mace-sized).
 /// Tonitrus uses the same sprite for both forms — only the charge effect changes.
@@ -230,10 +232,12 @@
 	// If we just entered charged mode, start the auto-revert timer and enable bugzapper
 	if(transformed)
 		charge_timer_id = addtimer(CALLBACK(src, PROC_REF(auto_revert)), charge_duration, TIMER_STOPPABLE)
-		RegisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS, PROC_REF(apply_bugzapper_bonus))
-		to_chat(user, span_warning("Arcyne energy crackles through [src] â€” it won't last long!"))
+		RegisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS, PROC_REF(apply_bugzapper_bonus), override = TRUE)
+		to_chat(user, span_warning("Arcyne energy crackles through [src] \u2014 it won't last long!"))
 	else
 		UnregisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS)
+		// Restore serrated signal if applicable (bugzapper override displaced it)
+		update_serrated_signal()
 
 /**
  * Called by the auto-revert timer when the charge expires.
@@ -254,6 +258,8 @@
 	update_force_dynamic()
 	wdefense_dynamic = wdefense
 	UnregisterSignal(src, COMSIG_ITEM_ATTACK_SUCCESS)
+	// Restore serrated signal if applicable (bugzapper override displaced it)
+	update_serrated_signal()
 	playsound(loc, 'sound/combat/clash_draw.ogg', 80, TRUE)
 	// Notify holder
 	if(ismob(loc))

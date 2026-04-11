@@ -154,8 +154,8 @@
 /obj/item/rogueweapon/trickweapon/ludwigblade
 	name = "pontifex blade"
 	desc = "A trick weapon forged for the warrior-priests of the Psydonic faith. In its sheathed form, a silver longsword of reliable make. When drawn from its scabbard-like greatsword shell, the blade locks into the larger frame to form a single weapon of staggering size and weight. The Pontifexes wielded these to devastating effect against deadites and werewolves alike."
-	icon_state = "ludwigblade"
-	item_state = "ludwigblade"
+	icon_state = "ludwigsword"
+	item_state = "ludwigsword"
 	force = 22
 	force_wielded = 25
 	possible_item_intents = list(/datum/intent/ludwig/diagslash, /datum/intent/ludwig/thrust, /datum/intent/ludwig/pommel)
@@ -184,8 +184,8 @@
 	// --- Transformed state: Greatsword ---
 	transformed_name = "pontifex blade"
 	transformed_desc = "The pontifex blade, now assembled into its full greatsword form. The silver longsword locks into the massive shell, creating a single weapon of immense reach and crushing weight. Each swing carries the conviction of the Psydonic faithful."
-	transformed_icon_state = "ludwigblade_t"
-	transformed_item_state = "ludwigblade_t"
+	transformed_icon_state = "ludwigsword_t"
+	transformed_item_state = "ludwigsword_t"
 	transformed_force = 14 // Weak 1H - designed for 2H use
 	transformed_force_wielded = 30 // Massive 2H bonus
 	transformed_intents = list(/datum/intent/ludwig/heavychop, /datum/intent/ludwig/greatstrike)
@@ -199,14 +199,23 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/ludwigs_silver_flash
+	transformed_special = /datum/special_intent/ludwigs_holy_slam
 
 /// Mob render properties for one-handed and wielded display.
 /obj/item/rogueweapon/trickweapon/ludwigblade/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.6,"sx" = -8,"sy" = 13,"nx" = 20,"ny" = -11,"wx" = 4,"wy" = 11,"ex" = -7,"ey" = 10,"northabove" = 1,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 70,"sturn" = -52,"wturn" = -17,"eturn" = 17,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = -4)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 9,"sy" = 0,"nx" = -9,"ny" = 0,"wx" = 10,"wy" = -11,"ex" = 11,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -9,"sturn" = 9,"wturn" = 51,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.5,"sx" = -14,"sy" = -12,"nx" = 14,"ny" = -8,"wx" = -11,"wy" = -7,"ex" = 4,"ey" = -7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -20,"sturn" = 0,"wturn" = 18,"eturn" = -25,"nflip" = 1,"sflip" = -1,"wflip" = -1,"eflip" = 1)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 6,"sy" = -3,"nx" = -6,"ny" = -2,"wx" = 9,"wy" = -8,"ex" = 9,"ey" = -3,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 27,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 

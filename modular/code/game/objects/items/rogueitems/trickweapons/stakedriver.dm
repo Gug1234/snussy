@@ -114,13 +114,13 @@
 	blunt_chipping = TRUE
 	blunt_chip_strength = BLUNT_CHIP_STRONG
 
-/// Stake Driver transformed - pile bunker. Charged R2, the signature devastating explosion.
-/// A drastically long windup followed by an explosive jab. Catastrophic damage if it lands.
+/// Stake Driver transformed - piston strike. Charged R2, the mechanism fires with focused devastating force.
+/// A drastically long windup followed by a crushing mechanical punch. Catastrophic single-target damage.
 /// 3.55x motion value from Bloodborne; highest single-hit damage in the game.
 /datum/intent/stakedriver/pilebunker
-	name = "pile bunker"
+	name = "piston strike"
 	icon_state = "incrush"
-	attack_verb = list("pile bunkers", "detonates upon")
+	attack_verb = list("drives into", "pounds")
 	animname = "strike"
 	blade_class = BCLASS_SMASH
 	hitsound = list('modular/sounds/trickweapons/stakedriver/explosion.ogg')
@@ -190,6 +190,8 @@
 	transformed_associated_skill = /datum/skill/combat/unarmed
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_NORMAL
+	special = /datum/special_intent/stake_driver_piston
+	transformed_special = /datum/special_intent/stake_driver_explosion
 
 /// Mob render properties for one-handed display (gauntlet-style weapon, same for both forms).
 /obj/item/rogueweapon/trickweapon/stakedriver/getonmobprop(tag)

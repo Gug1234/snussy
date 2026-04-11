@@ -7,6 +7,10 @@
 #define INTIMATE_SLOT_MISC INTIMATE_SLOT_MOUTH
 /// Dedicated slot for the Eora jelly — doesn't compete with piercings or insertables.
 #define INTIMATE_SLOT_JELLY 5
+/// Non-sexual piercing-only slots — no insertable sub-slot.
+#define INTIMATE_SLOT_EAR 6
+#define INTIMATE_SLOT_NOSE 7
+#define INTIMATE_SLOT_BELLY 8
 
 #define INTIMATE_FLAG_INSERTABLE (1<<0)
 #define INTIMATE_FLAG_PIERCING (1<<1)

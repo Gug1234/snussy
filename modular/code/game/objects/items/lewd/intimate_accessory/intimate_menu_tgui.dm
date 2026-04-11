@@ -114,6 +114,12 @@
 	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_MOUTH,   "Mouth Insertable",    wearer.intimate_mouth_insertable, BODY_ZONE_PRECISE_MOUTH))
 	// Jelly slot
 	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_JELLY,   "Jelly",               wearer.intimate_jelly, BODY_ZONE_PRECISE_GROIN))
+	// Ear region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_EAR,     "Ear Piercing",        wearer.intimate_ear_piercing, BODY_ZONE_PRECISE_EARS))
+	// Nose region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_NOSE,    "Nose Piercing",       wearer.intimate_nose_piercing, BODY_ZONE_PRECISE_NOSE))
+	// Belly region
+	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_BELLY,   "Belly Piercing",      wearer.intimate_belly_piercing, BODY_ZONE_PRECISE_STOMACH))
 	data["slots"] = slots_data
 	return data
 

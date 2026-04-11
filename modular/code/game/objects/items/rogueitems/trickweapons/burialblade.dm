@@ -181,14 +181,23 @@
 	transformed_associated_skill = /datum/skill/combat/polearms
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/burial_blade_mark
+	transformed_special = /datum/special_intent/burial_blade_harvest
 
 /// Mob render properties for one-handed and wielded display.
 /obj/item/rogueweapon/trickweapon/burialblade/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.7,"sx" = -6,"sy" = 4,"nx" = 4,"ny" = 4,"wx" = -4,"wy" = 3,"ex" = -3,"ey" = 0,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = -13,"eturn" = 13,"nflip" = 1,"sflip" = -3,"wflip" = -1,"eflip" = 1)
+				if("wielded")
+					return list("shrink" = 0.7,"sx" = 5,"sy" = -6,"nx" = -4,"ny" = -7,"wx" = 0,"wy" = -6,"ex" = 4,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 10,"sturn" = -13,"wturn" = 16,"eturn" = -27,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.4,"sx" = -15,"sy" = -12,"nx" = 14,"ny" = -8,"wx" = -12,"wy" = -3,"ex" = 7,"ey" = -5,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 75,"sturn" = -90,"wturn" = -50,"eturn" = 50,"nflip" = 0,"sflip" = 4,"wflip" = -4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.5,"sx" = 4,"sy" = -1,"nx" = -4,"ny" = 1,"wx" = 7,"wy" = -5,"ex" = 8,"ey" = 1,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 22,"sturn" = 0,"wturn" = 17,"eturn" = -21,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 

@@ -153,6 +153,9 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 	var/wieldsound = FALSE
 
 	var/dropshrink = 0
+	/// Scale factor for the item's appearance on the HUD when held. 0 = no scaling (default).
+	/// Values like 0.5 will render the item at half size on screen, useful for 64x64 items that block HUD elements.
+	var/hudshrink = 0
 	/// Force value that is force or force_wielded, with any added bonuses from external sources. (Mainly components for enchantments)
 	var/force_dynamic = 0
 	/// Weapon's length. Indicates what limbs it can target without extra circumstances (like grabs / on a prone target).
@@ -285,6 +288,10 @@ GLOBAL_VAR_INIT(rpg_loot_items, FALSE)
 			M.Scale(dropshrink,dropshrink)
 			transform = M
 	if(ismob(loc))
+		if(hudshrink)
+			var/matrix/M = matrix()
+			M.Scale(hudshrink, hudshrink)
+			transform = M
 		if(altgripped)
 			if(gripsprite)
 				icon_state = "[initial(icon_state)]1"

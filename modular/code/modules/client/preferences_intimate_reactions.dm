@@ -37,19 +37,6 @@
 		custom_intimate_reactions = null
 		return
 
-	// ── Legacy migration: bare "movement"/"sex_received" → "neutral_movement"/"neutral_sex_received" ──
-	var/static/list/legacy_migration = list(
-		"movement"     = "neutral_movement",
-		"sex_received" = "neutral_sex_received",
-	)
-	for(var/old_key in legacy_migration)
-		if(islist(custom_intimate_reactions[old_key]) && length(custom_intimate_reactions[old_key]))
-			var/new_key = legacy_migration[old_key]
-			// Only migrate if the new key doesn't already have data.
-			if(!islist(custom_intimate_reactions[new_key]) || !length(custom_intimate_reactions[new_key]))
-				custom_intimate_reactions[new_key] = custom_intimate_reactions[old_key]
-			custom_intimate_reactions.Remove(old_key)
-
 	var/list/valid_cats = get_all_intimate_reaction_categories()
 	var/list/validated = list()
 	for(var/category in custom_intimate_reactions)
@@ -232,9 +219,9 @@
 	// Builds a short phrase summarising the user's primary genital state.
 	var/genital_desc = "smooth groin"
 	if(user_penis && user_breasts)
-		genital_desc = "[penis_type_label] cock and [cup_short_label] chest"
+		genital_desc = "[penis_type_label] and [cup_short_label] chest"
 	else if(user_penis)
-		genital_desc = "[penis_type_label] cock"
+		genital_desc = "[penis_type_label]"
 	else if(user_vagina)
 		if(user_breasts)
 			genital_desc = "slit and [cup_short_label] chest"
@@ -255,28 +242,28 @@
 /proc/get_penis_type_label(penis_type)
 	switch(penis_type)
 		if(PENIS_TYPE_PLAIN)
-			return "plain"
+			return "cock"
 		if(PENIS_TYPE_KNOTTED)
-			return "knotted"
+			return "knotted cock"
 		if(PENIS_TYPE_EQUINE)
-			return "equine"
+			return "equine cock"
 		if(PENIS_TYPE_EQUINE_KNOTTED)
-			return "equine knotted"
+			return "equine knotted cock"
 		if(PENIS_TYPE_TAPERED)
-			return "tapered"
+			return "tapered cock"
 		if(PENIS_TYPE_TAPERED_DOUBLE)
-			return "tapered double"
+			return "tapered double cock"
 		if(PENIS_TYPE_TAPERED_DOUBLE_KNOTTED)
-			return "tapered double knotted"
+			return "tapered double knotted cock"
 		if(PENIS_TYPE_TAPERED_KNOTTED)
-			return "tapered knotted"
+			return "tapered knotted cock"
 		if(PENIS_TYPE_BARBED)
-			return "barbed"
+			return "barbed cock"
 		if(PENIS_TYPE_BARBED_KNOTTED)
-			return "barbed knotted"
+			return "barbed knotted cock"
 		if(PENIS_TYPE_TENTACLE)
-			return "tentacle"
-	return "plain"
+			return "tentacle cock"
+	return "cock"
 
 /**
  * Maps a numeric breast_size (0–9) to a descriptive, fantasy-appropriate phrase

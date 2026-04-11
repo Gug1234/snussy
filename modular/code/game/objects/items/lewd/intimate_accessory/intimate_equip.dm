@@ -90,6 +90,12 @@
 		options += intimate_mouth_insertable
 	if(intimate_jelly)
 		options += intimate_jelly
+	if(intimate_ear_piercing)
+		options += intimate_ear_piercing
+	if(intimate_nose_piercing)
+		options += intimate_nose_piercing
+	if(intimate_belly_piercing)
+		options += intimate_belly_piercing
 	return options
 
 // Returns the accessory currently worn in the specified slot, or null if no accessory is currently worn in that slot. This is used in the remove_intimate_accessory verb to check that the accessory the player is trying to remove is still being worn in that slot before allowing them to remove it, to prevent issues with players trying to remove accessories that are no longer worn due to changes in state during the removal process such as moving or being moved by another player, which could cause desync issues if we allowed them to continue removing an accessory that's no longer worn.
@@ -107,6 +113,12 @@
 			return intimate_mouth_piercing || intimate_mouth_insertable
 		if(INTIMATE_SLOT_JELLY)
 			return intimate_jelly
+		if(INTIMATE_SLOT_EAR)
+			return intimate_ear_piercing
+		if(INTIMATE_SLOT_NOSE)
+			return intimate_nose_piercing
+		if(INTIMATE_SLOT_BELLY)
+			return intimate_belly_piercing
 	return null
 
 /mob/living/carbon/human/verb/remove_intimate_accessory()

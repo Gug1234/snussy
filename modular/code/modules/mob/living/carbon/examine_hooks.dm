@@ -109,6 +109,26 @@
 		if(mouth_exposed)
 			lines += span_notice("[m1] wearing [worn_tongue_piercing.name].")
 
+	// ── Ear slot (piercing only) ──
+	if(intimate_ear_piercing)
+		lines += span_notice("[m1] wearing [intimate_ear_piercing.name].")
+
+	// ── Nose slot (piercing only) ──
+	if(intimate_nose_piercing)
+		var/nose_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_NOSE)
+		if(nose_exposed)
+			lines += span_notice("[m1] wearing [intimate_nose_piercing.name].")
+
+	// ── Belly slot (piercing only) ──
+	if(intimate_belly_piercing)
+		var/belly_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_STOMACH)
+		if(belly_exposed || (wearer_allows_intimate && user != src && perception_level >= 15))
+			if(perception_level >= 15)
+				var/belly_msg = belly_exposed ? "[m1] wearing [intimate_belly_piercing.name]." : "[m1] wearing a belly button piercing under [m2] clothes."
+				lines += span_aiprivradio(belly_msg)
+			else if(perception_level >= 8)
+				lines += span_aiprivradio("[m1] wearing [intimate_belly_piercing.name].")
+
 	// ── Jelly slot ──
 	if(intimate_jelly)
 		var/jelly_exposed = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)

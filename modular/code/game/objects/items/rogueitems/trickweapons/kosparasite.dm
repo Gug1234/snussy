@@ -85,16 +85,16 @@
 	effective_range = 2
 	effective_range_type = EFF_RANGE_EXACT
 
-/// Kos Parasite transformed - arcane burst. Heavy charged smash, eldritch energy.
-/// Simulates the L2 AOE burst from Bloodborne. High cost, high reward.
-/// Uses the kosexplode + parasite attack sounds for an otherworldly impact.
+/// Kos Parasite transformed - tendril slam. Heavy charged overhead, alien tendrils crushing down.
+/// A focused single-target slam channeling the parasite's mass.
+/// Uses the tendril_land + lobe sounds for a wet, devastating impact.
 /datum/intent/kosparasite/arcaneburst
-	name = "arcane burst"
+	name = "tendril slam"
 	icon_state = "incrush"
-	attack_verb = list("bursts into", "erupts upon")
+	attack_verb = list("slams", "bashes")
 	animname = "strike"
 	blade_class = BCLASS_SMASH
-	hitsound = list('modular/sounds/trickweapons/kosparasite/kosexplode.ogg', 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg')
+	hitsound = list('modular/sounds/trickweapons/kosparasite/tendril_land.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit1.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit2.ogg')
 	chargetime = 8
 	chargedrain = 3
 	penfactor = 50
@@ -194,10 +194,9 @@
 
 /datum/action/innate/kos_deploy
 	name = "Deploy Parasite"
-	desc = "Deploy or retract the Kos Parasite from your flesh."
+	desc = "Deploy or retract the Parasite from your flesh."
 	icon_icon = 'modular/icons/obj/trickweapons/trickweapons.dmi'
-	button_icon_state = "kosparasite"
-	background_icon_state = ACTION_BUTTON_DEFAULT_BACKGROUND
+	button_icon_state = "abyssorparasite"
 	/// Reference to the bonded parasite weapon.
 	var/obj/item/rogueweapon/trickweapon/kosparasite/weapon
 
@@ -297,6 +296,8 @@
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/kos_parasite_bash
+	transformed_special = /datum/special_intent/kos_parasite_burst
 	/// The mob this parasite has permanently bonded to. Null before infestation.
 	var/mob/living/host
 	/// Whether this parasite has permanently bonded to a host.
@@ -356,6 +357,10 @@
 	// Bond the weapon
 	infested = TRUE
 	host = user
+	// Swap inventory sprite to the tendril arms instead of the dormant parasite
+	icon = 'modular/icons/obj/trickweapons/kosclothing.dmi'
+	icon_state = "kosarms"
+	item_state = "kosarms"
 	slot_flags = null
 	ADD_TRAIT(src, TRAIT_NODROP, "kos_parasite")
 	// Parasitic biology overrides the host's — immune to zombie infection and lycanthropy
@@ -416,6 +421,22 @@
 		return
 	to_chat(eater, span_notice("The parasite shudders with delight as it absorbs the raw fish, knitting its wounds closed."))
 	playsound(eater, 'modular/sounds/trickweapons/kosparasite/parasite_birth.ogg', 40, TRUE)
+
+/// Override apply_base_state/apply_transformed_state to force the infested
+/// inventory sprite (kosarms from kosclothing.dmi) instead of the dormant parasite.
+/obj/item/rogueweapon/trickweapon/kosparasite/apply_base_state()
+	. = ..()
+	if(infested)
+		icon = 'modular/icons/obj/trickweapons/kosclothing.dmi'
+		icon_state = "kosarms"
+		item_state = "kosarms"
+
+/obj/item/rogueweapon/trickweapon/kosparasite/apply_transformed_state()
+	. = ..()
+	if(infested)
+		icon = 'modular/icons/obj/trickweapons/kosclothing.dmi'
+		icon_state = "kosarms"
+		item_state = "kosarms"
 
 /// Override generateonmob to pull from kosparasiteonmob.dmi with the correct
 /// on-mob icon states. The inventory DMI uses "abyssorparasite" naming while

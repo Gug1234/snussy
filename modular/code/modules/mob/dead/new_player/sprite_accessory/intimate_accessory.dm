@@ -174,6 +174,8 @@
 		return get_breast_piercing_icon_state(owner)
 	if(istype(src, /datum/sprite_accessory/intimate_accessory/rear_plug))
 		return "[icon_state]_[get_body_suffix(owner)]"
+	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_ear))
+		return get_ear_piercing_icon_state(owner)
 	return icon_state
 
 /datum/sprite_accessory/intimate_accessory/is_visible(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
@@ -198,6 +200,8 @@
 		if(H.underwear?.covers_breasts)
 			return FALSE
 		return is_human_part_visible(owner, HIDEBOOB)
+	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_ear))
+		return TRUE // Earrings are always visible — not hidden by any clothing flag.
 	if(H.underwear)
 		return FALSE
 	return is_human_part_visible(owner, HIDECROTCH)
@@ -210,6 +214,55 @@
 	color_key_names = list("Metal", "Gem")
 	default_colors = list("#9BADB7", "#9BADB7")
 	intimate_type = /obj/item/intimate_accessory/piercing/breast
+
+// ── Earring sprite accessory ──────────────────────────────────────────────
+/datum/sprite_accessory/intimate_accessory/proc/get_ear_piercing_icon_state(mob/living/carbon/owner)
+	var/cross_suffix = ""
+	if(ishuman(owner))
+		var/mob/living/carbon/human/H = owner
+		if(istype(H.intimate_ear_piercing, /obj/item/intimate_accessory/piercing/ear/psydonic))
+			cross_suffix = "_psy"
+		else if(istype(H.intimate_ear_piercing, /obj/item/intimate_accessory/piercing/ear/zizite))
+			cross_suffix = "_zizo"
+	if(cross_suffix && icon_exists(icon, "ear_pierce[cross_suffix]"))
+		return "ear_pierce[cross_suffix]"
+	return "ear_pierce"
+
+/datum/sprite_accessory/intimate_accessory/piercing_ear
+	name = "Ear Piercing"
+	icon_state = "ear_pierce"
+	layer = BODY_FRONT_FRONT_LAYER
+	color_keys = 2
+	color_key_names = list("Metal", "Gem")
+	default_colors = list("#9BADB7", "#9BADB7")
+	intimate_type = /obj/item/intimate_accessory/piercing/ear
+
+/datum/sprite_accessory/intimate_accessory/piercing_ear/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
+	if(suffix)
+		overlay_icon_state += "_[suffix]"
+
+	var/metal_color = color_list[1]
+	if(!metal_color)
+		metal_color = "#FFFFFF"
+
+	var/gem_color = color_list[2]
+	if(!gem_color)
+		gem_color = metal_color
+
+	var/icon/result_icon = icon(icon, overlay_icon_state)
+	result_icon.Blend(metal_color, ICON_MULTIPLY)
+
+	if(icon_exists(icon, "[overlay_icon_state]_gem"))
+		var/icon/gem_mask_icon = icon(icon, "[overlay_icon_state]_gem")
+		gem_mask_icon.Blend(gem_color, ICON_MULTIPLY)
+		result_icon.Blend(gem_mask_icon, ICON_OVERLAY)
+
+	if(extra_state && icon_exists(icon, "[overlay_icon_state]_extra"))
+		var/icon/extra_icon = icon(icon, "[overlay_icon_state]_extra")
+		result_icon.Blend(extra_icon, ICON_OVERLAY)
+
+	result_icon.GetPixel(1, 1)
+	return result_icon
 
 /datum/sprite_accessory/intimate_accessory/piercing_breast/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	if(suffix)
@@ -450,6 +503,9 @@
 
 /datum/sprite_accessory/intimate_overlays/piercing_breast
 	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_breast
+
+/datum/sprite_accessory/intimate_overlays/piercing_ear
+	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_ear
 
 /datum/sprite_accessory/intimate_overlays/piercing_genital
 	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_genital

@@ -241,6 +241,8 @@
 	var/obj/item/intimate_accessory/accessory = parent
 	switch(accessory.get_effective_intimate_slot())
 		if(INTIMATE_SLOT_GENITAL)
+			if(istype(accessory, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+				return "insertable_sounding_shift"
 			return "insertable_genital_shift"
 		if(INTIMATE_SLOT_REAR)
 			return "insertable_rear_shift"
@@ -251,6 +253,10 @@
 	var/obj/item/intimate_accessory/accessory = parent
 	switch(accessory.get_effective_intimate_slot())
 		if(INTIMATE_SLOT_GENITAL)
+			if(istype(accessory, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+				if(!(receiver_part & SEX_PART_COCK))
+					return null
+				return "insertable_sounding_receive"
 			if(!(receiver_part & (SEX_PART_CUNT | SEX_PART_SLIT_SHEATH | SEX_PART_COCK)))
 				return null
 			return "insertable_genital_receive"
@@ -277,7 +283,10 @@
 	if(!sexcon || !sexcon.modular_chastity_content_enabled_for(source))
 		return FALSE
 	var/string_key = get_movement_string_key()
-	var/message = pick_string_bank("insertable_movement_messages.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/json_file = "insertable_movement_messages.json"
+	if(istype(parent, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+		json_file = "insertable_sounding_movement_messages.json"
+	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
 	if(!message)
 		return FALSE
 	last_movement_message_time = world.time
@@ -302,7 +311,10 @@
 	if(!prob(12 + (applied_force * 4) + (applied_speed * 4)))
 		return FALSE
 	var/string_key = get_receive_flavor_key(receiver_part)
-	var/message = pick_string_bank("insertable_receive_flavor.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/json_file = "insertable_receive_flavor.json"
+	if(istype(parent, /obj/item/intimate_accessory/genital/plug/sounding_rod))
+		json_file = "insertable_sounding_receive_flavor.json"
+	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
 	if(!message)
 		return FALSE
 	last_receive_flavor_time = world.time

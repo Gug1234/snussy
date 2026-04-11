@@ -66,6 +66,10 @@
 			playsound(H, 'sound/items/uncork.ogg', 45, TRUE, ignore_walls = FALSE)
 	return ..()
 
+/obj/item/intimate_accessory/genital/plug/on_socket_state_changed(reason = "")
+	update_item_visuals()
+	return ..()
+
 /obj/item/intimate_accessory/genital/plug/handle_passive_insertable_effect(mob/living/carbon/human/H)
 	if(!H || H.intimate_genital_insertable != src)
 		return FALSE

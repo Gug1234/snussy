@@ -100,15 +100,15 @@
 	clickcd = CLICK_CD_MELEE
 	item_d_type = "stab"
 
-/// Rakuyo transformed - spinning dual slash. L2 360-degree dual blade spin.
-/// High commitment but devastating in close quarters.
+/// Rakuyo transformed - cross slash. Simultaneous saber and dagger X-pattern cut.
+/// An elegant crossing strike with both blades in a single precise motion.
 /datum/intent/rakuyo/spinslash
-	name = "spinning dual slash"
+	name = "cross slash"
 	icon_state = "incrush"
-	attack_verb = list("spins through", "whirls into")
+	attack_verb = list("crosses", "rends")
 	animname = "cut"
 	blade_class = BCLASS_CUT
-	hitsound = list('modular/sounds/trickweapons/rakuyo/spin.ogg', 'modular/sounds/trickweapons/rakuyo/slash1.ogg')
+	hitsound = list('modular/sounds/trickweapons/rakuyo/slash1.ogg', 'modular/sounds/trickweapons/rakuyo/slash2.ogg')
 	chargetime = 4
 	chargedrain = 2
 	penfactor = 25
@@ -173,18 +173,40 @@
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_NORMAL
+	special = /datum/special_intent/rakuyo_lunge
+	transformed_special = /datum/special_intent/rakuyo_whirlwind
+	/// Separate icon file for transformed on-mob rendering (saber + dagger).
+	var/inhand_icon = 'modular/icons/obj/trickweapons/rakuyo_and_bladesofmercy_onmob.dmi'
 	// --- Dual wielder scaling: rewards TRAIT_DUALWIELDER users ---
 	dualwielder_force_bonus = 3
 	dualwielder_wdefense_bonus = 2
 
-/// Mob render properties for one-handed and wielded display.
+/// Override generateonmob to pull from the dual-wield on-mob DMI when transformed.
+/// Base form uses normal weapon on-mob behavior.
+/obj/item/rogueweapon/trickweapon/rakuyo/generateonmob(tag, prop, behind = FALSE, mirrored = FALSE, used_index = null)
+	if(!transformed)
+		return ..(tag, prop, behind, mirrored, used_index)
+	var/cached_icon = icon
+	icon = inhand_icon
+	var/onmob_state = wielded ? "rakuyoonmob_twohands" : "rakuyoonmob_onehands"
+	. = ..(tag, prop, behind, mirrored, onmob_state)
+	icon = cached_icon
+
+/// Mob render properties — saber (base), full dual-blade overlay (transformed).
 /obj/item/rogueweapon/trickweapon/rakuyo/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 1,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 1,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.7,"sx" = -10,"sy" = -5,"nx" = 9,"ny" = -4,"wx" = -6,"wy" = -5,"ex" = 2,"ey" = -4,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 70,"sturn" = -87,"wturn" = -75,"eturn" = 63,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.8,"sx" = 0,"sy" = 0,"nx" = -3,"ny" = 4,"wx" = 0,"wy" = 0,"ex" = 6,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 30,"wturn" = 41,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 

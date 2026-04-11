@@ -400,6 +400,31 @@
 	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 	last_sex_flavor_time = world.time
 	to_chat(source, span_notice(message))
+	// Share with partner if pref enabled.
+	try_share_with_partner(source, message, acting_mob)
 	return TRUE
+
+// ── Partner Sharing ──────────────────────────────────────────────────────────
+
+/**
+ * Sends the wearer's intimate reaction text to their active sex partner.
+ * Requires the wearer's intimate_reaction_share_with_partner pref to be TRUE,
+ * and the partner's intimate_reaction_enabled + intimate_reaction_show_accessory_free prefs.
+ *
+ * Arguments:
+ *   source     — the wearer mob
+ *   message    — the already-resolved message string
+ *   partner    — the mob performing the sex action on the wearer
+ */
+/datum/component/intimate_reaction/character_flavor/proc/try_share_with_partner(mob/living/carbon/human/source, message, mob/living/carbon/human/partner)
+	if(!source?.client?.prefs)
+		return
+	if(!source.client.prefs.intimate_reaction_share_with_partner)
+		return
+	if(!partner || partner == source || !partner.client)
+		return
+	if(!viewer_can_see_flavor(partner))
+		return
+	to_chat(partner, span_notice(message))
 
 #undef CHARACTER_FLAVOR_STRINGS_PATH

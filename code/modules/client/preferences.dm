@@ -138,6 +138,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/intimate_reaction_show_extreme = FALSE
 	/// Sub-toggle: when FALSE, suppresses accessory-free character flavor text (custom movement, flash, sex-received).
 	var/intimate_reaction_show_accessory_free = FALSE
+	/// When TRUE, your intimate reaction text is also sent to your active sex partner.
+	var/intimate_reaction_share_with_partner = TRUE
 	/// Typepath of the piercing to equip in the genital slot at round-start. Null = none.
 	var/pref_intimate_genital_piercing = null
 	/// Typepath of the insertable to equip in the genital slot at round-start. Null = none.
@@ -154,6 +156,12 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/pref_intimate_mouth_piercing = null
 	/// Typepath of the insertable to equip in the mouth slot at round-start. Null = none.
 	var/pref_intimate_mouth_insertable = null
+	/// Typepath of the piercing to equip in the ear slot at round-start. Null = none.
+	var/pref_intimate_ear_piercing = null
+	/// Typepath of the piercing to equip in the nose slot at round-start. Null = none.
+	var/pref_intimate_nose_piercing = null
+	/// Typepath of the piercing to equip in the belly slot at round-start. Null = none.
+	var/pref_intimate_belly_piercing = null
 
 	/// Whether a chastity device should be equipped at round-start. The specific
 	/// device typepath is resolved at equip time from the toggle prefs below.

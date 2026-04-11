@@ -125,15 +125,15 @@
 	blunt_chipping = TRUE
 	blunt_chip_strength = BLUNT_CHIP_STRONG
 
-/// Logarius Wheel transformed - arcane revolve. L2-enhanced heavy spin attack.
-/// The wheel spins with arcane fury; high commitment, high reward.
+/// Logarius Wheel transformed - arcane crush. L2-enhanced heavy overhead strike.
+/// The wheel channels arcane fury into a single devastating downward blow.
 /datum/intent/logarius/arcanerevolve
-	name = "arcane revolve"
+	name = "arcane crush"
 	icon_state = "incrush"
-	attack_verb = list("grinds through", "revolves into")
+	attack_verb = list("crushes", "arcane-smashes")
 	animname = "strike"
 	blade_class = BCLASS_SMASH
-	hitsound = list('modular/sounds/trickweapons/logariuswheel/spin.ogg', 'modular/sounds/trickweapons/logariuswheel/spirit.ogg')
+	hitsound = list('modular/sounds/trickweapons/logariuswheel/spirit.ogg', 'modular/sounds/trickweapons/logariuswheel/slam.ogg')
 	chargetime = 6
 	chargedrain = 3
 	penfactor = 40
@@ -155,8 +155,8 @@
 /obj/item/rogueweapon/trickweapon/logariuswheel
 	name = "penitent's wheel"
 	desc = "A trick weapon once used by the Otavan Inquisition's Ordinators to extract confession and dispense judgment. In its inert form, a heavy iron-bound wheel affixed to a stout handle, serving as a brutal bludgeon. When activated, the wheel spins with Psydonic fury, grinding against flesh with the force of divine sentence. The Ordinators sought to punish the heretical, and this wheel was their verdict."
-	icon_state = "logariuswheel"
-	item_state = "logariuswheel"
+	icon_state = "funnywheel"
+	item_state = "funnywheel"
 	force = 22
 	force_wielded = 28
 	possible_item_intents = list(/datum/intent/logarius/wheelstrike, /datum/intent/logarius/horizsweep, /datum/intent/logarius/leapslam)
@@ -182,11 +182,12 @@
 	sellprice = 55
 	grid_width = 32
 	grid_height = 64
+	hudshrink = 0.5 // The wheel is large
 	// --- Transformed state: Spinning Wheel ---
 	transformed_name = "penitent's wheel"
 	transformed_desc = "The penitent's wheel, now spinning with terrible Psydonic force. The iron-bound rim grinds ceaselessly, eager to exact its punishment upon whatever it touches. Each revolution carries the weight of Otavan judgment."
-	transformed_icon_state = "logariuswheel_t"
-	transformed_item_state = "logariuswheel_t"
+	transformed_icon_state = "funnywheel_t"
+	transformed_item_state = "funnywheel_t"
 	transformed_force = 18
 	transformed_force_wielded = 24
 	transformed_intents = list(/datum/intent/logarius/lowsweep, /datum/intent/logarius/fwdthrust, /datum/intent/logarius/groundsmash)
@@ -200,14 +201,23 @@
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT
 	transformed_w_class = WEIGHT_CLASS_BULKY
+	special = /datum/special_intent/logarius_wheel_crush
+	transformed_special = /datum/special_intent/logarius_wheel_grind
 
 /// Mob render properties for one-handed and wielded display.
 /obj/item/rogueweapon/trickweapon/logariuswheel/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				return list("shrink" = 0.6,"sx" = -10,"sy" = -8,"nx" = 13,"ny" = -8,"wx" = -8,"wy" = -7,"ex" = 7,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -80,"eturn" = 81,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
-			if("wielded")
-				return list("shrink" = 0.7,"sx" = 5,"sy" = -3,"nx" = -5,"ny" = -2,"wx" = -5,"wy" = -1,"ex" = 3,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 7,"sturn" = -7,"wturn" = 16,"eturn" = -22,"nflip" = 8,"sflip" = 0,"wflip" = 8,"eflip" = 0)
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.3,"sx" = -8,"sy" = -3,"nx" = 6,"ny" = -3,"wx" = -1,"wy" = 0,"ex" = -1,"ey" = -5,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = -1,"sflip" = -1,"wflip" = 0,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.3,"sx" = -1,"sy" = -5,"nx" = -1,"ny" = -2,"wx" = -3,"wy" = -3,"ex" = 3,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.3,"sx" = -8,"sy" = -3,"nx" = 6,"ny" = -3,"wx" = -1,"wy" = 0,"ex" = -1,"ey" = -5,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = -1,"sflip" = -1,"wflip" = 0,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.3,"sx" = -1,"sy" = -5,"nx" = -1,"ny" = -2,"wx" = -3,"wy" = -3,"ex" = 3,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 

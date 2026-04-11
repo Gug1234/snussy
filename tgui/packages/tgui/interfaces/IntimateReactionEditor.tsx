@@ -381,9 +381,6 @@ export function IntimateReactionEditor() {
                       tooltipPosition="right"
                       onClick={() => {
                         setSelectedStage(st.id);
-                        if (!st.has_genital) {
-                          setSelectedGenital('');
-                        }
                       }}
                       style={{
                         borderBottom: active
@@ -397,30 +394,29 @@ export function IntimateReactionEditor() {
                   );
                 })}
 
-                {/* Genital (shown when any stage needs it; disabled when current stage doesn't) */}
+                {/* Genital — always selectable (used by both Load Preset and Apply All) */}
                 {preset_genitals && (
                   <>
                     <Box
                       mt={0.5}
                       mb={0.5}
                       fontSize="11px"
-                      opacity={needsGenital ? 0.8 : 0.4}
+                      opacity={0.8}
                     >
                       Genital:
                       {!needsGenital && selectedStage && (
                         <Box as="span" ml={0.5} italic>
-                          (not needed for this stage)
+                          (not needed for single-stage load)
                         </Box>
                       )}
                     </Box>
                     {preset_genitals.map((g) => {
-                      const active = g.id === selectedGenital && needsGenital;
+                      const active = g.id === selectedGenital;
                       return (
                         <Button
                           key={g.id}
                           compact
                           selected={active}
-                          disabled={!needsGenital}
                           onClick={() => setSelectedGenital(g.id)}
                           style={{
                             borderBottom: active
@@ -457,16 +453,18 @@ export function IntimateReactionEditor() {
                     fluid
                     icon="download"
                     color="average"
-                    disabled={!selectedSpecies}
-                    tooltip="Load ALL tiers for this species (replaces all character bank strings)"
+                    disabled={!selectedSpecies || !selectedGenital}
+                    tooltip="Load ALL tiers for this species using the selected genital variant (replaces all character bank strings)"
                     onClick={() =>
                       act('load_all_presets', {
                         species: selectedSpecies,
+                        genital: selectedGenital,
                       })
                     }
                     mt={0.5}
                   >
-                    Apply All ({selectedSpecies || '…'})
+                    Apply All ({selectedSpecies || '…'}{' '}
+                    {selectedGenital ? `— ${selectedGenital}` : ''})
                   </Button>
                 </Box>
 
