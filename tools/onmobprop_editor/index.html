@@ -63,6 +63,10 @@
               <input id="wielded-toggle" type="checkbox">
               <span>Wielded</span>
             </label>
+            <label class="toggle">
+              <input id="transformed-toggle" type="checkbox">
+              <span>Transformed</span>
+            </label>
           </div>
           <p id="sprite-source-status">No DMI loaded yet.</p>
         </article>
@@ -101,6 +105,15 @@
                 <input id="hand-mask-toggle" type="checkbox" checked>
                 <span>Hand Mask</span>
               </label>
+              <label>
+                <span>Body</span>
+                <select id="body-type">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="dwarf">Dwarf M</option>
+                  <option value="fdwarf">Dwarf F</option>
+                </select>
+              </label>
             </div>
           </div>
           <div id="preview-grid" class="preview-grid"></div>
@@ -118,6 +131,20 @@
             <textarea id="dm-list-output" spellcheck="false" rows="12"></textarea>
           </label>
           <p id="dm-output-status">Paste a DM `list(...)` block here to import prop values.</p>
+        </article>
+
+        <article class="card output-card">
+          <div class="section-header">
+            <h2>Trick Weapon Output</h2>
+            <div class="toolbar-actions compact">
+              <button id="copy-getonmobprop" type="button">Copy getonmobprop()</button>
+            </div>
+          </div>
+          <label>
+            <span>getonmobprop(tag) override</span>
+            <textarea id="getonmobprop-output" spellcheck="false" rows="24" readonly></textarea>
+          </label>
+          <p id="getonmobprop-status">Shows the full getonmobprop() proc with all 4 form+wield prop blocks.</p>
         </article>
       </section>
     </section>

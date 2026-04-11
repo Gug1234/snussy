@@ -29,10 +29,30 @@ const HELPER_MASK_SOURCES = {
 };
 
 const GENERIC_MOB_SOURCES = Object.freeze({
-  south: "./assets/guide_body_south.png",
-  north: "./assets/guide_body_north.png",
-  east: "./assets/guide_body_east.png",
-  west: "./assets/guide_body_west.png",
+  male: {
+    south: "./assets/guide_body_south.png",
+    north: "./assets/guide_body_north.png",
+    east: "./assets/guide_body_east.png",
+    west: "./assets/guide_body_west.png",
+  },
+  female: {
+    south: "./assets/guide_body_f_south.png",
+    north: "./assets/guide_body_f_north.png",
+    east: "./assets/guide_body_f_east.png",
+    west: "./assets/guide_body_f_west.png",
+  },
+  dwarf: {
+    south: "./assets/guide_body_dwarf_south.png",
+    north: "./assets/guide_body_dwarf_north.png",
+    east: "./assets/guide_body_dwarf_east.png",
+    west: "./assets/guide_body_dwarf_west.png",
+  },
+  fdwarf: {
+    south: "./assets/guide_body_f_dwarf_south.png",
+    north: "./assets/guide_body_f_dwarf_north.png",
+    east: "./assets/guide_body_f_dwarf_east.png",
+    west: "./assets/guide_body_f_dwarf_west.png",
+  },
 });
 const DEFAULT_PREVIEW_HAND_OFFSET_X = 0;
 const DEFAULT_PREVIEW_HAND_OFFSET_Y = 1;
@@ -131,14 +151,18 @@ const state = {
   genericMob: {
     images: {},
   },
+  bodyType: "male",
   editor: {
     ...structuredClone(DEFAULT_EDITOR),
     wieldedProp: structuredClone(DEFAULT_EDITOR.prop),
+    transformedProp: structuredClone(DEFAULT_EDITOR.prop),
+    transformedWieldedProp: structuredClone(DEFAULT_EDITOR.prop),
   },
   propInputMode: "delta",
   behind: false,
   mirrored: false,
   wielded: false,
+  transformed: false,
   handMask: true,
   propPreset: "custom",
   dmOutputFocused: false,
@@ -155,7 +179,9 @@ const dom = {
   behindToggle: document.querySelector("#behind-toggle"),
   mirroredToggle: document.querySelector("#mirrored-toggle"),
   wieldedToggle: document.querySelector("#wielded-toggle"),
+  transformedToggle: document.querySelector("#transformed-toggle"),
   handMaskToggle: document.querySelector("#hand-mask-toggle"),
+  bodyType: document.querySelector("#body-type"),
   propPreset: document.querySelector("#prop-preset"),
   spriteSize: document.querySelector("#sprite-size"),
   iconStateInput: document.querySelector("#icon-state-input"),
@@ -168,6 +194,9 @@ const dom = {
   dmListOutput: document.querySelector("#dm-list-output"),
   dmOutputStatus: document.querySelector("#dm-output-status"),
   copyList: document.querySelector("#copy-list"),
+  getonmobpropOutput: document.querySelector("#getonmobprop-output"),
+  getonmobpropStatus: document.querySelector("#getonmobprop-status"),
+  copyGetonmobprop: document.querySelector("#copy-getonmobprop"),
 };
 
 initialize();
@@ -183,13 +212,19 @@ function initialize() {
 
 async function loadGenericMobSprite() {
   try {
-    const entries = await Promise.all(
-      Object.entries(GENERIC_MOB_SOURCES).map(async ([directionKey, source]) => {
-        const image = await loadImage(`${source}?v=4`);
-        return [directionKey, image];
+    const allImages = {};
+    await Promise.all(
+      Object.entries(GENERIC_MOB_SOURCES).map(async ([bodyKey, directions]) => {
+        const entries = await Promise.all(
+          Object.entries(directions).map(async ([directionKey, source]) => {
+            const image = await loadImage(`${source}?v=5`);
+            return [directionKey, image];
+          }),
+        );
+        allImages[bodyKey] = Object.fromEntries(entries);
       }),
     );
-    state.genericMob.images = Object.fromEntries(entries);
+    state.genericMob.images = allImages;
     renderPreview();
   } catch {
     state.genericMob.images = {};
@@ -269,8 +304,22 @@ function bindEvents() {
     render();
   });
 
+  dom.bodyType.addEventListener("change", () => {
+    state.bodyType = dom.bodyType.value;
+    render();
+  });
+
   dom.wieldedToggle.addEventListener("change", () => {
     state.wielded = dom.wieldedToggle.checked;
+    applySelectedPropPreset(false);
+    updateSpriteSourceCanvas();
+    render();
+  });
+
+  dom.transformedToggle.addEventListener("change", () => {
+    state.transformed = dom.transformedToggle.checked;
+    state.focusedPropKey = null;
+    state.propInputDrafts = {};
     applySelectedPropPreset(false);
     updateSpriteSourceCanvas();
     render();
@@ -311,6 +360,7 @@ function bindEvents() {
   }
 
   dom.copyList.addEventListener("click", () => copyText(dom.dmListOutput.value));
+  dom.copyGetonmobprop.addEventListener("click", () => copyText(dom.getonmobpropOutput.value));
 
   dom.dmListOutput.addEventListener("focus", () => {
     state.dmOutputFocused = true;
@@ -346,6 +396,99 @@ function buildPreviewTiles() {
     node.querySelector("figcaption").textContent = config.label;
     dom.previewGrid.append(node);
   }
+  bindPreviewDrag();
+}
+
+function bindPreviewDrag() {
+  let dragging = null;
+
+  function canvasToGamePx(canvas, clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const cssToCanvas = canvas.width / rect.width;
+    return {
+      x: (clientX - rect.left) * cssToCanvas,
+      y: (clientY - rect.top) * cssToCanvas,
+    };
+  }
+
+  for (const tile of dom.previewGrid.querySelectorAll(".preview-tile")) {
+    const canvas = tile.querySelector("canvas");
+    canvas.style.cursor = "grab";
+
+    canvas.addEventListener("mousedown", (event) => {
+      if (event.button !== 0 && event.button !== 2) return;
+      event.preventDefault();
+      const config = DIRECTION_CONFIG.find((c) => c.key === tile.dataset.direction);
+      if (!config) return;
+      const startPos = canvasToGamePx(canvas, event.clientX, event.clientY);
+      const activeProp = getActiveEditorProp();
+
+      if (event.button === 2) {
+        dragging = {
+          mode: "turn",
+          canvas,
+          config,
+          startCanvasX: startPos.x,
+          startTurn: Number(activeProp[config.turnKey] ?? 0),
+        };
+        canvas.style.cursor = "ew-resize";
+      } else {
+        dragging = {
+          mode: "offset",
+          canvas,
+          config,
+          startCanvasX: startPos.x,
+          startCanvasY: startPos.y,
+          startPropX: Number(activeProp[config.xKey] ?? 0),
+          startPropY: Number(activeProp[config.yKey] ?? 0),
+        };
+        canvas.style.cursor = "grabbing";
+      }
+    });
+
+    canvas.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+    });
+
+    canvas.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const activeProp = getActiveEditorProp();
+      const step = event.shiftKey ? 0.01 : 0.05;
+      const delta = event.deltaY < 0 ? step : -step;
+      const current = Number(activeProp.shrink ?? 0);
+      activeProp.shrink = Math.round(Math.max(0, current + delta) * 1000) / 1000;
+      render();
+    }, { passive: false });
+  }
+
+  window.addEventListener("mousemove", (event) => {
+    if (!dragging) return;
+    const pos = canvasToGamePx(dragging.canvas, event.clientX, event.clientY);
+    const activeProp = getActiveEditorProp();
+
+    if (dragging.mode === "turn") {
+      const deltaCanvasX = pos.x - dragging.startCanvasX;
+      const degreesPerPixel = 0.5;
+      const deltaDeg = Math.round(deltaCanvasX * degreesPerPixel);
+      activeProp[dragging.config.turnKey] = dragging.startTurn + deltaDeg;
+      render();
+    } else {
+      const previewScale = 3;
+      const deltaCanvasX = pos.x - dragging.startCanvasX;
+      const deltaCanvasY = pos.y - dragging.startCanvasY;
+      const deltaGameX = Math.round(deltaCanvasX / previewScale);
+      const deltaGameY = Math.round(deltaCanvasY / previewScale);
+      activeProp[dragging.config.xKey] = dragging.startPropX + deltaGameX;
+      activeProp[dragging.config.yKey] = dragging.startPropY - deltaGameY;
+      render();
+    }
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging.canvas.style.cursor = "grab";
+    dragging = null;
+  });
 }
 
 function buildPropControls() {
@@ -386,10 +529,13 @@ function resetEditor() {
   state.editor = {
     ...structuredClone(DEFAULT_EDITOR),
     wieldedProp: structuredClone(DEFAULT_CUSTOM_PROP),
+    transformedProp: structuredClone(DEFAULT_CUSTOM_PROP),
+    transformedWieldedProp: structuredClone(DEFAULT_CUSTOM_PROP),
   };
   state.behind = false;
   state.mirrored = false;
   state.wielded = false;
+  state.transformed = false;
   state.propPreset = "custom";
   state.dmOutputStatus = "Paste a DM list(...) block here to import prop values.";
   state.focusedPropKey = null;
@@ -460,6 +606,9 @@ function ensurePropKeys(prop) {
 }
 
 function getActiveEditorProp() {
+  if (state.transformed) {
+    return state.wielded ? state.editor.transformedWieldedProp : state.editor.transformedProp;
+  }
   return state.wielded ? state.editor.wieldedProp : state.editor.prop;
 }
 
@@ -518,6 +667,8 @@ function applySelectedPropPreset(resetAdjustments = false) {
     if (resetAdjustments) {
       state.editor.prop = createDefaultCustomProp();
       state.editor.wieldedProp = createDefaultCustomProp();
+      state.editor.transformedProp = createDefaultCustomProp();
+      state.editor.transformedWieldedProp = createDefaultCustomProp();
       state.focusedPropKey = null;
       state.propInputDrafts = {};
     }
@@ -528,13 +679,18 @@ function applySelectedPropPreset(resetAdjustments = false) {
   if (resetAdjustments) {
     state.editor.prop = createZeroProp();
     state.editor.wieldedProp = createZeroProp();
+    state.editor.transformedProp = createZeroProp();
+    state.editor.transformedWieldedProp = createZeroProp();
     state.focusedPropKey = null;
     state.propInputDrafts = {};
   }
 
   ensurePropKeys(state.editor.prop);
   ensurePropKeys(state.editor.wieldedProp);
-  state.dmOutputStatus = `Loaded ${state.propPreset} ${state.wielded ? "wielded" : "unwielded"} preset baseline; edits are additive.`;
+  ensurePropKeys(state.editor.transformedProp);
+  ensurePropKeys(state.editor.transformedWieldedProp);
+  const formLabel = state.transformed ? "transformed" : "base";
+  state.dmOutputStatus = `Loaded ${state.propPreset} ${formLabel} ${state.wielded ? "wielded" : "unwielded"} preset baseline; edits are additive.`;
 }
 
 function syncUiFromState() {
@@ -547,7 +703,9 @@ function syncUiFromState() {
   dom.behindToggle.checked = state.behind;
   dom.mirroredToggle.checked = state.mirrored;
   dom.wieldedToggle.checked = state.wielded;
+  dom.transformedToggle.checked = state.transformed;
   dom.handMaskToggle.checked = state.handMask;
+  dom.bodyType.value = state.bodyType;
 
   for (const input of dom.propControls.querySelectorAll("input[data-prop-key]")) {
     const key = input.dataset.propKey;
@@ -731,7 +889,11 @@ function resolvePreviewIconState() {
 }
 
 function getGenericMobCanvas(directionKey) {
-  const guideImage = state.genericMob.images[directionKey] ?? state.genericMob.images.south;
+  const bodyImages = state.genericMob.images[state.bodyType] ?? state.genericMob.images.male;
+  if (!bodyImages) {
+    return null;
+  }
+  const guideImage = bodyImages[directionKey] ?? bodyImages.south;
   if (!guideImage) {
     return null;
   }
@@ -1198,6 +1360,49 @@ function renderOutputs() {
     dom.dmListOutput.value = output;
   }
   dom.dmOutputStatus.textContent = state.dmOutputStatus;
+  dom.getonmobpropOutput.value = buildGetonmobpropBlock();
+}
+
+function buildGetonmobpropBlock() {
+  const indent = "\t";
+  const baseProp = resolveFormProp(false, false);
+  const baseWieldedProp = resolveFormProp(false, true);
+  const transProp = resolveFormProp(true, false);
+  const transWieldedProp = resolveFormProp(true, true);
+
+  const lines = [];
+  lines.push("/obj/item/rogueweapon/trickweapon/YOUR_WEAPON/getonmobprop(tag)");
+  lines.push(`${indent}. = ..()`);
+  lines.push(`${indent}if(tag)`);
+  lines.push(`${indent}${indent}if(transformed)`);
+  lines.push(`${indent}${indent}${indent}switch(tag)`);
+  lines.push(`${indent}${indent}${indent}${indent}if("gen")`);
+  lines.push(`${indent}${indent}${indent}${indent}${indent}return ${buildInlineDmList(transProp)}`);
+  lines.push(`${indent}${indent}${indent}${indent}if("wielded")`);
+  lines.push(`${indent}${indent}${indent}${indent}${indent}return ${buildInlineDmList(transWieldedProp)}`);
+  lines.push(`${indent}${indent}else`);
+  lines.push(`${indent}${indent}${indent}switch(tag)`);
+  lines.push(`${indent}${indent}${indent}${indent}if("gen")`);
+  lines.push(`${indent}${indent}${indent}${indent}${indent}return ${buildInlineDmList(baseProp)}`);
+  lines.push(`${indent}${indent}${indent}${indent}if("wielded")`);
+  lines.push(`${indent}${indent}${indent}${indent}${indent}return ${buildInlineDmList(baseWieldedProp)}`);
+  return lines.join("\n");
+}
+
+function resolveFormProp(transformed, wielded) {
+  const savedTransformed = state.transformed;
+  const savedWielded = state.wielded;
+  state.transformed = transformed;
+  state.wielded = wielded;
+  const prop = getEffectiveProp();
+  state.transformed = savedTransformed;
+  state.wielded = savedWielded;
+  return prop;
+}
+
+function buildInlineDmList(prop) {
+  const entries = PROP_ORDER.map((key) => `"${key}" = ${formatDmValue(prop[key])}`);
+  return `list(${entries.join(",")})`;
 }
 
 function buildDmList(prop) {
@@ -1545,8 +1750,9 @@ function updateSpriteStatus() {
   const resolvedIconState = resolvePreviewIconState();
   const resolvedStateText = resolvedIconState !== selected.name ? ` | render=${resolvedIconState}` : "";
   const wieldedText = state.wielded ? " | wielded=on" : "";
+  const transformedText = state.transformed ? " | transformed=on" : "";
   const baselineText = shouldUsePropSimulation()
     ? ` | baseline=${state.propPreset === "custom" ? "direct prop" : state.propPreset}`
     : " | baseline=raw iconstate";
-  dom.spriteSourceStatus.textContent = `DMI loaded: ${selected.name}${resolvedStateText} | frames=${selected.frames} | dirs=${selected.dirs} | using frame ${state.editor.sprite.frame} | side=${state.mirrored ? "mirrored" : "normal"}${wieldedText}${baselineText}`;
+  dom.spriteSourceStatus.textContent = `DMI loaded: ${selected.name}${resolvedStateText} | frames=${selected.frames} | dirs=${selected.dirs} | using frame ${state.editor.sprite.frame} | side=${state.mirrored ? "mirrored" : "normal"}${wieldedText}${transformedText}${baselineText}`;
 }
