@@ -43,7 +43,7 @@
 /datum/outfit/job/roguetown/disciple/pre_equip(mob/living/carbon/human/H, visualsOnly)
 	..()
 	if(H.mind)
-		var/weapons = list("Discipline - Unarmed", "Katar", "Knuckledusters", "Quarterstaff")
+		var/weapons = list("Discipline - Unarmed", "Katar", "Knuckledusters", "Quarterstaff", "Stake Driver (Trick Weapon)")
 		var/weapon_choice = input(H,"Choose your WEAPON.", "TAKE UP PSYDON'S ARMS.") as anything in weapons
 		switch(weapon_choice)
 			if("Discipline - Unarmed")
@@ -67,6 +67,11 @@
 				gloves = /obj/item/clothing/gloves/roguetown/bandages/weighted
 				H.change_stat(STATKEY_PER, 1)
 				H.change_stat(STATKEY_INT, 1)
+			// --- Trick Weapon ---
+			if("Stake Driver (Trick Weapon)")
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/stakedriver(H), TRUE)
+				gloves = /obj/item/clothing/gloves/roguetown/bandages/weighted
+				ADD_TRAIT(H, TRAIT_CRITICAL_RESISTANCE, TRAIT_GENERIC)
 
 	head = /obj/item/clothing/head/roguetown/roguehood/psydon
 	mask = /obj/item/clothing/head/roguetown/helmet/blacksteel/psythorns

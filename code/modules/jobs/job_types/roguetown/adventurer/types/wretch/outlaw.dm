@@ -63,7 +63,7 @@
 		/obj/item/reagent_containers/glass/bottle/alchemical/healthpot = 1,	//Small health vial
 		)
 	if(H.mind)
-		var/weapons = list("Rapier","Dagger", "Whip")
+		var/weapons = list("Rapier","Dagger", "Whip", "Saw Cleaver (Trick Weapon)", "Saw Spear (Trick Weapon)", "Beast Cutter (Trick Weapon)", "Whirligig Saw (Trick Weapon)", "Ranger's Bowblade (Trick Weapon)")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		H.set_blindness(0)
 		switch(weapon_choice)
@@ -78,6 +78,27 @@
 			if ("Whip")
 				H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_EXPERT, TRUE)
 				beltl = /obj/item/rogueweapon/whip
+			// --- Trick Weapons ---
+			if("Saw Cleaver (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawcleaver(H), TRUE)
+			if("Saw Spear (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawspear(H), TRUE)
+			if("Beast Cutter (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastcutter(H), TRUE)
+			if("Whirligig Saw (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/whirligigsaw(H), TRUE)
+			if("Ranger's Bowblade (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/bows, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/simonsbowblade(H), TRUE)
 		wretch_select_bounty(H)
 
 /datum/advclass/wretch/outlaw/marauder

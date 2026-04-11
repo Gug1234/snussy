@@ -39,7 +39,7 @@
 
 	// CLASS ARCHETYPES
 	H.adjust_blindness(-3)
-	var/classes = list("Swordsman","Macebearer","Flailman", "Foot Lancer")
+	var/classes = list("Swordsman","Macebearer","Flailman", "Foot Lancer", "Penitent's Wheel (Trick Weapon)")
 	if(H.mind)
 		var/classchoice = input(H, "Choose your archetypes", "Available archetypes") as anything in classes
 		H.set_blindness(0)
@@ -58,6 +58,10 @@
 			if("Foot Lancer")
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, 4, TRUE)
 				r_hand = /obj/item/rogueweapon/spear/lance
+			// --- Trick Weapon ---
+			if("Penitent's Wheel (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/logariuswheel(H), TRUE)
 	wrists = /obj/item/clothing/wrists/roguetown/bracers
 	belt = /obj/item/storage/belt/rogue/leather
 	beltr = /obj/item/storage/belt/rogue/pouch/coins/poor

@@ -204,6 +204,18 @@
 	if(!weapon || !owner || !isliving(owner))
 		return
 	var/mob/living/L = owner
+	// Block deploy if active hand is disabled or missing
+	if(iscarbon(L))
+		var/mob/living/carbon/C = L
+		if(!C.has_hand_for_held_index(C.active_hand_index))
+			to_chat(L, span_warning("My hand is too damaged to manifest the parasite!"))
+			active = FALSE
+			return
+	// Block deploy if active hand is already holding something
+	if(L.get_active_held_item())
+		to_chat(L, span_warning("I need my active hand free to deploy the parasite!"))
+		active = FALSE
+		return
 	if(!L.put_in_hands(weapon))
 		to_chat(L, span_warning("My hands are full!"))
 		active = FALSE

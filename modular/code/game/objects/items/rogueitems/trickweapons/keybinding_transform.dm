@@ -17,7 +17,6 @@
 		return FALSE
 	var/obj/item/rogueweapon/trickweapon/TW = L.get_active_held_item()
 	if(!istype(TW))
-		to_chat(L, span_warning("I need a trick weapon in my active hand to transform."))
 		return FALSE
 	TW.transform_weapon(L)
 	return TRUE

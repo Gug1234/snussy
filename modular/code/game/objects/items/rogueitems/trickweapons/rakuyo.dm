@@ -144,7 +144,7 @@
 	max_blade_int = 200
 	max_integrity = 200
 	sharpness = IS_SHARP
-	associated_skill = /datum/skill/combat/swords
+	associated_skill = /datum/skill/combat/polearms
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'

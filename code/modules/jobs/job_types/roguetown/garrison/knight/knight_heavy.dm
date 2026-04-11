@@ -35,7 +35,7 @@
 
 	H.adjust_blindness(-3)
 	if(H.mind)
-		var/weapons = list("Claymore","Great Mace","Battle Axe","Greataxe","Estoc","Lucerne","Partizan")
+		var/weapons = list("Claymore","Great Mace","Battle Axe","Greataxe","Estoc","Lucerne","Partizan","Rifle Spear (Trick Weapon)")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		H.set_blindness(0)
 		switch(weapon_choice)
@@ -64,6 +64,12 @@
 			if("Partizan")
 				r_hand = /obj/item/rogueweapon/spear/partizan
 				backl = /obj/item/rogueweapon/scabbard/gwstrap
+				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_MASTER, TRUE)
+			// --- Trick Weapons ---
+			if("Rifle Spear (Trick Weapon)")
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/riflespear(H), TRUE)
+				backl = /obj/item/rogueweapon/scabbard/gwstrap
+				beltr = /obj/item/quiver/bullet/grapeshot
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_MASTER, TRUE)
 
 	shirt = /obj/item/clothing/suit/roguetown/armor/chainmail

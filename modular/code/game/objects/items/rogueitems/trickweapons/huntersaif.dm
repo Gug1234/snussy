@@ -171,7 +171,7 @@
 	transformed_wdefense = 4
 	transformed_wdefense_wbonus = 3
 	transformed_minstr = 7
-	transformed_associated_skill = /datum/skill/combat/swords
+	transformed_associated_skill = /datum/skill/combat/polearms
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
 	special = /datum/special_intent/hunter_saif_rend

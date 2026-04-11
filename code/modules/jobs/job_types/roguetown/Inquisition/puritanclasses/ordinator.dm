@@ -68,7 +68,7 @@
 
 /datum/outfit/job/roguetown/puritan/ordinator/choose_loadout(mob/living/carbon/human/H)
 	. = ..()
-	var/weapons = list("Psydonic Broadsword + Dagger", "Psydonic Poleaxe + Dagger", "Apocrypha (Greatsword) + Dagger", "Covenant And Creed (Broadsword + Shield)", "Covenant and Consecratia (Flail + Shield)", "Kirkhammer (Trick Weapon)", "Ludwig's Holy Blade (Trick Weapon)", "Tonitrus (Trick Weapon)", "Holy Comet Sword (Trick Weapon)")
+	var/weapons = list("Psydonic Broadsword + Dagger", "Psydonic Poleaxe + Dagger", "Apocrypha (Greatsword) + Dagger", "Covenant And Creed (Broadsword + Shield)", "Covenant and Consecratia (Flail + Shield)", "Psydonic Hammer (Trick Weapon)", "Pontifex Blade (Trick Weapon)", "Tonitrus (Trick Weapon)")
 	var/weapon_choice = input(H,"CHOOSE YOUR RELIQUARY PIECE.", "WIELD THEM IN HIS NAME.") as anything in weapons
 	switch(weapon_choice)
 		if("Psydonic Broadsword + Dagger")
@@ -108,12 +108,9 @@
 			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kirkhammer(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 5, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE) // Transformed state uses maces
-		if("Pontifex's Holy Blade (Trick Weapon)")
+		if("Pontifex Blade (Trick Weapon)")
 			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/ludwigblade(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 5, TRUE)
 		if("Tonitrus (Trick Weapon)")
 			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/tonitrus(H), TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, 5, TRUE)
-		if("Holy Comet Sword (Trick Weapon)")
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/holycometsword(H), TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 5, TRUE)

@@ -178,7 +178,7 @@
 	transformed_wdefense = 5
 	transformed_wdefense_wbonus = 3
 	transformed_minstr = 10
-	transformed_associated_skill = /datum/skill/combat/axes
+	transformed_associated_skill = /datum/skill/combat/polearms
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
 	special = /datum/special_intent/hunter_axe_cleave

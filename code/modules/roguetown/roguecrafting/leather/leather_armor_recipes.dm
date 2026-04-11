@@ -142,3 +142,93 @@
 	result = /obj/item/clothing/head/roguetown/helmet/leather
 	reqs = list(/obj/item/natural/hide/cured = 1)
 	craftdiff = 2
+
+// ==================== HUNTER ARMOR RECIPES ====================
+
+/datum/crafting_recipe/roguetown/leather/armor/brador_cape
+	name = "beast hide cape"
+	result = /obj/item/clothing/cloak/hunter/brador_cape
+	reqs = list(/obj/item/natural/hide/cured = 2,
+				/obj/item/natural/fur = 2)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/brador_helm
+	name = "beast hide hood"
+	result = /obj/item/clothing/head/roguetown/helmet/leather/brador_helm
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fur = 2)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_old_coat
+	name = "old hunter coat"
+	result = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
+	reqs = list(/obj/item/natural/hide/cured = 3,
+				/obj/item/reagent_containers/food/snacks/tallow = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 5
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_old_hat
+	name = "old hunter hat"
+	result = /obj/item/clothing/head/roguetown/helmet/leather/hunter_old_hat
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_orthodox_coat
+	name = "orthodox hunter coat"
+	result = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_orthodox
+	reqs = list(/obj/item/natural/hide/cured = 3,
+				/obj/item/reagent_containers/food/snacks/tallow = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 5
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_orthodox_hat
+	name = "orthodox hunter hat"
+	result = /obj/item/clothing/head/roguetown/helmet/leather/hunter_orthodox_hat
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_orthodox_mantle
+	name = "orthodox hunter mantle"
+	result = /obj/item/clothing/neck/roguetown/hunter_orthodox_mantle
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_standard_coat
+	name = "hunter coat"
+	result = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_standard
+	reqs = list(/obj/item/natural/hide/cured = 3,
+				/obj/item/reagent_containers/food/snacks/tallow = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 5
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_standard_hat
+	name = "hunter hat"
+	result = /obj/item/clothing/head/roguetown/helmet/leather/hunter_standard_hat
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_standard_mantle
+	name = "hunter mantle"
+	result = /obj/item/clothing/neck/roguetown/hunter_standard_mantle
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 3
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_mask
+	name = "hunter face wrap"
+	result = /obj/item/clothing/mask/rogue/hunter_mask
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1)
+	craftdiff = 2
+
+/datum/crafting_recipe/roguetown/leather/armor/hunter_gloves
+	name = "hunter gloves"
+	result = /obj/item/clothing/gloves/roguetown/hunter_gloves
+	reqs = list(/obj/item/natural/hide/cured = 1,
+				/obj/item/natural/fibers = 1,
+				/obj/item/ingot/iron = 1)
+	craftdiff = 3

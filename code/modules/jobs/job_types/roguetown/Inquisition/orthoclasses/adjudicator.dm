@@ -90,7 +90,8 @@
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate/half/fluted/ornate, SLOT_ARMOR, TRUE)
 
 	var/weapons = list("Psydonic Longsword", "Psydonic War Axe", "Psydonic Whip", "Psydonic Flail", "Psydonic Mace",
-	"Psydonic Spear + Handmace", "Psydonic Poleaxe + Shortsword", "Psydonic Halberd + Shortsword", "Psydonic Greatsword + Handmace")
+	"Psydonic Spear + Handmace", "Psydonic Poleaxe + Shortsword", "Psydonic Halberd + Shortsword", "Psydonic Greatsword + Handmace",
+	"Penitent's Wheel (Trick Weapon)", "Pontifex Blade (Trick Weapon)", "Psydonic Hammer (Trick Weapon)", "Church Pick (Trick Weapon)")
 	var/weapon_choice = input(H,"Choose your WEAPON.", "TAKE UP PSYDON'S ARMS.") as anything in weapons
 	switch(weapon_choice)
 		//Typical arms and such.
@@ -131,3 +132,18 @@
 			H.put_in_hands(new /obj/item/rogueweapon/scabbard/gwstrap(H), TRUE)
 			H.equip_to_slot_or_del(new /obj/item/rogueweapon/mace/cudgel/psy, SLOT_BELT_L, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+		// --- Trick Weapons ---
+		if("Penitent's Wheel (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/logariuswheel(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE)
+		if("Pontifex Blade (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/ludwigblade(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+		if("Psydonic Hammer (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kirkhammer(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, 4, TRUE) // Transformed state uses maces
+		if("Church Pick (Trick Weapon)")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/churchpick(H), TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, 4, TRUE) // Transformed state uses axes

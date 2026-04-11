@@ -285,7 +285,7 @@
 	// Determine which arm is holding the weapon
 	var/held_idx = user.get_held_index_of_item(src)
 	if(isnull(held_idx))
-		held_idx = 1 // Default to left arm if weapon was already dropped
+		held_idx = user.active_hand_index || 1 // Fall back to active hand, then left
 	var/arm_zone = (held_idx % 2) ? BODY_ZONE_L_ARM : BODY_ZONE_R_ARM // Odd = left, Even = right
 
 	// Drop and destroy the weapon
@@ -425,7 +425,7 @@
 /obj/item/rogueweapon/trickweapon/pre_attack(atom/A, mob/living/user, params)
 	if(shot_ammo_type && user.used_intent)
 		var/datum/intent/I = user.used_intent
-		if(I.vars.Find("requires_ammo") && I.vars["requires_ammo"])
+		if(intent_requires_ammo(I))
 			var/ammo_result = consume_ammo(user)
 			if(ammo_result != AMMO_RESULT_CONSUMED)
 				if(ammo_result == AMMO_RESULT_WRONG_TYPE)
@@ -437,6 +437,18 @@
 				user.changeNext_move(CLICK_CD_MELEE)
 				return TRUE
 	return ..()
+
+/**
+ * Returns TRUE if the given intent datum has a requires_ammo var set to TRUE.
+ * Used by pre_attack to determine whether to consume ammo for firearm intents.
+ * Checks via istype against known gun-intent subtypes rather than var reflection.
+ */
+/obj/item/rogueweapon/trickweapon/proc/intent_requires_ammo(datum/intent/I)
+	if(istype(I, /datum/intent/riflespear/rifleblast))
+		return TRUE
+	if(istype(I, /datum/intent/reiter/pistolshot))
+		return TRUE
+	return FALSE
 
 /**
  * Override update_force_dynamic to inject the dual wielder force bonus.

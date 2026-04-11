@@ -175,7 +175,7 @@
 			weapons += list("Moonlight Khopesh", "Eclipsum Longsword")
 			weapons -= "Longsword"//Eclipsum Longsword takes priority.
 		if(/datum/patron/divine/necra)
-			weapons += list("Swift End", "Respite", "Gravereaper")
+			weapons += list("Swift End", "Respite", "Burial Blade")
 			weapons -= list("Flail", "Battle Axe")//First to have two wildly different weapons.
 		if(/datum/patron/divine/pestra)
 			weapons += "Plaguebringer Sickles"
@@ -183,7 +183,7 @@
 			weapons += "Kargrund Maul"
 			weapons -= "Mace"//Kargrund Maul takes priority.
 		if(/datum/patron/divine/dendor)
-			weapons += "Summer Scythe"
+			weapons += list("Summer Scythe", "Feral Claws")
 			weapons -= "Spear"//Scythe takes priority.
 		if(/datum/patron/divine/xylix)
 			weapons += "Cackle Lash"
@@ -271,7 +271,7 @@
 			H.adjust_skillrank(/datum/skill/combat/axes, 1, TRUE)
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
 //Necra trick weapon — a curved blade that unfolds into a reaping scythe.
-		if("Gravereaper")
+		if("Burial Blade")
 			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/burialblade(H), TRUE)
 			H.put_in_hands(new /obj/item/rogueweapon/scabbard/gwstrap(H), FALSE)
 			H.adjust_skillrank(/datum/skill/combat/swords, 1, TRUE)
@@ -288,6 +288,11 @@
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
 		if("Barotrauma")
 			H.put_in_hands(new /obj/item/rogueweapon/katar/abyssor(H), TRUE)
+			H.adjust_skillrank(/datum/skill/combat/unarmed, 1, TRUE)
+			ADD_TRAIT(H, TRAIT_CIVILIZEDBARBARIAN, TRAIT_GENERIC)
+			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)
+		if("Feral Claws")
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastclaws(H), TRUE)
 			H.adjust_skillrank(/datum/skill/combat/unarmed, 1, TRUE)
 			ADD_TRAIT(H, TRAIT_CIVILIZEDBARBARIAN, TRAIT_GENERIC)
 			H.equip_to_slot_or_del(new /obj/item/clothing/suit/roguetown/armor/plate, SLOT_ARMOR, TRUE)

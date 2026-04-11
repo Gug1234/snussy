@@ -45,9 +45,9 @@
 		// Abyssor heretics may wield eldritch trick weapons forged from the deep.
 		if(H.patron?.type == /datum/patron/divine/abyssor)
 			weapons += list("Abyssal Parasite", "Abyssal Arm")
-		// Necran heretics may wield the Gravereaper — a curved blade that unfolds into a scythe.
+		// Necran heretics may wield the Burial Blade — a curved blade that unfolds into a scythe.
 		if(H.patron?.type == /datum/patron/divine/necra)
-			weapons += list("Gravereaper")
+			weapons += list("Burial Blade")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		switch(weapon_choice)
 			if("Longsword")
@@ -91,7 +91,7 @@
 				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
 				r_hand = /obj/item/rogueweapon/trickweapon/amygdalanarm
 			// Necra trick weapon — curved blade that unfolds into a reaping scythe.
-			if("Gravereaper")
+			if("Burial Blade")
 				l_hand = /obj/item/rogueweapon/scabbard/gwstrap
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 				r_hand = /obj/item/rogueweapon/trickweapon/burialblade

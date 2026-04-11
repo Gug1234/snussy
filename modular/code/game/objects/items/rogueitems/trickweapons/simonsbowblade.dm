@@ -178,7 +178,7 @@
 	transformed_wdefense = 3
 	transformed_wdefense_wbonus = 2
 	transformed_minstr = 7
-	transformed_associated_skill = /datum/skill/combat/polearms
+	transformed_associated_skill = /datum/skill/combat/bows
 	transformed_sharpness = IS_SHARP
 	transformed_w_class = WEIGHT_CLASS_BULKY
 	special = /datum/special_intent/simons_arcing_slash

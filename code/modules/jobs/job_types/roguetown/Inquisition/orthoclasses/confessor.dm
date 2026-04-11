@@ -47,7 +47,7 @@
 	H.verbs |= /mob/living/carbon/human/proc/faith_test
 	H.verbs |= /mob/living/carbon/human/proc/torture_victim
 	if(H.mind)
-		var/weapons = list("Blessed Psydonic Dagger", "Psydonic Handmace", "Psydonic Shortsword")
+		var/weapons = list("Blessed Psydonic Dagger", "Psydonic Handmace", "Psydonic Shortsword", "Blades of Mercy (Trick Weapon)", "Simon's Bowblade (Trick Weapon)")
 		var/weapon_choice = input(H,"Choose your WEAPON.", "TAKE UP PSYDON'S ARMS.") as anything in weapons
 		switch(weapon_choice)
 			if("Blessed Psydonic Dagger")
@@ -61,6 +61,14 @@
 				l_hand = /obj/item/rogueweapon/sword/short/psy
 				r_hand = /obj/item/rogueweapon/scabbard/sword
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+			// --- Trick Weapons ---
+			if("Blades of Mercy (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/knives, 4, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/bladesofmercy(H), TRUE)
+			if("Simon's Bowblade (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, 4, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/bows, 4, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/simonsbowblade(H), TRUE)
 		var/quivers = list("Bolts - Steel-Tipped", "Sunderbolts - Silver-Tipped, Halved Damage")
 		var/boltchoice = input(H,"Choose your MUNITIONS.", "TAKE UP PSYDON'S MISSILES.") as anything in quivers
 		switch(boltchoice)

@@ -1,0 +1,208 @@
+/datum/advclass/wretch/blooddrunk
+	name = "Blood Drunk Hunter"
+	tutorial = "You were once part of a hunting order - or perhaps you simply found a trick weapon and let the blood guide your hand. \
+	Either way, the old blood sings in your veins, and you fight with a ferocity that terrifies even the garrison."
+	allowed_sexes = list(MALE, FEMALE)
+	allowed_races = RACES_ALL_KINDS
+	outfit = /datum/outfit/job/roguetown/wretch/blooddrunk
+	cmode_music = 'sound/music/combatmaniac.ogg'
+	class_select_category = CLASS_CAT_WARRIOR
+	category_tags = list(CTAG_WRETCH)
+	traits_applied = list(TRAIT_DODGEEXPERT, TRAIT_BEAST_DRUNK)
+	subclass_stats = list(
+		STATKEY_STR = 2,
+		STATKEY_CON = 2,
+		STATKEY_SPD = 1,
+		STATKEY_WIL = 2,
+	)
+	subclass_skills = list(
+		/datum/skill/misc/swimming = SKILL_LEVEL_APPRENTICE,
+		/datum/skill/combat/wrestling = SKILL_LEVEL_EXPERT,
+		/datum/skill/combat/unarmed = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/misc/climbing = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/misc/athletics = SKILL_LEVEL_EXPERT,
+		/datum/skill/misc/medicine = SKILL_LEVEL_APPRENTICE,
+		/datum/skill/misc/reading = SKILL_LEVEL_NOVICE,
+	)
+
+/datum/outfit/job/roguetown/wretch/blooddrunk/pre_equip(mob/living/carbon/human/H)
+	..()
+	var/datum/action/sense = new /datum/action/cooldown/beast_sense(H)
+	sense.Grant(H)
+	H.apply_status_effect(/datum/status_effect/beast_drunk)
+	pants = /obj/item/clothing/under/roguetown/heavy_leather_pants
+	shirt = /obj/item/clothing/suit/roguetown/armor/gambeson
+	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/jacket
+	neck = /obj/item/clothing/neck/roguetown/chaincoif
+	mask = /obj/item/clothing/mask/rogue/hunter_mask
+	belt = /obj/item/storage/belt/rogue/leather
+	gloves = /obj/item/clothing/gloves/roguetown/hunter_gloves
+	shoes = /obj/item/clothing/shoes/roguetown/boots/leather/reinforced
+	wrists = /obj/item/clothing/wrists/roguetown/bracers/leather/heavy
+	backl = /obj/item/storage/backpack/rogue/satchel
+	backpack_contents = list(
+		/obj/item/storage/belt/rogue/pouch/coins/poor = 1,
+		/obj/item/flashlight/flare/torch/lantern/prelit = 1,
+		/obj/item/reagent_containers/glass/bottle/alchemical/healthpot = 1,
+		)
+	if(H.mind)
+		var/classes = list("Old Hunter", "Church Hunter", "Hawthorne Malumite", "Blastpowder Keg", "Eccentric")
+		var/classchoice = input(H, "Choose your hunting order.", "THE HUNT BEGINS") as anything in classes
+		H.set_blindness(0)
+		switch(classchoice)
+			if("Old Hunter")
+				old_hunter_equip(H)
+			if("Church Hunter")
+				church_hunter_equip(H)
+			if("Hawthorne Malumite")
+				malumite_equip(H)
+			if("Blastpowder Keg")
+				keg_equip(H)
+			if("Eccentric")
+				eccentric_equip(H)
+		if(H.age == AGE_OLD) // Gerhman joins the hunt
+			H.adjust_skillrank(/datum/skill/combat/swords, 1, TRUE)
+			H.adjust_skillrank(/datum/skill/combat/maces, 1, TRUE)
+			H.adjust_skillrank(/datum/skill/combat/axes, 1, TRUE)
+			H.adjust_skillrank(/datum/skill/combat/polearms, 1, TRUE)
+			H.adjust_skillrank(/datum/skill/combat/whipsflails, 1, TRUE)
+			H.adjust_skillrank(/datum/skill/combat/knives, 1, TRUE)
+			H.adjust_skillrank(/datum/skill/combat/unarmed, 1, TRUE)
+
+/datum/outfit/job/roguetown/wretch/blooddrunk/proc/old_hunter_equip(mob/living/carbon/human/H)
+	ADD_TRAIT(H, TRAIT_NASTY_EATER, TRAIT_GENERIC)
+	var/weapons = list("Beast Cutter", "Saw Cleaver", "Saw Spear", "Hunter Axe", "Burial Blade", "Hunter's Saif")
+	var/weapon_choice = input(H, "Choose your serrated weapon.", "WHAT'S THAT SMELL?") as anything in weapons
+	switch(weapon_choice)
+		if("Beast Cutter")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastcutter(H), TRUE)
+		if("Saw Cleaver")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawcleaver(H), TRUE)
+		if("Saw Spear")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawspear(H), TRUE)
+		if("Hunter Axe")
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/hunteraxe(H), TRUE)
+		if("Burial Blade")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/burialblade(H), TRUE)
+		if("Hunter's Saif")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/huntersaif(H), TRUE)
+	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
+	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_old_hat
+	cloak = /obj/item/clothing/cloak/thief_cloak
+	wretch_select_bounty(H)
+
+/datum/outfit/job/roguetown/wretch/blooddrunk/proc/church_hunter_equip(mob/living/carbon/human/H)
+	ADD_TRAIT(H, TRAIT_SILVER_BLESSED, TRAIT_GENERIC)
+	var/weapons = list("Penitent's Wheel", "Psydonic Hammer", "Pontifex Greatsword", "Church Pick", "Bloodletter")
+	var/weapon_choice = input(H, "Choose your blessed weapon.", "BEASTS ALL OVER THE SHOP") as anything in weapons
+	switch(weapon_choice)
+		if("Penitent's Wheel")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/logariuswheel(H), TRUE)
+		if("Psydonic Hammer")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kirkhammer(H), TRUE)
+		if("Pontifex Greatsword")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/ludwigblade(H), TRUE)
+		if("Church Pick")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/churchpick(H), TRUE)
+		if("Bloodletter")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/bloodletter(H), TRUE)
+	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_orthodox
+	head = /obj/item/clothing/head/roguetown/helmet/leather/gold_ardeo
+	neck = /obj/item/clothing/neck/roguetown/hunter_orthodox_mantle
+	cloak = /obj/item/clothing/cloak/cape/puritan
+	wretch_select_bounty(H)
+
+/datum/outfit/job/roguetown/wretch/blooddrunk/proc/malumite_equip(mob/living/carbon/human/H)
+	ADD_TRAIT(H, TRAIT_DUALWIELDER, TRAIT_GENERIC)
+	var/weapons = list("Chikage", "Threaded Cane", "Rakuyo", "Reiterpallasch", "Blades of Mercy", "Ranger's Bowblade")
+	var/weapon_choice = input(H, "Choose your weapon.", "Hawthrone's Finest") as anything in weapons
+	switch(weapon_choice)
+		if("Chikage")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/chikage(H), TRUE)
+		if("Threaded Cane")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/threadedcane(H), TRUE)
+		if("Rakuyo")
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/rakuyo(H), TRUE)
+		if("Reiterpallasch")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/reiterpallasch(H), TRUE)
+		if("Blades of Mercy")
+			H.adjust_skillrank_up_to(/datum/skill/combat/knives, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/bladesofmercy(H), TRUE)
+		if("Ranger's Bowblade")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/bows, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/simonsbowblade(H), TRUE)
+	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_standard
+	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_standard_hat
+	neck = /obj/item/clothing/neck/roguetown/hunter_standard_mantle
+	cloak = /obj/item/clothing/cloak/half
+	wretch_select_bounty(H)
+
+/datum/outfit/job/roguetown/wretch/blooddrunk/proc/keg_equip(mob/living/carbon/human/H)
+	var/weapons = list("Boom Hammer", "Stake Driver", "Rifle Spear", "Whirligig Saw", "Tonitrus")
+	var/weapon_choice = input(H, "Choose your weapon.", "If a weapon ain't got kick...") as anything in weapons
+	switch(weapon_choice)
+		if("Boom Hammer")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/boomhammer(H), TRUE)
+		if("Stake Driver")
+			H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/stakedriver(H), TRUE)
+		if("Rifle Spear")
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/riflespear(H), TRUE)
+			beltr = /obj/item/quiver/bullet/grapeshot
+		if("Whirligig Saw")
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/whirligigsaw(H), TRUE)
+		if("Tonitrus")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/tonitrus(H), TRUE)
+	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
+	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_orthodox_hat
+	cloak = /obj/item/clothing/cloak/raincloak/mortus
+	wretch_select_bounty(H)
+
+/datum/outfit/job/roguetown/wretch/blooddrunk/proc/eccentric_equip(mob/living/carbon/human/H)
+	var/weapons = list("Abyssoid Parasite", "Feral Claw", "Dreamfiend Arm")
+	var/weapon_choice = input(H, "Choose your weapon.", "Grant us eyes...") as anything in weapons
+	switch(weapon_choice)
+		if("Abyssoid Parasite")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kosparasite(H), TRUE)
+		if("Feral Claw")
+			H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastclaws(H), TRUE)
+		if("Dreamfiend Arm")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/amygdalanarm(H), TRUE)
+	head = /obj/item/clothing/head/roguetown/helmet/leather/brador_helm
+	cloak = /obj/item/clothing/cloak/hunter/brador_cape
+	mask = null // Brador helm covers the face
+	wretch_select_bounty(H)

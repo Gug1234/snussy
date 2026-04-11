@@ -100,6 +100,12 @@
 	created_item = /obj/item/clothing/suit/roguetown/armor/plate/full/bronze
 	craftdiff = 3
 
+/datum/anvil_recipe/armor/bronze/gold_ardeo
+	name = "Gold Ardeo, Bronze (+1 Steel)"
+	req_bar = /obj/item/ingot/bronze
+	additional_items = list(/obj/item/ingot/steel)
+	created_item = /obj/item/clothing/head/roguetown/helmet/leather/gold_ardeo
+
 // DECREPIT/ANCIENT ALLOY
 
 /datum/anvil_recipe/armor/aalloy/barbute

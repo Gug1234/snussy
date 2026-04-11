@@ -107,7 +107,7 @@
 	. = ..()
 	H.adjust_blindness(-3)
 	if(H.mind)
-		var/weapons = list("Longsword","Sabre", "Quarterstaff")
+		var/weapons = list("Longsword","Sabre", "Quarterstaff","Boom Hammer (Trick Weapon)","Whirligig Saw (Trick Weapon)")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		H.set_blindness(0)
 		switch(weapon_choice)
@@ -125,6 +125,14 @@
 				H.adjust_skillrank_up_to(/datum/skill/combat/maces, 6, TRUE)
 				H.put_in_hands(new /obj/item/rogueweapon/woodstaff/quarterstaff/steel)
 				H.equip_to_slot_or_del(new /obj/item/rogueweapon/scabbard/gwstrap, SLOT_BACK_L)
+			// --- Trick Weapons ---
+			if("Boom Hammer (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, 6, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/boomhammer(H), TRUE)
+			if("Whirligig Saw (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, 6, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/axes, 6, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/whirligigsaw(H), TRUE)
 		var/retirement = list("Pursue Homesteading", "Dabble in Artisan Smithing", "Write an autobiography", "Keep up with your old regimen")
 		var/retirement_choice = input(H, "During your retirement, you decided to...", "PICK A HOBBY.") as anything in retirement
 		switch(retirement_choice)

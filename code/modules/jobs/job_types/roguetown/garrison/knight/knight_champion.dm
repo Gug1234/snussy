@@ -41,7 +41,7 @@
 
 	H.adjust_blindness(-3)
 	if(H.mind)
-		var/weapons = list("Rapier + Longbow","Estoc + Recurve Bow","Sabre + Buckler","Whip + Crossbow")
+		var/weapons = list("Rapier + Longbow","Estoc + Recurve Bow","Sabre + Buckler","Whip + Crossbow","Ranger Bowblade (Trick Weapon)","Reiterphallasch (Trick Weapon)", "Threaded Cane (Trick Weapon)", "Rakuyo (Trick Weapon)")
 		var/armor_options = list("Light Coat", "Light Brigandine", "Medium Cuirass")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		var/armor_choice = input(H, "Choose your armor.", "TAKE UP ARMS") as anything in armor_options
@@ -72,6 +72,25 @@
 				backl = /obj/item/gun/ballistic/revolver/grenadelauncher/crossbow
 				beltr = /obj/item/quiver/bolts
 				H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_MASTER, TRUE)
+			
+			if("Ranger Bowblade (Trick Weapon)")
+				r_hand = /obj/item/rogueweapon/trickweapon/simonsbowblade
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_MASTER, TRUE)
+			
+			if("Reiterphallasch (Trick Weapon)")
+				r_hand = /obj/item/rogueweapon/trickweapon/reiterpallasch
+				beltr = /obj/item/quiver/bullet/lead
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_MASTER, TRUE)
+			
+			if("Threaded Cane (Trick Weapon)")
+				r_hand = /obj/item/rogueweapon/trickweapon/threadedcane
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_MASTER, TRUE)
+			
+			if("Rakuyo (Trick Weapon)")
+				r_hand = /obj/item/rogueweapon/trickweapon/rakuyo
+				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_MASTER, TRUE)
+				ADD_TRAIT(H, TRAIT_DUALWIELDER, TRAIT_GENERIC) // Rakuyo's transformed state benefits from dual wielder bonuses
+
 
 		switch(armor_choice)
 			if("Light Coat")

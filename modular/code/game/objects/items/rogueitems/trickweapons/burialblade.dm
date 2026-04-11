@@ -134,7 +134,7 @@
 // 2H FOCUSED in transformed state - reach 2 scythe sweeps.
 
 /obj/item/rogueweapon/trickweapon/burialblade
-	name = "gravereaper"
+	name = "Burial Blade"
 	desc = "A trick weapon said to have been blessed by Necra's gravediggers. In its folded form, a swift curved sword suited for close quarters. When unfolded, it extends into a massive scythe of terrible reach, sweeping through the undead with the inevitability of the death they were denied."
 	icon_state = "burialblade"
 	item_state = "burialblade"
@@ -164,8 +164,8 @@
 	grid_width = 32
 	grid_height = 64
 	// --- Transformed state: Large Scythe ---
-	transformed_name = "gravereaper"
-	transformed_desc = "The gravereaper, now unfolded into its full scythe form. The curved blade arcs outward on a long shaft, reaping everything in its path with sweeping, wide cuts. A weapon fit for one who sends the dead back to Necra's embrace."
+	transformed_name = "Burial Blade"
+	transformed_desc = "The Burial Blade, now unfolded into its full scythe form. The curved blade arcs outward on a long shaft, reaping everything in its path with sweeping, wide cuts. A weapon fit for one who sends the dead back to Necra's embrace."
 	transformed_icon_state = "burialblade_t"
 	transformed_item_state = "burialblade_t"
 	transformed_force = 16 // Weaker 1H

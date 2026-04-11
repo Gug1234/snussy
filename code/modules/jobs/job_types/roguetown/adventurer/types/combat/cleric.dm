@@ -314,7 +314,7 @@
 					C.grant_miracles(H, cleric_tier = CLERIC_T1, passive_gain = CLERIC_REGEN_WEAK, devotion_limit = CLERIC_REQ_1)
 					ADD_TRAIT(H, TRAIT_HEAVYARMOR, TRAIT_GENERIC) //Basically a bit more flavourful Knight Errant, so may as very well give HEAVYARMOR
 					armor = /obj/item/clothing/suit/roguetown/armor/chainmail/hauberk/ornate
-	var/weapons = list("Longsword","Mace","Flail","Whip","Spear","Axe")
+	var/weapons = list("Longsword","Mace","Flail","Whip","Spear","Axe","Church Pick (Trick Weapon)","Penitent's Wheel (Trick Weapon)")
 	var/weapon_choice = input(H, "Choose your WEAPON.", "TAKE UP YOUR GOD'S ARMS.") as anything in weapons
 	switch(weapon_choice)
 		if("Longsword")
@@ -346,6 +346,14 @@
 		if("Axe")
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
 			r_hand = /obj/item/rogueweapon/stoneaxe/woodcut
+		// --- Trick Weapons ---
+		if("Church Pick (Trick Weapon)")
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/churchpick(H), TRUE)
+		if("Penitent's Wheel (Trick Weapon)")
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/logariuswheel(H), TRUE)
 	H.set_blindness(0)
 	switch(H.patron?.type)
 		if(/datum/patron/old_god)

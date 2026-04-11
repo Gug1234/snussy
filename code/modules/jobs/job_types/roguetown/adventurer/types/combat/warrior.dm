@@ -34,7 +34,7 @@
 	H.dna.species.soundpack_m = new /datum/voicepack/male/warrior()
 	H.set_blindness(0)
 	if(H.mind)
-		var/weapons = list("Longsword","Mace","Billhook","Battle Axe","Short Sword & Iron Shield","Iron Saber & Wood Shield")
+		var/weapons = list("Longsword","Mace","Billhook","Battle Axe","Short Sword & Iron Shield","Iron Saber & Wood Shield","Beast Cutter (Trick Weapon)","Saw Cleaver (Trick Weapon)","Saw Spear (Trick Weapon)","Hunter's Saif (Trick Weapon)","Hunter Axe (Trick Weapon)")
 		var/weapon_choice = input(H, "Choose your weapon.", "TAKE UP ARMS") as anything in weapons
 		switch(weapon_choice)
 			if("Longsword")
@@ -63,6 +63,27 @@
 				r_hand = /obj/item/rogueweapon/sword/saber/iron
 				beltr = /obj/item/rogueweapon/scabbard/sword
 				backr = /obj/item/rogueweapon/shield/wood
+			// --- Trick Weapons ---
+			if("Beast Cutter (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastcutter(H), TRUE)
+			if("Saw Cleaver (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawcleaver(H), TRUE)
+			if("Saw Spear (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawspear(H), TRUE)
+			if("Hunter's Saif (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/huntersaif(H), TRUE)
+			if("Hunter Axe (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/hunteraxe(H), TRUE)
 		var/armors = list("Chainmaille Set","Iron Breastplate","Gambeson & Helmet","Light Zybantine Armor")
 		var/armor_choice = input(H, "Choose your armor.", "TAKE UP ARMOR") as anything in armors
 		switch(armor_choice)
@@ -390,7 +411,7 @@
 	H.verbs |= /mob/living/carbon/human/proc/faith_test //Allows the Exorcist to interrogate others for their faith. Trait's agnostically worded, to allow more flexiable usage by Pantheoneers and Ascendants in this role.
 	H.verbs |= /mob/living/carbon/human/proc/torture_victim //Not as scary as it sounds. Mostly. Okay, just a little bit.
 	if(H.mind)
-		var/silver = list("Silver Dagger","Silver Shortsword","Silver Arming Sword","Silver Rapier","Silver Longsword","Silver Broadsword","Silver Mace","Silver Warhammer","Silver Morningstar","Silver Whip","Silver War Axe","Silver Poleaxe","Silver Spear","Silver Quarterstaff","Threaded Cane (Trick Weapon)")
+		var/silver = list("Silver Dagger","Silver Shortsword","Silver Arming Sword","Silver Rapier","Silver Longsword","Silver Broadsword","Silver Mace","Silver Warhammer","Silver Morningstar","Silver Whip","Silver War Axe","Silver Poleaxe","Silver Spear","Silver Quarterstaff","Threaded Cane (Trick Weapon)", "Psydonic Hammer (Trick Weapon)", "Pontifex Blade (Trick Weapon)")
 		var/silver_choice = input(H, "Choose your WEAPON.", "PREPARE YOUR ARMS.") as anything in silver //Trim down to five or six choices, later? See what's the most popular, first. Gives people a chance to experiment with all of the new silver weapons.
 		switch(silver_choice)
 			if("Silver Dagger")
@@ -448,7 +469,14 @@
 			if("Threaded Cane (Trick Weapon)")
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE) // Transformed state uses whips
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/threadedcane(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/threadedcane
+			if("Psydonic Hammer (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE) // Transformed state uses maces
+				r_hand = /obj/item/rogueweapon/trickweapon/kirkhammer
+			if("Pontifex Blade (Trick Weapon)")
+				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/ludwigblade
 
 		var/sidearm = list("Dagger", "Parrying Dagger", "Seax", "Blessed Silver Stake", "Blessed Silver Shovel", "Greatshield")
 		var/sidearm_choice = input(H, "Choose your SIDEARM.", "SAY YOUR PRAYERS.") as anything in sidearm
