@@ -195,15 +195,15 @@
 		if(transformed)
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.6,"sx" = -16,"sy" = -13,"nx" = 14,"ny" = -10,"wx" = -15,"wy" = -11,"ex" = 9,"ey" = -10,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 80,"sturn" = -90,"wturn" = -75,"eturn" = 75,"nflip" = 0,"sflip" = 4,"wflip" = -4,"eflip" = 0)
+					return list("shrink" = 0.6,"sx" = -17,"sy" = -14,"nx" = 19,"ny" = -13,"wx" = -16,"wy" = -8,"ex" = 9,"ey" = -10,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 76,"sturn" = 90,"wturn" = 119,"eturn" = 75,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 0.7,"sx" = 10,"sy" = 0,"nx" = -9,"ny" = 0,"wx" = -9,"wy" = 11,"ex" = 9,"ey" = 11,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -10,"sturn" = 10,"wturn" = 39,"eturn" = -39,"nflip" = 4,"sflip" = 0,"wflip" = -4,"eflip" = 0)
+					return list("shrink" = 0.7,"sx" = 13,"sy" = 4,"nx" = -14,"ny" = 3,"wx" = -10,"wy" = 15,"ex" = 7,"ey" = 13,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 180,"sturn" = 0,"wturn" = -135,"eturn" = -45,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
 		else
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.5,"sx" = -16,"sy" = -13,"nx" = 19,"ny" = -8,"wx" = -14,"wy" = -5,"ex" = 9,"ey" = -6,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 67,"sturn" = -90,"wturn" = -55,"eturn" = 55,"nflip" = 0,"sflip" = 4,"wflip" = -4,"eflip" = 0)
+					return list("shrink" = 0.65,"sx" = -18,"sy" = -14,"nx" = 18,"ny" = -10,"wx" = -15,"wy" = -7,"ex" = 11,"ey" = -9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 73,"sturn" = 90,"wturn" = 118,"eturn" = 66,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 0.7,"sx" = 9,"sy" = -1,"nx" = -10,"ny" = 0,"wx" = 11,"wy" = -7,"ex" = 12,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 28,"eturn" = -17,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+					return list("shrink" = 0.75,"sx" = 12,"sy" = -1,"nx" = -15,"ny" = -1,"wx" = 15,"wy" = -8,"ex" = 15,"ey" = 1,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 180,"sturn" = 0,"wturn" = 23,"eturn" = -6,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 /**
  * Extends the base serrated signal management to also handle blood drain

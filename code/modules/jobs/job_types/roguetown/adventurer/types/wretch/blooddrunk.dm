@@ -77,27 +77,27 @@
 		if("Beast Cutter")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastcutter(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/beastcutter
 		if("Saw Cleaver")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawcleaver(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/sawcleaver
 		if("Saw Spear")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawspear(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/sawspear
 		if("Hunter Axe")
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/hunteraxe(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/hunteraxe
 		if("Burial Blade")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/burialblade(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/burialblade
 		if("Hunter's Saif")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/huntersaif(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/huntersaif
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
 	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_old_hat
 	cloak = /obj/item/clothing/cloak/thief_cloak
@@ -110,23 +110,23 @@
 	switch(weapon_choice)
 		if("Penitent's Wheel")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/logariuswheel(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/logariuswheel
 		if("Psydonic Hammer")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kirkhammer(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/kirkhammer
 		if("Pontifex Greatsword")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/ludwigblade(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/ludwigblade
 		if("Church Pick")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/churchpick(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/churchpick
 		if("Bloodletter")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/bloodletter(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/bloodletter
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_orthodox
-	head = /obj/item/clothing/head/roguetown/helmet/leather/gold_ardeo
+	head = /obj/item/clothing/head/roguetown/helmet/gold_ardeo
 	neck = /obj/item/clothing/neck/roguetown/hunter_orthodox_mantle
 	cloak = /obj/item/clothing/cloak/cape/puritan
 	wretch_select_bounty(H)
@@ -138,25 +138,25 @@
 	switch(weapon_choice)
 		if("Chikage")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/chikage(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/chikage
 		if("Threaded Cane")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/threadedcane(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/threadedcane
 		if("Rakuyo")
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/rakuyo(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/rakuyo
 		if("Reiterpallasch")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/reiterpallasch(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/reiterpallasch
 		if("Blades of Mercy")
 			H.adjust_skillrank_up_to(/datum/skill/combat/knives, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/bladesofmercy(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/bladesofmercy
 		if("Ranger's Bowblade")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/bows, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/simonsbowblade(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/simonsbowblade
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_standard
 	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_standard_hat
 	neck = /obj/item/clothing/neck/roguetown/hunter_standard_mantle
@@ -169,21 +169,21 @@
 	switch(weapon_choice)
 		if("Boom Hammer")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/boomhammer(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/boomhammer
 		if("Stake Driver")
 			H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/stakedriver(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/stakedriver
 		if("Rifle Spear")
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/riflespear(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/riflespear
 			beltr = /obj/item/quiver/bullet/grapeshot
 		if("Whirligig Saw")
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/whirligigsaw(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/whirligigsaw
 		if("Tonitrus")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/tonitrus(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/tonitrus
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
 	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_orthodox_hat
 	cloak = /obj/item/clothing/cloak/raincloak/mortus
@@ -195,13 +195,13 @@
 	switch(weapon_choice)
 		if("Abyssoid Parasite")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/kosparasite(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/kosparasite
 		if("Feral Claw")
 			H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastclaws(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/beastclaws
 		if("Dreamfiend Arm")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.put_in_hands(new /obj/item/rogueweapon/trickweapon/amygdalanarm(H), TRUE)
+			r_hand = /obj/item/rogueweapon/trickweapon/amygdalanarm
 	head = /obj/item/clothing/head/roguetown/helmet/leather/brador_helm
 	cloak = /obj/item/clothing/cloak/hunter/brador_cape
 	mask = null // Brador helm covers the face

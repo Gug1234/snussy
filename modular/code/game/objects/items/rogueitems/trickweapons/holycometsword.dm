@@ -219,19 +219,15 @@
 		if(transformed)
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.6,"sx" = -18,"sy" = -15,"nx" = 17,"ny" = -15,"wx" = -16,"wy" = -12,"ex" = 9,"ey" = -15,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 7,"eturn" = 0,"nflip" = 1,"sflip" = -1,"wflip" = -1,"eflip" = 1)
+					return list("shrink" = 0.6,"sx" = -19,"sy" = -16,"nx" = 17,"ny" = -14,"wx" = -15,"wy" = -15,"ex" = 9,"ey" = -15,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 180,"wturn" = 180,"eturn" = 0,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 1)
 				if("wielded")
-					return list("shrink" = 0.7,"sx" = -14,"sy" = 10,"nx" = 4,"ny" = 9,"wx" = -13,"wy" = 10,"ex" = 4,"ey" = 12,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -75,"sturn" = -110,"wturn" = -120,"eturn" = -60,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
-				if("onback")
-					return list("shrink" = 0.6,"sx" = -1,"sy" = 2,"nx" = 0,"ny" = 2,"wx" = 2,"wy" = 1,"ex" = 0,"ey" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 70,"eturn" = 15,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
+					return list("shrink" = 0.6,"sx" = 11,"sy" = -4,"nx" = -13,"ny" = 5,"wx" = -7,"wy" = 11,"ex" = 11,"ey" = 7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 201,"sturn" = -13,"wturn" = 241,"eturn" = -62,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1)
 		else
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.6,"sx" = -9,"sy" = 10,"nx" = 6,"ny" = 9,"wx" = -3,"wy" = 11,"ex" = -1,"ey" = 7,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -50,"sturn" = 40,"wturn" = 50,"eturn" = -50,"nflip" = 0,"sflip" = 8,"wflip" = 8,"eflip" = 0)
+					return list("shrink" = 0.65,"sx" = -4,"sy" = 13,"nx" = 5,"ny" = 14,"wx" = 0,"wy" = 14,"ex" = -5,"ey" = 13,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = -53,"sturn" = 320,"wturn" = 247,"eturn" = -65,"nflip" = 0,"sflip" = 0,"wflip" = 1,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 0.7,"sx" = 9,"sy" = -7,"nx" = -9,"ny" = 3,"wx" = 9,"wy" = -11,"ex" = 10,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 5,"sturn" = -190,"wturn" = -170,"eturn" = -10,"nflip" = 8,"sflip" = 8,"wflip" = 4,"eflip" = 0)
-				if("onback")
-					return list("shrink" = 0.6,"sx" = -1,"sy" = 2,"nx" = 0,"ny" = 2,"wx" = 2,"wy" = 1,"ex" = 0,"ey" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 70,"eturn" = 15,"nflip" = 1,"sflip" = 1,"wflip" = 1,"eflip" = 1,"northabove" = 1,"southabove" = 0,"eastabove" = 0,"westabove" = 0)
+					return list("shrink" = 0.7,"sx" = 12,"sy" = 3,"nx" = -13,"ny" = 3,"wx" = 15,"wy" = -4,"ex" = 15,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 180,"sturn" = 0,"wturn" = 24,"eturn" = 0,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 /**
  * Afterattack hook — fires psycross spell effects when conditions are met.

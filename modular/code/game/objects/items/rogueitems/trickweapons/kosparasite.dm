@@ -417,6 +417,8 @@
 	if(obj_integrity < max_integrity)
 		obj_integrity = min(obj_integrity + repair_amount, max_integrity)
 		anything_repaired = TRUE
+		if(obj_broken && obj_integrity >= max_integrity)
+			obj_fix(null, FALSE)
 	// Repair parasitic clothing on the host
 	if(ishuman(eater))
 		var/mob/living/carbon/human/H = eater
@@ -424,10 +426,14 @@
 		if(istype(crest) && crest.obj_integrity < crest.max_integrity)
 			crest.obj_integrity = min(crest.obj_integrity + repair_amount, crest.max_integrity)
 			anything_repaired = TRUE
+			if(crest.obj_broken && crest.obj_integrity >= crest.max_integrity)
+				crest.obj_fix(null, FALSE)
 		var/obj/item/clothing/gloves/roguetown/kosarms/tendrils = H.get_item_by_slot(SLOT_GLOVES)
 		if(istype(tendrils) && tendrils.obj_integrity < tendrils.max_integrity)
 			tendrils.obj_integrity = min(tendrils.obj_integrity + repair_amount, tendrils.max_integrity)
 			anything_repaired = TRUE
+			if(tendrils.obj_broken && tendrils.obj_integrity >= tendrils.max_integrity)
+				tendrils.obj_fix(null, FALSE)
 	if(!anything_repaired)
 		to_chat(eater, span_notice("The parasite savors the raw flesh, but it is already whole."))
 		return

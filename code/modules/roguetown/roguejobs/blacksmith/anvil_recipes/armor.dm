@@ -104,7 +104,7 @@
 	name = "Gold Ardeo, Bronze (+1 Steel)"
 	req_bar = /obj/item/ingot/bronze
 	additional_items = list(/obj/item/ingot/steel)
-	created_item = /obj/item/clothing/head/roguetown/helmet/leather/gold_ardeo
+	created_item = /obj/item/clothing/head/roguetown/helmet/gold_ardeo
 
 // DECREPIT/ANCIENT ALLOY
 

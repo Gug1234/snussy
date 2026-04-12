@@ -213,10 +213,9 @@
 	if(tag)
 		switch(tag)
 			if("gen")
-				return list("shrink" = 0.3,"sx" = -7,"sy" = -3,"nx" = 6,"ny" = -4,"wx" = -2,"wy" = -2,"ex" = -4,"ey" = -2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -89,"sturn" = 0,"wturn" = -82,"eturn" = 82,"nflip" = 4,"sflip" = 1,"wflip" = 4,"eflip" = 0)
+				return list("shrink" = 0.4,"sx" = -9,"sy" = -6,"nx" = 6,"ny" = -4,"wx" = -3,"wy" = -3,"ex" = -1,"ey" = -5,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = 180,"wturn" = 180,"eturn" = 90,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 			if("wielded")
-				return list("shrink" = 0.4,"sx" = 0,"sy" = 0,"nx" = 0,"ny" = 0,"wx" = 0,"wy" = 0,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 0,"nflip" = 4,"sflip" = 0,"wflip" = 4,"eflip" = 0)
-
+				return list("shrink" = 0.6,"sx" = 3,"sy" = 2,"nx" = -5,"ny" = -10,"wx" = 7,"wy" = 1,"ex" = 6,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 187,"sturn" = -5,"wturn" = 12,"eturn" = -18,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 /**
  * Overrides transform_weapon to add auto-revert timer when charging,
  * and to cancel any existing timer when manually reverting.

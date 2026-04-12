@@ -21,7 +21,7 @@
 	alternate_worn_layer = CLOAK_BEHIND_LAYER
 	slot_flags = ITEM_SLOT_CLOAK
 	body_parts_covered = CHEST
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	sewrepair = TRUE
 	max_integrity = ARMOR_INT_CHEST_LIGHT_BASE
 	sellprice = 15
@@ -35,7 +35,7 @@
 	item_state = "brador_helm"
 	body_parts_covered = HEAD|HAIR|EARS
 	flags_inv = HIDEEARS|HIDEHAIR
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	max_integrity = ARMOR_INT_HELMET_LEATHER
 	sewrepair = TRUE
 	sellprice = 10
@@ -66,27 +66,10 @@
 	icon_state = "browny_hat"
 	item_state = "browny_hat"
 	body_parts_covered = HEAD|HAIR
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	max_integrity = ARMOR_INT_HELMET_LEATHER
 	sewrepair = TRUE
 	sellprice = 10
-
-// ==================== GOLD ARDEO ====================
-
-/obj/item/clothing/head/roguetown/helmet/leather/gold_ardeo
-	name = "gold ardeo"
-	desc = "A tall, pointed golden cone worn by executioners of a forgotten order. It obscures the face entirely, a mercy for both the wearer and the condemned."
-	icon = 'modular/icons/obj/hunter_clothing/cone_helm_icon.dmi'
-	mob_overlay_icon = 'modular/icons/obj/hunter_clothing/cone_helm.dmi'
-	icon_state = "cone_helm"
-	item_state = "cone_helm"
-	body_parts_covered = FULL_HEAD
-	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR|HIDESNOUT
-	flags_cover = HEADCOVERSEYES
-	armor = ARMOR_LEATHER
-	max_integrity = ARMOR_INT_HELMET_HARDLEATHER
-	sewrepair = TRUE
-	sellprice = 15
 
 // ==================== ORTHODOX HUNTER SET (Gascoigne) ====================
 
@@ -114,7 +97,7 @@
 	icon_state = "fedora_hat"
 	item_state = "fedora_hat"
 	body_parts_covered = HEAD|HAIR
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	max_integrity = ARMOR_INT_HELMET_LEATHER
 	sewrepair = TRUE
 	sellprice = 10
@@ -128,7 +111,7 @@
 	item_state = "fedora_mantle"
 	slot_flags = ITEM_SLOT_NECK
 	body_parts_covered = NECK
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	max_integrity = ARMOR_INT_SIDE_LEATHER
 	sewrepair = TRUE
 	sellprice = 10
@@ -159,7 +142,7 @@
 	icon_state = "hunter_hat"
 	item_state = "hunter_hat"
 	body_parts_covered = HEAD|HAIR
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	max_integrity = ARMOR_INT_HELMET_LEATHER
 	sewrepair = TRUE
 	sellprice = 10
@@ -173,7 +156,7 @@
 	item_state = "hunter_mantle"
 	slot_flags = ITEM_SLOT_NECK
 	body_parts_covered = NECK
-	armor = ARMOR_LEATHER
+	armor = ARMOR_LEATHER_GOOD
 	max_integrity = ARMOR_INT_SIDE_LEATHER
 	sewrepair = TRUE
 	sellprice = 10

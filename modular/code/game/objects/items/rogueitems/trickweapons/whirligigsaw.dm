@@ -287,14 +287,12 @@
 		if(transformed)
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.6,"sx" = 2,"sy" = 4,"nx" = 1,"ny" = 0,"wx" = 1,"wy" = 4,"ex" = -6,"ey" = 3,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = -77,"sturn" = -100,"wturn" = 66,"eturn" = -74,"nflip" = 0,"sflip" = 1,"wflip" = 4,"eflip" = 0)
+					return list("shrink" = 0.7,"sx" = -2,"sy" = 4,"nx" = 0,"ny" = 6,"wx" = 3,"wy" = 3,"ex" = -9,"ey" = 5,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 180,"sturn" = 4,"wturn" = -105,"eturn" = 283,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 0.6,"sx" = 4,"sy" = 1,"nx" = -5,"ny" = 1,"wx" = 2,"wy" = 0,"ex" = 5,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -6,"sturn" = 7,"wturn" = 27,"eturn" = 2,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+					return list("shrink" = 0.85,"sx" = 7,"sy" = 1,"nx" = -15,"ny" = 4,"wx" = 6,"wy" = -1,"ex" = 5,"ey" = 2,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = -183,"sturn" = 11,"wturn" = 33,"eturn" = -10,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 		else
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.5,"sx" = -9,"sy" = -5,"nx" = 8,"ny" = -3,"wx" = -6,"wy" = -4,"ex" = 2,"ey" = -6,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = 90,"wturn" = -90,"eturn" = 90,"nflip" = 0,"sflip" = 1,"wflip" = 4,"eflip" = 0)
+					return list("shrink" = 0.5,"sx" = -8,"sy" = -3,"nx" = 8,"ny" = -3,"wx" = -5,"wy" = -2,"ex" = 2,"ey" = -6,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = 90,"wturn" = 90,"eturn" = 90,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 0.6,"sx" = 2,"sy" = 0,"nx" = -3,"ny" = 1,"wx" = 2,"wy" = 0,"ex" = 6,"ey" = 3,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 1,"sturn" = 0,"wturn" = 22,"eturn" = -4,"nflip" = 4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
-
-
+					return list("shrink" = 0.65,"sx" = 4,"sy" = 2,"nx" = -8,"ny" = 2,"wx" = 8,"wy" = -1,"ex" = 6,"ey" = 3,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 171,"sturn" = 4,"wturn" = 24,"eturn" = -4,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)

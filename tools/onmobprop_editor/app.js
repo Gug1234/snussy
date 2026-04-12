@@ -168,6 +168,7 @@ const state = {
   dmOutputFocused: false,
   dmOutputDraft: "",
   dmOutputStatus: "Paste a DM list(...) block here to import prop values.",
+  getonmobpropFocused: false,
   focusedPropKey: null,
   propInputDrafts: {},
 };
@@ -386,6 +387,32 @@ function bindEvents() {
 
   dom.dmListOutput.addEventListener("change", () => {
     applyDmListText(dom.dmListOutput.value);
+  });
+
+  dom.getonmobpropOutput.addEventListener("focus", () => {
+    state.getonmobpropFocused = true;
+  });
+
+  dom.getonmobpropOutput.addEventListener("blur", () => {
+    state.getonmobpropFocused = false;
+    if (applyGetonmobpropText(dom.getonmobpropOutput.value)) {
+      return;
+    }
+    renderOutputs();
+  });
+
+  dom.getonmobpropOutput.addEventListener("paste", async (event) => {
+    event.preventDefault();
+    const clipboardText = event.clipboardData?.getData("text") ?? await readClipboardText();
+    if (!clipboardText) {
+      return;
+    }
+    dom.getonmobpropOutput.value = clipboardText;
+    applyGetonmobpropText(clipboardText);
+  });
+
+  dom.getonmobpropOutput.addEventListener("change", () => {
+    applyGetonmobpropText(dom.getonmobpropOutput.value);
   });
 }
 
@@ -871,8 +898,15 @@ function resolvePreviewIconState() {
 
   let resolvedState = iconState;
 
+  if (state.transformed) {
+    const transformedState = `${resolvedState}_t`;
+    if (state.dmiMetadata.states.some((entry) => entry.name === transformedState)) {
+      resolvedState = transformedState;
+    }
+  }
+
   if (state.wielded) {
-    const wieldedState = iconState.endsWith("1") ? iconState : `${iconState}1`;
+    const wieldedState = resolvedState.endsWith("1") ? resolvedState : `${resolvedState}1`;
     if (state.dmiMetadata.states.some((entry) => entry.name === wieldedState)) {
       resolvedState = wieldedState;
     }
@@ -1360,7 +1394,9 @@ function renderOutputs() {
     dom.dmListOutput.value = output;
   }
   dom.dmOutputStatus.textContent = state.dmOutputStatus;
-  dom.getonmobpropOutput.value = buildGetonmobpropBlock();
+  if (!state.getonmobpropFocused) {
+    dom.getonmobpropOutput.value = buildGetonmobpropBlock();
+  }
 }
 
 function buildGetonmobpropBlock() {
@@ -1507,6 +1543,108 @@ function applyDmListText(text) {
   state.dmOutputStatus = "Imported prop values from pasted DM output.";
   render();
   return true;
+}
+
+function applyGetonmobpropText(text) {
+  if (!text) {
+    return false;
+  }
+
+  // Strategy: Find list(...) blocks and map them to the 4 prop slots based on
+  // context lines (if("gen"), if("wielded"), if(transformed), else).
+  // Supports both full getonmobprop() proc blocks and bare return list(...) lines.
+
+  const lines = text.split(/\r?\n/);
+  let inTransformed = null; // null = unknown, true = transformed block, false = base block
+  let imported = 0;
+
+  // Track which "if(transformed)" / "else" block we're in
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (/if\s*\(\s*transformed\s*\)/.test(line)) {
+      inTransformed = true;
+      continue;
+    }
+    // "else" after transformed block = base block
+    if (inTransformed === true && /^\s*else\s*$/.test(line)) {
+      inTransformed = false;
+      continue;
+    }
+
+    // Look for return list(...) or just list(...) with a tag context
+    const listMatch = line.match(/list\s*\((.+)\)\s*$/);
+    if (!listMatch) {
+      continue;
+    }
+
+    const parsed = parseDmList(listMatch[0]);
+    if (!parsed) {
+      continue;
+    }
+
+    // Determine which slot: look backwards for the closest if("gen") or if("wielded")
+    let tag = null;
+    for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
+      if (/if\s*\(\s*"gen"\s*\)/.test(lines[j])) {
+        tag = "gen";
+        break;
+      }
+      if (/if\s*\(\s*"wielded"\s*\)/.test(lines[j])) {
+        tag = "wielded";
+        break;
+      }
+    }
+
+    // Map to the correct editor prop
+    let targetProp;
+    if (inTransformed === true && tag === "gen") {
+      targetProp = state.editor.transformedProp;
+    } else if (inTransformed === true && tag === "wielded") {
+      targetProp = state.editor.transformedWieldedProp;
+    } else if (inTransformed === false && tag === "gen") {
+      targetProp = state.editor.prop;
+    } else if (inTransformed === false && tag === "wielded") {
+      targetProp = state.editor.wieldedProp;
+    } else if (tag === "gen") {
+      // No transformed context — apply to current transformed state
+      targetProp = state.transformed ? state.editor.transformedProp : state.editor.prop;
+    } else if (tag === "wielded") {
+      targetProp = state.transformed ? state.editor.transformedWieldedProp : state.editor.wieldedProp;
+    } else {
+      // No context at all — apply to current active prop
+      targetProp = getActiveEditorProp();
+    }
+
+    for (const key of Object.keys(parsed)) {
+      targetProp[key] = parsed[key];
+    }
+    ensurePropKeys(targetProp);
+    imported++;
+  }
+
+  if (imported === 0) {
+    // Fall back: try parsing as a single list
+    const parsed = parseDmList(text);
+    if (parsed) {
+      const activeProp = getActiveEditorProp();
+      for (const key of Object.keys(parsed)) {
+        activeProp[key] = parsed[key];
+      }
+      ensurePropKeys(activeProp);
+      imported = 1;
+    }
+  }
+
+  if (imported > 0) {
+    state.propPreset = "custom";
+    dom.getonmobpropStatus.textContent = `Imported ${imported} prop block${imported > 1 ? "s" : ""} from pasted getonmobprop.`;
+    render();
+    return true;
+  }
+
+  dom.getonmobpropStatus.textContent = "Could not parse any valid prop blocks from the pasted text.";
+  return false;
 }
 
 function parseDmList(text) {

@@ -637,3 +637,19 @@
 	flags_inv = HIDEHAIR
 	smeltresult = /obj/item/ingot/steel
 	emote_environment = 3
+
+// ================= Gold Ardeo =================
+
+/obj/item/clothing/head/roguetown/helmet/gold_ardeo
+	name = "gold ardeo"
+	desc = "A tall, pointed golden cone worn by executioners of a forgotten order. It obscures the face entirely, a mercy for both the wearer and the condemned."
+	icon = 'modular/icons/obj/hunter_clothing/cone_helm_icon.dmi'
+	mob_overlay_icon = 'modular/icons/obj/hunter_clothing/cone_helm.dmi'
+	icon_state = "cone_helm"
+	item_state = "cone_helm"
+	body_parts_covered = FULL_HEAD
+	flags_inv = HIDEEARS|HIDEFACE|HIDEHAIR|HIDEFACIALHAIR|HIDESNOUT
+	flags_cover = HEADCOVERSEYES
+	armor = ARMOR_PLATE
+	max_integrity = ARMOR_INT_SIDE_STEEL
+	sellprice = 15

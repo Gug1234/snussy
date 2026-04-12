@@ -45,41 +45,41 @@
 			if("Saw Cleaver")
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawcleaver(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/sawcleaver
 			if("Saw Spear")
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/sawspear(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/sawspear
 			if("Beast Cutter")
 				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/beastcutter(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/beastcutter
 			if("Whirligig Saw")
 				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/whirligigsaw(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/whirligigsaw
 			if("Hunter Axe")
 				H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/hunteraxe(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/hunteraxe
 			if("Hunter's Saif")
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/huntersaif(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/huntersaif
 			if("Burial Blade")
 				H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/burialblade(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/burialblade
 			// --- Blastpowder Keg Weapons ---
 			if("Boom Hammer")
 				H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/boomhammer(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/boomhammer
 			if("Stake Driver")
 				H.adjust_skillrank_up_to(/datum/skill/combat/unarmed, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/stakedriver(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/stakedriver
 			if("Rifle Spear")
 				H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
-				H.put_in_hands(new /obj/item/rogueweapon/trickweapon/riflespear(H), TRUE)
+				r_hand = /obj/item/rogueweapon/trickweapon/riflespear
 				beltr = /obj/item/quiver/bullet/grapeshot
 		// "I don't seem to be apt for this life anymore... My glory days were long ago now..."
 		if(H.age == AGE_OLD)
@@ -132,7 +132,7 @@
 				armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_orthodox
 				shirt = /obj/item/clothing/suit/roguetown/armor/gambeson
 				pants = /obj/item/clothing/under/roguetown/heavy_leather_pants
-				head = /obj/item/clothing/head/roguetown/helmet/leather/gold_ardeo
+				head = /obj/item/clothing/head/roguetown/helmet/gold_ardeo
 				neck = /obj/item/clothing/neck/roguetown/hunter_orthodox_mantle
 				gloves = /obj/item/clothing/gloves/roguetown/hunter_gloves
 				wrists = /obj/item/clothing/wrists/roguetown/bracers/leather

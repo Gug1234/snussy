@@ -209,15 +209,15 @@
 		if(transformed)
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.8,"sx" = -2,"sy" = 5,"nx" = 7,"ny" = -2,"wx" = 0,"wy" = 5,"ex" = -1,"ey" = 3,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = -37,"sturn" = -26,"wturn" = -24,"eturn" = -73,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+					return list("shrink" = 0.75,"sx" = -3,"sy" = 4,"nx" = 1,"ny" = 5,"wx" = 1,"wy" = 5,"ex" = -3,"ey" = 3,"northabove" = 1,"southabove" = 0,"eastabove" = 1,"westabove" = 0,"nturn" = 200,"sturn" = -24,"wturn" = -24,"eturn" = 297,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 1,"sx" = 3,"sy" = -1,"nx" = 0,"ny" = 0,"wx" = 6,"wy" = -7,"ex" = 4,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 11,"wturn" = 57,"eturn" = -13,"nflip" = -4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+					return list("shrink" = 1,"sx" = 2,"sy" = -3,"nx" = -5,"ny" = -4,"wx" = 3,"wy" = -4,"ex" = 1,"ey" = -4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 211,"sturn" = 11,"wturn" = 34,"eturn" = -3,"nflip" = 0,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 		else
 			switch(tag)
 				if("gen")
-					return list("shrink" = 0.3,"sx" = -10,"sy" = -7,"nx" = 10,"ny" = -6,"wx" = -7,"wy" = -6,"ex" = 2,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 0,"wturn" = 0,"eturn" = 90,"nflip" = 1,"sflip" = -1,"wflip" = -1,"eflip" = 0)
+					return list("shrink" = 0.3,"sx" = -13,"sy" = -9,"nx" = 9,"ny" = -6,"wx" = -7,"wy" = -6,"ex" = 2,"ey" = -8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 0,"sturn" = 180,"wturn" = 90,"eturn" = 90,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
 				if("wielded")
-					return list("shrink" = 0.4,"sx" = 0,"sy" = -1,"nx" = 0,"ny" = 0,"wx" = 1,"wy" = -3,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 0,"sturn" = 0,"wturn" = 42,"eturn" = 0,"nflip" = -4,"sflip" = 0,"wflip" = 0,"eflip" = 0)
+					return list("shrink" = 0.4,"sx" = 0,"sy" = -1,"nx" = -5,"ny" = -1,"wx" = 1,"wy" = -3,"ex" = 0,"ey" = 0,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 175,"sturn" = 0,"wturn" = 42,"eturn" = 0,"nflip" = 1,"sflip" = 0,"wflip" = 0,"eflip" = 0)
 
 /**
  * Override transform_weapon to apply HP cost when transforming INTO

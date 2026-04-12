@@ -197,16 +197,15 @@
 /obj/item/rogueweapon/trickweapon/reiterpallasch/getonmobprop(tag)
 	. = ..()
 	if(tag)
-		switch(tag)
-			if("gen")
-				if(transformed) // --- Transformed (gun-rapier) one-handed ---
-					return list("shrink" = 0.6,"sx" = -16,"sy" = -14,"nx" = 16,"ny" = -14,"wx" = -9,"wy" = -9,"ex" = 9,"ey" = -9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -67,"eturn" = 67,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
-				// --- Base (rapier) one-handed ---
-				return list("shrink" = 0.5,"sx" = -18,"sy" = -14,"nx" = 16,"ny" = -14,"wx" = -9,"wy" = -9,"ex" = 9,"ey" = -9,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = -90,"wturn" = -67,"eturn" = 67,"nflip" = 0,"sflip" = 4,"wflip" = 4,"eflip" = 0)
-			if("wielded")
-				if(transformed) // --- Transformed (gun-rapier) two-handed ---
-					return list("shrink" = 0.6,"sx" = 5,"sy" = 3,"nx" = -4,"ny" = 2,"wx" = -11,"wy" = 4,"ex" = 11,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 12,"sturn" = -12,"wturn" = 13,"eturn" = -13,"nflip" = 4,"sflip" = 0,"wflip" = 4,"eflip" = 0)
-				// --- Base (rapier) two-handed ---
-				return list("shrink" = 0.6,"sx" = 5,"sy" = 3,"nx" = -4,"ny" = 2,"wx" = -11,"wy" = 4,"ex" = 11,"ey" = 4,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 12,"sturn" = -12,"wturn" = 13,"eturn" = -13,"nflip" = 4,"sflip" = 0,"wflip" = 4,"eflip" = 0)
-
-
+		if(transformed)
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.65,"sx" = -17,"sy" = -14,"nx" = 16,"ny" = -12,"wx" = -14,"wy" = -12,"ex" = 10,"ey" = -11,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 77,"sturn" = 102,"wturn" = 104,"eturn" = 68,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 2,"sy" = 7,"nx" = -4,"ny" = 4,"wx" = -7,"wy" = 9,"ex" = 2,"ey" = 8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 202,"sturn" = -45,"wturn" = 228,"eturn" = -60,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
+		else
+			switch(tag)
+				if("gen")
+					return list("shrink" = 0.55,"sx" = -17,"sy" = -13,"nx" = 15,"ny" = -11,"wx" = -14,"wy" = -13,"ex" = 7,"ey" = -12,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 0,"nturn" = 90,"sturn" = 91,"wturn" = 90,"eturn" = 90,"nflip" = 0,"sflip" = 1,"wflip" = 1,"eflip" = 0)
+				if("wielded")
+					return list("shrink" = 0.6,"sx" = 6,"sy" = 7,"nx" = -5,"ny" = 9,"wx" = -11,"wy" = 6,"ex" = 11,"ey" = 8,"northabove" = 0,"southabove" = 1,"eastabove" = 1,"westabove" = 1,"nturn" = 207,"sturn" = -23,"wturn" = 199,"eturn" = -19,"nflip" = 1,"sflip" = 0,"wflip" = 1,"eflip" = 0)
