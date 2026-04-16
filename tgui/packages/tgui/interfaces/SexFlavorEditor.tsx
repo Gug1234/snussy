@@ -97,6 +97,8 @@ type BackendData = {
   max_strings: number;
   max_length: number;
   phases: string[];
+  /** Whether unsaved changes exist. */
+  dirty?: boolean;
   /** Whether the default server-side text is suppressed per phase for the selected action. */
   suppress_defaults: Record<string, boolean>;
   /** Whether the "Show All" actions toggle is active. */
@@ -831,6 +833,15 @@ export function SexFlavorEditor() {
                     Custom Actions ({(data.custom_actions || []).length}/{data.max_custom_actions || 5})
                   </Tabs.Tab>
                 </Tabs>
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  icon="save"
+                  color={data.dirty ? 'caution' : 'green'}
+                  onClick={() => act('save')}
+                >
+                  {data.dirty ? 'Save' : 'Saved'}
+                </Button>
               </Stack.Item>
               <Stack.Item>
                 <Button icon="file-export" onClick={() => act('export_data')}>

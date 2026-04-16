@@ -154,7 +154,7 @@
 
 /obj/item/rogueweapon/trickweapon/logariuswheel
 	name = "penitent's wheel"
-	desc = "A trick weapon once used by the Otavan Inquisition's Ordinators to extract confession and dispense judgment. In its inert form, a heavy iron-bound wheel affixed to a stout handle, serving as a brutal bludgeon. When activated, the wheel spins with Psydonic fury, grinding against flesh with the force of divine sentence. The Ordinators sought to punish the heretical, and this wheel was their verdict."
+	desc = "A trick weapon once used by the Otavan Inquisition's Confessors to extract confession and dispense judgment. In its inert form, a heavy iron-bound wheel affixed to a stout handle, serving as a brutal bludgeon. When activated, the wheel spins with Psydonic fury, grinding against flesh with the force of divine sentence. The Confessors sought to punish the heretical, and this wheel was their verdict."
 	icon_state = "funnywheel"
 	item_state = "funnywheel"
 	force = 22
@@ -165,8 +165,8 @@
 	w_class = WEIGHT_CLASS_BULKY
 	wlength = WLENGTH_LONG
 	wbalance = WBALANCE_HEAVY
-	wdefense = 3
-	wdefense_wbonus = 3
+	wdefense = 5
+	wdefense_wbonus = 5
 	minstr = 10
 	max_blade_int = 300
 	max_integrity = 300
@@ -175,8 +175,8 @@
 	swingsound = BLUNTWOOSH_MED
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
-	transform_sound = 'modular/sounds/trickweapons/logariuswheel/spin.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/logariuswheel/land.ogg'
+	transform_sound = 'modular/sounds/trickweapons/logariuswheel/wheel_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/logariuswheel/wheel_untransform.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 55
@@ -195,8 +195,8 @@
 	transformed_swingsound = BLUNTWOOSH_MED
 	transformed_wlength = WLENGTH_LONG
 	transformed_wbalance = WBALANCE_HEAVY
-	transformed_wdefense = 2
-	transformed_wdefense_wbonus = 2
+	transformed_wdefense = 5
+	transformed_wdefense_wbonus = 5
 	transformed_minstr = 10
 	transformed_associated_skill = /datum/skill/combat/maces
 	transformed_sharpness = IS_BLUNT

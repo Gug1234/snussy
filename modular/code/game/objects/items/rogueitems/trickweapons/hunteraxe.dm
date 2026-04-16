@@ -75,6 +75,7 @@
 	attack_verb = list("sweeps", "cleaves")
 	animname = "cut"
 	blade_class = BCLASS_CUT
+	swingsound = list('modular/sounds/trickweapons/hunteraxe/axe_swing3.ogg', 'modular/sounds/trickweapons/hunteraxe/axe_swing4.ogg')
 	hitsound = list('modular/sounds/trickweapons/hunteraxe/pole_hit1.ogg', 'modular/sounds/trickweapons/hunteraxe/pole_hit2.ogg')
 	chargetime = 0
 	penfactor = 15
@@ -90,6 +91,7 @@
 	attack_verb = list("slams", "crushes")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
+	swingsound = list('modular/sounds/trickweapons/hunteraxe/axe_swing1.ogg', 'modular/sounds/trickweapons/hunteraxe/axe_swing2.ogg')
 	hitsound = list('modular/sounds/trickweapons/hunteraxe/pole_hit1.ogg', 'modular/sounds/trickweapons/hunteraxe/pole_hit2.ogg')
 	chargetime = 0
 	penfactor = 25
@@ -105,6 +107,7 @@
 	attack_verb = list("jabs", "thrusts")
 	animname = "stab"
 	blade_class = BCLASS_STAB
+	swingsound = 'modular/sounds/trickweapons/hunteraxe/axe_stab.ogg'
 	hitsound = list('modular/sounds/trickweapons/hunteraxe/haft_thrust1.ogg', 'modular/sounds/trickweapons/hunteraxe/haft_thrust2.ogg')
 	chargetime = 0
 	penfactor = 20
@@ -120,6 +123,7 @@
 	attack_verb = list("cleaves", "hews", "chops")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
+	swingsound = list('modular/sounds/trickweapons/hunteraxe/axe_swing1.ogg', 'modular/sounds/trickweapons/hunteraxe/axe_swing2.ogg')
 	hitsound = list('modular/sounds/trickweapons/hunteraxe/axe_hit1.ogg', 'modular/sounds/trickweapons/hunteraxe/axe_hit2.ogg')
 	chargetime = 6
 	penfactor = 20
@@ -157,7 +161,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/hunteraxe/transform.ogg'
+	transform_sound = 'modular/sounds/trickweapons/hunteraxe/axe_transform.ogg'
+	untransform_sound = list('modular/sounds/trickweapons/hunteraxe/axe_untransform1.ogg', 'modular/sounds/trickweapons/hunteraxe/axe_untransform2.ogg')
 	throwforce = 12
 	thrown_bclass = BCLASS_CHOP
 	sellprice = 45
@@ -176,7 +181,7 @@
 	transformed_wlength = WLENGTH_GREAT
 	transformed_wbalance = WBALANCE_HEAVY
 	transformed_wdefense = 5
-	transformed_wdefense_wbonus = 3
+	transformed_wdefense_wbonus = 5
 	transformed_minstr = 10
 	transformed_associated_skill = /datum/skill/combat/polearms
 	transformed_sharpness = IS_SHARP

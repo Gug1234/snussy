@@ -65,7 +65,7 @@
 	icon_state = "incut"
 	attack_verb = list("lashes", "whips")
 	animname = "cut"
-	blade_class = BCLASS_LASHING
+	blade_class = BCLASS_CUT
 	hitsound = list('modular/sounds/trickweapons/threadedcane/whip_swing1.ogg', 'modular/sounds/trickweapons/threadedcane/whip_hit.ogg')
 	chargetime = 0
 	penfactor = 10
@@ -97,7 +97,8 @@
 	icon_state = "insweep"
 	attack_verb = list("sweeps", "lashes")
 	animname = "cut"
-	blade_class = BCLASS_LASHING
+	blade_class = BCLASS_CUT
+	swingsound = list('modular/sounds/trickweapons/threadedcane/cane_whipsweep1.ogg', 'modular/sounds/trickweapons/threadedcane/cane_whipsweep2.ogg')
 	hitsound = list('modular/sounds/trickweapons/threadedcane/whip_swing1.ogg', 'modular/sounds/trickweapons/threadedcane/whip_swing2.ogg')
 	chargetime = 3
 	chargedrain = 1
@@ -114,7 +115,7 @@
 	icon_state = "inchop"
 	attack_verb = list("lashes down", "cracks upon")
 	animname = "chop"
-	blade_class = BCLASS_LASHING
+	blade_class = BCLASS_CUT
 	hitsound = list('modular/sounds/trickweapons/threadedcane/whip_swing1.ogg', 'modular/sounds/trickweapons/threadedcane/whip_hit.ogg')
 	chargetime = 0
 	penfactor = 20
@@ -148,11 +149,11 @@
 	max_integrity = 150
 	sharpness = IS_SHARP
 	associated_skill = /datum/skill/combat/swords
-	swingsound = BLADEWOOSH_SMALL
+	swingsound = list('modular/sounds/trickweapons/threadedcane/cane_swing1.ogg', 'modular/sounds/trickweapons/threadedcane/cane_swing2.ogg', 'modular/sounds/trickweapons/threadedcane/cane_swing3.ogg')
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/threadedcane/whip_crack1.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/threadedcane/whip_crack2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/threadedcane/cane_transform.ogg'
+	untransform_sound = list('modular/sounds/trickweapons/threadedcane/cane_untransform1.ogg', 'modular/sounds/trickweapons/threadedcane/cane_untransform2.ogg')
 	throwforce = 8
 	thrown_bclass = BCLASS_CUT
 	sellprice = 45
@@ -168,7 +169,7 @@
 	transformed_force_wielded = 22
 	transformed_intents = list(/datum/intent/threadedcane/whipslash, /datum/intent/threadedcane/whipthrust)
 	transformed_gripped_intents = list(/datum/intent/threadedcane/whipslash, /datum/intent/threadedcane/whipthrust, /datum/intent/threadedcane/widesweep, /datum/intent/threadedcane/overheadlash)
-	transformed_swingsound = BLADEWOOSH_MED
+	transformed_swingsound = list('modular/sounds/trickweapons/threadedcane/cane_whip1.ogg', 'modular/sounds/trickweapons/threadedcane/cane_whip2.ogg', 'modular/sounds/trickweapons/threadedcane/cane_whip3.ogg', 'modular/sounds/trickweapons/threadedcane/cane_whip4.ogg', 'modular/sounds/trickweapons/threadedcane/cane_whip5.ogg')
 	transformed_wlength = WLENGTH_LONG
 	transformed_wbalance = WBALANCE_NORMAL
 	transformed_wdefense = 2 // Hard to parry with a whip

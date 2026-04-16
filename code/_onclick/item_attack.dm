@@ -136,7 +136,8 @@
 	if(force)
 		if(user.used_intent)
 			if(!user.used_intent.noaa)
-				playsound(get_turf(src), pick(swingsound), 100, FALSE, -1)
+				var/list/swing = user.used_intent.swingsound || swingsound
+				playsound(get_turf(src), pick(swing), 100, FALSE, -1)
 			if(user.used_intent.no_attack) //BYE!!!
 				return
 	else

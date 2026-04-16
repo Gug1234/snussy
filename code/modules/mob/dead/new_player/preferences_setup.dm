@@ -83,8 +83,15 @@
 	// (chastity devices, intimate accessories, etc.) are included in the snapshot.
 	mannequin.update_body_parts(redraw = TRUE)
 	mannequin.rebuild_obscured_flags()
-	COMPILE_OVERLAYS(mannequin)
-	parent.show_character_previews(new /mutable_appearance(mannequin))
+	// Build per-direction snapshots so direction-dependent offsets (e.g. taur genital
+	// X-mirroring) are baked correctly for each cardinal facing.
+	var/list/dir_appearances = list()
+	for(var/D in GLOB.cardinals)
+		mannequin.setDir(D)
+		mannequin.update_body_parts(redraw = TRUE)
+		COMPILE_OVERLAYS(mannequin)
+		dir_appearances["[D]"] = new /mutable_appearance(mannequin)
+	parent.show_character_previews(dir_appearances)
 	unset_busy_human_dummy(DUMMY_HUMAN_SLOT_PREFERENCES)
 
 

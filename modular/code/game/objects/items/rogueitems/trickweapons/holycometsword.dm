@@ -60,7 +60,6 @@
 	item_d_type = "stab"
 
 /// Holy Comet Sword transformed - diagonal swing. R1 alternating diagonal/horizontal arcs.
-/// Psycross mode - arcane energy infuses each strike.
 /datum/intent/holycomet/diagswing
 	name = "diagonal swing"
 	icon_state = "incut"
@@ -75,7 +74,6 @@
 	item_d_type = "slash"
 
 /// Holy Comet Sword transformed - moonlight sweep. R2 backhand horizontal sweep emitting arcane energy.
-/// The signature moonlight wave; high pen represents arcane bypass.
 /datum/intent/holycomet/moonlightsweep
 	name = "moonlight sweep"
 	icon_state = "incrush"
@@ -102,15 +100,15 @@
 	chargetime = 6
 	chargedrain = 2
 	penfactor = 60
-	damfactor = 2.8
-	clickcd = CLICK_CD_HEAVY
+	damfactor = 2.8 // listen, there's only ONE of these, it should feel powerful
+	clickcd = CLICK_CD_EXHAUSTED
 	swingdelay = 10
 	no_early_release = TRUE
 	misscost = 10
 	item_d_type = "slash"
 
 /// Holy Comet Sword transformed - arcane thrust. L2 forward thrust with an arcane flash.
-/// When fully charged in transformed state, releases a Holy Energy Burst AOE.
+/// When fully charged in transformed state, releases a projectile laser.
 /datum/intent/holycomet/arcanethrust
 	name = "arcane thrust"
 	icon_state = "inthrust"
@@ -122,7 +120,7 @@
 	chargedrain = 1
 	penfactor = 40
 	damfactor = 1.5
-	clickcd = CLICK_CD_CHARGED
+	clickcd = CLICK_CD_HEAVY
 	swingdelay = 6
 	item_d_type = "stab"
 
@@ -158,7 +156,8 @@
 	swingsound = BLADEWOOSH_HUGE
 	parrysound = list('sound/combat/parry/bladed/bladedlarge (1).ogg', 'sound/combat/parry/bladed/bladedlarge (2).ogg', 'sound/combat/parry/bladed/bladedlarge (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
-	transform_sound = 'modular/sounds/trickweapons/holycomet/activate.ogg'
+	transform_sound = 'modular/sounds/trickweapons/holycomet/comet_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/holycomet/comet_untransform.ogg'
 	bigboy = TRUE
 	pixel_y = -16
 	pixel_x = -16
@@ -184,8 +183,8 @@
 	transformed_swingsound = BLADEWOOSH_HUGE
 	transformed_wlength = WLENGTH_GREAT
 	transformed_wbalance = WBALANCE_HEAVY
-	transformed_wdefense = 4
-	transformed_wdefense_wbonus = 5
+	transformed_wdefense = 6
+	transformed_wdefense_wbonus = 7
 	transformed_minstr = 12
 	transformed_associated_skill = /datum/skill/combat/swords
 	transformed_sharpness = IS_SHARP
@@ -194,8 +193,10 @@
 	transformed_special = /datum/special_intent/holy_comet_nova
 	/// Damage dealt by the Holy Burst AOE (arcanethrust full-charge effect).
 	var/burst_damage = 25
-	/// Range of the Holy Burst AOE in tiles.
-	var/burst_range = 2
+	/// World.time when afterattack projectiles can next fire. Prevents spam.
+	var/next_projectile = 0
+	/// Minimum time between afterattack projectile fires (deciseconds).
+	var/projectile_cooldown = 10 SECONDS
 
 /// Override ComponentInitialize to apply Psydonian blessing by default.
 /// The base rogueweapon class would give it a Tennite-type blessing since is_silver = TRUE,
@@ -234,7 +235,6 @@
  * Each transformed charged intent triggers a specific arcane effect:
  *   moonlightsweep (full charge) → Comet Beam projectile
  *   chargedmoonlight (full charge) → Psycross Slash (3-wide projectile arc)
- *   arcanethrust (full charge) → Holy Energy Burst (AOE around user)
  * Effects only fire when transformed AND the charge bar reached 100%.
  */
 /obj/item/rogueweapon/trickweapon/holycometsword/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
@@ -246,15 +246,17 @@
 	var/mob/living/L = user
 	if(!L.client || L.client.chargedprog < 100)
 		return
+	if(world.time < next_projectile)
+		return
 	var/datum/intent/I = L.used_intent
 	if(!I)
 		return
-	if(istype(I, /datum/intent/holycomet/moonlightsweep))
+	if(istype(I, /datum/intent/holycomet/arcanethrust))
+		next_projectile = world.time + projectile_cooldown
 		fire_comet_beam(L)
 	else if(istype(I, /datum/intent/holycomet/chargedmoonlight))
+		next_projectile = world.time + projectile_cooldown
 		fire_psycross_slash(L)
-	else if(istype(I, /datum/intent/holycomet/arcanethrust))
-		fire_holy_burst(L)
 
 /**
  * Fires a short-range beam of pale arcane energy in the user's facing direction.
@@ -277,27 +279,6 @@
 	P.def_zone = user.zone_selected
 	P.preparePixelProjectile(far_target, origin)
 	P.fire()
-
-/**
- * Releases a burst of holy energy in a radius around the user.
- * Damages all adjacent living mobs (except user), respects anti-magic.
- */
-/obj/item/rogueweapon/trickweapon/holycometsword/proc/fire_holy_burst(mob/living/user)
-	var/turf/center = get_turf(user)
-	if(!center)
-		return
-	playsound(center, 'sound/magic/whiteflame.ogg', 80, TRUE)
-	user.visible_message(span_warning("[user] releases a burst of holy energy!"), span_notice("Holy light erupts from the psycross!"))
-	new /obj/effect/temp_visual/comet_aoe(center)
-	for(var/mob/living/M in range(burst_range, center))
-		if(M == user)
-			continue
-		if(M.anti_magic_check())
-			to_chat(M, span_warning("The holy energy washes over you harmlessly."))
-			continue
-		to_chat(M, span_warning("Holy energy sears your flesh!"))
-		M.apply_damage(burst_damage, BRUTE, "chest")
-		playsound(get_turf(M), 'sound/magic/churn.ogg', 60, TRUE)
 
 /**
  * Fires a 3-wide psycross slash — a visible center projectile flanked by
@@ -361,7 +342,7 @@
 // intent-based psycross effects (Comet Beam, Holy Burst, Psycross Slash).
 
 // ---------- Comet Beam Projectile ----------
-/// Comet beam projectile â€” pale arcane energy, short range, anti-magic blockable.
+/// Comet beam projectile, pale arcane energy, short range, anti-magic blockable.
 /// Uses the standard 32x32 divine_blast sprite for reliable trajectory rendering,
 /// with the large 64x128 cometbeam sprite attached as a visual-only overlay.
 /obj/projectile/energy/cometbeam
@@ -401,7 +382,7 @@
 
 // ---------- Psycross Slash Projectiles ----------
 
-/// Center psycross slash projectile â€” visible, carries the 128x64 cometslash overlay.
+/// Center psycross slash projectile, visible, carries the 128x64 cometslash overlay.
 /// The overlay is rotated to match the travel direction via set_slash_direction().
 /obj/projectile/energy/psycross_slash
 	name = "psycross slash"
@@ -441,14 +422,14 @@
 			M.Turn(180)
 			slash_overlay.transform = M
 		if(EAST)
-			slash_overlay.pixel_x = -16 // center 64px (width after rotation)
-			slash_overlay.pixel_y = -48 // center 128px (height after rotation)
+			slash_overlay.pixel_x = -48 // same center — transform rotates around original icon center
+			slash_overlay.pixel_y = -16
 			var/matrix/M = matrix()
 			M.Turn(90)
 			slash_overlay.transform = M
 		if(WEST)
-			slash_overlay.pixel_x = -16
-			slash_overlay.pixel_y = -48
+			slash_overlay.pixel_x = -48
+			slash_overlay.pixel_y = -16
 			var/matrix/M = matrix()
 			M.Turn(-90)
 			slash_overlay.transform = M
@@ -465,7 +446,7 @@
 			return BULLET_ACT_BLOCK
 		playsound(get_turf(target), 'sound/magic/churn.ogg', 100)
 
-/// Invisible flanking projectile â€” provides the width for the 3-wide slash hitbox.
+/// Invisible flanking projectile, provides the width for the 3-wide slash hitbox.
 /// Has no icon or visual overlay, only deals damage on contact.
 /obj/projectile/energy/psycross_slash/flank
 	name = "psycross slash"
@@ -477,18 +458,5 @@
 	// Skip the parent Initialize overlay attachment â€” this projectile is invisible.
 	. = ..()
 	cut_overlays()
-
-// --------- Comet Sword Spell Visual Effects ----------
-
-/// 128x128 AOE burst visual centered on caster. Used by Holy Energy Burst.
-/obj/effect/temp_visual/comet_aoe
-	name = "holy energy burst"
-	icon = 'modular/icons/obj/trickweapons/effects128x128.dmi'
-	icon_state = "cometaoe"
-	pixel_x = -48
-	pixel_y = -48
-	layer = ABOVE_ALL_MOB_LAYER
-	duration = 8
-	randomdir = FALSE
 
 

@@ -157,8 +157,8 @@
 	swingsound = BLADEWOOSH_SMALL
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/chikage/katana_draw1.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/chikage/katana_draw2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/chikage/chikage_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/chikage/chikage_untransform.ogg'
 	throwforce = 8
 	thrown_bclass = BCLASS_CUT
 	smeltresult = /obj/item/ingot/silver

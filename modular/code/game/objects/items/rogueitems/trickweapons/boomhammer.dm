@@ -163,7 +163,7 @@
 	swingsound = BLUNTWOOSH_MED
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
-	transform_sound = 'modular/sounds/trickweapons/boomhammer/ignite.ogg'
+	transform_sound = list('modular/sounds/trickweapons/boomhammer/boom_transform1.ogg', 'modular/sounds/trickweapons/boomhammer/boom_transform2.ogg')
 	throwforce = 12
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 55

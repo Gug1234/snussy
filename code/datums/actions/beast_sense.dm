@@ -1,9 +1,8 @@
 // ===================== BEAST SENSE =====================
 // Cooldown ability granted to trick-weapon hunter classes (Blood Drunk
-// Hunter, Gnoll Hunter). Activating it scans for the nearest beast-type
-// mob — simple animals with MOB_BEAST, werewolves, gnolls, and other
-// beast-kin from the serrated species list — and reports direction and
-// distance to the user.
+// Hunter, Gnoll Hunter). Activating it scans for the nearest hostile
+// beast — aggressive simple animals (wolves, trolls, bears, etc.),
+// werewolves, and gnolls — and reports direction and distance to the user.
 
 /// Maximum range (in tiles) the sense can detect beasts.
 #define BEAST_SENSE_RANGE 50
@@ -14,7 +13,7 @@
 	button_icon = 'icons/mob/actions/roguespells.dmi'
 	background_icon_state = "spell"
 	icon_icon = 'icons/mob/actions/roguespells.dmi'
-	button_icon_state = "yourblood"
+	button_icon_state = "wolf_head_undead"
 	check_flags = AB_CHECK_CONSCIOUS
 	cooldown_time = 30 SECONDS
 	transparent_when_unavailable = FALSE
@@ -77,14 +76,17 @@
 
 /**
  * Returns TRUE if the given mob counts as a beast for tracking purposes.
- * Checks MOB_BEAST biotype first (simple animals/monsters), then
- * checks species ID for humanoid beast-kin (gnolls, werewolves, etc.)
+ * Checks for aggressive simple mobs with MOB_BEAST biotype (wolves,
+ * trolls, bears, spiders, etc.) then checks species ID for werewolves
+ * and gnolls. Passive farm animals are excluded by the aggressive check.
  */
 /datum/action/cooldown/beast_sense/proc/is_beast_target(mob/living/L)
-	// Simple animals and monsters with MOB_BEAST biotype
+	// Hostile simple animals with MOB_BEAST biotype — wolves, trolls, bears, etc.
 	if(L.mob_biotypes & MOB_BEAST)
-		return TRUE
-	// Humanoid beast-kin species
+		var/mob/living/simple_animal/hostile/retaliate/rogue/R = L
+		if(istype(R) && R.aggressive)
+			return TRUE
+	// Humanoid beast-kin — werewolves and gnolls
 	if(ishuman(L))
 		var/mob/living/carbon/human/H = L
 		if(H.dna?.species)
@@ -97,23 +99,7 @@
 /// species list — beast-kin, anthromorphs, werewolves, and wildshapes.
 GLOBAL_LIST_INIT(beast_sense_species, list(
 	"werewolf",
-	"anthromorph",
-	"anthromorphsmall",
-	"lupian",
-	"vulpkanin",
-	"tabaxi",
-	"akula",
-	"dracon",
-	"lizardfolk",
-	"kobold",
 	"gnoll",
-	"shapebear",
-	"shapewolf",
-	"shapecat",
-	"shapefox",
-	"shapecabbit",
-	"shapespider",
-	"shapesaiga",
 ))
 
 #undef BEAST_SENSE_RANGE

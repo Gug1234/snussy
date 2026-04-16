@@ -5,30 +5,35 @@
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_ALL_KINDS
 	outfit = /datum/outfit/job/roguetown/wretch/blooddrunk
-	cmode_music = 'sound/music/combatmaniac.ogg'
+	cmode_music = 'sound/music/combat_blooddrunk1.ogg'
 	class_select_category = CLASS_CAT_WARRIOR
 	category_tags = list(CTAG_WRETCH)
-	traits_applied = list(TRAIT_DODGEEXPERT, TRAIT_BEAST_DRUNK)
+	traits_applied = list(TRAIT_DODGEEXPERT, TRAIT_BEAST_DRUNK, TRAIT_CRITICAL_RESISTANCE)
+	maximum_possible_slots = 2 // These guys are strong, don't want them to be too common.
 	subclass_stats = list(
 		STATKEY_STR = 2,
 		STATKEY_CON = 2,
-		STATKEY_SPD = 1,
+		STATKEY_SPD = 3, // NYOOOM
 		STATKEY_WIL = 2,
+		STATKEY_LCK = -2, // Fortunate people don't end up blood drunk.
 	)
 	subclass_skills = list(
-		/datum/skill/misc/swimming = SKILL_LEVEL_APPRENTICE,
-		/datum/skill/combat/wrestling = SKILL_LEVEL_EXPERT,
+		/datum/skill/misc/swimming = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/combat/wrestling = SKILL_LEVEL_MASTER,
 		/datum/skill/combat/unarmed = SKILL_LEVEL_JOURNEYMAN,
-		/datum/skill/misc/climbing = SKILL_LEVEL_JOURNEYMAN,
+		/datum/skill/misc/climbing = SKILL_LEVEL_EXPERT,
 		/datum/skill/misc/athletics = SKILL_LEVEL_EXPERT,
 		/datum/skill/misc/medicine = SKILL_LEVEL_APPRENTICE,
-		/datum/skill/misc/reading = SKILL_LEVEL_NOVICE,
+		/datum/skill/misc/reading = SKILL_LEVEL_EXPERT, // 99 insight, GRANT US EYES
+		/datum/skill/labor/butchering = SKILL_LEVEL_EXPERT,
 	)
 
 /datum/outfit/job/roguetown/wretch/blooddrunk/pre_equip(mob/living/carbon/human/H)
 	..()
 	var/datum/action/sense = new /datum/action/cooldown/beast_sense(H)
 	sense.Grant(H)
+	var/datum/action/frenzy = new /datum/action/cooldown/blood_drunk_frenzy(H)
+	frenzy.Grant(H)
 	H.apply_status_effect(/datum/status_effect/beast_drunk)
 	pants = /obj/item/clothing/under/roguetown/heavy_leather_pants
 	shirt = /obj/item/clothing/suit/roguetown/armor/gambeson
@@ -43,7 +48,7 @@
 	backpack_contents = list(
 		/obj/item/storage/belt/rogue/pouch/coins/poor = 1,
 		/obj/item/flashlight/flare/torch/lantern/prelit = 1,
-		/obj/item/reagent_containers/glass/bottle/alchemical/healthpot = 1,
+		/obj/item/reagent_containers/glass/bottle/alchemical/healthpot = 1, // bloodvial or something
 		)
 	if(H.mind)
 		var/classes = list("Old Hunter", "Church Hunter", "Hawthorne Malumite", "Blastpowder Keg", "Eccentric")
@@ -68,6 +73,9 @@
 			H.adjust_skillrank(/datum/skill/combat/whipsflails, 1, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/knives, 1, TRUE)
 			H.adjust_skillrank(/datum/skill/combat/unarmed, 1, TRUE)
+			H.change_stat(STATKEY_LCK, 2) // maybe you aren't so unlucky if you live long enough while being blood drunk. Nuked by -3 when frenzied. 
+			H.change_stat(STATKEY_INT, 2) // Eyes on the inside, still gets nuked by frenzy -3 int so not busted when it matters.
+			H.change_stat(STATKEY_SPD, 1) // Don't wanna handicap the old hunter's too too much. They'd get skill gapped otherwise because dodge builds kinda suck
 
 /datum/outfit/job/roguetown/wretch/blooddrunk/proc/old_hunter_equip(mob/living/carbon/human/H)
 	ADD_TRAIT(H, TRAIT_NASTY_EATER, TRAIT_GENERIC)
@@ -76,27 +84,27 @@
 	switch(weapon_choice)
 		if("Beast Cutter")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/beastcutter
 		if("Saw Cleaver")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/sawcleaver
 		if("Saw Spear")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/sawspear
 		if("Hunter Axe")
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/hunteraxe
 		if("Burial Blade")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/burialblade
 		if("Hunter's Saif")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/huntersaif
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
 	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_old_hat
@@ -113,14 +121,14 @@
 			r_hand = /obj/item/rogueweapon/trickweapon/logariuswheel
 		if("Psydonic Hammer")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/kirkhammer
 		if("Pontifex Greatsword")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/ludwigblade
 		if("Church Pick")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/churchpick
 		if("Bloodletter")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
@@ -141,11 +149,11 @@
 			r_hand = /obj/item/rogueweapon/trickweapon/chikage
 		if("Threaded Cane")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/whipsflails, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/threadedcane
 		if("Rakuyo")
 			H.adjust_skillrank_up_to(/datum/skill/combat/polearms, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/rakuyo
 		if("Reiterpallasch")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
@@ -155,7 +163,7 @@
 			r_hand = /obj/item/rogueweapon/trickweapon/bladesofmercy
 		if("Ranger's Bowblade")
 			H.adjust_skillrank_up_to(/datum/skill/combat/swords, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/bows, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/bows, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/simonsbowblade
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_standard
 	head = /obj/item/clothing/head/roguetown/helmet/leather/hunter_standard_hat
@@ -164,6 +172,7 @@
 	wretch_select_bounty(H)
 
 /datum/outfit/job/roguetown/wretch/blooddrunk/proc/keg_equip(mob/living/carbon/human/H)
+	ADD_TRAIT(H, TRAIT_EXTREME_TEMPERATURE_IMMUNE, TRAIT_GENERIC)
 	var/weapons = list("Boom Hammer", "Stake Driver", "Rifle Spear", "Whirligig Saw", "Tonitrus")
 	var/weapon_choice = input(H, "Choose your weapon.", "If a weapon ain't got kick...") as anything in weapons
 	switch(weapon_choice)
@@ -179,9 +188,9 @@
 			beltr = /obj/item/quiver/bullet/grapeshot
 		if("Whirligig Saw")
 			H.adjust_skillrank_up_to(/datum/skill/combat/axes, SKILL_LEVEL_EXPERT, TRUE)
-			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_JOURNEYMAN, TRUE)
+			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/whirligigsaw
-		if("Tonitrus")
+		if("Tonitrus") // technically not a keg weapon but uhh ummm uhhh ummm 
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)
 			r_hand = /obj/item/rogueweapon/trickweapon/tonitrus
 	armor = /obj/item/clothing/suit/roguetown/armor/leather/heavy/coat/hunter_old
@@ -190,8 +199,9 @@
 	wretch_select_bounty(H)
 
 /datum/outfit/job/roguetown/wretch/blooddrunk/proc/eccentric_equip(mob/living/carbon/human/H)
+	ADD_TRAIT(H, TRAIT_STRONGBITE, TRAIT_GENERIC)
 	var/weapons = list("Abyssoid Parasite", "Feral Claw", "Dreamfiend Arm")
-	var/weapon_choice = input(H, "Choose your weapon.", "Grant us eyes...") as anything in weapons
+	var/weapon_choice = input(H, "Choose your weapon.", "GRANT US EYES...") as anything in weapons
 	switch(weapon_choice)
 		if("Abyssoid Parasite")
 			H.adjust_skillrank_up_to(/datum/skill/combat/maces, SKILL_LEVEL_EXPERT, TRUE)

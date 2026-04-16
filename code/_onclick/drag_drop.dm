@@ -310,6 +310,8 @@
 // Now we are done messing with the mouse_pointer_icon
 //				if(sections)
 //					L.say(L.used_intent.charge_invocation[L.used_intent.charge_invocation.len])
+				if(L.used_intent.charged_sound)
+					playsound(L, L.used_intent.charged_sound, 100, TRUE)
 				if(L.curplaying && !L.used_intent.keep_looping)
 					playsound(L, 'sound/magic/charged.ogg', 100, TRUE)
 					L.curplaying.on_mouse_up()

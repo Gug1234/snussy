@@ -113,15 +113,24 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	var/selected_preset = "humanoid"
 	/// Currently selected perspective: "performer", "target", or "observer".
 	var/selected_perspective = "performer"
+	/// TRUE when in-memory data has changed since the last save.
+	var/dirty = FALSE
+	/// Cached anatomy check results per action path (built on open).
+	var/list/anatomy_cache
 
 /datum/sex_flavor_editor/New(mob/living/carbon/human/H)
 	if(!istype(H))
 		qdel(src)
 		return
 	owner = H
+	build_anatomy_cache()
 	..()
 
 /datum/sex_flavor_editor/Destroy()
+	if(dirty)
+		var/datum/preferences/prefs = get_prefs()
+		prefs?.save_character()
+		dirty = FALSE
 	owner = null
 	return ..()
 
@@ -131,6 +140,16 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	if(owner?.client?.prefs)
 		return owner.client.prefs
 	return null
+
+/// Builds the anatomy_cache mapping action path → can_use boolean.
+/// Called once on editor open; avoids repeated getorganslot() calls per tick.
+/datum/sex_flavor_editor/proc/build_anatomy_cache()
+	anatomy_cache = list()
+	for(var/path in GLOB.sex_actions)
+		var/datum/sex_action/A = GLOB.sex_actions[path]
+		if(!A || A.category == SEX_CATEGORY_NULL)
+			continue
+		anatomy_cache["[path]"] = check_anatomy(A)
 
 /// Returns TRUE if the character can anatomically use a sex action.
 /// Overridden by the lobby subtype (no mob available → always TRUE).
@@ -163,6 +182,56 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 		ui.set_state(GLOB.always_state)
 		ui.open()
 
+/datum/sex_flavor_editor/ui_static_data(mob/user)
+	var/list/data = list()
+
+	data["max_strings"]        = SEX_FLAVOR_MAX_STRINGS
+	data["max_length"]         = SEX_FLAVOR_MAX_LENGTH
+	data["phases"]             = list("on_start", "on_perform", "on_finish")
+	data["max_custom_actions"] = MAX_CUSTOM_SEX_ACTIONS
+
+	// Preset selector options (race/species banks).
+	var/list/preset_list = list()
+	for(var/key in GLOB.sex_action_preset_keys)
+		preset_list += list(list("key" = key, "label" = GLOB.sex_action_preset_labels[key]))
+	data["presets"] = preset_list
+
+	// Custom action templates — preset archetypes for creating new custom actions.
+	data["custom_templates"] = list(
+		list("key" = "penetration", "name" = "Penetration",
+			"category" = SEX_CATEGORY_PENETRATE,
+			"user_sex_part" = SEX_PART_COCK, "target_sex_part" = SEX_PART_CUNT,
+			"user_arousal" = 2, "target_arousal" = 3, "user_pain" = 0, "target_pain" = 4,
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+		list("key" = "anal", "name" = "Anal",
+			"category" = SEX_CATEGORY_PENETRATE,
+			"user_sex_part" = SEX_PART_COCK, "target_sex_part" = SEX_PART_ANUS,
+			"user_arousal" = 2, "target_arousal" = 2, "user_pain" = 0, "target_pain" = 6,
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+		list("key" = "oral", "name" = "Oral",
+			"category" = SEX_CATEGORY_MISC,
+			"user_sex_part" = SEX_PART_JAWS, "target_sex_part" = SEX_PART_COCK,
+			"user_arousal" = 1, "target_arousal" = 3, "user_pain" = 0, "target_pain" = 0,
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+		list("key" = "manual", "name" = "Manual / Hands",
+			"category" = SEX_CATEGORY_HANDS,
+			"user_sex_part" = SEX_PART_NULL, "target_sex_part" = SEX_PART_NULL,
+			"user_arousal" = 1, "target_arousal" = 2, "user_pain" = 0, "target_pain" = 0,
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+		list("key" = "ride", "name" = "Ride",
+			"category" = SEX_CATEGORY_PENETRATE,
+			"user_sex_part" = SEX_PART_CUNT, "target_sex_part" = SEX_PART_COCK,
+			"user_arousal" = 3, "target_arousal" = 2, "user_pain" = 2, "target_pain" = 0,
+			"stamina_cost" = 2, "requires_other" = TRUE, "continuous" = TRUE),
+		list("key" = "self", "name" = "Self / Solo",
+			"category" = SEX_CATEGORY_MISC,
+			"user_sex_part" = SEX_PART_NULL, "target_sex_part" = SEX_PART_NULL,
+			"user_arousal" = 2, "target_arousal" = 0, "user_pain" = 0, "target_pain" = 0,
+			"stamina_cost" = 1, "requires_other" = FALSE, "continuous" = TRUE),
+	)
+
+	return data
+
 /datum/sex_flavor_editor/ui_data(mob/user)
 	var/list/data = list()
 
@@ -178,6 +247,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	// Build the flat action list — name, path, category for grouping in TSX.
 	// Each entry includes `has_custom` (whether the player has written custom text
 	// for this action) and `can_use` (whether the character's anatomy supports it).
+	data["dirty"] = dirty
 	var/list/action_list = list()
 	var/list/all_flavors = islist(prefs.custom_sex_flavors) ? prefs.custom_sex_flavors : list()
 	for(var/path in GLOB.sex_actions)
@@ -204,8 +274,8 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					has_custom = TRUE
 					break
 
-		// --- can_use: anatomy check via helper proc ---
-		var/can_use = check_anatomy(A)
+		// --- can_use: anatomy check from cache ---
+		var/can_use = anatomy_cache ? anatomy_cache[path_text] : check_anatomy(A)
 
 		var/list/entry = list(
 			"path"       = path_text,
@@ -251,9 +321,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 
 	data["current_strings"] = current_strings
 	data["current_weights"] = current_weights
-	data["max_strings"]     = SEX_FLAVOR_MAX_STRINGS
-	data["max_length"]      = SEX_FLAVOR_MAX_LENGTH
-	data["phases"]          = list("on_start", "on_perform", "on_finish")
 
 	// Build suppress_defaults map — one boolean per phase for the selected action.
 	var/list/suppress_defaults = list(
@@ -274,10 +341,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	// ── Preset selector + perspective data ──────────────────────────────────
 	data["selected_preset"] = selected_preset
 	data["selected_perspective"] = selected_perspective
-	var/list/preset_list = list()
-	for(var/key in GLOB.sex_action_preset_keys)
-		preset_list += list(list("key" = key, "label" = GLOB.sex_action_preset_labels[key]))
-	data["presets"] = preset_list
 
 	// ── Default text from JSON bank for the selected action + preset + perspective ─
 	// Use empty strings instead of null so json_encode always includes the keys.
@@ -298,40 +361,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			data["default_on_finish"] = finish_text
 
 	// ── Custom Actions tab data ──────────────────────────────────────────────
-	// Templates — preset archetypes for creating new custom actions.
-	data["custom_templates"] = list(
-		list("key" = "penetration", "name" = "Penetration",
-			"category" = SEX_CATEGORY_PENETRATE,
-			"user_sex_part" = SEX_PART_COCK, "target_sex_part" = SEX_PART_CUNT,
-			"user_arousal" = 2, "target_arousal" = 3, "user_pain" = 0, "target_pain" = 4,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
-		list("key" = "anal", "name" = "Anal",
-			"category" = SEX_CATEGORY_PENETRATE,
-			"user_sex_part" = SEX_PART_COCK, "target_sex_part" = SEX_PART_ANUS,
-			"user_arousal" = 2, "target_arousal" = 2, "user_pain" = 0, "target_pain" = 6,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
-		list("key" = "oral", "name" = "Oral",
-			"category" = SEX_CATEGORY_MISC,
-			"user_sex_part" = SEX_PART_JAWS, "target_sex_part" = SEX_PART_COCK,
-			"user_arousal" = 1, "target_arousal" = 3, "user_pain" = 0, "target_pain" = 0,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
-		list("key" = "manual", "name" = "Manual / Hands",
-			"category" = SEX_CATEGORY_HANDS,
-			"user_sex_part" = SEX_PART_NULL, "target_sex_part" = SEX_PART_NULL,
-			"user_arousal" = 1, "target_arousal" = 2, "user_pain" = 0, "target_pain" = 0,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
-		list("key" = "ride", "name" = "Ride",
-			"category" = SEX_CATEGORY_PENETRATE,
-			"user_sex_part" = SEX_PART_CUNT, "target_sex_part" = SEX_PART_COCK,
-			"user_arousal" = 3, "target_arousal" = 2, "user_pain" = 2, "target_pain" = 0,
-			"stamina_cost" = 2, "requires_other" = TRUE, "continuous" = TRUE),
-		list("key" = "self", "name" = "Self / Solo",
-			"category" = SEX_CATEGORY_MISC,
-			"user_sex_part" = SEX_PART_NULL, "target_sex_part" = SEX_PART_NULL,
-			"user_arousal" = 2, "target_arousal" = 0, "user_pain" = 0, "target_pain" = 0,
-			"stamina_cost" = 1, "requires_other" = FALSE, "continuous" = TRUE),
-	)
-
 	// Current custom actions list.
 	var/list/custom_actions_out = list()
 	if(islist(prefs.custom_sex_actions))
@@ -367,7 +396,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				"req_target_jelly"    = ca["req_target_jelly"],
 			))
 	data["custom_actions"] = custom_actions_out
-	data["max_custom_actions"] = MAX_CUSTOM_SEX_ACTIONS
 	data["selected_custom_slot"] = selected_custom_slot
 
 	return data
@@ -449,7 +477,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				if(has_any)
 					new_flavors[path_text] = action_entry
 			prefs.custom_sex_flavors = new_flavors
-			prefs.save_character()
+			dirty = TRUE
 			to_chat(usr, span_notice("Applied '[GLOB.sex_action_preset_labels[preset_key]]' preset to all actions."))
 			return TRUE
 
@@ -479,7 +507,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			if(islist(action_data[weight_key]))
 				var/list/weight_list = action_data[weight_key]
 				weight_list += 100
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("remove_string")
@@ -505,7 +533,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 				var/list/weight_list = action_data[weight_key]
 				if(idx <= weight_list.len)
 					weight_list.Cut(idx, idx + 1)
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("update_string")
@@ -529,7 +557,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			if(!islist(phase_list) || idx > phase_list.len)
 				return FALSE
 			phase_list[idx] = new_str
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("toggle_suppress")
@@ -555,7 +583,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			// If the suppress block and strings are all empty, clean up the action entry.
 			if(!suppress_data.len)
 				action_data.Remove("suppress")
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("set_weight")
@@ -583,7 +611,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			while(weight_list.len < phase_list.len)
 				weight_list += 100
 			weight_list[idx] = weight
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("clear_action")
@@ -593,7 +621,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			prefs.custom_sex_flavors.Remove(selected_action_path)
 			if(!prefs.custom_sex_flavors.len)
 				prefs.custom_sex_flavors = null
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("toggle_show_all")
@@ -657,7 +685,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			)
 			prefs.custom_sex_actions += list(new_action)
 			selected_custom_slot = free_slot
-			prefs.save_character()
+			dirty = TRUE
 			log_game("CUSTOM_SEX_ACTION: [key_name(usr)] created custom action '[action_name]' (slot [free_slot], template '[new_action["template"]]', category [new_action["category"]])")
 			return TRUE
 
@@ -725,7 +753,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					entry["req_user_jelly"] = !!params["req_user_jelly"]
 				if("req_target_jelly" in params)
 					entry["req_target_jelly"] = !!params["req_target_jelly"]
-				prefs.save_character()
+				dirty = TRUE
 				return TRUE
 			return FALSE
 
@@ -745,7 +773,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					prefs.custom_sex_actions = null
 				if(selected_custom_slot == slot)
 					selected_custom_slot = 0
-				prefs.save_character()
+				dirty = TRUE
 				log_game("CUSTOM_SEX_ACTION: [key_name(usr)] deleted custom action '[deleted_name]' (slot [slot])")
 				return TRUE
 			return FALSE
@@ -828,7 +856,14 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			prefs.validate_custom_sex_flavors()
 			prefs.validate_custom_sex_actions()
 			prefs.save_character()
+			dirty = FALSE
 			to_chat(usr, span_notice("Import successful! Your custom sex flavors and actions have been updated."))
+			return TRUE
+
+		if("save")
+			if(dirty)
+				prefs.save_character()
+				dirty = FALSE
 			return TRUE
 
 	return FALSE
@@ -852,6 +887,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 		qdel(src)
 		return
 	prefs = P
+	build_anatomy_cache()
 	// Skip parent New() — it expects a human mob.
 
 /datum/sex_flavor_editor/lobby/Destroy()

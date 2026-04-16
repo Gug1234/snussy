@@ -157,11 +157,11 @@
 	sharpness = IS_SHARP
 	is_silver = TRUE
 	associated_skill = /datum/skill/combat/swords
-	swingsound = BLADEWOOSH_SMALL
+	swingsound = list('modular/sounds/trickweapons/reiterpallasch/reiter_stab1.ogg', 'modular/sounds/trickweapons/reiterpallasch/reiter_stab2.ogg')
 	parrysound = list('sound/combat/parry/bladed/bladedthin (1).ogg', 'sound/combat/parry/bladed/bladedthin (2).ogg', 'sound/combat/parry/bladed/bladedthin (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/reiterpallasch/transform1.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/reiterpallasch/transform2.ogg'
+	transform_sound = 'modular/sounds/trickweapons/reiterpallasch/reiter_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/reiterpallasch/reiter_untransform.ogg'
 	throwforce = 8
 	thrown_bclass = BCLASS_STAB
 	anvilrepair = /datum/skill/craft/weaponsmithing
@@ -180,7 +180,7 @@
 	transformed_force_wielded = 24
 	transformed_intents = list(/datum/intent/reiter/t_quickslash, /datum/intent/reiter/lungethrust, /datum/intent/reiter/pistolshot, /datum/intent/reiter/extendingthrust)
 	transformed_gripped_intents = list(/datum/intent/reiter/t_quickslash, /datum/intent/reiter/lungethrust, /datum/intent/reiter/pistolshot, /datum/intent/reiter/extendingthrust)
-	transformed_swingsound = BLADEWOOSH_SMALL
+	transformed_swingsound = list('modular/sounds/trickweapons/reiterpallasch/reiter_stab1.ogg', 'modular/sounds/trickweapons/reiterpallasch/reiter_stab2.ogg')
 	transformed_wlength = WLENGTH_NORMAL
 	transformed_wbalance = WBALANCE_SWIFT
 	transformed_wdefense = 6

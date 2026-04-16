@@ -54,6 +54,7 @@ type BackendData = {
   selected_bank: string;
   max_strings: number;
   max_length: number;
+  dirty?: BooleanLike;
   banks: Bank[];
   categories: Category[];
   current_strings: string[];
@@ -332,7 +333,7 @@ export function IntimateReactionEditor() {
             </Section>
 
             {/* ── Species/Biology presets (character bank only) ── */}
-            {preset_species && preset_stages && (
+            {selected_bank === 'character' && preset_species && preset_stages && (
               <Section title="Load Preset">
                 <Box fontSize="11px" opacity={0.6} mb={0.5}>
                   Populate categories with pre-written strings for a given
@@ -483,6 +484,14 @@ export function IntimateReactionEditor() {
             )}
 
             <Section title="Data">
+              <Button
+                fluid
+                icon="save"
+                color={data.dirty ? 'caution' : 'green'}
+                onClick={() => act('save')}
+              >
+                {data.dirty ? 'Save (Unsaved Changes)' : 'Saved'}
+              </Button>
               <Button
                 fluid
                 icon="file-export"

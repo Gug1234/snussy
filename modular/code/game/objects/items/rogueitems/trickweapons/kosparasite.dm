@@ -8,6 +8,7 @@
 	animname = "strike"
 	blade_class = BCLASS_BLUNT
 	hitsound = list('modular/sounds/trickweapons/kosparasite/flesh_hit1.ogg', 'modular/sounds/trickweapons/kosparasite/flesh_hit2.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit1.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit2.ogg')
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_attack1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack2.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack3.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack4.ogg')
 	chargetime = 0
 	penfactor = BLUNT_DEFAULT_PENFACTOR
 	damfactor = 1
@@ -25,6 +26,7 @@
 	animname = "stab"
 	blade_class = BCLASS_STAB
 	hitsound = list('modular/sounds/trickweapons/kosparasite/flesh_impact1.ogg', 'modular/sounds/trickweapons/kosparasite/flesh_impact2.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit3.ogg')
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_attack1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack2.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack3.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack4.ogg')
 	chargetime = 0
 	penfactor = 20
 	damfactor = 0.9
@@ -39,6 +41,7 @@
 	animname = "strike"
 	blade_class = BCLASS_SMASH
 	hitsound = list('modular/sounds/trickweapons/kosparasite/lobe_hit1.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit2.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit3.ogg', 'modular/sounds/trickweapons/kosparasite/blood_splat1.ogg')
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_headbutt1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_headbutt2.ogg')
 	chargetime = 4
 	chargedrain = 1
 	penfactor = BLUNT_DEFAULT_PENFACTOR
@@ -59,6 +62,7 @@
 	animname = "cut"
 	blade_class = BCLASS_LASHING
 	hitsound = list('modular/sounds/trickweapons/kosparasite/tendril_land.ogg', 'modular/sounds/trickweapons/kosparasite/flesh_slap1.ogg', 'modular/sounds/trickweapons/kosparasite/flesh_slap2.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit1.ogg')
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_double1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_double2.ogg')
 	chargetime = 0
 	penfactor = 10
 	damfactor = 1.1
@@ -74,6 +78,7 @@
 	attack_verb = list("thrusts", "skewers")
 	animname = "stab"
 	blade_class = BCLASS_STAB
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_double1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_double2.ogg')
 	hitsound = list('modular/sounds/trickweapons/kosparasite/flesh_impact1.ogg', 'modular/sounds/trickweapons/kosparasite/flesh_impact2.ogg', 'modular/sounds/trickweapons/kosparasite/blood_splat1.ogg', 'modular/sounds/trickweapons/kosparasite/blood_splat2.ogg')
 	chargetime = 3
 	chargedrain = 1
@@ -95,6 +100,7 @@
 	animname = "strike"
 	blade_class = BCLASS_SMASH
 	hitsound = list('modular/sounds/trickweapons/kosparasite/tendril_land.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit1.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit2.ogg')
+	swingsound = 'modular/sounds/trickweapons/kosparasite/kos_sweep.ogg'
 	chargetime = 8
 	chargedrain = 3
 	penfactor = 50
@@ -117,6 +123,7 @@
 	animname = "chop"
 	blade_class = BCLASS_SMASH
 	hitsound = list('modular/sounds/trickweapons/kosparasite/tendril_land.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit1.ogg', 'modular/sounds/trickweapons/kosparasite/lobe_hit2.ogg', 'modular/sounds/trickweapons/kosparasite/blood_splat2.ogg')
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_headbutt1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_headbutt2.ogg')
 	chargetime = 2
 	chargedrain = 1
 	penfactor = BLUNT_DEFAULT_PENFACTOR
@@ -195,8 +202,10 @@
 /datum/action/innate/kos_deploy
 	name = "Deploy Parasite"
 	desc = "Deploy or retract the Parasite from your flesh."
-	icon_icon = 'modular/icons/obj/trickweapons/trickweapons.dmi'
-	button_icon_state = "abyssorparasite"
+	button_icon = 'icons/mob/actions/roguespells.dmi'
+	background_icon_state = "spell"
+	icon_icon = 'icons/mob/actions/roguespells.dmi'
+	button_icon_state = "dreamfiend"
 	/// Reference to the bonded parasite weapon.
 	var/obj/item/rogueweapon/trickweapon/kosparasite/weapon
 
@@ -223,7 +232,7 @@
 	ADD_TRAIT(weapon, TRAIT_NODROP, "kos_parasite")
 	active = TRUE
 	to_chat(L, span_notice("The parasite stirs to life, unfurling from my flesh..."))
-	playsound(L, 'modular/sounds/trickweapons/kosparasite/parasite_birth.ogg', 50, TRUE)
+	playsound(L, 'modular/sounds/trickweapons/kosparasite/kos_vomit1.ogg', 50, TRUE)
 
 /datum/action/innate/kos_deploy/Deactivate()
 	if(!weapon || !owner || !isliving(owner))
@@ -236,7 +245,7 @@
 	weapon.moveToNullspace()
 	active = FALSE
 	to_chat(L, span_notice("The parasite retracts, burrowing back beneath my skin..."))
-	playsound(L, 'modular/sounds/trickweapons/kosparasite/tendril_land.ogg', 50, TRUE)
+	playsound(L, 'modular/sounds/trickweapons/kosparasite/kos_vomit2.ogg', 50, TRUE)
 
 // ===================== KOS PARASITE WEAPON =====================
 // An eldritch implant weapon. Before infestation it behaves like a normal
@@ -244,13 +253,12 @@
 // permanent bonding: head and gloves are replaced with parasitic growths,
 // and the weapon becomes deployable via an action button.
 //
-// Icon state conventions for GIF animation control:
-//   kosparasite    — static first frame (unwielded base)
-//   kosparasite1   — animated GIF (wielded base)
-//   kosparasite_t  — static first frame (unwielded transformed)
-//   kosparasite_t1 — animated GIF (wielded transformed)
-// The trick weapon base automatically appends "1" on wield and strips
-// it on unwield, so no extra animation code is needed.
+// Icon handling:
+//   Pre-infestation: uses trickweapons.dmi (64x64) with "abyssorparasite" states.
+//   Post-infestation: swaps icon to trickweapons32.dmi (32x32) with "kosarms"
+//   states and updates the cached base/transformed states. The base trick weapon
+//   class then handles transform swaps naturally with no overrides needed.
+//   On-mob rendering always uses kosparasiteonmob.dmi via the generateonmob override.
 
 /obj/item/rogueweapon/trickweapon/kosparasite
 	name = "abyssal parasite"
@@ -279,11 +287,11 @@
 	max_integrity = 200
 	sharpness = IS_BLUNT
 	associated_skill = /datum/skill/combat/maces
-	swingsound = BLUNTWOOSH_SMALL
+	swingsound = list('modular/sounds/trickweapons/kosparasite/kos_attack1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack2.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack3.ogg', 'modular/sounds/trickweapons/kosparasite/kos_attack4.ogg')
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/kosparasite/parasite_birth.ogg'
+	transform_sound = 'modular/sounds/trickweapons/kosparasite/kos_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/kosparasite/kos_untransform.ogg'
 	dropshrink = 0.3
 	throwforce = 0
 	thrown_bclass = null
@@ -299,7 +307,7 @@
 	transformed_force_wielded = 24
 	transformed_intents = list(/datum/intent/kosparasite/dualswipe, /datum/intent/kosparasite/leapslam)
 	transformed_gripped_intents = list(/datum/intent/kosparasite/dualswipe, /datum/intent/kosparasite/dualthrust, /datum/intent/kosparasite/arcaneburst, /datum/intent/kosparasite/leapslam)
-	transformed_swingsound = list('modular/sounds/trickweapons/kosparasite/koshit1.ogg', 'modular/sounds/trickweapons/kosparasite/koshit2.ogg', 'modular/sounds/trickweapons/kosparasite/koshit3.ogg')
+	transformed_swingsound = list('modular/sounds/trickweapons/kosparasite/kos_double1.ogg', 'modular/sounds/trickweapons/kosparasite/kos_double2.ogg', 'modular/sounds/trickweapons/kosparasite/kos_sweep.ogg')
 	transformed_wlength = WLENGTH_LONG // tendrils are long
 	transformed_wbalance = WBALANCE_NORMAL
 	transformed_wdefense = 2
@@ -369,10 +377,18 @@
 	// Bond the weapon
 	infested = TRUE
 	host = user
-	// Swap inventory sprite to the tendril arms instead of the dormant parasite
-	icon = 'modular/icons/obj/trickweapons/kosclothing.dmi'
+	// Swap inventory sprite to the tendril arms instead of the dormant parasite.
+	// Uses trickweapons32.dmi which has kosarms/kosarms_t states with "1" wielded
+	// variants, matching the standard trick weapon icon convention.
+	icon = 'modular/icons/obj/trickweapons/trickweapons32.dmi'
 	icon_state = "kosarms"
 	item_state = "kosarms"
+	// Update the cached base/transformed states so the base class
+	// swaps correctly on transform without needing overrides.
+	base_icon_state = "kosarms"
+	base_item_state = "kosarms"
+	transformed_icon_state = "kosarms_t"
+	transformed_item_state = "kosarms_t"
 	slot_flags = null
 	ADD_TRAIT(src, TRAIT_NODROP, "kos_parasite")
 	// Parasitic biology overrides the host's — immune to zombie infection and lycanthropy
@@ -439,22 +455,6 @@
 		return
 	to_chat(eater, span_notice("The parasite shudders with delight as it absorbs the raw fish, knitting its wounds closed."))
 	playsound(eater, 'modular/sounds/trickweapons/kosparasite/parasite_birth.ogg', 40, TRUE)
-
-/// Override apply_base_state/apply_transformed_state to force the infested
-/// inventory sprite (kosarms from kosclothing.dmi) instead of the dormant parasite.
-/obj/item/rogueweapon/trickweapon/kosparasite/apply_base_state()
-	. = ..()
-	if(infested)
-		icon = 'modular/icons/obj/trickweapons/kosclothing.dmi'
-		icon_state = "kosarms"
-		item_state = "kosarms"
-
-/obj/item/rogueweapon/trickweapon/kosparasite/apply_transformed_state()
-	. = ..()
-	if(infested)
-		icon = 'modular/icons/obj/trickweapons/kosclothing.dmi'
-		icon_state = "kosarms"
-		item_state = "kosarms"
 
 /// Override generateonmob to pull from kosparasiteonmob.dmi with the correct
 /// on-mob icon states. The inventory DMI uses "abyssorparasite" naming while

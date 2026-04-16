@@ -23,7 +23,7 @@
 /datum/status_effect/debuff/pressured
 	id = "pressured"
 	alert_type = /atom/movable/screen/alert/status_effect/debuff/pressured
-	duration = 5 SECONDS
+	duration = 10 SECONDS
 	mob_effect_icon = 'icons/mob/mob_effects.dmi'
 	mob_effect_icon_state = "eff_exposed"
 	mob_effect_layer = MOB_EFFECT_LAYER_EXPOSED
@@ -58,7 +58,7 @@
 /datum/special_intent/saw_cleaver_rend/apply_hit(turf/T)
 	for(var/mob/living/L in get_hearers_in_view(0, T))
 		if(L != howner)
-			L.apply_status_effect(/datum/status_effect/debuff/pressured, 4 SECONDS)
+			L.apply_status_effect(/datum/status_effect/debuff/pressured, 10 SECONDS)
 			if(L.mobility_flags & MOBILITY_STAND)
 				apply_generic_weapon_damage(L, dam, "slash", BODY_ZONE_CHEST, bclass = BCLASS_CUT)
 	..()
@@ -122,7 +122,7 @@
 	tile_coordinates = list(list(-1,0), list(0,0), list(1,0))
 	post_icon_state = "strike"
 	pre_icon_state = "trap"
-	sfx_pre_delay = 'modular/sounds/trickweapons/threadedcane/whip_swing1.ogg'
+	sfx_pre_delay = list('modular/sounds/trickweapons/threadedcane/cane_whipsweep1.ogg', 'modular/sounds/trickweapons/threadedcane/cane_whipsweep2.ogg')
 	respect_adjacency = FALSE
 	use_clickloc = TRUE
 	delay = 0.4 SECONDS
@@ -141,7 +141,7 @@
 	for(var/mob/living/L in get_hearers_in_view(0, T))
 		if(L != howner)
 			L.Slowdown(4)
-			L.apply_status_effect(/datum/status_effect/debuff/pressured, 5 SECONDS)
+			L.apply_status_effect(/datum/status_effect/debuff/pressured, 10 SECONDS)
 			if(L.mobility_flags & MOBILITY_STAND)
 				apply_generic_weapon_damage(L, dam, "slash", BODY_ZONE_CHEST, bclass = BCLASS_LASHING)
 			whiffed = FALSE
@@ -163,7 +163,7 @@
 	tile_coordinates = list(list(0,0), list(1,0), list(1,-1), list(1,-2), list(0,-2), list(-1,-2), list(-1,-1), list(-1,0))
 	post_icon_state = "sweep_fx"
 	pre_icon_state = "trap"
-	sfx_pre_delay = 'modular/sounds/trickweapons/hunteraxe/transform.ogg'
+	sfx_pre_delay = 'modular/sounds/trickweapons/hunteraxe/axe_spin.ogg'
 	use_doafter = TRUE
 	respect_adjacency = FALSE
 	delay = 0.8 SECONDS
@@ -834,12 +834,33 @@
 	tile_coordinates = list(list(0,0), list(0,1), list(0,2))
 	post_icon_state = "stab"
 	pre_icon_state = "trap"
-	sfx_pre_delay = 'modular/sounds/trickweapons/riflespear/musket_shot1.ogg'
+	sfx_pre_delay = list('modular/sounds/trickweapons/riflespear/riflespear_shot1.ogg', 'modular/sounds/trickweapons/riflespear/riflespear_shot2.ogg')
 	respect_adjacency = FALSE
 	delay = 0.5 SECONDS
 	cooldown = 20 SECONDS
 	stamcost = 20
 	var/dam
+
+/datum/special_intent/rifle_spear_blast/on_create()
+	. = ..()
+	var/obj/item/rogueweapon/trickweapon/W = iparent
+	if(!istype(W) || !W.shot_ammo_type)
+		return
+	var/ammo_result = W.consume_ammo(howner)
+	if(ammo_result != AMMO_RESULT_CONSUMED)
+		cancelled = TRUE
+		if(ammo_result == AMMO_RESULT_WRONG_TYPE)
+			var/obj/item/ammo_type_ref = W.shot_ammo_type
+			to_chat(howner, span_warning("[W] clicks — wrong ammunition! It requires [initial(ammo_type_ref.name)]."))
+		else
+			to_chat(howner, span_warning("[W] clicks — no ammunition!"))
+		playsound(howner, 'modular/sounds/trickweapons/riflespear/riflespear_dryfire.ogg', 50, TRUE)
+		howner.apply_status_effect(/datum/status_effect/debuff/exposed, 3 SECONDS)
+
+/datum/special_intent/rifle_spear_blast/pre_delay(list/turfs, newdelay)
+	if(cancelled)
+		return
+	. = ..()
 
 /datum/special_intent/rifle_spear_blast/process_attack()
 	var/obj/item/rogueweapon/W = iparent
@@ -869,7 +890,7 @@
 	tile_coordinates = list(list(0,0))
 	post_icon_state = "stab"
 	pre_icon_state = "trap"
-	sfx_post_delay = 'modular/sounds/trickweapons/reiterpallasch/transform1.ogg'
+	sfx_post_delay = list('modular/sounds/trickweapons/reiterpallasch/reiter_stab1.ogg', 'modular/sounds/trickweapons/reiterpallasch/reiter_stab2.ogg')
 	respect_adjacency = TRUE
 	delay = 0.3 SECONDS
 	cooldown = 14 SECONDS
@@ -942,7 +963,7 @@
 	tile_coordinates = list(list(0,0), list(1,0), list(1,-1), list(1,-2), list(0,-2), list(-1,-2), list(-1,-1), list(-1,0))
 	post_icon_state = "strike"
 	pre_icon_state = "trap"
-	sfx_pre_delay = 'modular/sounds/trickweapons/kosparasite/parasite_attack.ogg'
+	sfx_pre_delay = 'modular/sounds/trickweapons/kosparasite/kos_special.ogg'
 	respect_adjacency = FALSE
 	delay = 0.6 SECONDS
 	cooldown = 22 SECONDS
@@ -961,51 +982,56 @@
 			L.OffBalance(3 SECONDS)
 			if(L.mobility_flags & MOBILITY_STAND)
 				apply_generic_weapon_damage(L, dam, "blunt", BODY_ZONE_CHEST, bclass = BCLASS_BLUNT, no_pen = TRUE)
-	playsound(T, 'modular/sounds/trickweapons/kosparasite/kosexplode.ogg', 100, TRUE)
+	playsound(T, 'modular/sounds/trickweapons/kosparasite/kos_vomit1.ogg', 100, TRUE)
 	..()
 
 // =====================================================================
-// HOLY COMET SWORD — "Moonlight Wave"
-// A custom weapon in this codebase, always two-handed. Its intents
-// already fire beam, cross-slash, and burst AoE on charged afterattack.
-// The special is a forward crescent wave — distinct from all three.
+// HOLY COMET SWORD — "Psycross Burst"
+// Fires 4 psycross slash projectiles outward from the user in all
+// cardinal directions. Replaces the old tile-grid Moonlight Wave.
 // =====================================================================
 /datum/special_intent/holy_comet_nova
-	name = "Moonlight Wave"
-	desc = "Swings the blade overhead, releasing a crescent wave of moonlight energy that crashes forward."
-	tile_coordinates = list(
-		list(-1,0), list(0,0), list(1,0),
-		list(-1,1, 0.2 SECONDS), list(0,1, 0.2 SECONDS), list(1,1, 0.2 SECONDS)
-		)
-	post_icon_state = "sweep_fx"
+	name = "Psycross Burst"
+	desc = "Channels the psycross's energy and releases four crescent slashes in every direction."
+	tile_coordinates = list(list(0,0))
+	post_icon_state = "kick_fx"
 	pre_icon_state = "fx_trap_long"
 	sfx_pre_delay = 'modular/sounds/trickweapons/holycomet/activate.ogg'
 	respect_adjacency = FALSE
 	delay = 0.8 SECONDS
 	cooldown = 28 SECONDS
 	stamcost = 25
-	var/dam
 	var/self_immob = 1 SECONDS
+	var/proj_damage = 20
+	var/proj_range = 4
 
 /datum/special_intent/holy_comet_nova/on_create()
 	. = ..()
 	howner.Immobilize(self_immob)
 
 /datum/special_intent/holy_comet_nova/process_attack()
-	var/obj/item/rogueweapon/W = iparent
-	dam = W.force_dynamic * max((1 + (((howner.STASTR - 10) + (howner.STAPER - 10)) / 10)), 0.5)
 	. = ..()
 
 /datum/special_intent/holy_comet_nova/apply_hit(turf/T)
-	for(var/mob/living/L in get_hearers_in_view(0, T))
-		if(L != howner)
-			L.apply_status_effect(/datum/status_effect/debuff/pressured, 4 SECONDS)
-			L.Slowdown(3)
-			var/throwtarget = get_edge_target_turf(howner, get_dir(howner, get_step_away(L, howner)))
-			L.safe_throw_at(throwtarget, 2, 1, howner, force = MOVE_FORCE_EXTREMELY_STRONG)
-			if(L.mobility_flags & MOBILITY_STAND)
-				apply_generic_weapon_damage(L, dam, "blunt", BODY_ZONE_CHEST, bclass = BCLASS_BLUNT, no_pen = TRUE)
-	playsound(T, 'modular/sounds/trickweapons/holycomet/moonlight_hit.ogg', 100, TRUE)
+	var/turf/origin = get_turf(howner)
+	if(!origin)
+		return ..()
+	playsound(origin, 'sound/magic/whiteflame.ogg', 80, TRUE)
+	howner.visible_message(span_warning("[howner] releases a cross of radiant energy!"), span_notice("Holy light erupts from the psycross!"))
+	for(var/fire_dir in list(NORTH, SOUTH, EAST, WEST))
+		var/turf/far_target = origin
+		for(var/i in 1 to proj_range)
+			var/turf/next = get_step(far_target, fire_dir)
+			if(!next)
+				break
+			far_target = next
+		var/obj/projectile/energy/psycross_slash/P = new(origin)
+		P.firer = howner
+		P.damage = proj_damage
+		P.range = proj_range
+		P.set_slash_direction(fire_dir)
+		P.preparePixelProjectile(far_target, origin)
+		P.fire()
 	..()
 
 // =====================================================================
@@ -1799,7 +1825,7 @@
 	tile_coordinates = list(list(0,0))
 	post_icon_state = "stab"
 	pre_icon_state = "trap"
-	sfx_post_delay = 'modular/sounds/trickweapons/reiterpallasch/shot.ogg'
+	sfx_post_delay = list('modular/sounds/trickweapons/reiterpallasch/reiter_shot1.ogg', 'modular/sounds/trickweapons/reiterpallasch/reiter_shot2.ogg')
 	respect_adjacency = FALSE
 	use_clickloc = TRUE
 	delay = 0.3 SECONDS
@@ -1807,6 +1833,22 @@
 	range = 3
 	stamcost = 14
 	var/dam
+
+/datum/special_intent/reiterpallasch_shot/on_create()
+	. = ..()
+	var/obj/item/rogueweapon/trickweapon/W = iparent
+	if(!istype(W) || !W.shot_ammo_type)
+		return
+	var/ammo_result = W.consume_ammo(howner)
+	if(ammo_result != AMMO_RESULT_CONSUMED)
+		cancelled = TRUE
+		if(ammo_result == AMMO_RESULT_WRONG_TYPE)
+			var/obj/item/ammo_type_ref = W.shot_ammo_type
+			to_chat(howner, span_warning("[W] clicks — wrong ammunition! It requires [initial(ammo_type_ref.name)]."))
+		else
+			to_chat(howner, span_warning("[W] clicks — no ammunition!"))
+		playsound(howner, 'modular/sounds/trickweapons/riflespear/riflespear_dryfire.ogg', 50, TRUE)
+		howner.apply_status_effect(/datum/status_effect/debuff/exposed, 3 SECONDS)
 
 /datum/special_intent/reiterpallasch_shot/process_attack()
 	var/obj/item/rogueweapon/W = iparent

@@ -65,6 +65,8 @@
 	var/preset_result_success = FALSE
 	/// The last resolved preview text (cleared when a new preview is requested).
 	var/resolved_preview_text
+	/// TRUE when in-memory data has changed since the last save.
+	var/dirty = FALSE
 
 /datum/intimate_reaction_editor/New(mob/living/carbon/human/H)
 	if(!istype(H))
@@ -74,6 +76,10 @@
 	..()
 
 /datum/intimate_reaction_editor/Destroy()
+	if(dirty)
+		var/datum/preferences/prefs = get_prefs()
+		prefs?.save_character()
+		dirty = FALSE
 	owner = null
 	return ..()
 
@@ -417,6 +423,52 @@
 		ui.set_state(GLOB.always_state)
 		ui.open()
 
+/datum/intimate_reaction_editor/ui_static_data(mob/user)
+	var/list/data = list()
+
+	data["max_strings"] = INTIMATE_REACTION_MAX_STRINGS
+	data["max_length"]  = INTIMATE_REACTION_MAX_LENGTH
+
+	// Token reference for the frontend help panel.
+	data["tokens"] = list(
+		"\[USER]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]", "\[THEIR_CAP]",
+		"\[TTHEY]", "\[TTHEM]", "\[TTHEIR]",
+		"\[PENIS_TYPE]", "\[SHEATH]", "\[SIZEADJ]", "\[COCKSIZE]",
+		"\[VAGADJ]", "\[VAGTYPE]", "\[CUPADJ]", "\[CUPSIZE]", "\[BREASTTYPE]",
+		"\[TAUR]", "\[GENITAL_DESC]",
+		"\[FORCE]", "\[JELLY]", "\[PLUG]",
+	)
+
+	// Preset dropdown options (hardcoded, never change).
+	data["preset_species"] = list(
+		list("id" = "humanoid",  "label" = "Humanoid"),
+		list("id" = "tauric",    "label" = "Tauric"),
+		list("id" = "lamia",     "label" = "Lamia"),
+		list("id" = "anthro",    "label" = "Anthro"),
+		list("id" = "moth",      "label" = "Moth"),
+		list("id" = "lizard",    "label" = "Lizard"),
+		list("id" = "insectoid", "label" = "Insectoid"),
+		list("id" = "avian",     "label" = "Avian"),
+		list("id" = "aquatic",   "label" = "Aquatic"),
+		list("id" = "demonic",   "label" = "Demonic"),
+	)
+	data["preset_stages"] = list(
+		list("id" = INTIMATE_TIER_NEUTRAL,     "label" = "Neutral",     "has_genital" = FALSE, "desc" = "Default state — no arousal. Fires during normal movement and non-sexual touch."),
+		list("id" = INTIMATE_TIER_LUSTY,       "label" = "Lusty",       "has_genital" = TRUE,  "desc" = "Low-to-moderate arousal. Fires when lust is present but hasn't peaked."),
+		list("id" = INTIMATE_TIER_BUILDING,    "label" = "Building",    "has_genital" = TRUE,  "desc" = "High arousal, actively building toward climax."),
+		list("id" = INTIMATE_TIER_OVERWHELMED, "label" = "Overwhelmed", "has_genital" = TRUE,  "desc" = "At or near climax. Peak arousal and orgasm."),
+		list("id" = INTIMATE_TIER_AFTERGLOW,   "label" = "Afterglow",   "has_genital" = TRUE,  "desc" = "Post-climax cooldown. Lust is dropping after orgasm."),
+		list("id" = INTIMATE_TIER_WITHDRAWAL,  "label" = "Withdrawal",  "has_genital" = TRUE,  "desc" = "Frustrated arousal that was denied or interrupted — aroused with no outlet."),
+		list("id" = INTIMATE_TIER_ROUGHUSE,    "label" = "Rough-Use",   "has_genital" = TRUE,  "desc" = "Being used roughly or forcefully during aggressive sex."),
+		list("id" = INTIMATE_TIER_BROKEN,      "label" = "Broken",      "has_genital" = FALSE, "desc" = "Past the point of coherent reaction — extreme or repeated overstimulation."),
+	)
+	data["preset_genitals"] = list(
+		list("id" = "penis",  "label" = "Penis"),
+		list("id" = "vagina", "label" = "Vagina"),
+	)
+
+	return data
+
 /datum/intimate_reaction_editor/ui_data(mob/user)
 	var/list/data = list()
 
@@ -431,8 +483,7 @@
 
 	data["selected_category"] = selected_category
 	data["selected_bank"]     = selected_bank
-	data["max_strings"]       = INTIMATE_REACTION_MAX_STRINGS
-	data["max_length"]        = INTIMATE_REACTION_MAX_LENGTH
+	data["dirty"]             = dirty
 
 	// ── Build bank list for the dropdown ──────────────────────────────
 	var/list/bank_defs = get_bank_definitions(prefs)
@@ -504,50 +555,11 @@
 			break
 	data["default_strings"] = default_strings
 
-	// ── Preset dropdown data (only for character bank) ───────────────
-	if(selected_bank == "character")
-		data["preset_species"] = list(
-			list("id" = "humanoid",  "label" = "Humanoid"),
-			list("id" = "tauric",    "label" = "Tauric"),
-			list("id" = "lamia",     "label" = "Lamia"),
-			list("id" = "anthro",    "label" = "Anthro"),
-			list("id" = "moth",      "label" = "Moth"),
-			list("id" = "lizard",    "label" = "Lizard"),
-			list("id" = "insectoid", "label" = "Insectoid"),
-			list("id" = "avian",     "label" = "Avian"),
-			list("id" = "aquatic",   "label" = "Aquatic"),
-			list("id" = "demonic",   "label" = "Demonic"),
-		)
-		data["preset_stages"] = list(
-			list("id" = INTIMATE_TIER_NEUTRAL,     "label" = "Neutral",     "has_genital" = FALSE, "desc" = "Default state — no arousal. Fires during normal movement and non-sexual touch."),
-			list("id" = INTIMATE_TIER_LUSTY,       "label" = "Lusty",       "has_genital" = TRUE,  "desc" = "Low-to-moderate arousal. Fires when lust is present but hasn't peaked."),
-			list("id" = INTIMATE_TIER_BUILDING,    "label" = "Building",    "has_genital" = TRUE,  "desc" = "High arousal, actively building toward climax."),
-			list("id" = INTIMATE_TIER_OVERWHELMED, "label" = "Overwhelmed", "has_genital" = TRUE,  "desc" = "At or near climax. Peak arousal and orgasm."),
-			list("id" = INTIMATE_TIER_AFTERGLOW,   "label" = "Afterglow",   "has_genital" = TRUE,  "desc" = "Post-climax cooldown. Lust is dropping after orgasm."),
-			list("id" = INTIMATE_TIER_WITHDRAWAL,  "label" = "Withdrawal",  "has_genital" = TRUE,  "desc" = "Frustrated arousal that was denied or interrupted — aroused with no outlet."),
-			list("id" = INTIMATE_TIER_ROUGHUSE,    "label" = "Rough-Use",   "has_genital" = TRUE,  "desc" = "Being used roughly or forcefully during aggressive sex."),
-			list("id" = INTIMATE_TIER_BROKEN,      "label" = "Broken",      "has_genital" = FALSE, "desc" = "Past the point of coherent reaction — extreme or repeated overstimulation."),
-		)
-		data["preset_genitals"] = list(
-			list("id" = "penis",  "label" = "Penis"),
-			list("id" = "vagina", "label" = "Vagina"),
-		)
-
 	// ── Preset result feedback ────────────────────────────────────────
 	if(preset_result)
 		data["preset_result"] = preset_result
 		data["preset_result_success"] = preset_result_success
 		preset_result = null
-
-	// Token reference for the frontend help panel.
-	data["tokens"] = list(
-		"\[USER]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]", "\[THEIR_CAP]",
-		"\[TTHEY]", "\[TTHEM]", "\[TTHEIR]",
-		"\[PENIS_TYPE]", "\[SHEATH]", "\[SIZEADJ]", "\[COCKSIZE]",
-		"\[VAGADJ]", "\[VAGTYPE]", "\[CUPADJ]", "\[CUPSIZE]", "\[BREASTTYPE]",
-		"\[TAUR]", "\[GENITAL_DESC]",
-		"\[FORCE]", "\[JELLY]", "\[PLUG]",
-	)
 
 	// ── Resolved preview text ─────────────────────────────────────────
 	if(resolved_preview_text)
@@ -606,7 +618,7 @@
 			if(cat_list.len >= INTIMATE_REACTION_MAX_STRINGS)
 				return FALSE
 			cat_list += new_str
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("remove_string")
@@ -631,7 +643,7 @@
 				prefs.custom_intimate_reactions.Remove(selected_category)
 			if(!length(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = null
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("update_string")
@@ -649,7 +661,7 @@
 			if(!islist(cat_list) || idx > cat_list.len)
 				return FALSE
 			cat_list[idx] = new_str
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		if("clear_category")
@@ -659,7 +671,7 @@
 			prefs.custom_intimate_reactions.Remove("weight_[selected_category]")
 			if(!length(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = null
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		// ── Export / Import ──────────────────────────────────────────────
@@ -711,6 +723,7 @@
 			prefs.custom_intimate_reactions = payload["reactions"]
 			prefs.validate_custom_intimate_reactions()
 			prefs.save_character()
+			dirty = FALSE
 			to_chat(usr, span_notice("Import successful! Your intimate reaction strings have been updated."))
 			return TRUE
 
@@ -742,7 +755,7 @@
 			while(weight_list.len < cat_list.len)
 				weight_list += 100
 			weight_list[idx] = weight
-			prefs.save_character()
+			dirty = TRUE
 			return TRUE
 
 		// ── Preset loading ──────────────────────────────────────────────
@@ -808,7 +821,7 @@
 			if(islist(anal_strings) && length(anal_strings))
 				prefs.custom_intimate_reactions[anal_cat] = anal_strings.Copy()
 				loaded_cats += "Anal Received ([length(anal_strings)])"
-			prefs.save_character()
+			dirty = TRUE
 			// Navigate to the first affected category so the user sees the result.
 			selected_category = move_cat
 			// Set feedback for the TGUI.
@@ -881,12 +894,18 @@
 					prefs.custom_intimate_reactions[anal_cat] = anal_strings.Copy()
 					total_cats++
 
-			prefs.save_character()
+			dirty = TRUE
 			selected_category = "[INTIMATE_TIER_NEUTRAL]_[INTIMATE_CONTEXT_MOVEMENT]"
 			var/summary = "Applied all [capitalize(species)] presets ([total_cats] categories, [genital_label] variant)."
 			preset_result = summary
 			preset_result_success = TRUE
 			to_chat(usr, span_notice(summary))
+			return TRUE
+
+		if("save")
+			if(dirty)
+				prefs.save_character()
+				dirty = FALSE
 			return TRUE
 
 	return FALSE

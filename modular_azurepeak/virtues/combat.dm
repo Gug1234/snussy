@@ -176,10 +176,13 @@
 	added_traits = list(TRAIT_SENTINELOFWITS)
 
 /datum/virtue/combat/combat_aware
-	name = "Combat Reflexes"
-	desc = "Through years of sparring, brawling, or sheer survival instinct, I've honed my ability to recover from baits and defensive stances far faster than most fighters."
-	custom_text = "Reduces the cooldown of Bait and Guard (Defend) right-click actions by 10 seconds."
-	added_traits = list(TRAIT_COMBAT_REFLEXES)
+	name = "Combat Aware"
+	desc = "The opponent's flick of their wrist. The sound of maille snapping. The desperate breath as the opponent's stamina wanes. All of this is made more clear to you through intuition or experience."
+	custom_text = "Shows a lot more combat information via floating text. Has a toggle."
+	added_traits = list(TRAIT_COMBAT_AWARE)
+
+/datum/virtue/combat/combat_aware/apply_to_human(mob/living/carbon/human/recipient)
+	recipient.verbs += /mob/living/carbon/human/proc/togglecombatawareness
 
 /datum/virtue/combat/tough_hide
 	name = "Natural Armor"

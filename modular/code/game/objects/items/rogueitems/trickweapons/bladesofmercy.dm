@@ -159,8 +159,8 @@
 	swingsound = BLADEWOOSH_SMALL
 	parrysound = list('sound/combat/parry/bladed/bladedsmall (1).ogg', 'sound/combat/parry/bladed/bladedsmall (2).ogg', 'sound/combat/parry/bladed/bladedsmall (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordsmall2.ogg'
-	transform_sound = 'modular/sounds/trickweapons/bladesofmercy/transform.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/bladesofmercy/unfold.ogg'
+	transform_sound = 'modular/sounds/trickweapons/bladesofmercy/bom_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/bladesofmercy/bom_untransform.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 50

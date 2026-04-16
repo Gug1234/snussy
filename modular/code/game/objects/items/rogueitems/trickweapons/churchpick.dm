@@ -177,7 +177,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/churchpick/pick_iron.ogg'
+	transform_sound = list('modular/sounds/trickweapons/churchpick/pick_transform1.ogg', 'modular/sounds/trickweapons/churchpick/pick_transform2.ogg')
+	untransform_sound = list('modular/sounds/trickweapons/churchpick/pick_untransform1.ogg', 'modular/sounds/trickweapons/churchpick/pick_untransform2.ogg')
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 50
@@ -195,7 +196,7 @@
 	transformed_swingsound = BLADEWOOSH_LARGE
 	transformed_wlength = WLENGTH_LONG
 	transformed_wbalance = WBALANCE_HEAVY
-	transformed_wdefense = 3
+	transformed_wdefense = 6
 	transformed_wdefense_wbonus = 4
 	transformed_minstr = 10
 	transformed_associated_skill = /datum/skill/combat/axes

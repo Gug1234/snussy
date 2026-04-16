@@ -4309,7 +4309,6 @@
  * is registered per COMSIG_CARBON_INTIMATE_STATE_CHANGED signal.
  */
 /obj/item/intimate_accessory/jelly/eora/strange/on_intimate_state_changed(datum/source, obj/item/intimate_accessory/accessory, reason)
-	SIGNAL_HANDLER
 	if(source != wearer)
 		return
 	if(accessory == src)

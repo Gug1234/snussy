@@ -3030,6 +3030,8 @@
 #include "modular\code\game\objects\items\rogueitems\trickweapons\holycometsword.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\hunteraxe.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\huntersaif.dm"
+#include "modular\code\game\objects\items\rogueitems\trickweapons\huntertorch.dm"
+#include "modular\code\game\objects\items\rogueitems\trickweapons\impact_vfx.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\keybinding_transform.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\kirkhammer.dm"
 #include "modular\code\game\objects\items\rogueitems\trickweapons\kosparasite.dm"

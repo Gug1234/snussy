@@ -81,6 +81,7 @@
 	attack_verb = list("sweeps", "slashes")
 	animname = "cut"
 	blade_class = BCLASS_CUT
+	swingsound = list('modular/sounds/trickweapons/sawspear/spear_swing1.ogg', 'modular/sounds/trickweapons/sawspear/spear_swing2.ogg')
 	hitsound = list('modular/sounds/trickweapons/sawspear/saw_hit1.ogg', 'modular/sounds/trickweapons/sawspear/saw_hit2.ogg', 'modular/sounds/trickweapons/sawspear/saw_hit3.ogg')
 	chargetime = 0
 	penfactor = 15
@@ -115,6 +116,7 @@
 	attack_verb = list("slams", "drives down")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
+	swingsound = list('modular/sounds/trickweapons/sawspear/spear_slam1.ogg', 'modular/sounds/trickweapons/sawspear/spear_slam2.ogg')
 	hitsound = list('modular/sounds/trickweapons/sawspear/spear_hit1.ogg', 'modular/sounds/trickweapons/sawspear/spear_hit2.ogg', 'modular/sounds/trickweapons/sawspear/spear_hit3.ogg')
 	chargetime = 0
 	penfactor = 25
@@ -166,11 +168,11 @@
 	max_integrity = 200
 	sharpness = IS_SHARP
 	associated_skill = /datum/skill/combat/swords
-	swingsound = BLADEWOOSH_MED
+	swingsound = list('modular/sounds/trickweapons/sawspear/spear_swing1.ogg', 'modular/sounds/trickweapons/sawspear/spear_swing2.ogg')
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/sawspear/transform_open.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/sawspear/transform_close.ogg'
+	transform_sound = 'modular/sounds/trickweapons/sawcleaver/cleaver_transform.ogg'
+	untransform_sound = 'modular/sounds/trickweapons/sawcleaver/cleaver_untransform.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_STAB
 	sellprice = 40
@@ -185,7 +187,7 @@
 	transformed_force_wielded = 24
 	transformed_intents = list(/datum/intent/sawspear/spearsweep, /datum/intent/sawspear/spearthrust)
 	transformed_gripped_intents = list(/datum/intent/sawspear/spearsweep, /datum/intent/sawspear/spearthrust, /datum/intent/sawspear/overheadslam, /datum/intent/sawspear/chargedthrust)
-	transformed_swingsound = BLADEWOOSH_LARGE
+	transformed_swingsound = list('modular/sounds/trickweapons/sawspear/spear_stab1.ogg', 'modular/sounds/trickweapons/sawspear/spear_stab2.ogg')
 	transformed_wlength = WLENGTH_LONG
 	transformed_wbalance = WBALANCE_NORMAL
 	transformed_wdefense = 5

@@ -35,8 +35,9 @@
 	var/movement_interrupt = FALSE //we cancel charging when changing mob direction, for concentration spells
 	var/rmb_ranged = FALSE //we execute a proc with the same name when rmbing at range with no offhand intent selected
 	var/tshield = FALSE //probably needed or something
-	var/datum/looping_sound/chargedloop = null
+	var/datum/looping_sound/chargedloop = null // used for whirligig spin sounds, and maybe more in the future
 	var/keep_looping = TRUE
+	var/charged_sound = null // sound played once when the charge bar reaches full. Set to a sound path to enable. Used for the custom charge sounds on trickweapons.
 	var/damfactor = 1 //multiplied by weapon's force for damage
 	var/penfactor = 0 //see armor_penetration
 	var/intent_intdamage_factor = 1 // Whether the intent itself has integrity damage modifier. Used for rend.
@@ -46,6 +47,7 @@
 	var/swingdelay = 0
 	var/no_attack = FALSE //causes a return in /attack() but still allows to be used in attackby(
 	var/reach = 1 //In tiles, how far this weapon can reach; 1 for adjacent, which is default
+	var/list/swingsound //per-intent swing sound override; if null, uses the weapon's swingsound. Used for the custom swing sounds on trickweapons.
 	var/miss_text //THESE ARE FOR UNARMED MISSING ATTACKS
 	var/miss_sound //THESE ARE FOR UNARMED MISSING ATTACKS
 	var/allow_offhand = TRUE	//Do I need my offhand free while using this intent?
@@ -65,6 +67,41 @@
 	//The below is for chipping on intents. Damage applied through armour, as a mechanic.
 	var/blunt_chipping = FALSE//Is this even capable of it?
 	var/blunt_chip_strength = null//How strong?
+
+	// ---- Combo chain system vars ----
+	// These define how an intent behaves in a same-intent chain (R1→R1→R1).
+	// If combo_sounds is set, the Nth hit in a chain uses combo_sounds[N]
+	// (each entry is a list for random pick). If the chain exceeds the list
+	// length, it wraps around to the last entry.
+	// combo_damfactors works the same way — the Nth hit uses that damfactor.
+	// If null, the intent's base damfactor is used for all hits.
+
+	/// Per-combo-hit swing sounds. List of lists: list(list(snd1, snd2), list(snd3), ...).
+	/// Index = combo hit number (1-indexed). Each inner list is pick()'d randomly.
+	/// If null, falls back to swingsound or weapon swingsound as usual.
+	var/list/combo_sounds
+
+	/// Per-combo-hit impact sounds (played when hit LANDS, not on swing).
+	/// Same format as combo_sounds: list of lists. Index = combo hit number (1-indexed).
+	/// If null, falls back to armor-reactive or base hitsound.
+	var/list/combo_hitsounds
+
+	/// Per-combo-hit damage factors. list(1.0, 1.05, 1.15, ...).
+	/// Index = combo hit number. If null, uses base damfactor for all hits.
+	var/list/combo_damfactors
+
+	/// Max chain length for same-intent combos. Combo index wraps at this value.
+	/// 0 = no chain tracking (single-hit intent like charged R2).
+	var/combo_max = 0
+
+	/// Combo category for cross-intent transition lookups.
+	/// One of: COMBO_CAT_LIGHT, COMBO_CAT_HEAVY, COMBO_CAT_THRUST, COMBO_CAT_BLUNT.
+	var/combo_category
+
+	/// Unique string identifier for this intent in the combo buffer system.
+	/// Used by trickweapon combo sequence matching. Must be unique per weapon.
+	/// e.g., "sc_cut", "sc_thrust", "sc_t_cleave"
+	var/combo_id
 
 	var/list/static/bonk_animation_types = list(
 		BCLASS_BLUNT,

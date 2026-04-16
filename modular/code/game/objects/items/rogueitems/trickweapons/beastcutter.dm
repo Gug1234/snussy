@@ -50,6 +50,7 @@
 	attack_verb = list("smashes", "slams")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
+	swingsound = list('modular/sounds/trickweapons/beastcutter/cutter_slam1.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_slam2.ogg')
 	hitsound = list('modular/sounds/trickweapons/beastcutter/whip_crack1.ogg', 'modular/sounds/trickweapons/beastcutter/whip_crack2.ogg')
 	chargetime = 5
 	chargedrain = 1
@@ -96,6 +97,7 @@
 	attack_verb = list("slams", "crashes")
 	animname = "chop"
 	blade_class = BCLASS_CHOP
+	swingsound = list('modular/sounds/trickweapons/beastcutter/cutter_whipslam1.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_whipslam2.ogg')
 	hitsound = list('modular/sounds/trickweapons/beastcutter/whip_land.ogg', 'modular/sounds/trickweapons/beastcutter/chain1.ogg')
 	chargetime = 3
 	chargedrain = 1
@@ -150,11 +152,11 @@
 	max_integrity = 250
 	sharpness = IS_BLUNT
 	associated_skill = /datum/skill/combat/maces
-	swingsound = BLUNTWOOSH_MED
+	swingsound = list('modular/sounds/trickweapons/beastcutter/cutter_swing1.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_swing2.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_swing3.ogg')
 	parrysound = list('sound/combat/parry/parrygen.ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge2.ogg'
-	transform_sound = 'modular/sounds/trickweapons/beastcutter/chain1.ogg'
-	untransform_sound = 'modular/sounds/trickweapons/beastcutter/chain2.ogg'
+	transform_sound = list('modular/sounds/trickweapons/beastcutter/cutter_transform1.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_transform2.ogg')
+	untransform_sound = list('modular/sounds/trickweapons/beastcutter/cutter_untransform1.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_untransform2.ogg')
 	throwforce = 10
 	thrown_bclass = BCLASS_BLUNT
 	sellprice = 50
@@ -169,7 +171,7 @@
 	transformed_force_wielded = 26
 	transformed_intents = list(/datum/intent/beastcutter/chainsweep, /datum/intent/beastcutter/chainuppercut)
 	transformed_gripped_intents = list(/datum/intent/beastcutter/chainsweep, /datum/intent/beastcutter/chainuppercut, /datum/intent/beastcutter/chainslam, /datum/intent/beastcutter/chainthrust)
-	transformed_swingsound = BLADEWOOSH_HUGE
+	transformed_swingsound = list('modular/sounds/trickweapons/beastcutter/cutter_whip1.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_whip2.ogg', 'modular/sounds/trickweapons/beastcutter/cutter_whip3.ogg')
 	transformed_wlength = WLENGTH_GREAT
 	transformed_wbalance = WBALANCE_HEAVY
 	transformed_wdefense = 2
@@ -183,7 +185,7 @@
 
 /// Mob render properties for one-handed and wielded display.
 /// Branches on `transformed` to use different render profiles per form.
-/obj/item/rogueweapon/trickweapon/YOUR_WEAPON/getonmobprop(tag)
+/obj/item/rogueweapon/trickweapon/beastcutter/getonmobprop(tag)
 	. = ..()
 	if(tag)
 		if(transformed)

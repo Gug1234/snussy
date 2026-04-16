@@ -645,6 +645,8 @@
 			if(hud_used.cmode_button)
 				hud_used.cmode_button.update_icon()
 		return
+	if(cmode && HAS_TRAIT(src, TRAIT_FORCED_CMODE))
+		return
 	if(cmode)
 		playsound_local(src, 'sound/misc/comboff.ogg', 100)
 		SSdroning.play_area_sound(get_area(src), client)

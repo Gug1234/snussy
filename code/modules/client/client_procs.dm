@@ -1142,7 +1142,7 @@ GLOBAL_LIST_EMPTY(external_rsc_urls)
 	if(prefs && prefs.chat_toggles & CHAT_PULLR)
 		to_chat(src, announcement)
 
-/client/proc/show_character_previews(mutable_appearance/MA)
+/client/proc/show_character_previews(list/dir_appearances)
 	var/pos = 0
 
 	var/atom/movable/screen/char_preview/background = LAZYACCESS(char_render_holders, "bg")
@@ -1166,7 +1166,7 @@ GLOBAL_LIST_EMPTY(external_rsc_urls)
 		O = new
 		LAZYSET(char_render_holders, "[D]", O)
 		screen += O
-		O.appearance = MA
+		O.appearance = dir_appearances["[D]"]
 		O.dir = D
 		switch(pos)
 			if(1)

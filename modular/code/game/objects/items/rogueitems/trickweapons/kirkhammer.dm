@@ -100,6 +100,7 @@
 	attack_verb = list("pounds", "slams")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
+	swingsound = list('modular/sounds/trickweapons/kirkhammer/hammer_swing1.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_swing2.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_swing3.ogg')
 	hitsound = list('modular/sounds/trickweapons/kirkhammer/hammer_hit2.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_hit1.ogg')
 	chargetime = 3
 	chargedrain = 1
@@ -120,6 +121,7 @@
 	attack_verb = list("devastates", "obliterates")
 	animname = "chop"
 	blade_class = BCLASS_SMASH
+	swingsound = list('modular/sounds/trickweapons/kirkhammer/hammer_swing1.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_swing2.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_swing3.ogg')
 	hitsound = list('modular/sounds/trickweapons/kirkhammer/hammer_hit1.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_swing.ogg')
 	chargetime = 6
 	chargedrain = 3
@@ -162,7 +164,8 @@
 	swingsound = BLADEWOOSH_MED
 	parrysound = list('sound/combat/parry/bladed/bladedmedium (1).ogg', 'sound/combat/parry/bladed/bladedmedium (2).ogg', 'sound/combat/parry/bladed/bladedmedium (3).ogg')
 	pickup_sound = 'sound/foley/equip/swordlarge1.ogg'
-	transform_sound = 'modular/sounds/trickweapons/kirkhammer/transform.ogg'
+	transform_sound = list('modular/sounds/trickweapons/kirkhammer/hammer_transform1.ogg', 'modular/sounds/trickweapons/kirkhammer/hammer_transform2.ogg')
+	untransform_sound = 'modular/sounds/trickweapons/kirkhammer/hammer_untransform.ogg'
 	throwforce = 10
 	thrown_bclass = BCLASS_CUT
 	sellprice = 55
