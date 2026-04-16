@@ -21,15 +21,22 @@
 	return TRUE
 
 /datum/sex_action/masturbate_other_breasts/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	user.visible_message(span_warning("[user] starts rubbing [target]'s breasts..."), vision_distance = (user.sexcon.do_subtle_action ? 1 : DEFAULT_MESSAGE_RANGE))
+	if(get_breast_piercing(target))
+		user.visible_message(span_warning("[user] starts rubbing [target]'s breasts, rolling [target.p_their()] nipple piercings between their fingers..."), vision_distance = (user.sexcon.do_subtle_action ? 1 : DEFAULT_MESSAGE_RANGE))
+	else
+		user.visible_message(span_warning("[user] starts rubbing [target]'s breasts..."), vision_distance = (user.sexcon.do_subtle_action ? 1 : DEFAULT_MESSAGE_RANGE))
 	user.sexcon.show_progress = 0
 
 /datum/sex_action/masturbate_other_breasts/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/do_subtle = user.sexcon.do_subtle_action
 	user.sexcon.show_progress = !do_subtle
 	user.sexcon.suppress_moan = target.sexcon.suppress_moan = do_subtle
+	apply_silver_intimate_contact("breast", target, user)
 
-	user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective(is_stealth = do_subtle)] fondles [target]'s breasts..."), vision_distance = (do_subtle ? 1 : DEFAULT_MESSAGE_RANGE))
+	if(get_breast_piercing(target))
+		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective(is_stealth = do_subtle)] fondles [target]'s breasts while teasing [target.p_their()] nipple piercings..."), vision_distance = (do_subtle ? 1 : DEFAULT_MESSAGE_RANGE))
+	else
+		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective(is_stealth = do_subtle)] fondles [target]'s breasts..."), vision_distance = (do_subtle ? 1 : DEFAULT_MESSAGE_RANGE))
 
 	user.sexcon.perform_sex_action(target, 1, 4, TRUE)
 	target.sexcon.handle_passive_ejaculation()

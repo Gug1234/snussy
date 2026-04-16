@@ -6,7 +6,7 @@
 /datum/stressevent/chastity_devout
 	timer = INFINITY
 	stressadd = -1
-	desc = span_green("This restraint steadies my spirit.")
+	desc = span_green("The restraint steadies my spirit.")
 
 /datum/stressevent/chastity_masochist
 	timer = INFINITY
@@ -16,7 +16,17 @@
 /datum/stressevent/chastity_church
 	timer = INFINITY
 	stressadd = -1
-	desc = span_green("My vows feel stronger in this restraint.")
+	desc = span_green("My vows feel stronger in restraint.")
+
+/datum/stressevent/beriddleed_plug
+	timer = 999 MINUTES
+	stressadd = -1
+	desc = span_green("The beriddleed plug fills me with focused satisfaction.")
+
+/datum/stressevent/abyssor_blue_pearled_plug
+	timer = 999 MINUTES
+	stressadd = -1
+	desc = span_green("The blue pearl hums like the purifying ocean tide, soothing my spirit.")
 
 /datum/stressevent/seeblessed
 	timer = 30 MINUTES

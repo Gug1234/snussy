@@ -43,6 +43,7 @@
 	else
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] fingers [target]'s cunt over the [user.get_active_held_item()]..."))
 	user.sexcon.generic_sex_noise()
+	apply_silver_intimate_contact("genital", target, user)
 
 	user.sexcon.perform_sex_action(target, 2, 4, TRUE)
 

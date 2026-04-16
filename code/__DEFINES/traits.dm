@@ -777,6 +777,9 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define XYLIX_LUCK_TRAIT "xylixluck"
 #define POULTICE_TRAIT "poultice"
 #define TRAIT_SOURCE_CHASTITY "chastity" //source for chastity device traits
+#define TRAIT_SOURCE_INTIMATE_REACTION "intimate_reaction" //source for intimate reaction tier traits
+#define TRAIT_INTIMATE_AFTERGLOW "intimate_afterglow" //post-orgasm afterglow state
+#define TRAIT_INTIMATE_WITHDRAWAL "intimate_withdrawal" //arousal withdrawal after high arousal drops
 
 // unique trait sources, still defines
 #define TRAIT_GUIDANCE "Guidance"

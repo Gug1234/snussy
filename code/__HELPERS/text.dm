@@ -917,6 +917,12 @@ GLOBAL_LIST_INIT(binary, list("0","1"))
 
 //json decode that will return null on parse error instead of runtiming.
 /proc/safe_json_decode(data)
+	if(!istext(data) || !length(data))
+		return
+	// Reject BYOND-serialized values (start with @) and other non-JSON data.
+	var/first_char = copytext(data, 1, 2)
+	if(!(first_char == "{" || first_char == "\[" || first_char == "\"" || first_char == "t" || first_char == "f" || first_char == "n" || isnum(text2num(first_char)) || first_char == "-"))
+		return
 	try
 		return json_decode(data)
 	catch

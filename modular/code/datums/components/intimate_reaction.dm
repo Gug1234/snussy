@@ -45,7 +45,7 @@
 	/// Movement cooldown state shared across all subtypes. Subtypes set movement_message_cooldown in their
 	/// vars block to tune the frequency; last_movement_message_time is updated inside try_handle_wearer_moved.
 	var/last_movement_message_time = 0
-	var/movement_message_cooldown = 10 SECONDS
+	var/movement_message_cooldown = 20 SECONDS
 
 /// Initializes the component.
 /datum/component/intimate_reaction/Initialize()
@@ -117,6 +117,74 @@
 /// Subtypes override to add item-specific checks (e.g., source.chastity_device == parent for the chastity subtype).
 /datum/component/intimate_reaction/proc/is_valid_wearer_source(mob/living/carbon/human/source)
 	return source && !QDELETED(source) && source == wearer
+
+/// Builds a list of nearby mobs whose client prefs say they should NOT see
+/// intimate reaction visible_messages. The wearer (source) is never added;
+/// their own visibility is handled by the existing show_intimate_examine gate.
+///
+/// content_flags — bitfield of INTIMATE_CONTENT_* flags describing the message.
+///   The master toggle (intimate_reaction_enabled) is always checked.
+/datum/component/intimate_reaction/proc/get_intimate_excluded_mobs(mob/living/carbon/human/source, content_flags = 0)
+	var/list/excluded = list()
+	for(var/mob/M in get_hearers_in_view(DEFAULT_MESSAGE_RANGE, source))
+		if(M == source || !M.client?.prefs)
+			continue
+		var/datum/preferences/P = M.client.prefs
+		if(!P.intimate_reaction_enabled)
+			excluded += M
+			continue
+		if((content_flags & INTIMATE_CONTENT_CHASTITY) && !P.intimate_reaction_show_chastity)
+			excluded += M
+			continue
+		if((content_flags & INTIMATE_CONTENT_EXTREME) && !P.intimate_reaction_show_extreme)
+			excluded += M
+	return excluded
+
+// ── Reaction Coordination ──────────────────────────────────────────────────
+// When a wearer has multiple intimate accessories (piercings + plug + chastity belt),
+// each component's movement/sex reactions can fire simultaneously, flooding chat.
+// These procs enforce a shared cooldown per reaction category on the mob so that
+// once one component fires, the others are suppressed until the cooldown expires.
+// The previously-fired category gets DOUBLE cooldown to rotate variety.
+
+/// Base cooldown (in ticks) between any two intimate reactions in the same category.
+/// Movement uses this directly; sex_received uses half (since it fires less often).
+#define INTIMATE_REACTION_MOVEMENT_COOLDOWN (12 SECONDS)
+#define INTIMATE_REACTION_SEX_COOLDOWN (8 SECONDS)
+
+/// Checks whether the given reaction category is allowed to fire on this wearer right now.
+/// Returns TRUE if the category is off cooldown and may proceed.
+/datum/component/intimate_reaction/proc/can_fire_reaction(mob/living/carbon/human/source, category)
+	if(!source)
+		return FALSE
+	if(!source.intimate_reaction_last_fired)
+		return TRUE // Never fired before — always allowed
+	var/last_time = source.intimate_reaction_last_fired[category]
+	if(!last_time)
+		return TRUE // This category never fired — allowed
+	var/base_cd
+	switch(category)
+		if("movement")
+			base_cd = INTIMATE_REACTION_MOVEMENT_COOLDOWN
+		if("sex_received")
+			base_cd = INTIMATE_REACTION_SEX_COOLDOWN
+		else
+			base_cd = INTIMATE_REACTION_MOVEMENT_COOLDOWN
+	// The previously-fired category gets double cooldown to rotate variety
+	var/effective_cd = base_cd
+	if(source.intimate_reaction_last_category == category)
+		effective_cd = base_cd * 2
+	return (world.time >= last_time + effective_cd)
+
+/// Marks the given reaction category as having just fired on this wearer.
+/// Call this AFTER successfully emitting a message.
+/datum/component/intimate_reaction/proc/mark_reaction_fired(mob/living/carbon/human/source, category)
+	if(!source)
+		return
+	if(!source.intimate_reaction_last_fired)
+		source.intimate_reaction_last_fired = list()
+	source.intimate_reaction_last_fired[category] = world.time
+	source.intimate_reaction_last_category = category
 
 /**
  * Picks a random string from an external JSON string bank.
@@ -247,9 +315,9 @@
 /// last_movement_message_time and movement_message_cooldown are inherited from the base class.
 /datum/component/intimate_reaction/chastity_receive_flavor
 	var/last_receive_flavor_time = 0
-	var/receive_flavor_cooldown = 8 SECONDS
+	var/receive_flavor_cooldown = 16 SECONDS
 	var/last_arousal_message_time = 0
-	var/arousal_message_cooldown = 10 SECONDS
+	var/arousal_message_cooldown = 20 SECONDS
 
 /datum/component/intimate_reaction/chastity_receive_flavor/Initialize()
 	. = ..()
@@ -326,11 +394,11 @@
 		if(devout)
 			return "chastity_receive_devout"
 		if(has_penis_chastity && has_vagina_chastity)
-			return "chastity_intersex_anal_recieve"
+			return "chastity_intersex_anal_receive"
 		if(has_penis_chastity)
-			return "chastity_cock_anal_recieve"
+			return "chastity_cock_anal_receive"
 		if(has_vagina_chastity)
-			return "chastity_vagina_anal_recieve"
+			return "chastity_vagina_anal_receive"
 
 	// Self-touch: the wearer attempting to pleasure themselves through or against the device.
 	// Detected when the acting mob IS the wearer — covers masturbate_cage_penis, masturbate_vagina, etc.
@@ -438,6 +506,14 @@
 	if(!wearer_sexcon)
 		return null
 	if(!HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED))
+		// Non-spiked devices: cage pinching, chafing, rash, trapped-fluid irritation.
+		var/is_belt = wearer_sexcon.has_chastity_vagina() && !wearer_sexcon.has_chastity_cage()
+		if(pain_amt >= PAIN_HIGH_EFFECT)
+			return is_belt ? "chastity_nonspiked_belt_high" : "chastity_nonspiked_high"
+		if(pain_amt >= PAIN_MED_EFFECT)
+			return is_belt ? "chastity_nonspiked_belt_medium" : "chastity_nonspiked_medium"
+		if(pain_amt >= PAIN_MILD_EFFECT)
+			return is_belt ? "chastity_nonspiked_belt_low" : "chastity_nonspiked_low"
 		return null
 	// Devout/church wearers frame all spiked pain as mortification of the flesh offered to their patron.
 	// This takes priority over both the masochist and horror-tier banks — spiritual acceptance is its own register.
@@ -570,46 +646,73 @@
 	// - Devout (span_notice): serene acceptance, mortification framing — visible messages show composed endurance.
 	// - Masochist (span_love): eager, involuntary pleasure — visible messages show desperate enjoyment.
 	// - Standard (span_boldwarning): horror and pain — visible messages show distress.
+	// - Non-spiked (span_warning): mundane chafing/pinching — visible messages show discomfort, not horror.
 	// Routing in get_pain_key() already assigns the correct bank, so we just need to pick the right span.
-	var/devout_spiked = is_devout_chastity_wearer(source)
-	var/masochist_spiked = !devout_spiked && wearer_sexcon.is_masochist_in_spiked_chastity()
+	var/is_spiked = HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED)
+	var/devout_spiked = is_spiked && is_devout_chastity_wearer(source)
+	var/masochist_spiked = is_spiked && !devout_spiked && wearer_sexcon.is_masochist_in_spiked_chastity()
 	if(devout_spiked)
 		to_chat(source, span_notice(message))
 	else if(masochist_spiked)
 		to_chat(source, span_love(message))
+	else if(!is_spiked)
+		to_chat(source, span_warning(message))
 	else
 		to_chat(source, span_boldwarning(message))
 
+	// When the wearer has show_intimate_examine disabled, suppress visible_message calls
+	// so nearby players don't see chastity pain reactions. The wearer still gets to_chat above.
+	var/show_reactions = !source.client?.prefs || source.client.prefs.show_intimate_examine
+
+	// Build the viewer exclude list once for all branches below.
+	var/content_flags = INTIMATE_CONTENT_CHASTITY
+	if(is_spiked)
+		content_flags |= INTIMATE_CONTENT_EXTREME
+	var/list/excluded = show_reactions ? get_intimate_excluded_mobs(source, content_flags) : null
+
 	if(pain_amt >= PAIN_HIGH_EFFECT)
-		source.flash_fullscreen("redflash3")
-		if(prob(70))
+		if(is_spiked)
+			source.flash_fullscreen("redflash3")
+		else
+			source.flash_fullscreen("redflash2")
+		if(show_reactions && prob(70))
 			if(devout_spiked)
-				source.visible_message(span_notice("[source] goes very still, jaw set, as the chastity spikes bite deep — enduring it with deliberate composure."))
+				source.visible_message(span_notice("[source] goes very still, jaw set, as the chastity spikes bite deep — enduring it with deliberate composure."), ignored_mobs = excluded)
 			else if(masochist_spiked)
-				source.visible_message(span_warning("[source] shudders and whimpers as the chastity spikes bite in, seeming to savor the punishment."))
+				source.visible_message(span_warning("[source] shudders and whimpers as the chastity spikes bite in, seeming to savor the punishment."), ignored_mobs = excluded)
+			else if(!is_spiked)
+				source.visible_message(span_warning("[source] goes rigid, hand shooting to the front of their chastity device, face drained of color."), ignored_mobs = excluded)
 			else
-				source.visible_message(span_warning("[source] writhes in pain as the chastity spikes dig bloody into their tortured flesh!"))
+				source.visible_message(span_warning("[source] writhes in pain as the chastity spikes dig bloody into their tortured flesh!"), ignored_mobs = excluded)
 		return TRUE
 
 	if(pain_amt >= PAIN_MED_EFFECT)
-		source.flash_fullscreen("redflash2")
-		if(prob(50))
+		if(is_spiked)
+			source.flash_fullscreen("redflash2")
+		else
+			source.flash_fullscreen("redflash1")
+		if(show_reactions && prob(50))
 			if(devout_spiked)
-				source.visible_message(span_notice("[source] breathes carefully through the bite of the chastity spikes, expression drawn but steady."))
+				source.visible_message(span_notice("[source] breathes carefully through the bite of the chastity spikes, expression drawn but steady."), ignored_mobs = excluded)
 			else if(masochist_spiked)
-				source.visible_message(span_warning("[source] trembles as the chastity spikes grind in, breathing out an eager, pained moan."))
+				source.visible_message(span_warning("[source] trembles as the chastity spikes grind in, breathing out an eager, pained moan."), ignored_mobs = excluded)
+			else if(!is_spiked)
+				source.visible_message(span_warning("[source] flinches and adjusts their stance, jaw tight, one hand hovering near the device."), ignored_mobs = excluded)
 			else
-				source.visible_message(span_warning("[source] shudders in pain as the chastity spikes dig into their flesh!"))
+				source.visible_message(span_warning("[source] shudders in pain as the chastity spikes dig into their flesh!"), ignored_mobs = excluded)
 		return TRUE
 
-	source.flash_fullscreen("redflash1")
-	if(prob(30))
+	if(is_spiked)
+		source.flash_fullscreen("redflash1")
+	if(show_reactions && prob(30))
 		if(devout_spiked)
-			source.visible_message(span_notice("[source] shifts slightly as the chastity spikes catch, then stills themselves with quiet deliberateness."))
+			source.visible_message(span_notice("[source] shifts slightly as the chastity spikes catch, then stills themselves with quiet deliberateness."), ignored_mobs = excluded)
 		else if(masochist_spiked)
-			source.visible_message(span_warning("[source] shivers as the chastity spikes tease their flesh, eyes half-lidded."))
+			source.visible_message(span_warning("[source] shivers as the chastity spikes tease their flesh, eyes half-lidded."), ignored_mobs = excluded)
+		else if(!is_spiked)
+			source.visible_message(span_warning("[source] shifts uncomfortably, wincing as the chastity device pinches."), ignored_mobs = excluded)
 		else
-			source.visible_message(span_warning("[source] groans as the chastity spikes prod their flesh..."))
+			source.visible_message(span_warning("[source] groans as the chastity spikes prod their flesh..."), ignored_mobs = excluded)
 	return TRUE
 
 /// Movement reaction for chastity devices — dispatched by the base on_wearer_moved handler.
@@ -640,6 +743,9 @@
 		return TRUE
 	if(last_movement_message_time + movement_message_cooldown >= world.time)
 		return TRUE
+	// Coordinate with other intimate reaction components to prevent message spam
+	if(!can_fire_reaction(source, "movement"))
+		return TRUE
 
 	var/string_key = get_movement_string_key(source)
 	var/message = pick_string_bank("chastity_movement_messages.json", string_key)
@@ -647,19 +753,30 @@
 		return TRUE
 
 	last_movement_message_time = world.time
+	mark_reaction_fired(source, "movement")
+	// When the wearer has show_intimate_examine disabled, suppress movement visible_messages.
+	if(source.client?.prefs && !source.client.prefs.show_intimate_examine)
+		return TRUE
+	// Build the viewer exclude list. Movement-pain keys indicate spiked/extreme content.
+	var/content_flags = INTIMATE_CONTENT_CHASTITY
+	if(string_key == "chastity_movement_pain")
+		content_flags |= INTIMATE_CONTENT_EXTREME
+	var/list/excluded = get_intimate_excluded_mobs(source, content_flags)
 	// All jingle banks (visible and all covered variants) produce messages beginning with "'s",
 	// so they are concatenated directly onto the name without a separating space.
 	// Pain and struggle messages begin with a verb and need the leading space.
 	if(string_key == "chastity_movement_pain")
-		source.visible_message(span_warning("[source] [message]"))
+		source.visible_message(span_warning("[source] [message]"), ignored_mobs = excluded)
 	else if(copytext(string_key, 1, 17) == "chastity_jingle_")
-		source.visible_message(span_notice("[source][message]"))
+		source.visible_message(span_notice("[source][message]"), ignored_mobs = excluded)
 	else
-		source.visible_message(span_notice("[source] [message]"))
+		source.visible_message(span_notice("[source] [message]"), ignored_mobs = excluded)
 	return TRUE
 
 /datum/component/intimate_reaction/chastity_receive_flavor/try_handle_wearer_sex_action_received(mob/living/carbon/human/source, mob/living/carbon/human/acting_mob, datum/sex_controller/acting_sexcon, datum/sex_action/action, receiver_part, giving, arousal_amt, pain_amt, applied_force, applied_speed)
 	if(!is_valid_wearer_source(source))
+		return FALSE
+	if(!can_fire_reaction(source, "sex_received"))
 		return FALSE
 	var/handled = FALSE
 	if(try_handle_pain_message(source, pain_amt))
@@ -668,4 +785,6 @@
 		handled = TRUE
 	if(try_handle_receive_flavor(source, receiver_part, action, acting_mob, applied_force, applied_speed))
 		handled = TRUE
+	if(handled)
+		mark_reaction_fired(source, "sex_received")
 	return handled

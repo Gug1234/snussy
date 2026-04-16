@@ -23,32 +23,20 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 		mob_examine_panel.ui_interact(usr)
 		return
 
-	if(href_list["task"] == "show_custom_item_info")
-		if(!observer_privilege && !usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
+	// Opens the intimate accessories panel for the clicking observer.
+	// `src` is the examined human (wearer); `usr` is the viewer.
+	if(href_list["task"] == "view_intimate")
+		if(!ismob(usr) || !ishuman(src))
 			return
-		var/obj/item/target_item = locate(href_list["item_ref"])
-		if(!istype(target_item))
+		var/mob/viewer = usr
+		// Silently abort if either party has intimate accessories disabled.
+		if(viewer.client?.prefs && !viewer.client.prefs.intimate_enabled)
+			to_chat(viewer, span_warning("I have intimate accessories disabled."))
 			return
-		if(!(target_item in held_items) && !(target_item in get_equipped_items(TRUE)) && \
-			target_item != chastity_device && \
-			!(chastity_device && target_item == chastity_device.attached_toy))
+		if(client?.prefs && !client.prefs.intimate_enabled)
+			to_chat(viewer, span_warning("[src] has intimate accessories disabled."))
 			return
-		var/is_chastity_item = (target_item == chastity_device)
-		var/is_chastity_attached_toy = (chastity_device && target_item == chastity_device.attached_toy)
-		if(!observer_privilege && (is_chastity_item || is_chastity_attached_toy))
-			if(!get_location_accessible(src, BODY_ZONE_PRECISE_GROIN))
-				return
-			var/perception_level = 15
-			if(isliving(usr))
-				var/mob/living/L = usr
-				perception_level = L.STAPER
-			if(perception_level < 8)
-				return
-		if(!target_item.has_customized_identity() && !target_item.always_show_examine_link)
-			return
-		var/list/item_examine = target_item.examine(usr)
-		if(length(item_examine))
-			to_chat(usr, usr.client?.prefs?.no_examine_blocks ? item_examine.Join("\n") : examine_block(item_examine.Join("\n")))
+		open_intimate_menu_for(viewer)
 		return
 
 	if(href_list["inspect_limb"] && (observer_privilege || usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY)))
@@ -227,6 +215,9 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 				var/mob/living/carbon/C = usr
 				C.put_in_hands(legwear_socks)
 			legwear_socks = null
+	if(href_list["chastitytoything"])
+		modular_handle_chastity_toy_removal(usr)
+		return
 	if(href_list["chastitything"])
 		modular_handle_chastitything(usr)
 		return

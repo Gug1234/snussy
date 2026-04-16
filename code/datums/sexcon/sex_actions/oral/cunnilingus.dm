@@ -28,6 +28,8 @@
 	user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] sucks [target]'s clit..."))
 	user.sexcon.oralcourse_noise(target)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("mouth", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	user.sexcon.perform_sex_action(target, 2, 3, TRUE)
 	if(target.sexcon.check_active_ejaculation())

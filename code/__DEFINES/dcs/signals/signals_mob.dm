@@ -89,6 +89,9 @@
 /// Called after lock state changes on chastity devices (mob/living/carbon/human/wearer, mob/living/actor, obj/item/source_item, new_locked_state, method)
 #define COMSIG_CARBON_CHASTITY_LOCK_CHANGED "carbon_chastity_lock_changed"
 
+///From /obj/item/reagent_containers/food/snacks/attack(): (obj/item/reagent_containers/food/snacks/food, mob/living/feeder)
+#define COMSIG_MOB_ATE_FOOD "mob_ate_food"
+
 ///From living/Life() (seconds, times_fired)
 #define COMSIG_LIVING_LIFE "living_life"
 
@@ -97,3 +100,7 @@
 
 /// From /obj/item/organ/proc/Remove() (mob/living/carbon/lost_organ, obj/item/organ/removed, special, drop_if_replaced)
 #define COMSIG_MOB_ORGAN_REMOVED "mob_organ_removed"
+
+
+/// From /mob/living/carbon/human/ZImpactDamage(): (turf/impact_turf, levels)
+#define COMSIG_HUMAN_Z_IMPACT_DAMAGE "human_z_impact_damage"

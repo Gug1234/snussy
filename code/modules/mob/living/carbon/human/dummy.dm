@@ -18,6 +18,13 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 	return FALSE
 
 /mob/living/carbon/human/dummy/proc/wipe_state()
+	// Clean up chastity device (not in standard equipment slots)
+	if(chastity_device)
+		var/obj/item/chastity/device = chastity_device
+		device.remove_chastity(src)
+		qdel(device)
+	// Strip all bodypart features (chastity overlays, intimate accessories, etc.)
+	remove_all_bodypart_features()
 	delete_equipment()
 	cut_overlays(TRUE)
 

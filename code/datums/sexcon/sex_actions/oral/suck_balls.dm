@@ -26,6 +26,8 @@
 /datum/sex_action/suck_balls/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] sucks [target]'s balls..."))
 	user.sexcon.oralcourse_noise(user)
+	apply_silver_intimate_contact("mouth", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	user.sexcon.perform_sex_action(target, 1, 3, TRUE)
 	target.sexcon.handle_passive_ejaculation(user)

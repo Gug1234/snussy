@@ -5,7 +5,7 @@
 	if(!penis.functional)
 		return FALSE
 	switch(penis.penis_type)
-		if(PENIS_TYPE_KNOTTED,PENIS_TYPE_TAPERED_KNOTTED,PENIS_TYPE_TAPERED_DOUBLE_KNOTTED,PENIS_TYPE_BARBED_KNOTTED)
+		if(PENIS_TYPE_KNOTTED,PENIS_TYPE_EQUINE_KNOTTED,PENIS_TYPE_TAPERED_KNOTTED,PENIS_TYPE_TAPERED_DOUBLE_KNOTTED,PENIS_TYPE_BARBED_KNOTTED)
 			return TRUE
 	return FALSE
 
@@ -326,11 +326,7 @@
 			btm.sexcon.try_do_pain_effect(PAIN_MILD_EFFECT, FALSE)
 		add_cum_floor(get_turf(btm))
 		if(top.sexcon.knotted_part_partner&(SEX_PART_CUNT|SEX_PART_ANUS)) // use top's knotted_part_partner var to check what effect we need to apply, as bottom may be double knotted or more
-			var/datum/status_effect/facial/internal/creampie = btm.has_status_effect(/datum/status_effect/facial/internal)
-			if(!creampie)
-				btm.apply_status_effect(/datum/status_effect/facial/internal)
-			else
-				creampie.refresh_cum()
+			top.sexcon.apply_internal_creampie(btm, top.sexcon.target_retains_internal_creampie(btm))
 			if(top?.dna?.species?.id == "gnoll")
 				btm.has_gnoll_scent_this_round = TRUE
 			modular_record_collar_receive_event(btm, top)

@@ -70,7 +70,7 @@
 
 	var/special_voice = "" // For changing our voice. Used by a symptom.
 
-	var/name_override //For temporary visible name changes
+	var/name_override = null //For temporary visible name changes
 
 	var/merctype = 0 // Used for mercenary backgrounds - check mail.dm
 	var/tokenclaimed = FALSE // Check for having received my medal. FUTURE: Persistent medals.
@@ -138,10 +138,30 @@
 	var/song_title
 	var/song_artist
 	var/received_resident_key = FALSE
+	/// Tracks the last world.time an intimate reaction category fired, keyed by category string.
+	/// Used by /datum/component/intimate_reaction coordination procs to suppress spam
+	/// when multiple accessories (piercings, plugs, chastity) try to fire simultaneously.
+	/// Format: list("movement" = world.time, "sex_received" = world.time, ...)
+	var/list/intimate_reaction_last_fired
+	/// Tracks the category string of the most recently fired intimate reaction.
+	/// That category receives double cooldown to avoid the same type spamming back-to-back.
+	var/intimate_reaction_last_category
 	var/nsfwflavortext = null
 	var/nsfw_ooc_extra_img
 	var/nsfw_ooc_extra_img_link
 	var/erpprefs = null
+
+	/// When TRUE, genital sprites use taur-specific DMI files instead of defaults.
+	/// Copied from /datum/preferences during copy_to so clientless mannequins can use it.
+	var/use_taur_genital_sprites = FALSE
+	/// Per-genital taur pixel offsets — copied from prefs for mannequin preview support.
+	/// Penis and testicle X offsets are mirrored (negated) when facing west.
+	var/taur_penis_offset_x = 0
+	var/taur_penis_offset_y = 0
+	var/taur_testicles_offset_x = 0
+	var/taur_testicles_offset_y = 0
+	var/taur_vagina_offset_x = 0
+	var/taur_vagina_offset_y = 0
 
 	var/list/img_gallery = list()
 	var/list/nsfw_img_gallery = list()

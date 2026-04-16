@@ -45,6 +45,11 @@
 /datum/sex_action/proc/is_finished(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	return FALSE
 
+/// Returns the display name for the action, optionally player-specific.
+/// Override in custom action slots to pull the name from player preferences.
+/datum/sex_action/proc/get_display_name(mob/living/carbon/human/user)
+	return name
+
 /datum/sex_action/proc/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	return TRUE
 
@@ -99,3 +104,40 @@
 		return modular_result
 
 	return FALSE
+
+/datum/sex_action/proc/get_rear_plug(mob/living/carbon/human/owner)
+	if(!owner)
+		return null
+	var/obj/item/intimate_accessory/rear/plug/rear_plug = owner.intimate_rear_insertable
+	if(!istype(rear_plug))
+		return null
+	return rear_plug
+
+/datum/sex_action/proc/get_breast_piercing(mob/living/carbon/human/owner)
+	if(!owner)
+		return null
+	var/obj/item/intimate_accessory/piercing/breast/breast_piercing = owner.intimate_breast_piercing
+	if(!istype(breast_piercing))
+		return null
+	return breast_piercing
+
+/datum/sex_action/proc/anal_blocked_by_rear_plug(mob/living/carbon/human/user, mob/living/carbon/human/owner, display_message = FALSE)
+	if(!get_rear_plug(owner))
+		return FALSE
+	if(display_message && user && owner)
+		if(user == owner)
+			to_chat(user, span_warning("My butt plug blocks access to my ass."))
+		else
+			to_chat(user, span_warning("[owner]'s butt plug blocks access to [owner.p_their()] ass."))
+	return TRUE
+
+/datum/sex_action/proc/can_target_other_rear_plug(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	if(!user || !target || user == target)
+		return FALSE
+	return !!get_rear_plug(target)
+
+/datum/sex_action/proc/can_access_other_rear_plug(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	if(!can_target_other_rear_plug(user, target))
+		return FALSE
+	return check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE)
+

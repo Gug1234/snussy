@@ -112,9 +112,76 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/shake = TRUE
 	var/sexable = FALSE
 	var/chastenable = FALSE
+	/// When FALSE, cursed collars and cursed chastity devices cannot be equipped
+	/// and any currently worn ones are forcibly removed. Toggled via ERP Preferences.
+	var/cursed_enabled = FALSE
 	var/chastity_hardmode = CHASTITY_HARDMODE_DISABLED
 	var/extreme_erp = FALSE
 	var/edging = FALSE
+	/// When TRUE the player can volunteer for consensual strange jelly controller roles.
+	var/jelly_controller_enabled = FALSE
+	/// When TRUE the "View intimate accessories…" examine link is shown to eligible observers.
+	/// Toggled via the ERP Preferences menu.
+	var/show_intimate_examine = FALSE
+	/// When TRUE the intimate accessories panel will attempt to render paper-doll item visuals.
+	/// Reserved for future art-asset work; toggling it now prepares the pref without visible effect.
+	var/intimate_visual_widgets = FALSE
+	/// When TRUE the player can wear and interact with intimate accessories (piercings, plugs, etc.)
+	/// independent of chastity content. Defaults FALSE — must opt-in via ERP preferences.
+	var/intimate_enabled = FALSE
+	/// Master toggle: when TRUE the player sees intimate reaction text (movement flavor, body exposure, sex-action
+	/// reactions) from themselves and others. When FALSE all intimate_reaction visible_messages and to_chats are suppressed.
+	var/intimate_reaction_enabled = FALSE
+	/// Sub-toggle: when FALSE, suppresses chastity-device reaction text (jingles, arousal, pain, etc.).
+	var/intimate_reaction_show_chastity = FALSE
+	/// Sub-toggle: when FALSE, suppresses extreme/pain/spike intimate reaction text.
+	var/intimate_reaction_show_extreme = FALSE
+	/// Sub-toggle: when FALSE, suppresses accessory-free character flavor text (custom movement, flash, sex-received).
+	var/intimate_reaction_show_accessory_free = FALSE
+	/// When TRUE, your intimate reaction text is also sent to your active sex partner.
+	var/intimate_reaction_share_with_partner = TRUE
+	/// Typepath of the piercing to equip in the genital slot at round-start. Null = none.
+	var/pref_intimate_genital_piercing = null
+	/// Typepath of the insertable to equip in the genital slot at round-start. Null = none.
+	var/pref_intimate_genital_insertable = null
+	/// Typepath of the piercing to equip in the rear slot at round-start. Null = none.
+	var/pref_intimate_rear_piercing = null
+	/// Typepath of the insertable to equip in the rear slot at round-start. Null = none.
+	var/pref_intimate_rear_insertable = null
+	/// Typepath of the piercing to equip in the breast slot at round-start. Null = none.
+	var/pref_intimate_breast_piercing = null
+	/// Typepath of the insertable to equip in the breast slot at round-start. Null = none.
+	var/pref_intimate_breast_insertable = null
+	/// Typepath of the piercing to equip in the mouth slot at round-start. Null = none.
+	var/pref_intimate_mouth_piercing = null
+	/// Typepath of the insertable to equip in the mouth slot at round-start. Null = none.
+	var/pref_intimate_mouth_insertable = null
+	/// Typepath of the piercing to equip in the ear slot at round-start. Null = none.
+	var/pref_intimate_ear_piercing = null
+	/// Typepath of the piercing to equip in the nose slot at round-start. Null = none.
+	var/pref_intimate_nose_piercing = null
+	/// Typepath of the piercing to equip in the belly slot at round-start. Null = none.
+	var/pref_intimate_belly_piercing = null
+
+	/// Whether a chastity device should be equipped at round-start. The specific
+	/// device typepath is resolved at equip time from the toggle prefs below.
+	var/pref_chastity_enabled = FALSE
+	/// Flat cage style (TRUE) vs standard (FALSE). Only relevant for cock cages.
+	var/pref_chastity_flat = FALSE
+	/// Whether the device includes an anal shield.
+	var/pref_chastity_anal = FALSE
+	/// Whether the device has inward spikes (requires extreme_erp).
+	var/pref_chastity_spiked = FALSE
+	/// Whether the chastity device should spawn already locked.
+	var/pref_chastity_locked = FALSE
+	/// Whether the player spawns with the key to their device.
+	var/pref_chastity_spawn_key = TRUE
+	/// List of character names whose players should receive copies of the chastity key at round-start.
+	var/list/pref_chastity_key_stashes = null
+	/// Whether a copy of the chastity key should also be sent to a random
+	/// eligible player (chastenable ON, not already in the stash list).
+	var/pref_chastity_random_keys = FALSE
+
 	var/compliance_notifs = TRUE
 	var/skillcap_notifs = TRUE
 	var/restricted_species_pref = null
@@ -219,6 +286,14 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/list/menuoptions
 
 	var/datum/loadout_menu/loadout_menu
+	/// Cached TGUI datum for the lobby intimate accessories selector.
+	var/datum/intimate_lobby_menu/intimate_lobby_menu
+	/// Cached TGUI datum for the lobby chastity device selector.
+	var/datum/chastity_lobby_menu/chastity_lobby_menu
+	/// Cached TGUI datum for the lobby sex flavor/custom actions editor.
+	var/datum/sex_flavor_editor/lobby/sex_flavor_lobby_menu
+	/// Cached TGUI datum for the lobby intimate reaction editor.
+	var/datum/intimate_reaction_editor/lobby/intimate_reaction_lobby_menu
 
 	var/datum/migrant_pref/migrant
 	var/next_special_trait = null
@@ -348,12 +423,30 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/list/nsfw_img_gallery = list()
 
 	var/datum/familiar_prefs/familiar_prefs
+	var/datum/jelly_prefs/jelly_prefs
 	var/datum/gnoll_prefs/gnoll_prefs
 
 	var/taur_type = null
 	var/taur_color = "ffffff"
 	var/taur_markings = "ffffff"
 	var/taur_tertiary = "ffffff"
+
+	/// Per-genital pixel offsets for taur bodies. Each genital type has its own X/Y pair
+	/// so players can independently position penis, testicles, and vagina sprites.
+	/// Penis and testicle X offsets are automatically mirrored (negated) when facing west.
+	/// Clamped to [-32, 32] on save and load.
+	var/taur_penis_offset_x = 0
+	var/taur_penis_offset_y = 0
+	var/taur_testicles_offset_x = 0
+	var/taur_testicles_offset_y = 0
+	var/taur_vagina_offset_x = 0
+	var/taur_vagina_offset_y = 0
+	/// When TRUE, genital sprites use the taur-specific DMI files (taur_pintle, taur_nethers, taur_gonads)
+	/// instead of the default ones. Also gates visibility of the taur genital offset controls.
+	var/use_taur_genital_sprites = FALSE
+	/// Preview erect state for the lobby character preview mannequin.
+	/// Cycles through ERECT_STATE_NONE → ERECT_STATE_PARTIAL → ERECT_STATE_HARD.
+	var/preview_erect_state = ERECT_STATE_NONE
 
 	/// Assoc list of culinary preferences, where the key is the type of the culinary preference, and value is food/drink typepath
 	var/list/culinary_preferences = list()
@@ -368,6 +461,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	parent = C
 	migrant  = new /datum/migrant_pref(src)
 	familiar_prefs = new /datum/familiar_prefs(src)
+	jelly_prefs = new /datum/jelly_prefs(src)
 	gnoll_prefs = new /datum/gnoll_prefs(src)
 
 	for(var/custom_name_id in GLOB.preferences_custom_names)
@@ -596,6 +690,55 @@ GLOBAL_LIST_EMPTY(chosen_names)
 				dat += "<b>Taur Color:</b> <span style='border: 1px solid #161616; background-color: #[taur_color];'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <a href='?_src_=prefs;preference=taur_color;task=input'>Change</a><BR>"
 				dat += "<b>Taur Markings:</b> <span style='border: 1px solid #161616; background-color: #[taur_markings];'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <a href='?_src_=prefs;preference=taur_markings;task=input'>Change</a><BR>"
 				dat += "<b>Taur Tertiary:</b> <span style='border: 1px solid #161616; background-color: #[taur_tertiary];'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <a href='?_src_=prefs;preference=taur_tertiary;task=input'>Change</a><BR>"
+				// Taur genital sprite toggle — swaps to taur-specific DMI files
+				dat += "<b>Taur Genital Sprites:</b> <a href='?_src_=prefs;preference=toggle_taur_genital_sprites'>[use_taur_genital_sprites ? "Enabled" : "Disabled"]</a><BR>"
+				// Per-genital pixel offset controls — only visible when taur sprites are enabled
+				if(use_taur_genital_sprites)
+					// --- Penis offsets (X mirrors when facing west) ---
+					dat += "<b>Penis Offset X:</b> "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=-8'>-8</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=-1'>-1</a>"
+					dat += " [taur_penis_offset_x] "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=1'>+1</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=8'>+8</a>"
+					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=penis;axis=x'>Reset</a><BR>"
+					dat += "<b>Penis Offset Y:</b> "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=-8'>-8</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=-1'>-1</a>"
+					dat += " [taur_penis_offset_y] "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=1'>+1</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=8'>+8</a>"
+					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=penis;axis=y'>Reset</a><BR>"
+					// --- Testicles offsets (X mirrors when facing west) ---
+					dat += "<b>Testicles Offset X:</b> "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=-8'>-8</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=-1'>-1</a>"
+					dat += " [taur_testicles_offset_x] "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=1'>+1</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=8'>+8</a>"
+					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=testicles;axis=x'>Reset</a><BR>"
+					dat += "<b>Testicles Offset Y:</b> "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=-8'>-8</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=-1'>-1</a>"
+					dat += " [taur_testicles_offset_y] "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=1'>+1</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=8'>+8</a>"
+					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=testicles;axis=y'>Reset</a><BR>"
+					// --- Vagina offsets ---
+					dat += "<b>Vagina Offset X:</b> "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=-8'>-8</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=-1'>-1</a>"
+					dat += " [taur_vagina_offset_x] "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=1'>+1</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=8'>+8</a>"
+					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=vagina;axis=x'>Reset</a><BR>"
+					dat += "<b>Vagina Offset Y:</b> "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=-8'>-8</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=-1'>-1</a>"
+					dat += " [taur_vagina_offset_y] "
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=1'>+1</a>"
+					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=8'>+8</a>"
+					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=vagina;axis=y'>Reset</a><BR>"
 
 			dat += "<b>Age:</b> <a href='?_src_=prefs;preference=age;task=input'>[age]</a><BR>"
 
@@ -625,6 +768,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<b>Unrevivable:</b> <a href='?_src_=prefs;preference=dnr;task=input'>[dnr_pref ? "Yes" : "No"]</a><BR>"
 
 			dat += "<b>Be a Familiar:</b><a href='?_src_=prefs;preference=familiar_prefs;task=input'>Familiar Preferences</a>"
+			dat += "<br><b>Be a Jelly Controller:</b><a href='?_src_=prefs;preference=jelly_prefs;task=input'>Jelly Controller Preferences</a>"
 
 			dat += "<br><b>Gnoll Customization:</b><a href='?_src_=prefs;preference=gnoll_prefs;task=input'>Gnoll Preferences</a>"
 
@@ -669,6 +813,18 @@ GLOBAL_LIST_EMPTY(chosen_names)
 				dat += "<div style='text-align: center'><br>Subclass Preview:<br> <a href='?_src_=prefs;preference=subclassoutfit;task=input'>[preview_subclass ? "[preview_subclass.name]" : "None"]</a></div>"
 			else
 				preview_subclass = null
+			// Arousal state preview toggle — cycles None → Partial → Hard
+			var/arousal_label
+			switch(preview_erect_state)
+				if(ERECT_STATE_NONE)
+					arousal_label = "None"
+				if(ERECT_STATE_PARTIAL)
+					arousal_label = "Partial"
+				if(ERECT_STATE_HARD)
+					arousal_label = "Hard"
+				else
+					arousal_label = "None"
+			dat += "<div style='text-align: center'>Arousal Preview: <a href='?_src_=prefs;preference=preview_erect_state'>[arousal_label]</a></div>"
 			// Rightmost column, 40% width
 			dat += "<td width=40% valign='top'>"
 			dat += "<h2>Body</h2>"
@@ -710,6 +866,10 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			// Rumours / Gossip
 			dat += "<br><b>Rumours & Noble Gossip:</b><a href='?_src_=prefs;preference=formathelp;task=input'>(?)</a><br><a href='?_src_=prefs;preference=rumour;task=input'>Set Rumours</a><a href='?_src_=prefs;preference=gossip;task=input'>Set Gossip</a><a href='?_src_=prefs;preference=rumour_preview;task=input'><i>Preview</i></a>"
 
+			dat += "<br><b>Intimate Accessories:</b> <a href='?_src_=prefs;preference=intimate_lobby;task=menu'>Configure</a>"
+			dat += "<br><b>Chastity Device:</b> <a href='?_src_=prefs;preference=chastity_lobby;task=menu'>Configure</a>"
+			dat += "<br><b>Custom Sex Actions:</b> <a href='?_src_=prefs;preference=sex_flavor_lobby;task=menu'>Configure</a>"
+			dat += "<br><b>Intimate Reactions:</b> <a href='?_src_=prefs;preference=intimate_reaction_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>ERP Preferences:</b><a href='?_src_=prefs;preference=formathelp;task=input'>(?)</a><a href='?_src_=prefs;preference=erpprefs;task=input'>Change</a>"
 			dat += "<br><b>Song:</b> <a href='?_src_=prefs;preference=ooc_extra;task=input'>Change URL</a>"
 			dat += "<a href='?_src_=prefs;preference=change_title;task=input'>Change Title</a>"
@@ -1563,6 +1723,26 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 	else if(href_list["preference"] == "customizers")
 		ShowCustomizers(user)
 		return
+	else if(href_list["preference"] == "intimate_lobby")
+		if(!intimate_lobby_menu)
+			intimate_lobby_menu = new(src)
+		intimate_lobby_menu.ui_interact(user)
+		return
+	else if(href_list["preference"] == "chastity_lobby")
+		if(!chastity_lobby_menu)
+			chastity_lobby_menu = new(src)
+		chastity_lobby_menu.ui_interact(user)
+		return
+	else if(href_list["preference"] == "sex_flavor_lobby")
+		if(!sex_flavor_lobby_menu)
+			sex_flavor_lobby_menu = new(src)
+		sex_flavor_lobby_menu.ui_interact(user)
+		return
+	else if(href_list["preference"] == "intimate_reaction_lobby")
+		if(!intimate_reaction_lobby_menu)
+			intimate_reaction_lobby_menu = new(src)
+		intimate_reaction_lobby_menu.ui_interact(user)
+		return
 	else if(href_list["preference"] == "triumph_buy_menu")
 		SStriumphs.startup_triumphs_menu(user.client)
 
@@ -2328,10 +2508,9 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 						return
 					if(link == "")
 						link = null
-						var/choice = tgui_alert(user, "Do you really want to clear your OOC Extra Image/Video/Gif?", "Clear OOC Extra Image/Video/Gif", list("Yae", "Nae"))
-						if(choice == "Nae")
-							ShowChoices(user)
-							return
+						ShowChoices(user)
+						return
+					if(link == " ")
 						ooc_extra_img = null
 						ooc_extra_img_link = null
 						to_chat(user, "<span class='notice'>Successfully deleted OOC Extra Image.</span>")
@@ -2365,10 +2544,9 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 						return
 					if(link == "")
 						link = null
-						var/choice = tgui_alert(user, "Do you really want to clear your NSFW OOC Extra Image/Video/Gif?", "Clear NSFW OOC Extra Image/Video/Gif", list("Yae", "Nae"))
-						if(choice == "Nae")
-							ShowChoices(user)
-							return
+						ShowChoices(user)
+						return
+					if(link == " ")
 						nsfw_ooc_extra_img = null
 						nsfw_ooc_extra_img_link = null
 						to_chat(user, "<span class='notice'>Successfully deleted NSFW OOC Extra Image.</span>")
@@ -2394,6 +2572,9 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 				if("familiar_prefs")
 					familiar_prefs.fam_show_ui()
+
+				if("jelly_prefs")
+					jelly_prefs.jelly_show_ui()
 
 				if("gnoll_prefs")
 					gnoll_prefs.gnoll_show_ui(user)
@@ -2909,6 +3090,43 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 					user << browse(null, "window=lobby_window")
 					return
 
+				// --- Taur genital sprite toggle (swaps DMI files and shows offset controls) ---
+				if("toggle_taur_genital_sprites")
+					if(taur_type)
+						use_taur_genital_sprites = !use_taur_genital_sprites
+						save_preferences()
+
+				// --- Per-genital taur pixel offset step buttons (live preview in character creation) ---
+				if("erp_taur_offset")
+					if(taur_type && use_taur_genital_sprites)
+						var/part = href_list["part"]
+						var/axis = href_list["axis"]
+						var/delta = text2num(href_list["delta"])
+						if(isnum(delta) && (axis in list("x", "y")) && (part in list("penis", "testicles", "vagina")))
+							delta = round(clamp(delta, -32, 32))
+							var/varname = "taur_[part]_offset_[axis]"
+							vars[varname] = clamp(vars[varname] + delta, -32, 32)
+							save_preferences()
+
+				// --- Per-genital taur offset: reset a single axis to zero ---
+				if("erp_taur_reset")
+					if(taur_type && use_taur_genital_sprites)
+						var/part = href_list["part"]
+						var/axis = href_list["axis"]
+						if((axis in list("x", "y")) && (part in list("penis", "testicles", "vagina")))
+							vars["taur_[part]_offset_[axis]"] = 0
+							save_preferences()
+
+				// --- Arousal preview state toggle ---
+				if("preview_erect_state")
+					switch(preview_erect_state)
+						if(ERECT_STATE_NONE)
+							preview_erect_state = ERECT_STATE_PARTIAL
+						if(ERECT_STATE_PARTIAL)
+							preview_erect_state = ERECT_STATE_HARD
+						else
+							preview_erect_state = ERECT_STATE_NONE
+
 				if("save")
 					save_preferences()
 					save_character()
@@ -3200,6 +3418,14 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 	if(taur_type)
 		character.Taurize(taur_type, "#[taur_color]", "#[taur_markings]", "#[taur_tertiary]")
+		// Copy taur genital prefs to the mob so clientless mannequins can read them
+		character.use_taur_genital_sprites = use_taur_genital_sprites
+		character.taur_penis_offset_x = taur_penis_offset_x
+		character.taur_penis_offset_y = taur_penis_offset_y
+		character.taur_testicles_offset_x = taur_testicles_offset_x
+		character.taur_testicles_offset_y = taur_testicles_offset_y
+		character.taur_vagina_offset_x = taur_vagina_offset_x
+		character.taur_vagina_offset_y = taur_vagina_offset_y
 	else if(character_setup)
 		// This should only ever ~do~ anything for previews
 		character.ensure_not_taur()
@@ -3213,6 +3439,24 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 	if(culinary_preferences)
 		apply_culinary_preferences(character)
+
+	// Apply intimate accessories from prefs (piercings, plugs, etc.)
+	if(intimate_enabled)
+		apply_intimate_preferences(character)
+
+	// Apply chastity device from prefs (cages, belts, etc.)
+	if(chastenable && pref_chastity_enabled)
+		apply_chastity_preferences(character)
+
+	// Deliver any pending chastity keys from wearers who spawned before this character.
+	// This handles the latejoin case where the key stash target wasn't online yet.
+	check_pending_chastity_keys(character)
+
+	// Attach the accessory-free character flavor component when the player has opted in.
+	// This must run after apply_intimate_preferences so accessory components register first
+	// (COMSIG_CARBON_SEX_ACTION_RECEIVED allows multiple listeners via COMPONENT_DUPE_ALLOWED).
+	if(intimate_reaction_enabled)
+		apply_character_flavor_component(character)
 
 /datum/preferences/proc/get_default_name(name_id)
 	switch(name_id)

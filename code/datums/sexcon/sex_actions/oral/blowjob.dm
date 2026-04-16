@@ -27,11 +27,17 @@
 	user.visible_message(span_warning("[user] starts sucking [target]'s cock..."))
 
 /datum/sex_action/blowjob/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	var/obj/item/intimate_accessory/jelly/eora/jelly = get_genital_jelly(target)
 	user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] sucks [target]'s cock..."))
 	user.sexcon.oralcourse_noise(user)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("mouth", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	user.sexcon.perform_sex_action(target, 2, 0, TRUE)
+	if(jelly)
+		var/show_milking_messages = prob(35)
+		jelly.handle_penis_milking(target, user, show_milking_messages, TRUE)
 	if(!target.sexcon.considered_limp())
 		user.sexcon.perform_deepthroat_oxyloss(user, 1.3)
 	if(target.sexcon.check_active_ejaculation())

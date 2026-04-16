@@ -68,7 +68,7 @@
 
 	if(HAS_TRAIT(src, TRAIT_DUMB))
 		msg += "[t_He] seem[p_s()] to be clumsy and unable to think.\n"
-	
+
 	var/list/modular_lines = carbon_modular_examine_lines(user, t_He, m1, m2, m3)
 	if(length(modular_lines))
 		msg += modular_lines

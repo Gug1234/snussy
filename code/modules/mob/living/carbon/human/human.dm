@@ -147,6 +147,7 @@
 		to_chat(src, chat_message)
 
 	AdjustKnockdown(levels * 15)
+	SEND_SIGNAL(src, COMSIG_HUMAN_Z_IMPACT_DAMAGE, T, levels)
 
 /mob/living/carbon/human/proc/setup_human_dna()
 	//initialize dna. for spawned humans; overwritten by other code

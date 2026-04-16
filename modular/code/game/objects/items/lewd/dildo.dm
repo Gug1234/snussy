@@ -33,12 +33,12 @@
 	if(!can_custom)
 		return FALSE
 	if(src && !user.incapacitated() && in_range(user,src))
-		var/shape_choice = input(user, "Choose a shape for your dildo.","Dildo Shape") as null|anything in list("knotted", "human", "flared")
+		var/shape_choice = tgui_input_list(user, "Choose a shape for your dildo.", "Dildo Shape", list("knotted", "human", "flared"))
 		if(src && shape_choice && !user.incapacitated() && in_range(user,src))
 			dildo_type = shape_choice
 	update_appearance()
 	if(src && !user.incapacitated() && in_range(user,src))
-		var/size_choice = input(user, "Choose a size for your dildo.","Dildo Size") as null|anything in list("small", "medium", "big")
+		var/size_choice = tgui_input_list(user, "Choose a size for your dildo.", "Dildo Size", list("small", "medium", "big"))
 		if(src && size_choice && !user.incapacitated() && in_range(user,src))
 			dildo_size = size_choice
 			switch(dildo_size)
@@ -84,12 +84,12 @@
 	SEND_SIGNAL(victim, COMSIG_FORCE_UNDISGUISE)
 	var/datum/component/silverbless/blesscomp = GetComponent(/datum/component/silverbless)
 	if(blesscomp?.is_blessed)
-		if(!victim.has_status_effect(/datum/status_effect/fire_handler/fire_stacks/sunder))
-			to_chat(victim, span_danger("Silver rebukes my presence! My vitae smolders, and my powers wane!"))
-		victim.adjust_fire_stacks(3, /datum/status_effect/fire_handler/fire_stacks/sunder/blessed)
-	else
 		if(!victim.has_status_effect(/datum/status_effect/fire_handler/fire_stacks/sunder/blessed))
 			to_chat(victim, span_danger("Blessed silver rebukes my presence! These fires are lashing at my very soul!"))
+		victim.adjust_fire_stacks(3, /datum/status_effect/fire_handler/fire_stacks/sunder/blessed)
+	else
+		if(!victim.has_status_effect(/datum/status_effect/fire_handler/fire_stacks/sunder))
+			to_chat(victim, span_danger("Silver rebukes my presence! My vitae smolders, and my powers wane!"))
 		victim.adjust_fire_stacks(3, /datum/status_effect/fire_handler/fire_stacks/sunder)
 	victim.ignite_mob()
 
