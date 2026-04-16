@@ -2,8 +2,10 @@
  * preferences_sex_flavors.dm — Modular extension to /datum/preferences.
  *
  * Adds per-character custom sex action flavor text storage and validation.
- * Data is serialized as JSON and stored in the character savefile slot
- * under the key "custom_sex_flavors_json".
+ * Data is serialized as JSON and stored in a sidecar file per character slot
+ * (sex_flavors_[slot].json) to avoid the BYOND savefile ~64 KB per-entry
+ * limit. Load path migrates one-shot from the legacy "custom_sex_flavors_json"
+ * savefile entry if the sidecar does not yet exist.
  *
  * Shared constants live in modular/code/__DEFINES/roguetown/sexcon_modular.dm
  * so they are available to all consumers regardless of DME include order.
@@ -21,7 +23,7 @@
 	 *   )
 	 *
 	 * Null when the player has not configured any custom strings.
-	 * Serialized to JSON for savefile persistence (key: "custom_sex_flavors_json").
+	 * Serialized to JSON in the per-slot sidecar file sex_flavors_[slot].json.
 	 */
 	var/list/custom_sex_flavors = null
 

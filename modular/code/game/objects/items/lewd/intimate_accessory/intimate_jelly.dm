@@ -45,6 +45,21 @@
 	var/stimulate_arousal_base = 5
 	/// The active slime doppelganger, if any. Only one at a time.
 	var/mob/living/carbon/human/slime_doppelganger/active_doppelganger = null
+	/// Per-jelly pool slot. Parked in nullspace when not active so we can reuse
+	/// the same mob instead of paying /mob/living/carbon/human Initialize cost
+	/// on every spawn/dismiss cycle. Cleared on jelly Destroy.
+	var/mob/living/carbon/human/slime_doppelganger/pooled_doppelganger = null
+
+/obj/item/intimate_accessory/jelly/eora/Destroy()
+	if(active_doppelganger && !QDELETED(active_doppelganger))
+		var/mob/living/carbon/human/slime_doppelganger/live_doppel = active_doppelganger
+		active_doppelganger = null
+		QDEL_NULL(live_doppel)
+	if(pooled_doppelganger && !QDELETED(pooled_doppelganger))
+		var/mob/living/carbon/human/slime_doppelganger/parked_doppel = pooled_doppelganger
+		pooled_doppelganger = null
+		QDEL_NULL(parked_doppel)
+	return ..()
 
 /obj/item/intimate_accessory/jelly/eora/Initialize()
 	. = ..()
@@ -273,6 +288,11 @@
  *   - Applies a stage-scaled arousal boost to the inhabitant.
  *   - Every 20 ticks advances the cocoon cum-stage icon via source_jelly.add_cocoon_cum(1).
  * Guards against QDELETED source or null/displaced inhabitant before proceeding.
+ * If the inhabitant is dead the loop falls through without doing work until break/release.
+ * If the inhabitant is SSD (no client), mechanical effects still apply but flavor
+ * broadcasts are suppressed to avoid spamming bystanders with purposeless messages.
+ * Flavor broadcasts are also de-rated (halved cadence) when three or more active
+ * cocoons share a 7-tile radius so crowded orgy scenes don't flood visible_message.
  */
 /obj/structure/eora_jelly_cocoon/proc/active_tick()
 	// Stop the loop if the cocoon or its data is gone.
@@ -283,6 +303,14 @@
 	var/obj/item/intimate_accessory/jelly/eora/strange/jelly = source_jelly
 	tick_count++
 
+	// Dead inhabitant: skip all pulse work but keep the loop alive so it
+	// resumes instantly if the body is revived before release.
+	if(H.stat == DEAD)
+		active_tick_timer_id = addtimer(CALLBACK(src, PROC_REF(active_tick)), active_tick_interval, TIMER_STOPPABLE)
+		return
+
+	var/is_ssd = !H.client
+
 	// ── Stage advancement check ──
 	try_advance_stage(jelly, H)
 
@@ -291,8 +319,11 @@
 	if(H.sexcon && !H.sexcon.arousal_frozen && H.sexcon.arousal < ACTIVE_EJAC_THRESHOLD)
 		H.sexcon.adjust_arousal(stage_arousal)
 
-	// ── Flavor text every 5 ticks (~15s) ──
-	if(!(tick_count % 5))
+	// ── Flavor text every 5 ticks (~15s), halved to every 10 ticks in crowds ──
+	var/flavor_cadence = 5
+	if(count_nearby_cocoons(7) >= 3)
+		flavor_cadence = 10
+	if(!is_ssd && !(tick_count % flavor_cadence))
 		// Alternate between action flavor and stage-ambient flavor.
 		// Stage ambient fires every other flavor tick (every 10 ticks / ~30s).
 		var/flavor
@@ -316,6 +347,21 @@
 
 	// Re-queue the next tick via timer instead of spawn() to avoid unbounded scheduler chains.
 	active_tick_timer_id = addtimer(CALLBACK(src, PROC_REF(active_tick)), active_tick_interval, TIMER_STOPPABLE)
+
+/**
+ * Returns a count of other active cocoons (with live inhabitants) within the
+ * given tile radius. Used to de-rate flavor broadcast cadence when several
+ * cocoons share a small area so crowded scenes don't flood visible_message.
+ * The caller is excluded from the count.
+ */
+/obj/structure/eora_jelly_cocoon/proc/count_nearby_cocoons(radius)
+	var/count = 0
+	for(var/obj/structure/eora_jelly_cocoon/other in range(radius, src))
+		if(other == src)
+			continue
+		if(other.inhabitant && !QDELETED(other))
+			count++
+	return count
 
 /**
  * Checks whether the cocoon should advance to the next escalation stage
@@ -1619,11 +1665,7 @@
 			continue
 		// Prune if the candidate client is gone.
 		var/candidate_ckey = "[invite["candidate_ckey"]]"
-		var/client/candidate_client = null
-		for(var/client/C in GLOB.clients)
-			if(C.ckey == candidate_ckey)
-				candidate_client = C
-				break
+		var/client/candidate_client = GLOB.directory[candidate_ckey]
 		if(!candidate_client)
 			controller_pending_invitations.Cut(i, i + 1)
 			did_prune = TRUE
@@ -1725,11 +1767,7 @@
 		to_chat(H, span_notice("An invitation to that candidate is already pending."))
 		return FALSE
 	// Find the candidate client.
-	var/client/candidate_client = null
-	for(var/client/C in GLOB.clients)
-		if(C.ckey == candidate_ckey)
-			candidate_client = C
-			break
+	var/client/candidate_client = GLOB.directory[candidate_ckey]
 	if(!candidate_client)
 		to_chat(H, span_warning("That candidate is no longer available."))
 		return FALSE
@@ -1808,10 +1846,9 @@
 	remove_pending_controller_invitation(invitation_id)
 	to_chat(H, span_notice("I withdraw the beckoning to [candidate_name]."))
 	// Notify the candidate if online.
-	for(var/client/C in GLOB.clients)
-		if(C.ckey == candidate_ckey && C.mob)
-			to_chat(C.mob, span_notice("The beckoning warmth from [custom_jelly_name ? custom_jelly_name : name] fades — the call is withdrawn."))
-			break
+	var/client/candidate_client = GLOB.directory[candidate_ckey]
+	if(candidate_client && candidate_client.mob)
+		to_chat(candidate_client.mob, span_notice("The beckoning warmth from [custom_jelly_name ? custom_jelly_name : name] fades — the call is withdrawn."))
 	add_controller_activity("wearer", "invitation", "Withdrew invitation to [candidate_name]")
 	return TRUE
 

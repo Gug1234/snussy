@@ -1140,17 +1140,26 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		pref_intimate_belly_piercing = raw_val
 	raw_val = null
 
-	// Custom sex flavor text — stored as a JSON string; decoded back to a list here.
-	var/sex_flavors_json
-	S["custom_sex_flavors_json"] >> sex_flavors_json
-	if(istext(sex_flavors_json) && length(sex_flavors_json))
-		var/decoded = safe_json_decode(sex_flavors_json)
-		custom_sex_flavors = islist(decoded) ? decoded : null
+	// Custom sex flavor text — loaded from sidecar JSON file to avoid the
+	// 64 KB per-entry savefile limit. Falls back to the legacy savefile entry
+	// for one-shot migration of existing characters.
+	var/sa_dir = _sidecar_dir()
+	var/sf_path = "[sa_dir]/sex_flavors_[slot].json"
+	if(fexists(sf_path))
+		var/sf_raw = rustg_file_read(sf_path)
+		var/decoded_sf = safe_json_decode(sf_raw)
+		custom_sex_flavors = islist(decoded_sf) ? decoded_sf : null
+	else
+		// Legacy migration: pull from the old savefile entry if present.
+		var/sex_flavors_json
+		S["custom_sex_flavors_json"] >> sex_flavors_json
+		if(istext(sex_flavors_json) && length(sex_flavors_json))
+			var/decoded = safe_json_decode(sex_flavors_json)
+			custom_sex_flavors = islist(decoded) ? decoded : null
 	validate_custom_sex_flavors()
 
 	// Custom sex action definitions — loaded from sidecar JSON file to avoid
 	// the 64 KB per-entry savefile limit.
-	var/sa_dir = _sidecar_dir()
 	var/sa_path = "[sa_dir]/sex_actions_[slot].json"
 	if(fexists(sa_path))
 		var/sa_raw = rustg_file_read(sa_path)
@@ -1435,15 +1444,19 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["pref_intimate_nose_piercing"], preferences_typepath_or_null(pref_intimate_nose_piercing))
 	WRITE_FILE(S["pref_intimate_belly_piercing"], preferences_typepath_or_null(pref_intimate_belly_piercing))
 
-	// Custom sex flavor text — serialized to JSON for storage.
-	// Local var required: WRITE_FILE is a macro and ternary exprs in macro args
-	// produce a "statement has no effect" warning in DM.
-	var/sex_flavors_out = islist(custom_sex_flavors) ? json_encode(custom_sex_flavors) : null
-	WRITE_FILE(S["custom_sex_flavors_json"], sex_flavors_out)
+	// Custom sex flavor text — saved to sidecar JSON file to avoid the
+	// 64 KB per-entry savefile limit. Clear the legacy savefile entry on
+	// write so migrated characters don't carry stale data.
+	var/sa_dir = _sidecar_dir()
+	var/sf_path = "[sa_dir]/sex_flavors_[slot].json"
+	if(islist(custom_sex_flavors) && length(custom_sex_flavors))
+		rustg_file_write(json_encode(custom_sex_flavors), sf_path)
+	else if(fexists(sf_path))
+		fdel(sf_path)
+	WRITE_FILE(S["custom_sex_flavors_json"], null)
 
 	// Custom sex action definitions — saved to sidecar JSON file to avoid
 	// the 64 KB per-entry savefile limit.
-	var/sa_dir = _sidecar_dir()
 	var/sa_path = "[sa_dir]/sex_actions_[slot].json"
 	if(islist(custom_sex_actions) && length(custom_sex_actions))
 		rustg_file_write(json_encode(custom_sex_actions), sa_path)

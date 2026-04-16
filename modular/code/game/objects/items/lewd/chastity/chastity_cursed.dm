@@ -59,6 +59,11 @@
 			CM.remove_pet(H)
 		else if(H in CM.my_pets)
 			CM.cleanup_pet(H)
+		else
+			// Defensive: wearer wasn't in either tracked list (unusual state),
+			// but still may have stale signal handlers from a prior add_pet.
+			// Explicitly unregister to avoid leaking handlers into later life.
+			CM.cleanup_pet_signals(H)
 
 	REMOVE_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
 	return TRUE

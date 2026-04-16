@@ -1,6 +1,10 @@
 // ── Additional Anal Bead Subtypes ────────────────────────────────────────────
-// Each subtype overrides get_max_beads(), update_item_visuals(), and
-// get_bead_length() to use its own icon_state set.
+// Each subtype overrides get_max_beads() and get_bead_length(); the parent
+// update_item_visuals() uses get_bead_length() to derive icon_state
+// ("rear_bead_item_[length]"), the matching gem overlay, and handles the
+// blue_pearled (abyssor) branch. Subtypes only override update_item_visuals()
+// when their visuals genuinely diverge (glass: unique overlay; spiked: no
+// pearl/gem branches; mixed12: icon prefix "mixedbeads_12" != length "mixed_12").
 // Unsocketable types override attackby() to reject all socket attempts.
 // Gem-only types use the same base attackby but reject special cross sockets.
 
@@ -111,7 +115,7 @@
 /// When the wearer falls a z-level, the glass beads shatter inside them.
 /obj/item/intimate_accessory/rear/plug/analbeads/glass/proc/on_z_impact(mob/living/carbon/human/victim, turf/T, levels)
 	SIGNAL_HANDLER
-	if(!victim || QDELETED(src) || src.wearer != victim)
+	if(QDELETED(src) || QDELETED(victim) || QDELETED(wearer) || src.wearer != victim)
 		return
 	// Shatter the beads
 	var/list/excluded = get_extreme_content_excluded_mobs(victim)
@@ -154,26 +158,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/small12/get_bead_length()
 	return "12"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/small12/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_12"
-	item_state = "rear_bead_item_12"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "12")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_12_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Small 12-bead ripcord — twelve rapid pops in a row.
 /obj/item/intimate_accessory/rear/plug/analbeads/small12/get_ripcord_message(mob/user, mob/living/carbon/human/target, violent = FALSE)
@@ -215,26 +200,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_medium/get_bead_length()
 	return "pyramid_medium"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/pyramid_medium/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_pyramid_medium"
-	item_state = "rear_bead_item_pyramid_medium"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "pyramid_medium")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_pyramid_medium_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for medium pyramid beads — a measured escalation.
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_medium/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -306,26 +272,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/inflexible/get_bead_length()
 	return "inflexible"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/inflexible/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_inflexible"
-	item_state = "rear_bead_item_inflexible"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "inflexible")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_inflexible_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for inflexible beads — the rod doesn't bend, the body must.
 /obj/item/intimate_accessory/rear/plug/analbeads/inflexible/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -393,26 +340,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_small/get_bead_length()
 	return "pyramid_small"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/pyramid_small/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_pyramid_small"
-	item_state = "rear_bead_item_pyramid_small"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "pyramid_small")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_pyramid_small_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for small pyramid beads — short but escalating.
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_small/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -582,26 +510,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/mixed8/get_bead_length()
 	return "mixed_8"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/mixed8/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_mixed_8"
-	item_state = "rear_bead_item_mixed_8"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "mixed_8")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_mixed_8_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for mixed medium+large beads — the rhythm of relief and stretch.
 /obj/item/intimate_accessory/rear/plug/analbeads/mixed8/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -683,26 +592,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/snake/get_bead_length()
 	return "snake"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/snake/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_snake"
-	item_state = "rear_bead_item_snake"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "snake")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_snake_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for snake beads — depth-dependent flavor text.
 /obj/item/intimate_accessory/rear/plug/analbeads/snake/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -908,26 +798,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_large/get_bead_length()
 	return "pyramid_large"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/pyramid_large/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_pyramid_large"
-	item_state = "rear_bead_item_pyramid_large"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "pyramid_large")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_pyramid_large_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for large pyramid beads — escalating dread.
 /obj/item/intimate_accessory/rear/plug/analbeads/pyramid_large/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -1008,26 +879,7 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/giant/get_bead_length()
 	return "giant"
 
-/obj/item/intimate_accessory/rear/plug/analbeads/giant/update_item_visuals()
-	cut_overlays()
-	if(src.blue_pearled)
-		color = initial(color)
-		item_state = "rear_bead_item_abyssor"
-		icon_state = "rear_bead_item_abyssor"
-		update_icon()
-		return
-	apply_intimate_item_tint()
-	icon_state = "rear_bead_item_giant"
-	item_state = "rear_bead_item_giant"
-	var/special_overlay_state = get_special_rear_item_state("rear_bead_item", "giant")
-	if(special_overlay_state)
-		add_overlay(mutable_appearance(icon, special_overlay_state))
-	else if(has_socketed_insert())
-		var/mutable_appearance/gem_overlay = mutable_appearance(icon, "rear_bead_item_giant_gem")
-		if(intimate_gem_color)
-			gem_overlay.color = intimate_gem_color
-		add_overlay(gem_overlay)
-	update_icon()
+// update_item_visuals() inherited from parent — uses get_bead_length() scaffold.
 
 /// Bespoke insertion messages for giant beads — each one is a physical ordeal.
 /obj/item/intimate_accessory/rear/plug/analbeads/giant/get_push_bead_message(mob/living/carbon/human/user, mob/living/carbon/human/target)

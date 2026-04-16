@@ -15,13 +15,19 @@
 /// Trait applied to slime doppelgangers to exempt them from mind/client gates.
 #define TRAIT_SLIME_DOPPELGANGER "slime_doppelganger"
 /// Alpha value for the semi-transparent doppelganger.
-#define DOPPELGANGER_ALPHA 210
+#define DOPPELGANGER_ALPHA 220
 /// Minimum bond level required to manually summon the doppelganger.
 #define DOPPELGANGER_SUMMON_BOND_LEVEL 2
 /// Interval between idle doppelganger emotes (in deciseconds).
 #define DOPPELGANGER_IDLE_EMOTE_INTERVAL 45 SECONDS
 /// Maximum range for doppelganger follow behavior and direct control.
 #define DOPPELGANGER_FOLLOW_RANGE 3
+/// Filter name for the jelly-type color overlay on doppelgangers.
+#define DOPPELGANGER_COLOR_FILTER "doppelganger_jelly_color"
+/// Jelly-type overlay color for strange jelly doppelgangers.
+#define DOPPELGANGER_COLOR_STRANGE "#e262c5"
+/// Jelly-type overlay color for regular jelly doppelgangers.
+#define DOPPELGANGER_COLOR_REGULAR "#7ec08d"
 // Uses JELLY_STRINGS_PATH from intimate_jelly.dm (kept alive for this file via deferred #undef).
 /mob/living/carbon/human/slime_doppelganger
 	name = "slime doppelganger"
@@ -118,6 +124,24 @@
 	if(source_jelly && source_jelly.active_doppelganger == src)
 		source_jelly.active_doppelganger = null
 	qdel(src)
+
+/**
+ * Resets doppelganger state for pool parking without destroying the mob.
+ * Called by dismiss_doppelganger when returning a puppet body to the jelly's
+ * pool slot. Clears visual overlays, controller refs, and moves to nullspace
+ * so the body is inert until the next spawn_doppelganger call re-dresses it.
+ * The caller is responsible for ensuring no player mind is currently inhabiting
+ * this body (dismiss_doppelganger handles that via return_controller_to_body).
+ */
+/mob/living/carbon/human/slime_doppelganger/proc/wipe_state()
+	controller_body = null
+	controller_shell = null
+	source_human = null
+	next_idle_emote = 0
+	remove_filter(DOPPELGANGER_COLOR_FILTER)
+	remove_atom_colour(FIXED_COLOUR_PRIORITY)
+	alpha = initial(alpha)
+	moveToNullspace()
 
 /mob/living/carbon/human/slime_doppelganger/Destroy()
 	if(is_player_controlled())
@@ -235,6 +259,8 @@
 
 /// Spawns a doppelganger of the wearer at the wearer's location.
 /// Returns the doppelganger mob, or null on failure.
+/// Reuses the jelly's pooled doppelganger mob when available to avoid paying
+/// /mob/living/carbon/human Initialize cost on every spawn/dismiss cycle.
 /obj/item/intimate_accessory/jelly/eora/proc/spawn_doppelganger()
 	if(!wearer || QDELETED(wearer))
 		return null
@@ -242,7 +268,15 @@
 	if(active_doppelganger && !QDELETED(active_doppelganger))
 		return active_doppelganger
 
-	var/mob/living/carbon/human/slime_doppelganger/doppel = new(get_turf(wearer))
+	var/mob/living/carbon/human/slime_doppelganger/doppel
+	var/turf/spawn_turf = get_turf(wearer)
+	if(pooled_doppelganger && !QDELETED(pooled_doppelganger))
+		doppel = pooled_doppelganger
+		pooled_doppelganger = null
+		if(spawn_turf)
+			doppel.forceMove(spawn_turf)
+	else
+		doppel = new(spawn_turf)
 	doppel.source_jelly = src
 	doppel.source_human = wearer
 
@@ -274,6 +308,9 @@
 		doppel.add_atom_colour(intimate_metal_color, FIXED_COLOUR_PRIORITY)
 	// Semi-transparent
 	doppel.alpha = DOPPELGANGER_ALPHA
+	// Jelly-type colored overlay
+	var/overlay_color = is_strange_jelly() ? DOPPELGANGER_COLOR_STRANGE : DOPPELGANGER_COLOR_REGULAR
+	doppel.add_filter(DOPPELGANGER_COLOR_FILTER, 2, list("type" = "outline", "color" = overlay_color, "alpha" = 60, "size" = 1))
 
 	// Apply body markings — transfer_identity() copies dna.body_markings AFTER
 	// set_species(), so on_species_gain()'s apply_markings_to_body_parts() ran
@@ -291,6 +328,10 @@
 
 /// Dismisses the active doppelganger with optional flavor text.
 /// Pass silent = TRUE when the caller already displayed its own flavor.
+/// The doppelganger mob is parked in the jelly's pool slot rather than
+/// qdeleted so it can be reused by the next spawn without paying the full
+/// /mob/living/carbon/human Initialize cost. It is only qdeleted on jelly
+/// destruction or if the pool slot is already occupied.
 /obj/item/intimate_accessory/jelly/eora/proc/dismiss_doppelganger(silent = FALSE)
 	if(!active_doppelganger || QDELETED(active_doppelganger))
 		active_doppelganger = null
@@ -303,8 +344,15 @@
 		wearer.visible_message(span_notice("[doppel] shudders, loses cohesion, and collapses into a wave of warm slime that flows back into [wearer]."))
 	if(active_doppelganger == doppel)
 		active_doppelganger = null
-	if(!QDELETED(doppel))
+	if(QDELETED(doppel))
+		return
+	// Return to the pool rather than destroying. If the pool already holds a
+	// different stale mob, qdel the newcomer to avoid leaking two at once.
+	if(pooled_doppelganger && !QDELETED(pooled_doppelganger) && pooled_doppelganger != doppel)
 		qdel(doppel)
+		return
+	doppel.wipe_state()
+	pooled_doppelganger = doppel
 
 // ════════════════════════════════════════════════════════════════════════════
 // Doppelganger flavor — JSON-backed string banks with token resolution
