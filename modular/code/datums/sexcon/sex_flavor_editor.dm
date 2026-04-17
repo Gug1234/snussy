@@ -478,6 +478,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					new_flavors[path_text] = action_entry
 			prefs.custom_sex_flavors = new_flavors
 			dirty = TRUE
+			log_game("SEX_FLAVOR_EDITOR: [key_name(usr)] applied preset '[preset_key]' to all actions ([new_flavors.len] actions replaced)")
 			to_chat(usr, span_notice("Applied '[GLOB.sex_action_preset_labels[preset_key]]' preset to all actions."))
 			return TRUE
 
@@ -617,11 +618,20 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 		if("clear_action")
 			if(!selected_action_path || !islist(prefs.custom_sex_flavors))
 				return FALSE
+			// Count total strings across all perspective/phase buckets for audit log.
+			var/list/cleared_action = prefs.custom_sex_flavors[selected_action_path]
+			var/cleared_count = 0
+			if(islist(cleared_action))
+				for(var/bucket_key in cleared_action)
+					var/list/bucket = cleared_action[bucket_key]
+					if(islist(bucket) && !findtext(bucket_key, "weight_") && bucket_key != "suppress")
+						cleared_count += bucket.len
 			// Remove the entire action entry, including any suppress flags.
 			prefs.custom_sex_flavors.Remove(selected_action_path)
 			if(!prefs.custom_sex_flavors.len)
 				prefs.custom_sex_flavors = null
 			dirty = TRUE
+			log_game("SEX_FLAVOR_EDITOR: [key_name(usr)] cleared action=[selected_action_path] ([cleared_count] strings removed)")
 			return TRUE
 
 		if("toggle_show_all")
@@ -839,6 +849,9 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			if(!islist(payload))
 				to_chat(usr, span_warning("Import failed: unexpected data format."))
 				return FALSE
+			// Count existing data for audit log.
+			var/before_flavors = islist(prefs.custom_sex_flavors) ? prefs.custom_sex_flavors.len : 0
+			var/before_actions = islist(prefs.custom_sex_actions) ? prefs.custom_sex_actions.len : 0
 			// Apply flavors.
 			if(islist(payload["flavors"]))
 				prefs.custom_sex_flavors = payload["flavors"]
@@ -855,8 +868,11 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			// Sanitize imported data through the same validators used on savefile load.
 			prefs.validate_custom_sex_flavors()
 			prefs.validate_custom_sex_actions()
+			var/after_flavors = islist(prefs.custom_sex_flavors) ? prefs.custom_sex_flavors.len : 0
+			var/after_actions = islist(prefs.custom_sex_actions) ? prefs.custom_sex_actions.len : 0
 			prefs.save_character()
 			dirty = FALSE
+			log_game("SEX_FLAVOR_EDITOR: [key_name(usr)] imported payload bytes=[length(raw_input)] flavors=[before_flavors]->[after_flavors] actions=[before_actions]->[after_actions] hash=[md5(decoded)]")
 			to_chat(usr, span_notice("Import successful! Your custom sex flavors and actions have been updated."))
 			return TRUE
 

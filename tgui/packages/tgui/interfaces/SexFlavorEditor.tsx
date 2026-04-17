@@ -10,10 +10,11 @@
  *   Right panel — phase tabs → string list → input row → dual preview → token buttons.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Input, NoticeBox, NumberInput, Section, Stack, Tabs, TextArea } from 'tgui-core/components';
 
 import { useBackend } from '../backend';
+import { useDebouncedCallback } from '../common/useDebouncedCallback';
 import { Window } from '../layouts';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -146,6 +147,28 @@ const TOKENS = [
   '[TTHEY]', '[TTHEM]', '[TTHEIR]',
   '[FORCE]',
 ];
+
+/**
+ * Tokens that belong to the Intimate Reaction editor, NOT this one.
+ * Maps each foreign token to the nearest local equivalent (if any) for the
+ * inline "did you mean" hint. `null` means there's no direct analogue.
+ */
+const FOREIGN_TOKENS: Record<string, string | null> = {
+  '[THEIR_CAP]': '[THEIR]',
+  '[PENIS_TYPE]': '[UCOCK]',
+  '[SHEATH]': '[USHAFT]',
+  '[SIZEADJ]': '[USIZE]',
+  '[COCKSIZE]': '[USIZE]',
+  '[VAGADJ]': '[UVAG]',
+  '[VAGTYPE]': '[UVAG]',
+  '[CUPADJ]': '[UCUPSIZE]',
+  '[CUPSIZE]': '[UCUPSIZE]',
+  '[BREASTTYPE]': '[UBREASTTYPE]',
+  '[TAUR]': null,
+  '[GENITAL_DESC]': null,
+  '[JELLY]': null,
+  '[PLUG]': null,
+};
 
 /** Anatomy-aware tokens resolved from the user/target's actual genitals. */
 const ANATOMY_TOKENS: { token: string; tip: string }[] = [
@@ -729,6 +752,32 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
+/**
+ * Per-row NumberInput that debounces the `onCommit` act call so rapid drags
+ * fire exactly one server-side update ~300 ms after the last change instead
+ * of one per tick. Instantiated per list row so each row has its own timer.
+ */
+function DebouncedWeightInput({
+  value,
+  onCommit,
+}: {
+  value: number;
+  onCommit: (weight: number) => void;
+}) {
+  const debounced = useDebouncedCallback(onCommit, 300);
+  return (
+    <NumberInput
+      width="55px"
+      step={5}
+      stepPixelSize={4}
+      value={value}
+      minValue={0}
+      maxValue={100}
+      onChange={(next) => debounced(next)}
+    />
+  );
+}
+
 export function SexFlavorEditor() {
   const { act, data } = useBackend<BackendData>();
 
@@ -745,6 +794,14 @@ export function SexFlavorEditor() {
   const [globalPresetKey, setGlobalPresetKey] = useState<string>('humanoid');
   /** Which category sections are expanded in the action list. */
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  // Reset in-progress edit state when the user switches action, phase, or
+  // perspective so a stale Update fire can't overwrite the wrong row in the
+  // new context (current_strings identity changes on perspective switch too).
+  useEffect(() => {
+    setEditingIndex(-1);
+    setInputText('');
+  }, [data.selected_action, data.selected_phase, data.selected_perspective]);
 
   if (data.invalid) {
     return (
@@ -1030,9 +1087,12 @@ export function SexFlavorEditor() {
                         ({entries.length})
                       </Box>
                       {customCount > 0 && (
-                        <Box inline color="good" ml={0.5} style={{ fontSize: '10px' }}>
+                        <span
+                          aria-label={`${customCount} modified`}
+                          style={{ color: '#5eff5e', marginLeft: '4px', fontSize: '10px' }}
+                        >
                           ✎{customCount}
-                        </Box>
+                        </span>
                       )}
                     </Button>
                     {isExpanded &&
@@ -1054,9 +1114,13 @@ export function SexFlavorEditor() {
                             onClick={() => act('select_action', { path: entry.path })}
                           >
                             {!!entry.has_custom && (
-                              <Box inline color="good" mr={0.5} style={{ fontSize: '10px' }}>
+                              <span
+                                aria-label="modified"
+                                title="Modified from default"
+                                style={{ color: '#5eff5e', marginRight: '4px', fontSize: '10px' }}
+                              >
                                 ✎
-                              </Box>
+                              </span>
                             )}
                             {entry.name}
                           </Button>
@@ -1285,6 +1349,30 @@ export function SexFlavorEditor() {
                         </Stack>
                       </Stack.Item>
 
+                      {/* Foreign-token hint (non-blocking): warn if user typed IR-only tokens */}
+                      {(() => {
+                        const foreignHits = Object.keys(FOREIGN_TOKENS).filter((t) =>
+                          inputText.includes(t),
+                        );
+                        if (!foreignHits.length) return null;
+                        return (
+                          <Stack.Item>
+                            <Box fontSize="10px" color="average">
+                              {foreignHits.map((t) => {
+                                const suggested = FOREIGN_TOKENS[t];
+                                return (
+                                  <Box key={t}>
+                                    {suggested
+                                      ? `Did you mean ${suggested}? ${t} is for the Intimate Reaction editor.`
+                                      : `${t} is for the Intimate Reaction editor and won't resolve here.`}
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+                          </Stack.Item>
+                        );
+                      })()}
+
                       {/* Token buttons */}
                       <Stack.Item>
                         <Box opacity={0.7} fontSize="10px" mb={0.25}>Basic:</Box>
@@ -1368,9 +1456,12 @@ export function SexFlavorEditor() {
                           }
                         >
                           <Stack.Item grow>
-                            <Box
-                              p={0.5}
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Edit string ${idx + 1}`}
                               style={{
+                                padding: '4px',
                                 background: 'rgba(255,255,255,0.06)',
                                 borderRadius: '3px',
                                 fontSize: '11px',
@@ -1380,9 +1471,16 @@ export function SexFlavorEditor() {
                                 setEditingIndex(idx);
                                 setInputText(str);
                               }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  setEditingIndex(idx);
+                                  setInputText(str);
+                                }
+                              }}
                             >
                               {str}
-                            </Box>
+                            </div>
                           </Stack.Item>
                           <Stack.Item>
                             <Button
@@ -1396,14 +1494,9 @@ export function SexFlavorEditor() {
                             />
                           </Stack.Item>
                           <Stack.Item>
-                            <NumberInput
-                              width="55px"
-                              step={5}
-                              stepPixelSize={4}
+                            <DebouncedWeightInput
                               value={current_weights[idx] ?? 100}
-                              minValue={0}
-                              maxValue={100}
-                              onChange={(value) => act('set_weight', { index: idx + 1, weight: value })}
+                              onCommit={(value) => act('set_weight', { index: idx + 1, weight: value })}
                             />
                           </Stack.Item>
                           <Stack.Item>

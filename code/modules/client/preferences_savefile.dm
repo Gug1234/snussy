@@ -272,6 +272,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["cursed_enabled"]				>> cursed_enabled
 	S["chastity_hardmode"]			>> chastity_hardmode
 	S["extreme_erp"]				>> extreme_erp
+	S["acknowledge_extreme_offsets"] >> acknowledge_extreme_offsets
 	S["edging"]						>> edging
 	S["jelly_controller_enabled"]	>> jelly_controller_enabled
 	S["show_intimate_examine"]		>> show_intimate_examine
@@ -418,6 +419,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["cursed_enabled"], cursed_enabled)
 	WRITE_FILE(S["chastity_hardmode"], chastity_hardmode)
 	WRITE_FILE(S["extreme_erp"], extreme_erp)
+	WRITE_FILE(S["acknowledge_extreme_offsets"], acknowledge_extreme_offsets)
 	WRITE_FILE(S["edging"], edging)
 	WRITE_FILE(S["jelly_controller_enabled"], jelly_controller_enabled)
 	WRITE_FILE(S["show_intimate_examine"], show_intimate_examine)
@@ -789,12 +791,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["taur_color"]			>> taur_color
 	S["taur_markings"]		>> taur_markings
 	S["taur_tertiary"]		>> taur_tertiary
-	S["taur_penis_offset_x"]		>> taur_penis_offset_x
-	S["taur_penis_offset_y"]		>> taur_penis_offset_y
-	S["taur_testicles_offset_x"]	>> taur_testicles_offset_x
-	S["taur_testicles_offset_y"]	>> taur_testicles_offset_y
-	S["taur_vagina_offset_x"]		>> taur_vagina_offset_x
-	S["taur_vagina_offset_y"]		>> taur_vagina_offset_y
+	S["taur_penis_props"]			>> taur_penis_props
+	S["taur_testicles_props"]		>> taur_testicles_props
+	S["taur_vagina_props"]			>> taur_vagina_props
+	S["taur_genital_global_hide"]	>> taur_genital_global_hide
 	S["use_taur_genital_sprites"]	>> use_taur_genital_sprites
 
 /datum/preferences/proc/_load_familiar_prefs(S)
@@ -1035,17 +1035,24 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	taur_color = sanitize_hexcolor(taur_color, 6, 0)
 	taur_markings = sanitize_hexcolor(taur_markings, 6, 0)
 	taur_tertiary = sanitize_hexcolor(taur_tertiary, 6, 0)
-	taur_penis_offset_x = clamp(round(taur_penis_offset_x), -32, 32)
-	taur_penis_offset_y = clamp(round(taur_penis_offset_y), -32, 32)
-	taur_testicles_offset_x = clamp(round(taur_testicles_offset_x), -32, 32)
-	taur_testicles_offset_y = clamp(round(taur_testicles_offset_y), -32, 32)
-	taur_vagina_offset_x = clamp(round(taur_vagina_offset_x), -32, 32)
-	taur_vagina_offset_y = clamp(round(taur_vagina_offset_y), -32, 32)
+	taur_penis_props = sanitize_taur_genital_props(taur_penis_props, "penis")
+	taur_testicles_props = sanitize_taur_genital_props(taur_testicles_props, "testicles")
+	taur_vagina_props = sanitize_taur_genital_props(taur_vagina_props, "vagina")
+	taur_genital_global_hide = sanitize_taur_genital_global_hide(taur_genital_global_hide)
 	use_taur_genital_sprites = !!use_taur_genital_sprites
 
 	S["body_markings"] >> body_markings
 	body_markings = SANITIZE_LIST(body_markings)
 	validate_body_markings()
+	normalize_body_markings()
+	var/raw_bm_v
+	S["body_markings_v"] >> raw_bm_v
+	body_markings_v = isnum(raw_bm_v) ? raw_bm_v : 1
+	// Sidecar JSON wins over the legacy flat-hex main-sav blob once the
+	// TGUI editor has promoted the character (body_markings_v >= 2). The
+	// legacy blob stays readable for admin tools / rollback.
+	if(body_markings_v >= 2)
+		load_body_markings_sidecar(parent, slot)
 
 	S["descriptor_entries"] >> descriptor_entries
 	descriptor_entries = SANITIZE_LIST(descriptor_entries)
@@ -1070,92 +1077,61 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["customizer_entries"] >> customizer_entries
 	validate_customizer_entries()
 
-	// Intimate accessory prefs — split into piercing + insertable per region.
-	// Migration: old single-slot prefs are loaded into the appropriate sub-slot.
+	// Intimate accessory prefs — piercing + insertable per region.
 	var/raw_val
-	// Genital piercing
 	S["pref_intimate_genital_piercing"] >> raw_val
-	if(!raw_val)
-		S["pref_intimate_genital"] >> raw_val // legacy migration
 	if(raw_val && ispath(raw_val))
-		if(ispath(raw_val, /obj/item/intimate_accessory/piercing))
-			pref_intimate_genital_piercing = raw_val
-		else
-			pref_intimate_genital_insertable = raw_val
+		pref_intimate_genital_piercing = raw_val
 	raw_val = null
-	// Genital insertable
 	S["pref_intimate_genital_insertable"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_genital_insertable = raw_val
 	raw_val = null
-	// Rear piercing
 	S["pref_intimate_rear_piercing"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_rear_piercing = raw_val
 	raw_val = null
-	// Rear insertable
 	S["pref_intimate_rear_insertable"] >> raw_val
-	if(!raw_val)
-		S["pref_intimate_rear"] >> raw_val // legacy migration
 	if(raw_val && ispath(raw_val))
 		pref_intimate_rear_insertable = raw_val
 	raw_val = null
-	// Breast piercing
 	S["pref_intimate_breast_piercing"] >> raw_val
-	if(!raw_val)
-		S["pref_intimate_breast"] >> raw_val // legacy migration
 	if(raw_val && ispath(raw_val))
 		pref_intimate_breast_piercing = raw_val
 	raw_val = null
-	// Breast insertable
 	S["pref_intimate_breast_insertable"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_breast_insertable = raw_val
 	raw_val = null
-	// Mouth piercing
 	S["pref_intimate_mouth_piercing"] >> raw_val
-	if(!raw_val)
-		S["pref_intimate_mouth"] >> raw_val // legacy migration
 	if(raw_val && ispath(raw_val))
 		pref_intimate_mouth_piercing = raw_val
 	raw_val = null
-	// Mouth insertable
 	S["pref_intimate_mouth_insertable"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_mouth_insertable = raw_val
 	raw_val = null
-	// Ear piercing
 	S["pref_intimate_ear_piercing"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_ear_piercing = raw_val
 	raw_val = null
-	// Nose piercing
 	S["pref_intimate_nose_piercing"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_nose_piercing = raw_val
 	raw_val = null
-	// Belly piercing
 	S["pref_intimate_belly_piercing"] >> raw_val
 	if(raw_val && ispath(raw_val))
 		pref_intimate_belly_piercing = raw_val
 	raw_val = null
 
 	// Custom sex flavor text — loaded from sidecar JSON file to avoid the
-	// 64 KB per-entry savefile limit. Falls back to the legacy savefile entry
-	// for one-shot migration of existing characters.
+	// 64 KB per-entry savefile limit.
 	var/sa_dir = _sidecar_dir()
 	var/sf_path = "[sa_dir]/sex_flavors_[slot].json"
 	if(fexists(sf_path))
 		var/sf_raw = rustg_file_read(sf_path)
 		var/decoded_sf = safe_json_decode(sf_raw)
 		custom_sex_flavors = islist(decoded_sf) ? decoded_sf : null
-	else
-		// Legacy migration: pull from the old savefile entry if present.
-		var/sex_flavors_json
-		S["custom_sex_flavors_json"] >> sex_flavors_json
-		if(istext(sex_flavors_json) && length(sex_flavors_json))
-			var/decoded = safe_json_decode(sex_flavors_json)
-			custom_sex_flavors = islist(decoded) ? decoded : null
 	validate_custom_sex_flavors()
 
 	// Custom sex action definitions — loaded from sidecar JSON file to avoid
@@ -1177,8 +1153,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		custom_intimate_reactions = null
 	validate_custom_intimate_reactions()
 
+	// Custom piercing stickers — loaded from sidecar JSON file.
+	load_custom_piercings(slot)
+
 	// Chastity device prefs — per-character toggle system.
-	// Migration: old typepath-based pref_chastity_type is ignored; new boolean toggles take over.
 	var/raw_chastity_enabled
 	S["pref_chastity_enabled"] >> raw_chastity_enabled
 	if(!isnull(raw_chastity_enabled))
@@ -1281,12 +1259,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["taur_color"]			, taur_color)
 	WRITE_FILE(S["taur_markings"]		, taur_markings)
 	WRITE_FILE(S["taur_tertiary"]		, taur_tertiary)
-	WRITE_FILE(S["taur_penis_offset_x"]		, taur_penis_offset_x)
-	WRITE_FILE(S["taur_penis_offset_y"]		, taur_penis_offset_y)
-	WRITE_FILE(S["taur_testicles_offset_x"]	, taur_testicles_offset_x)
-	WRITE_FILE(S["taur_testicles_offset_y"]	, taur_testicles_offset_y)
-	WRITE_FILE(S["taur_vagina_offset_x"]	, taur_vagina_offset_x)
-	WRITE_FILE(S["taur_vagina_offset_y"]	, taur_vagina_offset_y)
+	WRITE_FILE(S["taur_penis_props"]		, taur_penis_props)
+	WRITE_FILE(S["taur_testicles_props"]	, taur_testicles_props)
+	WRITE_FILE(S["taur_vagina_props"]		, taur_vagina_props)
+	WRITE_FILE(S["taur_genital_global_hide"], taur_genital_global_hide)
 	WRITE_FILE(S["use_taur_genital_sprites"], use_taur_genital_sprites)
 	WRITE_FILE(S["culinary_preferences"], culinary_preferences)
 
@@ -1311,7 +1287,13 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	// Organs
 	WRITE_FILE(S["customizer_entries"] , customizer_entries)
-	WRITE_FILE(S["body_markings"] , body_markings)
+	WRITE_FILE(S["body_markings"] , serialize_body_markings_for_savefile())
+	// Sidecar JSON carries the full dict shape (color + offsets + transform).
+	// The legacy blob above is kept as a downgrade fallback.
+	save_body_markings_sidecar(parent, slot)
+	if(islist(body_markings) && length(body_markings))
+		body_markings_v = 2
+	WRITE_FILE(S["body_markings_v"] , body_markings_v)
 	WRITE_FILE(S["descriptor_entries"] , descriptor_entries)
 	WRITE_FILE(S["custom_descriptors"] , custom_descriptors)
 
@@ -1445,15 +1427,13 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["pref_intimate_belly_piercing"], preferences_typepath_or_null(pref_intimate_belly_piercing))
 
 	// Custom sex flavor text — saved to sidecar JSON file to avoid the
-	// 64 KB per-entry savefile limit. Clear the legacy savefile entry on
-	// write so migrated characters don't carry stale data.
+	// 64 KB per-entry savefile limit.
 	var/sa_dir = _sidecar_dir()
 	var/sf_path = "[sa_dir]/sex_flavors_[slot].json"
 	if(islist(custom_sex_flavors) && length(custom_sex_flavors))
 		rustg_file_write(json_encode(custom_sex_flavors), sf_path)
 	else if(fexists(sf_path))
 		fdel(sf_path)
-	WRITE_FILE(S["custom_sex_flavors_json"], null)
 
 	// Custom sex action definitions — saved to sidecar JSON file to avoid
 	// the 64 KB per-entry savefile limit.
@@ -1470,6 +1450,9 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	else if(fexists(ir_path))
 		fdel(ir_path)
 
+	// Custom piercing stickers — saved to sidecar JSON file.
+	save_custom_piercings(slot)
+
 	// Chastity device prefs — per-character toggle system.
 	WRITE_FILE(S["pref_chastity_enabled"], pref_chastity_enabled)
 	WRITE_FILE(S["pref_chastity_flat"], pref_chastity_flat)
@@ -1484,8 +1467,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	return TRUE
 
 
-#undef SAVEFILE_VERSION_MAX
-#undef SAVEFILE_VERSION_MIN
+// NOTE: SAVEFILE_VERSION_MAX / SAVEFILE_VERSION_MIN intentionally remain
+// defined after this file — modular slot import/export
+// (preferences_slot_io.dm) needs to validate incoming payloads against
+// the current version bounds.
 
 #ifdef TESTING
 //DEBUG

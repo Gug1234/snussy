@@ -121,7 +121,82 @@
 	// Belly region
 	slots_data += list(_build_slot_entry(user, is_self, INTIMATE_SLOT_BELLY,   "Belly Piercing",      wearer.intimate_belly_piercing, BODY_ZONE_PRECISE_STOMACH))
 	data["slots"] = slots_data
+
+	// Custom piercing stickers — player-authored names / descriptions grouped
+	// by slot. Mirrors the visibility rules of get_custom_piercing_examine_lines:
+	// both parties must have intimate enabled; for non-self viewers the wearer
+	// must also have show_intimate_examine on; per-slot hide_from_examine and
+	// per-entry body-zone gates are applied. Freeform slots render even when
+	// no equipped item is present (they are body-level features).
+	data["sticker_icon"] = "modular/icons/obj/lewd/intimate_stickers.dmi"
+	data["custom_piercings"] = _build_custom_piercings_data(user, is_self)
 	return data
+
+/**
+ * Builds the `custom_piercings` ui_data payload. Returns an ordered list of
+ * enabled slot blocks that survive the visibility gates; each block carries
+ * the per-entry names/descs/colors plus a short zone pill for entries that
+ * are pinned to a body zone.
+ */
+/datum/intimate_menu/proc/_build_custom_piercings_data(mob/user, is_self)
+	var/list/out = list()
+	if(!wearer || QDELETED(wearer))
+		return out
+	if(!wearer.client?.prefs || !islist(wearer.client.prefs.custom_piercings))
+		return out
+	var/datum/preferences/prefs = wearer.client.prefs
+	if(!prefs.intimate_enabled)
+		return out
+	// Non-self viewers need wearer opt-in; self always sees the full list.
+	if(!is_self && !prefs.show_intimate_examine)
+		return out
+
+	for(var/slot_key in GLOB.custom_piercing_slot_keys)
+		var/list/slot_cfg = prefs.custom_piercings[slot_key]
+		if(!islist(slot_cfg) || !slot_cfg["enabled"])
+			continue
+		if(!is_self && slot_cfg["hide_from_examine"])
+			continue
+		if(!custom_piercing_slot_is_equipped(wearer, slot_key))
+			continue
+		var/list/raw_entries = slot_cfg["entries"]
+		if(!islist(raw_entries) || !length(raw_entries))
+			continue
+
+		var/list/entries_out = list()
+		for(var/list/entry in raw_entries)
+			var/zone = entry["zone"]
+			if(!is_self && length(zone) && !get_location_accessible(wearer, zone))
+				continue
+			var/sticker_id = entry["sticker"]
+			var/datum/piercing_sticker/S = get_custom_piercing_sticker(sticker_id)
+			var/sticker_name = S?.name || sticker_id
+			var/list/entry_out = list(
+				"sticker_id" = sticker_id,
+				"sticker_name" = sticker_name,
+				"custom_name" = entry["custom_name"],
+				"custom_desc" = entry["custom_desc"],
+				"metal_color" = entry["metal_color"] || "#9BADB7",
+				"gem_color" = entry["gem_color"],
+				"zone" = zone,
+				"zone_label" = (length(zone) ? GLOB.custom_piercing_entry_zone_labels[zone] : null),
+			)
+			entries_out += list(entry_out)
+
+		if(!length(entries_out))
+			continue
+
+		var/is_freeform = (slot_key in GLOB.custom_piercing_freeform_slots)
+		var/slot_label = slot_cfg["display_name"]
+		if(!length(slot_label))
+			slot_label = GLOB.custom_piercing_slot_labels[slot_key] || slot_key
+		out += list(list(
+			"slot_key" = slot_key,
+			"slot_label" = slot_label,
+			"is_freeform" = is_freeform,
+			"entries" = entries_out,
+		))
+	return out
 
 /**
  * Builds one slot entry for ui_data.

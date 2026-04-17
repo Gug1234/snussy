@@ -512,9 +512,30 @@
 		deltimer(active_tick_timer_id)
 		active_tick_timer_id = null
 	unregister_inhabitant_access()
-	if(inhabitant || source_jelly)
-		dump_inhabitant(FALSE, FALSE)
+
+	// Sync-critical teardown only: move inhabitant out, clear refs.
+	// User-facing side effects (Paralyze, visible_message, jelly release callback)
+	// are deferred via INVOKE_ASYNC because Destroy() must not sleep.
+	var/turf/release_turf = get_turf(src)
+	var/mob/living/carbon/human/released = inhabitant
+	var/obj/item/intimate_accessory/jelly/eora/strange/jelly = source_jelly
+	inhabitant = null
+	source_jelly = null
+
+	if(released && release_turf)
+		released.forceMove(release_turf)
+		INVOKE_ASYNC(src, PROC_REF(async_dump_cleanup), released, release_turf, jelly)
+
 	return ..()
+
+/obj/structure/eora_jelly_cocoon/proc/async_dump_cleanup(mob/living/carbon/human/released, turf/release_turf, obj/item/intimate_accessory/jelly/eora/strange/jelly)
+	if(QDELETED(released))
+		return
+	playsound(release_turf, 'sound/items/uncork.ogg', 50, TRUE)
+	released.Paralyze(10)
+	released.visible_message(span_warning("[released] falls out of the jelly cocoon!"), span_notice("I fall out of the jelly cocoon."))
+	if(jelly && !QDELETED(jelly))
+		jelly.on_cocoon_released(released, null, FALSE)
 
 /obj/item/intimate_accessory/jelly/eora/get_intimate_ui_data()
 	. = ..()

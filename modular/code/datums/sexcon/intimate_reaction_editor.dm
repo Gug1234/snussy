@@ -667,11 +667,14 @@
 		if("clear_category")
 			if(!islist(prefs.custom_intimate_reactions))
 				return FALSE
+			var/list/cleared_cat = prefs.custom_intimate_reactions[selected_category]
+			var/cleared_count = islist(cleared_cat) ? cleared_cat.len : 0
 			prefs.custom_intimate_reactions.Remove(selected_category)
 			prefs.custom_intimate_reactions.Remove("weight_[selected_category]")
 			if(!length(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = null
 			dirty = TRUE
+			log_game("INTIMATE_EDITOR: [key_name(usr)] cleared category=[selected_category] ([cleared_count] strings removed)")
 			return TRUE
 
 		// ── Export / Import ──────────────────────────────────────────────
@@ -720,10 +723,14 @@
 			if(!islist(payload) || !islist(payload["reactions"]))
 				to_chat(usr, span_warning("Import failed: unexpected data format."))
 				return FALSE
+			// Count existing categories for audit log.
+			var/before_count = islist(prefs.custom_intimate_reactions) ? prefs.custom_intimate_reactions.len : 0
 			prefs.custom_intimate_reactions = payload["reactions"]
 			prefs.validate_custom_intimate_reactions()
+			var/after_count = islist(prefs.custom_intimate_reactions) ? prefs.custom_intimate_reactions.len : 0
 			prefs.save_character()
 			dirty = FALSE
+			log_game("INTIMATE_EDITOR: [key_name(usr)] imported payload bytes=[length(raw)] before=[before_count] after=[after_count] hash=[md5(decoded_str)]")
 			to_chat(usr, span_notice("Import successful! Your intimate reaction strings have been updated."))
 			return TRUE
 
@@ -829,6 +836,7 @@
 			preset_result = summary
 			preset_result_success = TRUE
 			to_chat(usr, span_notice(summary))
+			log_game("INTIMATE_EDITOR: [key_name(usr)] loaded preset species=[species] stage=[stage] genital=[genital || "none"] ([length(loaded_cats)] categories replaced)")
 			return TRUE
 
 		// ── Load ALL presets for a species ───────────────────────────────
@@ -900,6 +908,7 @@
 			preset_result = summary
 			preset_result_success = TRUE
 			to_chat(usr, span_notice(summary))
+			log_game("INTIMATE_EDITOR: [key_name(usr)] applied all presets species=[species] genital=[genital_type] ([total_cats] categories replaced)")
 			return TRUE
 
 		if("save")

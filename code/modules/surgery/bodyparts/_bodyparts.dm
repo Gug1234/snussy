@@ -129,8 +129,11 @@
 	var/specific_layer = aux_layer ? aux_layer : BODYPARTS_LAYER
 	var/specific_render_zone = aux ? aux_zone : body_zone
 	for(var/key in specific_markings)
-		var/color = specific_markings[key]
+		var/entry = specific_markings[key]
+		var/color = body_marking_entry_color(entry)
 		var/datum/body_marking/BM = GLOB.body_markings[key]
+		if(!BM)
+			continue
 
 		var/render_limb_string = specific_render_zone
 		if(BM.gendered && (!BM.gender_only_chest || specific_render_zone == BODY_ZONE_CHEST))
@@ -142,6 +145,28 @@
 			accessory_overlay.color = "#[override_color]"
 		else
 			accessory_overlay.color = "#[color]"
+		if(islist(entry))
+			var/px = clamp(entry["pixel_x"] || 0, BODY_MARKING_OFFSET_MIN, BODY_MARKING_OFFSET_MAX)
+			var/py = clamp(entry["pixel_y"] || 0, BODY_MARKING_OFFSET_MIN, BODY_MARKING_OFFSET_MAX)
+			if(px)
+				accessory_overlay.pixel_x = px
+			if(py)
+				accessory_overlay.pixel_y = py
+			var/rotation = entry["rotation"] || 0
+			var/scale_val = entry["scale"] || 1
+			var/flip_x = entry["flip_x"]
+			var/flip_y = entry["flip_y"]
+			if(rotation || scale_val != 1 || flip_x || flip_y)
+				var/matrix/M = matrix()
+				if(scale_val != 1)
+					M.Scale(scale_val, scale_val)
+				if(flip_x)
+					M.Scale(-1, 1)
+				if(flip_y)
+					M.Scale(1, -1)
+				if(rotation)
+					M.Turn(rotation)
+				accessory_overlay.transform = M
 		appearance_list += accessory_overlay
 	return appearance_list
 

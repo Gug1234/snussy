@@ -47,6 +47,7 @@
 		list("cursed_enabled",        "Cursed Content",              "Allow cursed collars and cursed chastity devices to be equipped on you. Disabling will strip any currently worn cursed items."),
 		list("intimate_enabled",      "Intimate Accessories",        "Enable piercings, plugs, and other intimate accessories. Independent of chastity content."),
 		list("extreme_erp",           "Extreme ERP Content",         "Enable extreme content (gore, ryona, etc.) within the ERP panel."),
+		list("acknowledge_extreme_offsets", "Acknowledge extreme cosmetic offsets are logged", "When enabled, you consent that characters with extreme pixel offsets or oversized sprites will be logged to admin staff upon joining a round. When disabled, you cannot save characters with extreme offsets without confirming each time."),
 		list("edging",                "Edging Content",              "Enable Psydonite edging and other edging-related content within the ERP panel."),
 		list("jelly_controller_enabled", "Jelly Controller Offers",  "Enable strange jelly controller volunteering and future jelly-role prompts. When off, you will not be surfaced for jelly controller content."),
 		list("show_intimate_examine", "Show Accessories on Examine", "Allow others to see the 'View intimate accessories' link when examining you."),
@@ -217,7 +218,7 @@
 	if(href_list["erp_toggle"])
 		var/key = href_list["erp_toggle"]
 		// Whitelist: only allow known safe boolean pref keys
-		if(!(key in list("sexable", "chastenable", "cursed_enabled", "intimate_enabled", "extreme_erp", "edging", "jelly_controller_enabled", "show_intimate_examine", "intimate_visual_widgets", "intimate_reaction_enabled", "intimate_reaction_show_chastity", "intimate_reaction_show_extreme", "intimate_reaction_show_accessory_free", "intimate_reaction_share_with_partner", "ghost_protection", "masked_examine", "nsfw_examine_always")))
+		if(!(key in list("sexable", "chastenable", "cursed_enabled", "intimate_enabled", "extreme_erp", "edging", "jelly_controller_enabled", "show_intimate_examine", "intimate_visual_widgets", "intimate_reaction_enabled", "intimate_reaction_show_chastity", "intimate_reaction_show_extreme", "intimate_reaction_show_accessory_free", "intimate_reaction_share_with_partner", "ghost_protection", "masked_examine", "nsfw_examine_always", "acknowledge_extreme_offsets")))
 			return
 		vars[key] = !vars[key]
 

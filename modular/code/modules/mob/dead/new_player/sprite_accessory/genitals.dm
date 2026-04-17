@@ -1,58 +1,180 @@
+/// Canonical cardinal directions used by the taur genital props schema.
+/// Keep order stable — TGUI tabs iterate this list.
+GLOBAL_LIST_INIT(taur_genital_dir_keys, list("s", "n", "e", "w"))
+/// Canonical per-part keys. Used by the editor and savefile migration.
+GLOBAL_LIST_INIT(taur_genital_part_keys, list("penis", "testicles", "vagina"))
+/// Per-direction field keys inside a taur-genital props list.
+/// Schema matches /obj/item/proc/getonmobprop — plus per-part/per-dir `hide`.
+///   x/y      : pixel_x / pixel_y offset, -64..64
+///   turn     : rotation degrees, wrapped 0..359
+///   flip     : horizontal mirror (scale -1), 0 or 1
+///   above    : layer override — 0 = BODY_BEHIND, 1 = BODY_FRONT
+///   hide     : omit the overlay entirely for this direction, 0 or 1
+///   shrink   : scale factor, 0.1..4.0 (1.0 = native size)
+GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above", "hide", "shrink"))
+
+/// Per-part default `above` (whether the sprite draws over the body).
+/// Vaginas default to FRONT so they overlay the rear properly; penises and testicles
+/// default to BEHIND so they tuck under the taur body from the front view.
+/proc/default_taur_genital_above_for(part)
+	switch(part)
+		if("vagina")
+			return 1
+	return 0
+
+/// Returns a freshly allocated default props list for the given part.
+/// Callers MUST NOT share the returned list across multiple parts — each call
+/// returns an independent list so edits to one part don't bleed into another.
+/proc/default_taur_genital_props(part = "")
+	var/above = default_taur_genital_above_for(part)
+	. = list()
+	for(var/dir_key in GLOB.taur_genital_dir_keys)
+		.["[dir_key]x"] = 0
+		.["[dir_key]y"] = 0
+		.["[dir_key]turn"] = 0
+		.["[dir_key]flip"] = 0
+		.["[dir_key]above"] = above
+		.["[dir_key]hide"] = 0
+		.["[dir_key]shrink"] = 1.0
+
+/// Sanitizes a loaded props list in-place: ensures all schema keys exist with correct
+/// defaults, clamps numeric ranges, and drops unknown keys. Safe to call with null.
+/proc/sanitize_taur_genital_props(list/props, part = "")
+	var/list/defaults = default_taur_genital_props(part)
+	if(!islist(props))
+		return defaults
+	var/list/out = list()
+	for(var/dir_key in GLOB.taur_genital_dir_keys)
+		var/xk = "[dir_key]x"
+		var/yk = "[dir_key]y"
+		var/tk = "[dir_key]turn"
+		var/fk = "[dir_key]flip"
+		var/ak = "[dir_key]above"
+		var/hk = "[dir_key]hide"
+		var/sk = "[dir_key]shrink"
+		out[xk] = clamp(round(text2num_safe(props[xk], defaults[xk])), TAUR_GENITAL_OFFSET_MIN, TAUR_GENITAL_OFFSET_MAX)
+		out[yk] = clamp(round(text2num_safe(props[yk], defaults[yk])), TAUR_GENITAL_OFFSET_MIN, TAUR_GENITAL_OFFSET_MAX)
+		var/t = round(text2num_safe(props[tk], defaults[tk]))
+		out[tk] = ((t % 360) + 360) % 360
+		out[fk] = text2num_safe(props[fk], defaults[fk]) ? 1 : 0
+		out[ak] = text2num_safe(props[ak], defaults[ak]) ? 1 : 0
+		out[hk] = text2num_safe(props[hk], defaults[hk]) ? 1 : 0
+		var/shrink = text2num_safe(props[sk], defaults[sk])
+		if(!isnum(shrink))
+			shrink = 1.0
+		out[sk] = clamp(shrink, 0.1, 4.0)
+	return out
+
+/// Returns the default global-hide list (one entry per cardinal direction, all zero).
+/proc/default_taur_genital_global_hide()
+	. = list()
+	for(var/dir_key in GLOB.taur_genital_dir_keys)
+		.[dir_key] = 0
+
+/// Sanitizes the global-hide list in place. Safe to call with null.
+/proc/sanitize_taur_genital_global_hide(list/hides)
+	var/list/out = default_taur_genital_global_hide()
+	if(islist(hides))
+		for(var/dir_key in GLOB.taur_genital_dir_keys)
+			out[dir_key] = text2num_safe(hides[dir_key], 0) ? 1 : 0
+	return out
+
+/// Safe text2num that falls back to a default when the value is null or unparseable.
+/proc/text2num_safe(val, default_val = 0)
+	if(isnum(val))
+		return val
+	if(istext(val))
+		var/n = text2num(val)
+		if(!isnull(n))
+			return n
+	return default_val
+
+/// Returns the canonical dir key ("n"/"s"/"e"/"w") for a BYOND dir constant.
+/proc/taur_dir_to_key(dir)
+	switch(dir)
+		if(NORTH)
+			return "n"
+		if(EAST)
+			return "e"
+		if(WEST)
+			return "w"
+	return "s"
+
 /**
- * Applies per-genital-type pixel offsets and layering to any appearance list.
+ * Applies per-genital-type pixel offsets, layering, rotation, mirroring, hiding, and
+ * scaling to any appearance list. Uses the per-direction props-list schema that matches
+ * /obj/item/proc/getonmobprop: every field is keyed by direction so players can tune
+ * each cardinal facing independently.
  *
  * Called by vagina, penis, and testicles adjust_appearance_list overrides when the owner
- * has a taur bodypart AND use_taur_genital_sprites is enabled. Each genital type has its
- * own independent X/Y offsets so players can position them separately.
+ * has a taur bodypart AND use_taur_genital_sprites is enabled.
  *
- * Penis and testicle X offsets are automatically mirrored (negated) when the mob faces
- * west, keeping the sprites aligned with the rear/underside of the taur body.
+ * If the part is hidden for the current direction (per-part hide OR global per-dir hide),
+ * the appearance_list is CLEARED in place and the proc returns early.
  *
- * Layer assignment is automatic per genital type:
- *   - Vaginas: Forced to BODY_FRONT_LAYER (overlays the taur's rear properly).
- *   - Penises: Forced to BODY_BEHIND_LAYER (hidden under the taur body from front).
- *   - Testicles: Forced to BODY_BEHIND_LAYER (same as penis).
- *
- * Reads offsets from mob vars first (set by copy_to), falling back to client prefs.
- * This allows clientless mannequins (lobby preview) to use the correct values.
+ * Reads props from mob vars first (set by copy_to), falling back to client prefs so
+ * clientless mannequins (lobby preview) use the correct values.
  *
  * @param appearance_list  The list of mutable_appearance overlays to adjust in place.
  * @param owner            The carbon mob whose prefs/vars are consulted.
- * @param genital_type     One of "vagina", "penis", or "testicles" — determines offsets and layering.
+ * @param genital_type     One of "vagina", "penis", or "testicles".
  */
 /proc/apply_taur_genital_offsets(list/appearance_list, mob/living/carbon/owner, genital_type = "")
-	var/ox = 0
-	var/oy = 0
-
-	// Read per-genital offsets from mob vars (populated by copy_to from prefs)
+	if(!islist(appearance_list) || !length(appearance_list) || !owner)
+		return
 	var/mob/living/carbon/human/H = owner
-	if(istype(H))
-		switch(genital_type)
-			if("penis")
-				ox = H.taur_penis_offset_x
-				oy = H.taur_penis_offset_y
-			if("testicles")
-				ox = H.taur_testicles_offset_x
-				oy = H.taur_testicles_offset_y
-			if("vagina")
-				ox = H.taur_vagina_offset_x
-				oy = H.taur_vagina_offset_y
+	if(!istype(H))
+		return
 
-	// Mirror X offset for penis and testicles when facing west
-	if(genital_type in list("penis", "testicles"))
-		if(owner.dir == WEST)
-			ox = -ox
+	var/dir_key = taur_dir_to_key(owner.dir)
+
+	// Global per-dir hide: wipe every taur genital overlay for this direction.
+	var/list/global_hide = sanitize_taur_genital_global_hide(H.taur_genital_global_hide)
+	if(global_hide[dir_key])
+		appearance_list.Cut()
+		return
+
+	// Pull the part's props list (lazily sanitized so legacy/null data still works).
+	var/list/props
+	switch(genital_type)
+		if("penis")
+			props = H.taur_penis_props
+		if("testicles")
+			props = H.taur_testicles_props
+		if("vagina")
+			props = H.taur_vagina_props
+	props = sanitize_taur_genital_props(props, genital_type)
+
+	// Per-part per-dir hide.
+	if(props["[dir_key]hide"])
+		appearance_list.Cut()
+		return
+
+	var/ox = props["[dir_key]x"]
+	var/oy = props["[dir_key]y"]
+	var/rot = props["[dir_key]turn"]
+	var/flip = props["[dir_key]flip"]
+	var/above = props["[dir_key]above"]
+	var/shrink = props["[dir_key]shrink"]
+
+	var/matrix/xform = null
+	if(flip || rot || (shrink != 1.0))
+		xform = matrix()
+		if(shrink != 1.0)
+			xform.Scale(shrink, shrink)
+		if(flip)
+			xform.Scale(-1, 1)
+		if(rot)
+			xform.Turn(rot)
+
+	var/target_layer = above ? -BODY_FRONT_LAYER : -BODY_BEHIND_LAYER
 
 	for(var/mutable_appearance/A as anything in appearance_list)
 		A.pixel_x += ox
 		A.pixel_y += oy
-		// Per-genital auto-layering for taurs:
-		// Vaginas overlay the rear (FRONT), penises and testicles tuck under the body (BEHIND).
-		switch(genital_type)
-			if("vagina")
-				A.layer = -BODY_FRONT_LAYER
-			if("penis", "testicles")
-				A.layer = -BODY_BEHIND_LAYER
+		if(xform)
+			A.transform = xform
+		A.layer = target_layer
 
 /**
  * Generates genital overlays using a taur-specific DMI icon file.

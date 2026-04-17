@@ -39,6 +39,33 @@
 		var/datum/customizer_choice/customizer_choice = CUSTOMIZER_CHOICE(entry.customizer_choice_type)
 		customizer_choice.validate_entry(src, entry)
 
+	/// Phase 1 — snap per-entry offset/transform fields back to valid ranges.
+	for(var/datum/customizer_entry/entry as anything in customizer_entries)
+		sanitize_customizer_entry_transform(entry)
+
+	/// Phase 6 — migrate legacy saves into composite sub-entries schema.
+	/// Idempotent: entries with migrated_v >= SUB_ENTRIES_MIGRATION_VERSION
+	/// are skipped. Must run BEFORE the Phase 3 flag recompute so the
+	/// aggregate caches reflect per-sub-entry values once migrated.
+	for(var/datum/customizer_entry/entry as anything in customizer_entries)
+		entry.migrate_sub_entries()
+
+	/// Phase 7 — clamp any transforms that exceed the absolute ceilings.
+	/// Legacy saves predating the ceilings may contain extreme values; we
+	/// silently pull them back to bounds so the character still loads.
+	/// Reject-on-save (see _save_gate_allows) enforces the ceilings going
+	/// forward. Must run AFTER migration so sub-entries exist and BEFORE
+	/// the flag recompute so caches reflect the clamped values.
+	for(var/datum/customizer_entry/entry as anything in customizer_entries)
+		entry.sanitize_clamps()
+
+	/// Phase 3 — prime extreme-offset caches after load / species reset.
+	/// Mutation sites recompute per-entry on their own; this is the
+	/// post-deserialization hook so first-render TSX data isn't stale.
+	for(var/datum/customizer_entry/entry as anything in customizer_entries)
+		entry.recompute_extreme_flags()
+	recompute_aggregate_extreme()
+
 /datum/preferences/proc/print_customizers_page()
 	var/list/dat = list()
 	. = dat
@@ -218,7 +245,7 @@
 		var/datum/body_marking/marking = GLOB.body_markings[marking_name]
 		if(!marking.covers_chest)
 			continue
-		var/marking_color = zone_list[marking_name]
+		var/marking_color = body_marking_entry_color(zone_list[marking_name])
 		return marking_color
 	return null
 

@@ -157,6 +157,81 @@
 		if(viewer_ok && wearer_ok)
 			lines += span_notice("<a href='?src=[REF(src)];task=view_intimate'>View [m2] intimate accessories...</a>")
 
+	// ── Custom piercing stickers (player-authored per-slot decorations) ──
+	lines += get_custom_piercing_examine_lines(user, observer_privilege, m1, m2)
+
+	return lines
+
+/// Returns examine lines listing player-authored custom piercing sticker names
+/// for slots that (a) have an enabled config, (b) contain at least one entry
+/// with a non-empty custom_name, and (c) are currently visible to the examiner.
+/// Requires both wearer and viewer to have intimate examine enabled.
+/mob/living/carbon/human/proc/get_custom_piercing_examine_lines(mob/user, observer_privilege, m1, m2)
+	var/list/lines = list()
+	if(!client?.prefs || !islist(client.prefs.custom_piercings))
+		return lines
+	var/wearer_ok = client.prefs.intimate_enabled && client.prefs.show_intimate_examine
+	var/viewer_ok = !user.client?.prefs || user.client.prefs.intimate_enabled
+	if(!wearer_ok || !viewer_ok)
+		return lines
+
+	// Slot → body zone for accessibility check. Slots with no body zone
+	// ("" / null) are always surfaced when their equip is present (e.g. ear).
+	var/static/list/slot_to_zone = list(
+		"ear" = "",
+		"nose" = BODY_ZONE_PRECISE_NOSE,
+		"tongue" = BODY_ZONE_PRECISE_MOUTH,
+		"breast" = BODY_ZONE_CHEST,
+		"belly" = BODY_ZONE_PRECISE_STOMACH,
+		"genital" = BODY_ZONE_PRECISE_GROIN,
+		"rear" = BODY_ZONE_PRECISE_GROIN,
+		"pintle" = BODY_ZONE_PRECISE_GROIN,
+		"chastity" = BODY_ZONE_PRECISE_GROIN,
+		"insertable_genital" = BODY_ZONE_PRECISE_GROIN,
+		"insertable_rear" = BODY_ZONE_PRECISE_GROIN,
+		// Freeform slots are body-level markings/features — no clothing gate
+		// by default. Players opt out per-slot via hide_from_examine.
+		"custom_upper" = "",
+		"custom_lower" = "",
+	)
+
+	for(var/slot_key in GLOB.custom_piercing_slot_keys)
+		var/list/slot_cfg = client.prefs.custom_piercings[slot_key]
+		if(!islist(slot_cfg) || !slot_cfg["enabled"])
+			continue
+		// Per-slot examine opt-out: player has hidden this slot from others.
+		if(slot_cfg["hide_from_examine"])
+			continue
+		if(!custom_piercing_slot_is_equipped(src, slot_key))
+			continue
+		var/list/entries = slot_cfg["entries"]
+		if(!islist(entries) || !length(entries))
+			continue
+
+		var/zone = slot_to_zone[slot_key]
+		var/visible = observer_privilege || !length(zone) || get_location_accessible(src, zone)
+		if(!visible)
+			continue
+
+		// Collect non-empty custom names for this slot; entries without one
+		// fall back to the sticker's registry name.
+		var/list/labels = list()
+		for(var/list/entry in entries)
+			var/label = entry["custom_name"]
+			if(!length(label))
+				var/datum/piercing_sticker/S = get_custom_piercing_sticker(entry["sticker"])
+				label = S?.name
+			if(length(label))
+				labels += label
+		if(!length(labels))
+			continue
+
+		// Prefer the player-authored slot display_name when set — used for
+		// freeform slots so the examine line uses the name the player chose.
+		var/slot_label = slot_cfg["display_name"]
+		if(!length(slot_label))
+			slot_label = GLOB.custom_piercing_slot_labels[slot_key] || slot_key
+		lines += span_notice("[m1] [lowertext(slot_label)] bears [english_list(labels)].")
 	return lines
 
 /mob/living/carbon/human/proc/human_modular_chastity_toy_examine_line(mob/user, m2, m3)

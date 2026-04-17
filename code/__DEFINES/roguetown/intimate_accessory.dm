@@ -11,6 +11,12 @@
 #define INTIMATE_SLOT_EAR 6
 #define INTIMATE_SLOT_NOSE 7
 #define INTIMATE_SLOT_BELLY 8
+/// Freeform custom decoration slots — not tied to any intimate accessory
+/// item. Player-authored name + examine flavor, rendered directly onto the
+/// mob via the custom piercing sticker composer. No physical item is
+/// required; used for custom markings, tongues, adornments, etc.
+#define INTIMATE_SLOT_CUSTOM_UPPER 9
+#define INTIMATE_SLOT_CUSTOM_LOWER 10
 
 #define INTIMATE_FLAG_INSERTABLE (1<<0)
 #define INTIMATE_FLAG_PIERCING (1<<1)

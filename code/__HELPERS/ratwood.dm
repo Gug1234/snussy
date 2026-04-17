@@ -11,7 +11,7 @@
 			if(set_name in marking_list)
 				if(!body_markings[zone])
 					body_markings[zone] = list()
-				body_markings[zone][set_name] = BM.get_default_color(features, pref_species)
+				body_markings[zone][set_name] = body_marking_entry_defaults(BM.get_default_color(features, pref_species))
 	return body_markings
 
 /proc/marking_list_of_zone_for_species(zone, datum/species/species)

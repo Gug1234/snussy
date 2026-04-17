@@ -4,8 +4,7 @@
  * Adds per-character custom sex action flavor text storage and validation.
  * Data is serialized as JSON and stored in a sidecar file per character slot
  * (sex_flavors_[slot].json) to avoid the BYOND savefile ~64 KB per-entry
- * limit. Load path migrates one-shot from the legacy "custom_sex_flavors_json"
- * savefile entry if the sidecar does not yet exist.
+ * limit.
  *
  * Shared constants live in modular/code/__DEFINES/roguetown/sexcon_modular.dm
  * so they are available to all consumers regardless of DME include order.

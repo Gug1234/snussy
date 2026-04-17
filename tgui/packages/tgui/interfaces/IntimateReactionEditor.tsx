@@ -1,5 +1,5 @@
 /**
- * IntimateReactionEditor.tsx — TGUI interface for Intimate Reaction Text.
+ * IntimateReactionEditor.tsx â€” TGUI interface for Intimate Reaction Text.
  *
  * Allows players to write per-character flavor strings for movement
  * descriptions, body exposure, and sex-action reactions. These strings
@@ -7,8 +7,10 @@
  * accessories equipped.
  *
  * Layout:
- *   Left panel  — category sidebar with highlighted selection.
- *   Right panel — default strings, custom strings, input, preview, tokens.
+ *   Top bar     â€” save / export / import.
+ *   Left panel  â€” bank selector, category list, preset loader, visibility info.
+ *   Right panel â€” default strings, input row, dual preview, token reference,
+ *                 custom strings list.
  */
 
 import { useState } from 'react';
@@ -16,9 +18,10 @@ import { Box, Button, NoticeBox, NumberInput, Section, Stack, TextArea } from 't
 import type { BooleanLike } from 'tgui-core/react';
 
 import { useBackend } from '../backend';
+import { useDebouncedCallback } from '../common/useDebouncedCallback';
 import { Window } from '../layouts';
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type Bank = {
   id: string;
@@ -69,7 +72,7 @@ type BackendData = {
   resolved_preview?: string;
 };
 
-// ── Component ────────────────────────────────────────────────────────────────
+// â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Static tooltip descriptions for each token. */
 const TOKEN_DESCS: Record<string, string> = {
@@ -78,7 +81,7 @@ const TOKEN_DESCS: Record<string, string> = {
   '[THEY]': 'Your pronoun (they/she/he).',
   '[THEM]': 'Your pronoun (them/her/him).',
   '[THEIR]': 'Your possessive (their/her/his).',
-  '[THEIR_CAP]': 'Capitalized possessive (Their/Her/His) — use at sentence starts.',
+  '[THEIR_CAP]': 'Capitalized possessive (Their/Her/His) â€” use at sentence starts.',
   '[TTHEY]': 'Target\'s pronoun (they/she/he).',
   '[TTHEM]': 'Target\'s pronoun (them/her/him).',
   '[TTHEIR]': 'Target\'s possessive (their/her/his).',
@@ -98,847 +101,1133 @@ const TOKEN_DESCS: Record<string, string> = {
   '[PLUG]': 'Your plug\'s name (Plug bank only).',
 };
 
-export function IntimateReactionEditor() {
-  const { act, data } = useBackend<BackendData>();
+// â”€â”€ Preset chip row helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  const [inputText, setInputText] = useState('');
-  const [showImport, setShowImport] = useState(false);
-  const [importText, setImportText] = useState('');
-  const [showTokens, setShowTokens] = useState(false);
-  const [showDefaults, setShowDefaults] = useState(true);
-  const [previewText, setPreviewText] = useState('');
-  /** Index (0-based) of the custom string being edited, or -1 for "add new" mode. */
-  const [editingIndex, setEditingIndex] = useState(-1);
-  /** Preset dropdown state */
-  const [selectedSpecies, setSelectedSpecies] = useState('');
-  const [selectedStage, setSelectedStage] = useState('');
-  const [selectedGenital, setSelectedGenital] = useState('');
-  /** Set of group names that are currently collapsed in the sidebar. */
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
-    new Set(),
+type ChipOption = { id: string; label: string; desc?: string };
+
+function PresetChipRow({
+  options,
+  selected,
+  onSelect,
+}: {
+  options: ChipOption[];
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <Stack wrap>
+      {options.map((opt) => (
+        <Stack.Item key={opt.id} mr={0.25} mb={0.25}>
+          <Button
+            compact
+            selected={opt.id === selected}
+            tooltip={opt.desc}
+            tooltipPosition="right"
+            onClick={() => onSelect(opt.id)}
+          >
+            {opt.label}
+          </Button>
+        </Stack.Item>
+      ))}
+    </Stack>
   );
+}
 
-  if (data.invalid) {
-    return (
-      <Window title="Intimate Reaction Editor" width={780} height={700}>
-        <Window.Content>
-          <NoticeBox danger>
-            Session invalid. Close and reopen the editor.
-          </NoticeBox>
-        </Window.Content>
-      </Window>
-    );
-  }
+// â”€â”€ Sidebar (banks + categories + presets + info) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+function Sidebar() {
+  const { act, data } = useBackend<BackendData>();
   const {
-    selected_category,
     selected_bank,
-    max_strings,
-    max_length,
+    selected_category,
     banks,
     categories,
-    current_strings,
-    current_weights = [],
-    default_strings,
-    tokens,
     preset_species,
     preset_stages,
     preset_genitals,
     preset_result,
     preset_result_success,
-    resolved_preview,
   } = data;
-  const atLimit = current_strings.length >= max_strings;
 
-  // Filter hidden categories from the sidebar display.
+  const [selectedSpecies, setSelectedSpecies] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
+  const [selectedGenital, setSelectedGenital] = useState('');
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  // Two-stage confirm state for destructive preset ops. Mirrors
+  // SexFlavorEditor.applyAllConfirm — first click opens the confirm panel,
+  // second click inside that panel fires the act.
+  const [loadPresetConfirm, setLoadPresetConfirm] = useState(false);
+  const [loadAllConfirm, setLoadAllConfirm] = useState(false);
+
   const visibleCategories = categories.filter((cat) => !cat.hidden);
-
-  // Determine if the currently selected stage needs a genital selection.
-  const currentStageInfo = preset_stages?.find(
-    (s) => s.id === selectedStage,
-  );
+  const hasGroups = visibleCategories.some((c) => c.group);
+  const currentStageInfo = preset_stages?.find((s) => s.id === selectedStage);
   const needsGenital = !!currentStageInfo?.has_genital;
   const canLoadPreset =
-    !!selectedSpecies &&
-    !!selectedStage &&
-    (!needsGenital || !!selectedGenital);
+    !!selectedSpecies && !!selectedStage && (!needsGenital || !!selectedGenital);
 
-  /** Adds a default string to the player's custom pool. */
-  const adoptDefault = (str: string) => {
-    if (!atLimit) {
-      act('add_string', { text: str });
+  function toggleGroup(name: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }
+
+  const activeOutline = { outline: '2px solid rgba(255,255,255,0.65)', outlineOffset: '-2px', fontWeight: 'bold' as const };
+
+  const flatCategoryButtons = visibleCategories.map((cat) => {
+    const isActive = cat.key === selected_category;
+    return (
+      <Button
+        key={cat.key}
+        fluid
+        selected={isActive}
+        tooltip={cat.desc}
+        tooltipPosition="right"
+        onClick={() => act('select_category', { category: cat.key })}
+        style={isActive ? activeOutline : undefined}
+      >
+        {cat.label}
+        <Box inline ml={0.5} opacity={0.5} style={{ fontSize: '10px' }}>
+          ({cat.count})
+        </Box>
+      </Button>
+    );
+  });
+
+  const groupedCategoryBlocks = (() => {
+    const groups: { name: string; cats: Category[] }[] = [];
+    let currentGroup: { name: string; cats: Category[] } | null = null;
+    for (const cat of visibleCategories) {
+      const g = cat.group || 'Other';
+      if (!currentGroup || currentGroup.name !== g) {
+        currentGroup = { name: g, cats: [] };
+        groups.push(currentGroup);
+      }
+      currentGroup.cats.push(cat);
     }
-  };
-
-  return (
-    <Window title="Intimate Reaction Editor" width={780} height={750}>
-      <Window.Content>
-        <Stack fill>
-          {/* ── Left sidebar: bank + categories ── */}
-          <Stack.Item
-            width="210px"
+    return groups.map((group) => {
+      const isCollapsed = collapsedGroups.has(group.name);
+      const groupCount = group.cats.reduce((s, c) => s + c.count, 0);
+      const hasActive = group.cats.some((c) => c.key === selected_category);
+      return (
+        <Box key={group.name} mt={0.5}>
+          <Button
+            fluid
+            color="transparent"
+            icon={isCollapsed ? 'chevron-right' : 'chevron-down'}
+            onClick={() => toggleGroup(group.name)}
             style={{
-              borderRight: '1px solid rgba(255,255,255,0.15)',
-              paddingRight: '6px',
-              overflowY: 'auto',
-              overflowX: 'hidden',
+              background: 'rgba(255,255,255,0.07)',
+              borderRadius: '3px',
+              fontWeight: 'bold',
+              fontSize: '11px',
+              ...(hasActive ? { outline: '1px solid rgba(79,195,247,0.6)' } : {}),
             }}
           >
-            {/* Bank selector dropdown */}
-            <Section title="String Bank">
-              {banks
-                .filter((b) => b.available)
-                .map((b) => (
-                  <Button
-                    key={b.id}
-                    fluid
-                    selected={b.id === selected_bank}
-                    tooltip={b.desc}
-                    tooltipPosition="right"
-                    onClick={() => {
-                      act('change_bank', { bank: b.id });
-                      setEditingIndex(-1);
-                      setInputText('');
-                    }}
-                    style={
-                      b.id === selected_bank
-                        ? {
-                            borderLeft: '3px solid #81c784',
-                            fontWeight: 'bold',
-                          }
-                        : { borderLeft: '3px solid transparent' }
-                    }
-                  >
-                    {b.label}
-                  </Button>
-                ))}
-            </Section>
-
-            <Section title="Categories">
-              {(() => {
-                // Check if categories have group metadata.
-                const hasGroups = visibleCategories.some((c) => c.group);
-                if (!hasGroups) {
-                  // Flat list (non-jelly banks).
-                  return visibleCategories.map((cat) => {
-                    const isActive = cat.key === selected_category;
-                    return (
-                      <Button
-                        key={cat.key}
-                        fluid
-                        selected={isActive}
-                        tooltip={cat.desc}
-                        tooltipPosition="right"
-                        onClick={() => {
-                          act('select_category', { category: cat.key });
-                          setEditingIndex(-1);
-                          setInputText('');
-                        }}
-                        style={
-                          isActive
-                            ? {
-                                borderLeft: '3px solid #4fc3f7',
-                                fontWeight: 'bold',
-                              }
-                            : { borderLeft: '3px solid transparent' }
-                        }
-                      >
-                        {cat.label} ({cat.count})
-                      </Button>
-                    );
-                  });
-                }
-                // Grouped rendering (jelly bank).
-                const groups: { name: string; cats: Category[] }[] = [];
-                let currentGroup: { name: string; cats: Category[] } | null =
-                  null;
-                for (const cat of visibleCategories) {
-                  const g = cat.group || 'Other';
-                  if (!currentGroup || currentGroup.name !== g) {
-                    currentGroup = { name: g, cats: [] };
-                    groups.push(currentGroup);
-                  }
-                  currentGroup.cats.push(cat);
-                }
-                return groups.map((group) => {
-                  const isCollapsed = collapsedGroups.has(group.name);
-                  const groupCount = group.cats.reduce(
-                    (s, c) => s + c.count,
-                    0,
-                  );
-                  const hasActive = group.cats.some(
-                    (c) => c.key === selected_category,
-                  );
-                  return (
-                    <Box key={group.name} mb={0.5}>
-                      <Button
-                        fluid
-                        icon={isCollapsed ? 'chevron-right' : 'chevron-down'}
-                        onClick={() => {
-                          setCollapsedGroups((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(group.name)) {
-                              next.delete(group.name);
-                            } else {
-                              next.add(group.name);
-                            }
-                            return next;
-                          });
-                        }}
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: '11px',
-                          borderLeft: hasActive
-                            ? '3px solid #4fc3f7'
-                            : '3px solid transparent',
-                          background: 'rgba(255,255,255,0.04)',
-                        }}
-                      >
-                        {group.name} ({groupCount})
-                      </Button>
-                      {!isCollapsed &&
-                        group.cats.map((cat) => {
-                          const isActive = cat.key === selected_category;
-                          return (
-                            <Button
-                              key={cat.key}
-                              fluid
-                              selected={isActive}
-                              tooltip={cat.desc}
-                              tooltipPosition="right"
-                              onClick={() => {
-                                act('select_category', {
-                                  category: cat.key,
-                                });
-                                setEditingIndex(-1);
-                                setInputText('');
-                              }}
-                              style={{
-                                paddingLeft: '16px',
-                                fontSize: '11px',
-                                borderLeft: isActive
-                                  ? '3px solid #4fc3f7'
-                                  : '3px solid transparent',
-                                fontWeight: isActive ? 'bold' : 'normal',
-                              }}
-                            >
-                              {cat.label} ({cat.count})
-                            </Button>
-                          );
-                        })}
-                    </Box>
-                  );
-                });
-              })()}
-            </Section>
-
-            {/* ── Species/Biology presets (character bank only) ── */}
-            {selected_bank === 'character' && preset_species && preset_stages && (
-              <Section title="Load Preset">
-                <Box fontSize="11px" opacity={0.6} mb={0.5}>
-                  Populate categories with pre-written strings for a given
-                  species and arousal tier. This will{' '}
-                  <b>replace all existing strings</b> in the affected
-                  categories (Movement, Sex Received, and Anal Received
-                  where applicable).
+            {group.name}
+            <Box inline ml={0.5} opacity={0.5} style={{ fontSize: '10px' }}>
+              ({groupCount})
+            </Box>
+          </Button>
+          {!isCollapsed && group.cats.map((cat) => {
+            const isActive = cat.key === selected_category;
+            return (
+              <Button
+                key={cat.key}
+                fluid
+                selected={isActive}
+                tooltip={cat.desc}
+                tooltipPosition="right"
+                onClick={() => act('select_category', { category: cat.key })}
+                style={{
+                  marginLeft: '8px',
+                  fontSize: '11px',
+                  ...(isActive ? activeOutline : {}),
+                }}
+              >
+                {cat.label}
+                <Box inline ml={0.5} opacity={0.5} style={{ fontSize: '10px' }}>
+                  ({cat.count})
                 </Box>
+              </Button>
+            );
+          })}
+        </Box>
+      );
+    });
+  })();
 
-                {/* Species */}
-                <Box mb={0.5} fontSize="11px" opacity={0.8}>
-                  Species:
-                </Box>
-                {preset_species.map((sp) => {
-                  const active = sp.id === selectedSpecies;
-                  return (
-                    <Button
-                      key={sp.id}
-                      compact
-                      selected={active}
-                      onClick={() => setSelectedSpecies(sp.id)}
-                      style={{
-                        borderBottom: active
-                          ? '2px solid #81c784'
-                          : '2px solid transparent',
-                        fontWeight: active ? 'bold' : 'normal',
-                      }}
-                    >
-                      {sp.label}
-                    </Button>
-                  );
-                })}
+  const bankButtons = banks.filter((b) => b.available).map((b) => {
+    const isActive = b.id === selected_bank;
+    return (
+      <Button
+        key={b.id}
+        fluid
+        selected={isActive}
+        tooltip={b.desc}
+        tooltipPosition="right"
+        onClick={() => act('change_bank', { bank: b.id })}
+        style={isActive ? activeOutline : undefined}
+      >
+        {b.label}
+      </Button>
+    );
+  });
 
-                {/* Stage */}
-                <Box mt={0.5} mb={0.5} fontSize="11px" opacity={0.8}>
-                  Stage:
-                </Box>
-                {preset_stages.map((st) => {
-                  const active = st.id === selectedStage;
-                  return (
-                    <Button
-                      key={st.id}
-                      compact
-                      selected={active}
-                      tooltip={st.desc}
-                      tooltipPosition="right"
-                      onClick={() => {
-                        setSelectedStage(st.id);
-                      }}
-                      style={{
-                        borderBottom: active
-                          ? '2px solid #81c784'
-                          : '2px solid transparent',
-                        fontWeight: active ? 'bold' : 'normal',
-                      }}
-                    >
-                      {st.label}
-                    </Button>
-                  );
-                })}
+  return (
+    <Stack.Item
+      width="240px"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        borderRight: '1px solid rgba(255,255,255,0.15)',
+        paddingRight: '6px',
+      }}
+    >
+      <Section title="String Bank">
+        <Box fontSize="10px" opacity={0.6} mb={0.5}>
+          Which pool of reactions are you editing?
+        </Box>
+        {bankButtons}
+      </Section>
 
-                {/* Genital — always selectable (used by both Load Preset and Apply All) */}
-                {preset_genitals && (
-                  <>
-                    <Box
-                      mt={0.5}
-                      mb={0.5}
-                      fontSize="11px"
-                      opacity={0.8}
-                    >
-                      Genital:
-                      {!needsGenital && selectedStage && (
-                        <Box as="span" ml={0.5} italic>
-                          (not needed for single-stage load)
-                        </Box>
-                      )}
-                    </Box>
-                    {preset_genitals.map((g) => {
-                      const active = g.id === selectedGenital;
-                      return (
-                        <Button
-                          key={g.id}
-                          compact
-                          selected={active}
-                          onClick={() => setSelectedGenital(g.id)}
-                          style={{
-                            borderBottom: active
-                              ? '2px solid #81c784'
-                              : '2px solid transparent',
-                            fontWeight: active ? 'bold' : 'normal',
-                          }}
-                        >
-                          {g.label}
-                        </Button>
-                      );
-                    })}
-                  </>
+      <Section title="Categories">
+        {hasGroups ? groupedCategoryBlocks : flatCategoryButtons}
+      </Section>
+
+      {selected_bank === 'character' && preset_species && preset_stages && (
+        <Section title="Load Preset">
+          <Box fontSize="10px" opacity={0.6} mb={0.5}>
+            Populate categories with pre-written strings for a given species and arousal tier.
+            This will <b>replace all existing strings</b> in the affected categories (Movement,
+            Sex Received, and Anal Received where applicable).
+          </Box>
+
+          <Box fontSize="10px" opacity={0.7} mb={0.25}>Species:</Box>
+          <PresetChipRow
+            options={preset_species}
+            selected={selectedSpecies}
+            onSelect={setSelectedSpecies}
+          />
+
+          <Box fontSize="10px" opacity={0.7} mb={0.25} mt={0.5}>Stage:</Box>
+          <PresetChipRow
+            options={preset_stages}
+            selected={selectedStage}
+            onSelect={setSelectedStage}
+          />
+
+          {preset_genitals && (
+            <>
+              <Box fontSize="10px" opacity={0.7} mb={0.25} mt={0.5}>
+                Genital:
+                {!needsGenital && selectedStage && (
+                  <Box inline ml={0.5} italic opacity={0.6}>
+                    (not needed for this stage)
+                  </Box>
                 )}
+              </Box>
+              <PresetChipRow
+                options={preset_genitals}
+                selected={selectedGenital}
+                onSelect={setSelectedGenital}
+              />
+            </>
+          )}
 
-                {/* Load buttons */}
-                <Box mt={1}>
+          <Button
+            fluid
+            icon="download"
+            color="good"
+            disabled={!canLoadPreset}
+            mt={0.5}
+            onClick={() => setLoadPresetConfirm(true)}
+          >
+            Load Preset
+          </Button>
+          {loadPresetConfirm && (
+            <Box mt={0.5} p={0.5} style={{ background: 'rgba(255,150,50,0.12)', borderRadius: '3px', border: '1px solid rgba(255,150,50,0.4)' }}>
+              <Box fontSize="10px" color="bad" mb={0.5} bold>
+                This replaces all strings in Movement, Sex Received, and Anal
+                Received for the selected tier. Continue?
+              </Box>
+              <Stack>
+                <Stack.Item>
                   <Button
-                    fluid
-                    icon="download"
-                    color="good"
-                    disabled={!canLoadPreset}
-                    onClick={() =>
+                    icon="check"
+                    color="bad"
+                    onClick={() => {
                       act('load_preset', {
                         species: selectedSpecies,
                         stage: selectedStage,
                         genital: needsGenital ? selectedGenital : null,
-                      })
-                    }
+                      });
+                      setLoadPresetConfirm(false);
+                    }}
                   >
-                    Load Preset
+                    Confirm
                   </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button icon="times" onClick={() => setLoadPresetConfirm(false)}>
+                    Cancel
+                  </Button>
+                </Stack.Item>
+              </Stack>
+            </Box>
+          )}
+          <Button
+            fluid
+            icon="download"
+            color="average"
+            disabled={!selectedSpecies || !selectedGenital}
+            tooltip="Load ALL tiers for this species using the selected genital variant (replaces all character bank strings)"
+            mt={0.5}
+            onClick={() => setLoadAllConfirm(true)}
+          >
+            Apply All ({selectedSpecies || 'â€¦'}
+            {selectedGenital ? ` â€” ${selectedGenital}` : ''})
+          </Button>
+          {loadAllConfirm && (
+            <Box mt={0.5} p={0.5} style={{ background: 'rgba(255,80,80,0.12)', borderRadius: '3px', border: '1px solid rgba(255,80,80,0.4)' }}>
+              <Box fontSize="10px" color="bad" mb={0.5} bold>
+                This overwrites EVERY tier in the character bank with preset
+                text, wiping all your custom strings. Continue?
+              </Box>
+              <Stack>
+                <Stack.Item>
                   <Button
-                    fluid
-                    icon="download"
-                    color="average"
-                    disabled={!selectedSpecies || !selectedGenital}
-                    tooltip="Load ALL tiers for this species using the selected genital variant (replaces all character bank strings)"
-                    onClick={() =>
+                    icon="check"
+                    color="bad"
+                    onClick={() => {
                       act('load_all_presets', {
                         species: selectedSpecies,
                         genital: selectedGenital,
-                      })
-                    }
-                    mt={0.5}
+                      });
+                      setLoadAllConfirm(false);
+                    }}
                   >
-                    Apply All ({selectedSpecies || '…'}{' '}
-                    {selectedGenital ? `— ${selectedGenital}` : ''})
+                    Confirm
                   </Button>
-                </Box>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button icon="times" onClick={() => setLoadAllConfirm(false)}>
+                    Cancel
+                  </Button>
+                </Stack.Item>
+              </Stack>
+            </Box>
+          )}
 
-                {/* Inline feedback after loading */}
-                {!!preset_result &&
-                  (preset_result_success ? (
-                    <NoticeBox mt={1} success>
-                      {preset_result}
-                    </NoticeBox>
-                  ) : (
-                    <NoticeBox mt={1} danger>
-                      {preset_result}
-                    </NoticeBox>
-                  ))}
-              </Section>
-            )}
+          {!!preset_result && (preset_result_success ? (
+            <NoticeBox mt={1} success>{preset_result}</NoticeBox>
+          ) : (
+            <NoticeBox mt={1} danger>{preset_result}</NoticeBox>
+          ))}
+        </Section>
+      )}
 
-            <Section title="Data">
-              <Button
-                fluid
-                icon="save"
-                color={data.dirty ? 'caution' : 'green'}
-                onClick={() => act('save')}
-              >
-                {data.dirty ? 'Save (Unsaved Changes)' : 'Saved'}
-              </Button>
-              <Button
-                fluid
-                icon="file-export"
-                onClick={() => act('export_data')}
-              >
-                Export All
-              </Button>
-              <Button
-                fluid
-                icon="file-import"
-                selected={showImport}
-                onClick={() => setShowImport(!showImport)}
-              >
-                Import
-              </Button>
-            </Section>
+      <Section title="Who Sees This?">
+        <Box fontSize="11px" opacity={0.8}>
+          <b>Movement text</b> is shown only to <em>you</em> (the wearer).
+        </Box>
+        <Box fontSize="11px" opacity={0.8} mt={0.5}>
+          <b>Sex Received text</b> is shown only to <em>you</em> when another player performs a
+          sex action on you.
+        </Box>
+        <Box fontSize="10px" opacity={0.6} mt={0.5}>
+          Viewers must have <em>Intimate Reactions</em> and <em>Accessory-Free Flavor</em>
+          {' '}enabled in their ERP preferences to see any output.
+        </Box>
+      </Section>
+    </Stack.Item>
+  );
+}
 
-            {/* ── Visibility info ── */}
-            <Section title="Who Sees This?">
-              <Box fontSize="11px" opacity={0.8}>
-                <b>Movement text</b> is shown only to <em>you</em> (the
-                wearer).
-              </Box>
-              <Box fontSize="11px" opacity={0.8} mt={0.5}>
-                <b>Sex Received text</b> is shown only to <em>you</em> when
-                another player performs a sex action on you.
-              </Box>
-              <Box fontSize="11px" opacity={0.6} mt={0.5}>
-                Viewers must have <em>Intimate Reactions</em> and{' '}
-                <em>Accessory-Free Flavor</em> enabled in their ERP
-                preferences to see any output.
-              </Box>
-            </Section>
-          </Stack.Item>
+// â”€â”€ Default strings Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-          {/* ── Right panel: string editor ── */}
-          <Stack.Item
-            grow
+function DefaultStringRow({
+  str,
+  atLimit,
+  onAdopt,
+  onPreview,
+}: {
+  str: string;
+  atLimit: boolean;
+  onAdopt: (str: string) => void;
+  onPreview: (str: string) => void;
+}) {
+  return (
+    <Stack align="center" mb={0.5}>
+      <Stack.Item grow>
+        <Box
+          p={0.5}
+          italic
+          style={{
+            background: 'rgba(0,0,0,0.35)',
+            borderRadius: '3px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            fontSize: '12px',
+            color: '#d8d8d8',
+            wordBreak: 'break-word',
+          }}
+        >
+          {str}
+        </Box>
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          icon="plus"
+          color="good"
+          disabled={atLimit}
+          tooltip="Add to custom strings"
+          onClick={() => onAdopt(str)}
+        />
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          icon="search"
+          tooltip="Preview this string"
+          onClick={() => onPreview(str)}
+        />
+      </Stack.Item>
+    </Stack>
+  );
+}
+
+function DefaultStringsSection({
+  strings,
+  show,
+  onToggleShow,
+  atLimit,
+  onAdopt,
+  onPreview,
+}: {
+  strings: string[];
+  show: boolean;
+  onToggleShow: () => void;
+  atLimit: boolean;
+  onAdopt: (str: string) => void;
+  onPreview: (str: string) => void;
+}) {
+  return (
+    <Section
+      title="Default Strings"
+      buttons={
+        <Button compact icon={show ? 'eye-slash' : 'eye'} onClick={onToggleShow}>
+          {show ? 'Hide' : 'Show'}
+        </Button>
+      }
+    >
+      {show && (
+        <>
+          <Box fontSize="10px" opacity={0.6} mb={0.5}>
+            Built-in fallback strings. Click <b>+</b> to adopt one into your custom pool, or
+            the magnifier to preview it. If you have no custom strings, these are used
+            automatically.
+          </Box>
+          {strings.map((str, idx) => (
+            <DefaultStringRow
+              key={idx}
+              str={str}
+              atLimit={atLimit}
+              onAdopt={onAdopt}
+              onPreview={onPreview}
+            />
+          ))}
+        </>
+      )}
+    </Section>
+  );
+}
+
+// â”€â”€ Input Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function InputButtons({
+  isEditing,
+  inputText,
+  atLimit,
+  onAddOrUpdate,
+  onCancel,
+  onPreview,
+}: {
+  isEditing: boolean;
+  inputText: string;
+  atLimit: boolean;
+  onAddOrUpdate: () => void;
+  onCancel: () => void;
+  onPreview: () => void;
+}) {
+  if (isEditing) {
+    return (
+      <>
+        <Button
+          icon="check"
+          color="good"
+          disabled={!inputText.trim()}
+          onClick={onAddOrUpdate}
+        >
+          Update
+        </Button>
+        <Button icon="times" onClick={onCancel}>Cancel</Button>
+        <Button
+          icon="search"
+          disabled={!inputText.trim()}
+          tooltip="Preview with token resolution"
+          onClick={onPreview}
+        >
+          Preview
+        </Button>
+      </>
+    );
+  }
+  return (
+    <>
+      <Button
+        icon="plus"
+        color="good"
+        disabled={atLimit || !inputText.trim()}
+        onClick={onAddOrUpdate}
+      >
+        Add
+      </Button>
+      <Button
+        icon="search"
+        disabled={!inputText.trim()}
+        tooltip="Preview with token resolution"
+        onClick={onPreview}
+      >
+        Preview
+      </Button>
+    </>
+  );
+}
+
+function TokenRow({
+  tokens,
+  onAppend,
+}: {
+  tokens: string[];
+  onAppend: (token: string) => void;
+}) {
+  return (
+    <Stack wrap>
+      {tokens.map((token) => (
+        <Stack.Item key={token}>
+          <Button
+            compact
+            color="transparent"
+            tooltip={TOKEN_DESCS[token]}
+            onClick={() => onAppend(token)}
+          >
+            {token}
+          </Button>
+        </Stack.Item>
+      ))}
+    </Stack>
+  );
+}
+
+function InputSection({
+  isEditing,
+  editingIndex,
+  inputText,
+  setInputText,
+  atLimit,
+  maxLength,
+  maxStrings,
+  tokens,
+  showTokens,
+  toggleTokens,
+  onAppendToken,
+  onAddOrUpdate,
+  onCancel,
+  onPreview,
+}: {
+  isEditing: boolean;
+  editingIndex: number;
+  inputText: string;
+  setInputText: (v: string) => void;
+  atLimit: boolean;
+  maxLength: number;
+  maxStrings: number;
+  tokens: string[];
+  showTokens: boolean;
+  toggleTokens: () => void;
+  onAppendToken: (token: string) => void;
+  onAddOrUpdate: () => void;
+  onCancel: () => void;
+  onPreview: () => void;
+}) {
+  const placeholder = isEditing
+    ? 'Edit this stringâ€¦'
+    : atLimit
+      ? 'Limit reached â€” remove a string before adding another.'
+      : `Write a flavor stringâ€¦ (max ${maxLength} chars)`;
+
+  return (
+    <Section title={isEditing ? `Editing String #${editingIndex + 1}` : 'Add String'}>
+      <Stack>
+        <Stack.Item grow>
+          <TextArea
+            fluid
+            height="5rem"
+            maxLength={maxLength}
+            placeholder={placeholder}
+            disabled={!isEditing && atLimit}
+            value={inputText}
+            onChange={(val) => setInputText(val)}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <InputButtons
+            isEditing={isEditing}
+            inputText={inputText}
+            atLimit={atLimit}
+            onAddOrUpdate={onAddOrUpdate}
+            onCancel={onCancel}
+            onPreview={onPreview}
+          />
+        </Stack.Item>
+      </Stack>
+
+      <Stack align="center" mt={0.5} mb={0.25}>
+        <Stack.Item grow>
+          <Box opacity={0.7} fontSize="10px">
+            Tokens (click to insert; resolved at runtime):
+          </Box>
+        </Stack.Item>
+        <Stack.Item>
+          <Button
+            compact
+            color="transparent"
+            icon={showTokens ? 'chevron-up' : 'chevron-down'}
+            onClick={toggleTokens}
+          >
+            {showTokens ? 'Hide' : 'Show'}
+          </Button>
+        </Stack.Item>
+      </Stack>
+      {showTokens && <TokenRow tokens={tokens} onAppend={onAppendToken} />}
+
+      <Box fontSize="10px" opacity={0.5} mt={0.5}>
+        Max {maxLength} characters per string Â· {maxStrings} strings per category.
+      </Box>
+    </Section>
+  );
+}
+
+// â”€â”€ Preview Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function PreviewSection({
+  previewText,
+  resolvedPreview,
+  onClose,
+}: {
+  previewText: string;
+  resolvedPreview?: string;
+  onClose: () => void;
+}) {
+  return (
+    <Section
+      title="Live Preview"
+      buttons={<Button compact icon="times" onClick={onClose} />}
+    >
+      <Stack>
+        <Stack.Item grow basis="50%">
+          <Box opacity={0.7} fontSize="10px" mb={0.25}>Raw template:</Box>
+          <Box
+            p={0.5}
+            italic
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              overflowY: 'auto',
-              overflowX: 'hidden',
+              background: 'rgba(0,0,0,0.4)',
+              borderRadius: '3px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              fontSize: '12px',
+              color: '#d8d8d8',
+              wordBreak: 'break-word',
             }}
           >
-            <Stack vertical fill>
-              {/* Import panel (toggled) */}
-              {showImport && (
-                <Stack.Item>
-                  <Section title="Import Data">
-                    <Box fontSize="11px" opacity={0.7} mb={1}>
-                      Paste an exported data string below.{' '}
-                      <b>This replaces all existing data</b> — export first
-                      for a backup.
-                    </Box>
-                    <Stack>
-                      <Stack.Item grow>
-                        <TextArea
-                          fluid
-                          height="3rem"
-                          placeholder="Paste exported string here…"
-                          value={importText}
-                          onChange={(val) => setImportText(val)}
-                        />
-                      </Stack.Item>
-                      <Stack.Item>
-                        <Button
-                          icon="check"
-                          color="good"
-                          disabled={!importText.trim()}
-                          onClick={() => {
-                            act('import_data', {
-                              payload: importText.trim(),
-                            });
-                            setImportText('');
-                            setShowImport(false);
-                          }}
-                        >
-                          Import
-                        </Button>
-                      </Stack.Item>
-                    </Stack>
-                  </Section>
-                </Stack.Item>
-              )}
+            {previewText}
+          </Box>
+        </Stack.Item>
+        {resolvedPreview && (
+          <Stack.Item grow basis="50%" ml={0.5}>
+            <Box opacity={0.7} fontSize="10px" mb={0.25}>Resolved:</Box>
+            <Box
+              p={0.5}
+              italic
+              style={{
+                background: 'rgba(129,199,132,0.1)',
+                borderRadius: '3px',
+                border: '1px solid rgba(129,199,132,0.3)',
+                fontSize: '12px',
+                color: '#ff88cc',
+                wordBreak: 'break-word',
+              }}
+            >
+              {resolvedPreview}
+            </Box>
+          </Stack.Item>
+        )}
+      </Stack>
+    </Section>
+  );
+}
 
-              {/* ── Default strings (from JSON banks) ── */}
-              {default_strings && default_strings.length > 0 && (
-                <Stack.Item>
-                  <Section
-                    title="Default Strings"
-                    buttons={
-                      <Button
-                        icon={showDefaults ? 'eye-slash' : 'eye'}
-                        onClick={() => setShowDefaults(!showDefaults)}
-                      >
-                        {showDefaults ? 'Hide' : 'Show'}
-                      </Button>
-                    }
-                  >
-                    {showDefaults && (
-                      <Box>
-                        <Box fontSize="11px" opacity={0.6} mb={0.5}>
-                          These are the built-in fallback strings. Click the{' '}
-                          <b>+</b> button to copy one into your custom pool
-                          for editing. If you have no custom strings, these
-                          are used automatically.
-                        </Box>
-                        {default_strings.map((str, idx) => (
-                          <Box
-                            key={idx}
-                            mb={0.5}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              gap: '4px',
-                            }}
-                          >
-                            <Box
-                              opacity={0.7}
-                              fontSize="11px"
-                              italic
-                              style={{
-                                wordBreak: 'break-word',
-                                flexGrow: 1,
-                              }}
-                            >
-                              {str}
-                            </Box>
-                            <Button
-                              compact
-                              icon="plus"
-                              color="good"
-                              disabled={atLimit}
-                              tooltip="Add to custom strings"
-                              onClick={() => adoptDefault(str)}
-                            />
-                            <Button
-                              compact
-                              icon="search"
-                              tooltip="Preview this string"
-                              onClick={() => {
-                                setPreviewText(str);
-                                act('preview_string', { text: str });
-                              }}
-                            />
-                          </Box>
-                        ))}
-                      </Box>
-                    )}
-                  </Section>
-                </Stack.Item>
-              )}
+// â”€â”€ Custom strings Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-              {/* ── Custom strings ── */}
+/**
+ * Per-row NumberInput that debounces the `onCommit` act call so rapid drags
+ * fire exactly one server-side update ~300 ms after the last change instead
+ * of one per tick. The useDebouncedCallback hook flushes any pending call on
+ * unmount so the trailing edit is not lost on category/bank switch.
+ */
+function DebouncedWeightInput({
+  value,
+  onCommit,
+}: {
+  value: number;
+  onCommit: (weight: number) => void;
+}) {
+  const debounced = useDebouncedCallback(onCommit, 300);
+  return (
+    <NumberInput
+      width="55px"
+      step={5}
+      stepPixelSize={4}
+      value={value}
+      minValue={0}
+      maxValue={100}
+      onChange={(next) => debounced(next)}
+    />
+  );
+}
+
+function CustomStringRow({
+  idx,
+  str,
+  weight,
+  isEditing,
+  onStartEdit,
+  onPreview,
+  onWeight,
+  onRemove,
+}: {
+  idx: number;
+  str: string;
+  weight: number;
+  isEditing: boolean;
+  onStartEdit: (idx: number, str: string) => void;
+  onPreview: (str: string) => void;
+  onWeight: (idx: number, weight: number) => void;
+  onRemove: (idx: number) => void;
+}) {
+  return (
+    <Stack
+      align="center"
+      mb={0.5}
+      style={
+        isEditing
+          ? { background: 'rgba(79,195,247,0.15)', borderRadius: '3px', padding: '2px 4px' }
+          : undefined
+      }
+    >
+      <Stack.Item grow>
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Edit string ${idx + 1}`}
+          style={{
+            padding: '0.5em',
+            background: 'rgba(255,255,255,0.06)',
+            borderRadius: '3px',
+            fontSize: '11px',
+            cursor: 'pointer',
+            wordBreak: 'break-word',
+          }}
+          onClick={() => onStartEdit(idx, str)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onStartEdit(idx, str);
+            }
+          }}
+        >
+          {idx + 1}. {str}
+        </div>
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          icon="pencil"
+          tooltip="Edit this string"
+          onClick={() => onStartEdit(idx, str)}
+        />
+      </Stack.Item>
+      <Stack.Item>
+        <DebouncedWeightInput
+          value={weight}
+          onCommit={(next) => onWeight(idx, next)}
+        />
+      </Stack.Item>
+      <Stack.Item>
+        <Box fontSize="10px" opacity={0.6}>%</Box>
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          icon="search"
+          tooltip="Preview this string"
+          onClick={() => onPreview(str)}
+        />
+      </Stack.Item>
+      <Stack.Item>
+        <Button
+          compact
+          icon="times"
+          color="bad"
+          onClick={() => onRemove(idx)}
+        />
+      </Stack.Item>
+    </Stack>
+  );
+}
+
+function CustomStringsSection({
+  strings,
+  weights,
+  maxStrings,
+  editingIndex,
+  onStartEdit,
+  onPreview,
+  onWeight,
+  onRemove,
+  onClearAll,
+}: {
+  strings: string[];
+  weights: number[];
+  maxStrings: number;
+  editingIndex: number;
+  onStartEdit: (idx: number, str: string) => void;
+  onPreview: (str: string) => void;
+  onWeight: (idx: number, weight: number) => void;
+  onRemove: (idx: number) => void;
+  onClearAll: () => void;
+}) {
+  const [confirmClear, setConfirmClear] = useState(false);
+  return (
+    <Section
+      title={`Your Strings (${strings.length}/${maxStrings})`}
+      buttons={
+        confirmClear ? (
+          <>
+            <Button
+              compact
+              icon="check"
+              color="bad"
+              onClick={() => {
+                onClearAll();
+                setConfirmClear(false);
+              }}
+            >
+              Confirm Clear
+            </Button>
+            <Button
+              compact
+              icon="times"
+              onClick={() => setConfirmClear(false)}
+            >
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <Button
+            compact
+            icon="trash"
+            color="bad"
+            disabled={strings.length === 0}
+            onClick={() => setConfirmClear(true)}
+          >
+            Clear
+          </Button>
+        )
+      }
+    >
+      {strings.length === 0 ? (
+        <Box opacity={0.5} italic fontSize="11px">
+          No custom strings for this category. Add one above, or adopt a default string.
+        </Box>
+      ) : (
+        strings.map((str, idx) => (
+          <CustomStringRow
+            key={idx}
+            idx={idx}
+            str={str}
+            weight={weights[idx] ?? 100}
+            isEditing={editingIndex === idx}
+            onStartEdit={onStartEdit}
+            onPreview={onPreview}
+            onWeight={onWeight}
+            onRemove={onRemove}
+          />
+        ))
+      )}
+    </Section>
+  );
+}
+
+// â”€â”€ Editor panel (right side) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function EditorPanel() {
+  const { act, data } = useBackend<BackendData>();
+  const {
+    max_strings,
+    max_length,
+    current_strings,
+    current_weights = [],
+    default_strings,
+    tokens,
+    resolved_preview,
+  } = data;
+
+  const [inputText, setInputText] = useState('');
+  const [editingIndex, setEditingIndex] = useState(-1);
+  const [showTokens, setShowTokens] = useState(false);
+  const [showDefaults, setShowDefaults] = useState(true);
+  const [previewText, setPreviewText] = useState('');
+
+  const atLimit = current_strings.length >= max_strings;
+  const isEditing = editingIndex >= 0;
+
+  function adoptDefault(str: string) {
+    if (!atLimit) {
+      act('add_string', { text: str });
+    }
+  }
+
+  function appendToken(token: string) {
+    setInputText((prev) => prev + token);
+  }
+
+  function handleAddOrUpdate() {
+    const trimmed = inputText.trim();
+    if (!trimmed) return;
+    if (isEditing) {
+      act('update_string', { index: editingIndex + 1, text: trimmed });
+      setEditingIndex(-1);
+    } else {
+      if (atLimit) return;
+      act('add_string', { text: trimmed });
+    }
+    setInputText('');
+  }
+
+  function cancelEdit() {
+    setEditingIndex(-1);
+    setInputText('');
+  }
+
+  function handlePreview(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setPreviewText(trimmed);
+    act('preview_string', { text: trimmed });
+  }
+
+  function startEditing(idx: number, str: string) {
+    setEditingIndex(idx);
+    setInputText(str);
+  }
+
+  return (
+    <Stack.Item grow style={{ display: 'flex', flexDirection: 'column' }}>
+      <Stack vertical fill>
+        {default_strings && default_strings.length > 0 && (
+          <Stack.Item>
+            <DefaultStringsSection
+              strings={default_strings}
+              show={showDefaults}
+              onToggleShow={() => setShowDefaults(!showDefaults)}
+              atLimit={atLimit}
+              onAdopt={adoptDefault}
+              onPreview={handlePreview}
+            />
+          </Stack.Item>
+        )}
+
+        <Stack.Item>
+          <InputSection
+            isEditing={isEditing}
+            editingIndex={editingIndex}
+            inputText={inputText}
+            setInputText={setInputText}
+            atLimit={atLimit}
+            maxLength={max_length}
+            maxStrings={max_strings}
+            tokens={tokens}
+            showTokens={showTokens}
+            toggleTokens={() => setShowTokens(!showTokens)}
+            onAppendToken={appendToken}
+            onAddOrUpdate={handleAddOrUpdate}
+            onCancel={cancelEdit}
+            onPreview={() => handlePreview(inputText)}
+          />
+        </Stack.Item>
+
+        {previewText && (
+          <Stack.Item>
+            <PreviewSection
+              previewText={previewText}
+              resolvedPreview={resolved_preview}
+              onClose={() => setPreviewText('')}
+            />
+          </Stack.Item>
+        )}
+
+        <Stack.Item grow style={{ overflowY: 'auto', minHeight: 0 }}>
+          <CustomStringsSection
+            strings={current_strings}
+            weights={current_weights}
+            maxStrings={max_strings}
+            editingIndex={editingIndex}
+            onStartEdit={startEditing}
+            onPreview={handlePreview}
+            onWeight={(idx, weight) => act('set_weight', { index: idx + 1, weight })}
+            onRemove={(idx) => {
+              if (editingIndex === idx) {
+                setEditingIndex(-1);
+                setInputText('');
+              }
+              act('remove_string', { index: idx + 1 });
+            }}
+            onClearAll={() => act('clear_category')}
+          />
+        </Stack.Item>
+      </Stack>
+    </Stack.Item>
+  );
+}
+
+// â”€â”€ Import Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+function ImportPanel({ onClose }: { onClose: () => void }) {
+  const { act } = useBackend<BackendData>();
+  const [importText, setImportText] = useState('');
+
+  return (
+    <Section title="Import Data">
+      <Box fontSize="11px" opacity={0.7} mb={1}>
+        Paste an exported data string below and click &quot;Import&quot; to replace your
+        current reaction text. <b>This overwrites existing data</b> â€” export first if you want
+        a backup.
+      </Box>
+      <Stack>
+        <Stack.Item grow>
+          <TextArea
+            fluid
+            height="3rem"
+            placeholder="Paste exported string hereâ€¦"
+            value={importText}
+            onChange={(val) => setImportText(val)}
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <Button
+            icon="check"
+            color="good"
+            disabled={!importText.trim()}
+            onClick={() => {
+              act('import_data', { payload: importText.trim() });
+              setImportText('');
+              onClose();
+            }}
+          >
+            Import
+          </Button>
+        </Stack.Item>
+      </Stack>
+    </Section>
+  );
+}
+
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+export function IntimateReactionEditor() {
+  const { act, data } = useBackend<BackendData>();
+  const [showImport, setShowImport] = useState(false);
+
+  if (data.invalid) {
+    return (
+      <Window title="Intimate Reaction Editor" width={960} height={760}>
+        <Window.Content>
+          <NoticeBox danger>Session invalid. Close and reopen the editor.</NoticeBox>
+        </Window.Content>
+      </Window>
+    );
+  }
+
+  // Remount editor panel when bank/category changes so input/editing state resets cleanly.
+  const editorKey = `${data.selected_bank}|${data.selected_category}`;
+
+  return (
+    <Window title="Intimate Reaction Editor" width={960} height={760}>
+      <Window.Content scrollable>
+        <Stack vertical fill>
+          <Stack.Item>
+            <Stack align="center">
               <Stack.Item grow>
-                <Section
-                  title={`Your Strings (${current_strings.length}/${max_strings})`}
-                  buttons={
-                    <Button
-                      icon="trash"
-                      color="bad"
-                      disabled={current_strings.length === 0}
-                      onClick={() => act('clear_category')}
-                    >
-                      Clear
-                    </Button>
-                  }
-                >
-                  {current_strings.length === 0 ? (
-                    <NoticeBox>
-                      No custom strings for this category. Add one below, or
-                      adopt a default string above.
-                    </NoticeBox>
-                  ) : (
-                    current_strings.map((str, idx) => (
-                      <Box
-                        key={idx}
-                        mb={0.5}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '4px',
-                          background:
-                            editingIndex === idx
-                              ? 'rgba(79,195,247,0.15)'
-                              : 'transparent',
-                          borderRadius: '3px',
-                          padding: '2px 4px',
-                        }}
-                      >
-                        <Box
-                          opacity={0.9}
-                          fontSize="12px"
-                          style={{
-                            wordBreak: 'break-word',
-                            flexGrow: 1,
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => {
-                            setEditingIndex(idx);
-                            setInputText(str);
-                          }}
-                        >
-                          {idx + 1}. {str}
-                        </Box>
-                        <Box
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '2px',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <NumberInput
-                            width="50px"
-                            step={5}
-                            stepPixelSize={4}
-                            value={current_weights[idx] ?? 100}
-                            minValue={0}
-                            maxValue={100}
-                            onChange={(value) =>
-                              act('set_weight', {
-                                index: idx + 1,
-                                weight: value,
-                              })
-                            }
-                          />
-                          <Box fontSize="10px" opacity={0.5}>
-                            %
-                          </Box>
-                        </Box>
-                        <Button
-                          compact
-                          icon="pencil"
-                          tooltip="Edit this string"
-                          onClick={() => {
-                            setEditingIndex(idx);
-                            setInputText(str);
-                          }}
-                        />
-                        <Button
-                          compact
-                          icon="search"
-                          tooltip="Preview this string"
-                          onClick={() => {
-                            setPreviewText(str);
-                            act('preview_string', { text: str });
-                          }}
-                        />
-                        <Button
-                          compact
-                          icon="times"
-                          color="bad"
-                          onClick={() => {
-                            if (editingIndex === idx) {
-                              setEditingIndex(-1);
-                              setInputText('');
-                            }
-                            act('remove_string', { index: idx + 1 });
-                          }}
-                        />
-                      </Box>
-                    ))
-                  )}
-                </Section>
-              </Stack.Item>
-
-              {/* ── Add / Edit string ── */}
-              <Stack.Item>
-                <Section
-                  title={
-                    editingIndex >= 0
-                      ? `Editing String #${editingIndex + 1}`
-                      : 'Add String'
-                  }
-                >
-                  <TextArea
-                    fluid
-                    height="4rem"
-                    maxLength={max_length}
-                    placeholder={
-                      editingIndex >= 0
-                        ? 'Edit this string…'
-                        : atLimit
-                          ? 'Limit reached'
-                          : 'Type a new flavor string…'
-                    }
-                    disabled={editingIndex < 0 && atLimit}
-                    value={inputText}
-                    onChange={(val) => setInputText(val)}
-                  />
-                  <Box mt={0.5}>
-                    {editingIndex >= 0 ? (
-                      <>
-                        <Button
-                          icon="check"
-                          color="good"
-                          disabled={!inputText.trim()}
-                          onClick={() => {
-                            act('update_string', {
-                              index: editingIndex + 1,
-                              text: inputText.trim(),
-                            });
-                            setEditingIndex(-1);
-                            setInputText('');
-                          }}
-                        >
-                          Update
-                        </Button>
-                        <Button
-                          icon="times"
-                          onClick={() => {
-                            setEditingIndex(-1);
-                            setInputText('');
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        icon="plus"
-                        disabled={atLimit || !inputText.trim()}
-                        onClick={() => {
-                          act('add_string', { text: inputText.trim() });
-                          setInputText('');
-                        }}
-                      >
-                        Add
-                      </Button>
-                    )}
-                    <Button
-                      icon="search"
-                      disabled={!inputText.trim()}
-                      tooltip="Preview with token resolution"
-                      onClick={() => {
-                        setPreviewText(inputText.trim());
-                        act('preview_string', { text: inputText.trim() });
-                      }}
-                    >
-                      Preview
-                    </Button>
+                <Box bold fontSize="13px">
+                  Intimate Reactions
+                  <Box inline ml={1} opacity={0.5} fontSize="10px">
+                    Private flavor text shown to you and partners.
                   </Box>
-                  <Box fontSize="10px" opacity={0.5} mt={0.5}>
-                    Max {max_length} characters per string. {max_strings}{' '}
-                    strings per category.
-                  </Box>
-                </Section>
+                </Box>
               </Stack.Item>
-
-              {/* ── Live preview ── */}
-              {previewText && (
-                <Stack.Item>
-                  <Section
-                    title="Live Preview"
-                    buttons={
-                      <Button
-                        icon="times"
-                        compact
-                        onClick={() => setPreviewText('')}
-                      />
-                    }
-                  >
-                    <Box fontSize="11px" opacity={0.6} mb={0.5}>
-                      Raw template:
-                    </Box>
-                    <Box
-                      fontSize="12px"
-                      italic
-                      style={{
-                        padding: '6px',
-                        background: 'rgba(255,255,255,0.05)',
-                        borderRadius: '3px',
-                        wordBreak: 'break-word',
-                      }}
-                    >
-                      {previewText}
-                    </Box>
-                    {resolved_preview && (
-                      <>
-                        <Box fontSize="11px" opacity={0.6} mt={0.5} mb={0.5}>
-                          Resolved:
-                        </Box>
-                        <Box
-                          fontSize="12px"
-                          bold
-                          style={{
-                            padding: '6px',
-                            background: 'rgba(129,199,132,0.1)',
-                            borderRadius: '3px',
-                            wordBreak: 'break-word',
-                          }}
-                        >
-                          {resolved_preview}
-                        </Box>
-                      </>
-                    )}
-                  </Section>
-                </Stack.Item>
-              )}
-
-              {/* ── Token reference ── */}
               <Stack.Item>
-                <Section
-                  title="Token Reference"
-                  buttons={
-                    <Button
-                      icon={showTokens ? 'chevron-up' : 'chevron-down'}
-                      onClick={() => setShowTokens(!showTokens)}
-                    >
-                      {showTokens ? 'Hide' : 'Show'}
-                    </Button>
-                  }
+                <Button
+                  icon="save"
+                  color={data.dirty ? 'caution' : 'green'}
+                  onClick={() => act('save')}
                 >
-                  {showTokens && (
-                    <Box>
-                      <Box fontSize="11px" opacity={0.7} mb={0.5}>
-                        Click a token to insert it at the end of your input.
-                        Tokens are replaced at runtime with character-specific
-                        values.
-                      </Box>
-                      <Box
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '4px',
-                        }}
-                      >
-                        {tokens.map((token) => (
-                          <Button
-                            key={token}
-                            compact
-                            fontSize="11px"
-                            tooltip={TOKEN_DESCS[token]}
-                            onClick={() =>
-                              setInputText((prev) => prev + token)
-                            }
-                          >
-                            {token}
-                          </Button>
-                        ))}
-                      </Box>
-                    </Box>
-                  )}
-                </Section>
+                  {data.dirty ? 'Save' : 'Saved'}
+                </Button>
               </Stack.Item>
+              <Stack.Item>
+                <Button icon="file-export" onClick={() => act('export_data')}>
+                  Export
+                </Button>
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  icon="file-import"
+                  selected={showImport}
+                  onClick={() => setShowImport(!showImport)}
+                >
+                  Import
+                </Button>
+              </Stack.Item>
+            </Stack>
+          </Stack.Item>
+
+          {showImport && (
+            <Stack.Item>
+              <ImportPanel onClose={() => setShowImport(false)} />
+            </Stack.Item>
+          )}
+
+          <Stack.Item grow>
+            <Stack fill>
+              <Sidebar />
+              <EditorPanel key={editorKey} />
             </Stack>
           </Stack.Item>
         </Stack>
@@ -946,4 +1235,3 @@ export function IntimateReactionEditor() {
     </Window>
   );
 }
-

@@ -143,7 +143,7 @@
 	H.update_transform()
 	return TRUE
 
-/mob/living/carbon/human/species/goblin/update_body_parts(redraw)
+/mob/living/carbon/human/species/goblin/update_body_parts(redraw = FALSE)
 	update_body()
 
 /mob/living/carbon/human/species/goblin/update_body()

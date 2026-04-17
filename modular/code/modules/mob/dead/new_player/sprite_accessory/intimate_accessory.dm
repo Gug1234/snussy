@@ -237,6 +237,11 @@
 	default_colors = list("#9BADB7", "#9BADB7")
 	intimate_type = /obj/item/intimate_accessory/piercing/ear
 
+/datum/sprite_accessory/intimate_accessory/piercing_ear/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	if(custom_piercing_slot_suppresses_legacy(owner, "ear"))
+		appearance_list.Cut()
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "ear")
+
 /datum/sprite_accessory/intimate_accessory/piercing_ear/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	if(suffix)
 		overlay_icon_state += "_[suffix]"
@@ -305,6 +310,12 @@
 	return result_icon
 
 /datum/sprite_accessory/intimate_accessory/piercing_breast/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	// Suppress legacy overlay if the player has elected to replace it wholesale.
+	if(custom_piercing_slot_suppresses_legacy(owner, "breast"))
+		appearance_list.Cut()
+	// Append any player-authored sticker appearances so they flow through the
+	// same body-offset adjustment as the legacy overlay.
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "breast")
 	// Keep piercing overlays aligned to the same chest offsets as breast sprites.
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BREASTS, OFFSET_BREASTS_F)
 
@@ -338,6 +349,14 @@
 	return appearance_list
 
 /datum/sprite_accessory/intimate_accessory/piercing_genital/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	// Suppress legacy overlay per-slot (pintle and chastity share this pipeline).
+	if(custom_piercing_slot_suppresses_legacy(owner, "genital") \
+		&& custom_piercing_slot_suppresses_legacy(owner, "pintle") \
+		&& custom_piercing_slot_suppresses_legacy(owner, "chastity"))
+		appearance_list.Cut()
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "genital")
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "pintle")
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "chastity")
 	// Keep genital piercing overlays aligned to the same belt offsets as genital organ sprites.
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BELT, OFFSET_BELT_F)
 
@@ -345,6 +364,12 @@
 	name = "Rear Plug"
 	icon_state = "rear_plug"
 	intimate_type = /obj/item/intimate_accessory/rear/plug
+
+/datum/sprite_accessory/intimate_accessory/rear_plug/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	// Suppress legacy rear-plug overlay if the player wants stickers to replace it.
+	if(custom_piercing_slot_suppresses_legacy(owner, "insertable_rear"))
+		appearance_list.Cut()
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "insertable_rear")
 
 /datum/sprite_accessory/intimate_accessory/rear_plug/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	if(suffix)
@@ -374,6 +399,12 @@
 	name = "Rear Beads"
 	icon_state = "rear_beads"
 	intimate_type = /obj/item/intimate_accessory/rear/plug/analbeads
+
+/datum/sprite_accessory/intimate_accessory/rear_beads/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	// Shares the insertable_rear slot with rear_plug — only one is equipped at a time.
+	if(custom_piercing_slot_suppresses_legacy(owner, "insertable_rear"))
+		appearance_list.Cut()
+	appearance_list += compose_custom_piercing_slot_appearances(owner, "insertable_rear")
 
 /datum/sprite_accessory/intimate_accessory/rear_beads/get_icon_state(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	var/bead_count = "short"

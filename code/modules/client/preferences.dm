@@ -117,6 +117,11 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/cursed_enabled = FALSE
 	var/chastity_hardmode = CHASTITY_HARDMODE_DISABLED
 	var/extreme_erp = FALSE
+	/// When TRUE the player acknowledges that characters saved with extreme pixel
+	/// offsets or oversized sprites will be logged to admin staff on round join.
+	/// When FALSE, saving such characters will require per-save confirmation
+	/// (save-time modal — gated by this pref in a later phase).
+	var/acknowledge_extreme_offsets = FALSE
 	var/edging = FALSE
 	/// When TRUE the player can volunteer for consensual strange jelly controller roles.
 	var/jelly_controller_enabled = FALSE
@@ -326,6 +331,12 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/dnr_pref = FALSE
 
 	var/list/customizer_entries = list()
+	// --- Phase 2 extreme-offset aggregate caches ---
+	// Recomputed via recompute_aggregate_extreme(). NOT serialized.
+	/// cache: recomputed, not serialized
+	var/aggregate_extreme = FALSE
+	/// cache: recomputed, not serialized
+	var/aggregate_offset_budget_used = 0
 	var/list/list/body_markings = list()
 	var/update_mutant_colors = TRUE
 
@@ -431,16 +442,16 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/taur_markings = "ffffff"
 	var/taur_tertiary = "ffffff"
 
-	/// Per-genital pixel offsets for taur bodies. Each genital type has its own X/Y pair
-	/// so players can independently position penis, testicles, and vagina sprites.
-	/// Penis and testicle X offsets are automatically mirrored (negated) when facing west.
-	/// Clamped to [-32, 32] on save and load.
-	var/taur_penis_offset_x = 0
-	var/taur_penis_offset_y = 0
-	var/taur_testicles_offset_x = 0
-	var/taur_testicles_offset_y = 0
-	var/taur_vagina_offset_x = 0
-	var/taur_vagina_offset_y = 0
+	/// Per-genital per-direction props list (schema matches /obj/item/proc/getonmobprop).
+	/// Each part (penis, testicles, vagina) stores independent x/y/turn/flip/hide/above/shrink
+	/// values for each cardinal direction (n/s/e/w). See default_taur_genital_props() for the
+	/// full schema and defaults. Edited via the TGUI TaurGenitalOffsetEditor window.
+	var/list/taur_penis_props
+	var/list/taur_testicles_props
+	var/list/taur_vagina_props
+	/// Global per-direction hide toggles applied to ALL taur genital parts.
+	/// Keyed "n"/"s"/"e"/"w"; value of 1 hides every taur genital sprite when facing that dir.
+	var/list/taur_genital_global_hide
 	/// When TRUE, genital sprites use the taur-specific DMI files (taur_pintle, taur_nethers, taur_gonads)
 	/// instead of the default ones. Also gates visibility of the taur genital offset controls.
 	var/use_taur_genital_sprites = FALSE
@@ -558,6 +569,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<tr>"
 			dat += "<td style='width:33%;text-align:left'>"
 			dat += "<a style='white-space:nowrap;' href='?_src_=prefs;preference=changeslot;'>Change Character</a>"
+			dat += "<br><a style='white-space:nowrap;' href='?_src_=prefs;preference=slot_export;'>Export Slot</a>"
+			dat += " | <a style='white-space:nowrap;' href='?_src_=prefs;preference=slot_import;'>Import Slot</a>"
 			dat += "</td>"
 
 			dat += "<td style='width:33%;text-align:center'>"
@@ -692,53 +705,12 @@ GLOBAL_LIST_EMPTY(chosen_names)
 				dat += "<b>Taur Tertiary:</b> <span style='border: 1px solid #161616; background-color: #[taur_tertiary];'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <a href='?_src_=prefs;preference=taur_tertiary;task=input'>Change</a><BR>"
 				// Taur genital sprite toggle — swaps to taur-specific DMI files
 				dat += "<b>Taur Genital Sprites:</b> <a href='?_src_=prefs;preference=toggle_taur_genital_sprites'>[use_taur_genital_sprites ? "Enabled" : "Disabled"]</a><BR>"
-				// Per-genital pixel offset controls — only visible when taur sprites are enabled
+				// Per-part offset/rotation/mirror/hide/scale editor (opens a TGUI window).
+				// Only visible when taur sprites are enabled so the editor has something to tune.
 				if(use_taur_genital_sprites)
-					// --- Penis offsets (X mirrors when facing west) ---
-					dat += "<b>Penis Offset X:</b> "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=-8'>-8</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=-1'>-1</a>"
-					dat += " [taur_penis_offset_x] "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=1'>+1</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=x;delta=8'>+8</a>"
-					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=penis;axis=x'>Reset</a><BR>"
-					dat += "<b>Penis Offset Y:</b> "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=-8'>-8</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=-1'>-1</a>"
-					dat += " [taur_penis_offset_y] "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=1'>+1</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=penis;axis=y;delta=8'>+8</a>"
-					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=penis;axis=y'>Reset</a><BR>"
-					// --- Testicles offsets (X mirrors when facing west) ---
-					dat += "<b>Testicles Offset X:</b> "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=-8'>-8</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=-1'>-1</a>"
-					dat += " [taur_testicles_offset_x] "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=1'>+1</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=x;delta=8'>+8</a>"
-					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=testicles;axis=x'>Reset</a><BR>"
-					dat += "<b>Testicles Offset Y:</b> "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=-8'>-8</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=-1'>-1</a>"
-					dat += " [taur_testicles_offset_y] "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=1'>+1</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=testicles;axis=y;delta=8'>+8</a>"
-					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=testicles;axis=y'>Reset</a><BR>"
-					// --- Vagina offsets ---
-					dat += "<b>Vagina Offset X:</b> "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=-8'>-8</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=-1'>-1</a>"
-					dat += " [taur_vagina_offset_x] "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=1'>+1</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=x;delta=8'>+8</a>"
-					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=vagina;axis=x'>Reset</a><BR>"
-					dat += "<b>Vagina Offset Y:</b> "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=-8'>-8</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=-1'>-1</a>"
-					dat += " [taur_vagina_offset_y] "
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=1'>+1</a>"
-					dat += "<a href='?_src_=prefs;preference=erp_taur_offset;part=vagina;axis=y;delta=8'>+8</a>"
-					dat += " <a href='?_src_=prefs;preference=erp_taur_reset;part=vagina;axis=y'>Reset</a><BR>"
+					dat += "<b>Penis Offsets:</b> <a href='?_src_=prefs;preference=open_taur_genital_editor;part=penis'>Edit&hellip;</a><BR>"
+					dat += "<b>Testicles Offsets:</b> <a href='?_src_=prefs;preference=open_taur_genital_editor;part=testicles'>Edit&hellip;</a><BR>"
+					dat += "<b>Vagina Offsets:</b> <a href='?_src_=prefs;preference=open_taur_genital_editor;part=vagina'>Edit&hellip;</a><BR>"
 
 			dat += "<b>Age:</b> <a href='?_src_=prefs;preference=age;task=input'>[age]</a><BR>"
 
@@ -869,6 +841,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<br><b>Intimate Accessories:</b> <a href='?_src_=prefs;preference=intimate_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>Chastity Device:</b> <a href='?_src_=prefs;preference=chastity_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>Custom Sex Actions:</b> <a href='?_src_=prefs;preference=sex_flavor_lobby;task=menu'>Configure</a>"
+			dat += "<br><b>Custom Piercings:</b> <a href='?_src_=prefs;preference=open_custom_piercing_editor'>Configure</a>"
 			dat += "<br><b>Intimate Reactions:</b> <a href='?_src_=prefs;preference=intimate_reaction_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>ERP Preferences:</b><a href='?_src_=prefs;preference=formathelp;task=input'>(?)</a><a href='?_src_=prefs;preference=erpprefs;task=input'>Change</a>"
 			dat += "<br><b>Song:</b> <a href='?_src_=prefs;preference=ooc_extra;task=input'>Change URL</a>"
@@ -1714,14 +1687,20 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 		show_culinary_ui(user)
 		return
 	else if(href_list["preference"] == "markings")
-		ShowMarkings(user)
+		if(user?.client)
+			user.client.open_body_marking_editor()
+		else
+			ShowMarkings(user)
 		return
 	else if(href_list["preference"] == "descriptors")
 		show_descriptors_ui(user)
 		return
 
 	else if(href_list["preference"] == "customizers")
-		ShowCustomizers(user)
+		if(user?.client)
+			user.client.open_feature_customizer_editor()
+		else
+			ShowCustomizers(user)
 		return
 	else if(href_list["preference"] == "intimate_lobby")
 		if(!intimate_lobby_menu)
@@ -3090,32 +3069,26 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 					user << browse(null, "window=lobby_window")
 					return
 
-				// --- Taur genital sprite toggle (swaps DMI files and shows offset controls) ---
+				// --- Taur genital sprite toggle (swaps DMI files and shows offset editor link) ---
 				if("toggle_taur_genital_sprites")
 					if(taur_type)
 						use_taur_genital_sprites = !use_taur_genital_sprites
 						save_preferences()
 
-				// --- Per-genital taur pixel offset step buttons (live preview in character creation) ---
-				if("erp_taur_offset")
+				// --- Open the per-part taur genital offset TGUI editor ---
+				if("open_taur_genital_editor")
 					if(taur_type && use_taur_genital_sprites)
 						var/part = href_list["part"]
-						var/axis = href_list["axis"]
-						var/delta = text2num(href_list["delta"])
-						if(isnum(delta) && (axis in list("x", "y")) && (part in list("penis", "testicles", "vagina")))
-							delta = round(clamp(delta, -32, 32))
-							var/varname = "taur_[part]_offset_[axis]"
-							vars[varname] = clamp(vars[varname] + delta, -32, 32)
-							save_preferences()
+						if(part in GLOB.taur_genital_part_keys)
+							src.open_taur_genital_editor(user, part)
 
-				// --- Per-genital taur offset: reset a single axis to zero ---
-				if("erp_taur_reset")
-					if(taur_type && use_taur_genital_sprites)
-						var/part = href_list["part"]
-						var/axis = href_list["axis"]
-						if((axis in list("x", "y")) && (part in list("penis", "testicles", "vagina")))
-							vars["taur_[part]_offset_[axis]"] = 0
-							save_preferences()
+				// --- Open the custom piercing editor from the lobby ---
+				if("open_custom_piercing_editor")
+					if(!chastenable)
+						to_chat(user, span_warning("I have intimate content disabled."))
+					else
+						var/slot_key = href_list["slot"]
+						src.open_custom_piercing_editor(user, slot_key)
 
 				// --- Arousal preview state toggle ---
 				if("preview_erect_state")
@@ -3154,6 +3127,40 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 						if(!load_character(choice))
 							random_character(null, FALSE, FALSE)
 							save_character()
+
+				if("slot_export")
+					if(!hascall(src, "export_character_slot_json"))
+						to_chat(user, span_warning("Slot export system unavailable on this build."))
+					else
+						var/payload = call(src, "export_character_slot_json")(default_slot)
+						if(!istext(payload))
+							to_chat(user, span_warning("Export failed - no data in slot [default_slot]?"))
+						else
+							var/escaped = replacetext(payload, "&", "&amp;")
+							escaped = replacetext(escaped, "<", "&lt;")
+							escaped = replacetext(escaped, ">", "&gt;")
+							var/html = {"<!doctype html><html><body style='font-family:monospace;font-size:11px;'>
+<p>Copy the JSON below to share or back up character slot [default_slot].
+(Length: [length(payload)] bytes)</p>
+<textarea style='width:100%;height:90%;' readonly>[escaped]</textarea>
+</body></html>"}
+							user << browse(html, "window=slot_export;size=700x500")
+
+				if("slot_import")
+					var/payload = tgui_input_text(user, "Paste character slot JSON. This overwrites slot [default_slot].", "Import Character Slot", multiline = TRUE, encode = FALSE, bigmodal = TRUE)
+					if(istext(payload) && length(payload))
+						if(alert(user, "This will OVERWRITE slot [default_slot]. Continue?", "Confirm Import", "Import", "Cancel") == "Import")
+							if(!hascall(src, "import_character_slot_json"))
+								to_chat(user, span_warning("Slot import system unavailable on this build."))
+							else
+								var/list/result = call(src, "import_character_slot_json")(payload, default_slot)
+								var/msg = islist(result) ? result["message"] : null
+								if(!istext(msg))
+									msg = "Unknown import result."
+								if(result["ok"])
+									to_chat(user, span_notice("[msg]"))
+								else
+									to_chat(user, span_warning("Import failed: [msg]"))
 
 				if("tab")
 					if (href_list["tab"])
@@ -3420,12 +3427,10 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 		character.Taurize(taur_type, "#[taur_color]", "#[taur_markings]", "#[taur_tertiary]")
 		// Copy taur genital prefs to the mob so clientless mannequins can read them
 		character.use_taur_genital_sprites = use_taur_genital_sprites
-		character.taur_penis_offset_x = taur_penis_offset_x
-		character.taur_penis_offset_y = taur_penis_offset_y
-		character.taur_testicles_offset_x = taur_testicles_offset_x
-		character.taur_testicles_offset_y = taur_testicles_offset_y
-		character.taur_vagina_offset_x = taur_vagina_offset_x
-		character.taur_vagina_offset_y = taur_vagina_offset_y
+		character.taur_penis_props = taur_penis_props?.Copy()
+		character.taur_testicles_props = taur_testicles_props?.Copy()
+		character.taur_vagina_props = taur_vagina_props?.Copy()
+		character.taur_genital_global_hide = taur_genital_global_hide?.Copy()
 	else if(character_setup)
 		// This should only ever ~do~ anything for previews
 		character.ensure_not_taur()

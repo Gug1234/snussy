@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Dropdown, LabeledList, NoticeBox, Section, Stack, Tooltip } from 'tgui-core/components';
+import { Box, Button, DmIcon, Dropdown, LabeledList, NoticeBox, Section, Stack, Tooltip } from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -187,6 +187,30 @@ type Data = {
   /** Mirrors the wearer's `intimate_visual_widgets` pref. Reserved for future paper-doll imagery. */
   show_visual_widgets: boolean;
   slots: SlotEntry[];
+  /** Shared sticker DMI path for thumbnails (mirrors CustomPiercingEditor). */
+  sticker_icon?: string;
+  /** Player-authored per-slot custom piercing decorations with names + descriptions. */
+  custom_piercings?: CustomPiercingSlot[];
+};
+
+/** One player-placed sticker entry, with its player-authored name/desc. */
+type CustomPiercingEntry = {
+  sticker_id: string;
+  sticker_name: string;
+  custom_name: string | null;
+  custom_desc: string | null;
+  metal_color: string;
+  gem_color: string | null;
+  zone: string;
+  zone_label: string | null;
+};
+
+/** One enabled custom-piercing slot block emitted by ui_data. */
+type CustomPiercingSlot = {
+  slot_key: string;
+  slot_label: string;
+  is_freeform: boolean;
+  entries: CustomPiercingEntry[];
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -253,6 +277,14 @@ export const IntimateMenu = () => {
               <SlotCard slot={slot} />
             </Stack.Item>
           ))}
+          {!!data.custom_piercings?.length && (
+            <Stack.Item>
+              <CustomPiercingsSection
+                slots={data.custom_piercings}
+                stickerIcon={data.sticker_icon}
+              />
+            </Stack.Item>
+          )}
         </Stack>
       </Window.Content>
     </Window>
@@ -295,6 +327,117 @@ const SlotCard = (props: { slot: SlotEntry }) => {
     <Section title={slot.slot_name}>
       <ItemCard item={slot.item!} />
     </Section>
+  );
+};
+
+// ── Custom piercing decorations ──────────────────────────────────────────────
+
+/**
+ * Renders the player-authored custom piercing stickers grouped by slot.
+ * Each entry shows a DMI thumbnail, the custom name (or sticker fallback),
+ * the custom description (when present), the metal/gem colour swatches, and
+ * an optional zone pill for entries pinned to a body zone.
+ */
+const CustomPiercingsSection = (props: {
+  slots: CustomPiercingSlot[];
+  stickerIcon?: string;
+}) => {
+  const { slots, stickerIcon } = props;
+  return (
+    <Section title="Custom Decorations">
+      <Stack vertical>
+        {slots.map((slot) => (
+          <Stack.Item key={slot.slot_key}>
+            <Box bold mb={0.3}>
+              {slot.slot_label}
+              {slot.is_freeform && (
+                <Box inline color="label" ml={0.5} fontSize="0.78em" italic>
+                  (custom feature)
+                </Box>
+              )}
+            </Box>
+            <Stack vertical>
+              {slot.entries.map((entry, i) => (
+                <Stack.Item key={`${slot.slot_key}-${i}`}>
+                  <CustomPiercingEntryCard
+                    entry={entry}
+                    stickerIcon={stickerIcon}
+                  />
+                </Stack.Item>
+              ))}
+            </Stack>
+          </Stack.Item>
+        ))}
+      </Stack>
+    </Section>
+  );
+};
+
+const CustomPiercingEntryCard = (props: {
+  entry: CustomPiercingEntry;
+  stickerIcon?: string;
+}) => {
+  const { entry, stickerIcon } = props;
+  const displayName = entry.custom_name || entry.sticker_name;
+  return (
+    <Box
+      mb={0.3}
+      p={0.5}
+      style={{
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '3px',
+      }}
+    >
+      <Stack align="flex-start">
+        {!!stickerIcon && (
+          <Stack.Item>
+            <DmIcon
+              icon={stickerIcon}
+              icon_state={entry.sticker_id}
+              width={32}
+              height={32}
+            />
+          </Stack.Item>
+        )}
+        <Stack.Item grow>
+          <Box>
+            <ColorSwatch color={entry.metal_color} />
+            {!!entry.gem_color && (
+              <ColorSwatch color={entry.gem_color} round />
+            )}
+            <Box inline bold>
+              {displayName}
+            </Box>
+            {!!entry.custom_name && (
+              <Box inline color="label" ml={0.5} fontSize="0.78em">
+                ({entry.sticker_name})
+              </Box>
+            )}
+            {!!entry.zone_label && (
+              <Box
+                inline
+                ml={0.5}
+                fontSize="0.72em"
+                color="label"
+                style={{
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  borderRadius: '2px',
+                  padding: '0 0.3em',
+                }}
+              >
+                {entry.zone_label}
+              </Box>
+            )}
+          </Box>
+          {!!entry.custom_desc && (
+            <Box italic color="label" mt={0.2} fontSize="0.85em">
+              {entry.custom_desc}
+            </Box>
+          )}
+        </Stack.Item>
+      </Stack>
+    </Box>
   );
 };
 

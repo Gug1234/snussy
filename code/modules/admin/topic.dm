@@ -22,6 +22,13 @@
 	if(!CheckAdminHref(href, href_list))
 		return
 
+	// Phase 5 extreme-offset review panel — routed from the Phase 4
+	// round-join admin log message. Handler at
+	// modular/code/modules/admin/extreme_offset_review.dm.
+	if(href_list["extreme_review"])
+		if(handle_extreme_offset_review_topic(href_list))
+			return
+
 	if(href_list["mass_direct"])
 		if(mass_direct_handle_topic(href_list))
 			return

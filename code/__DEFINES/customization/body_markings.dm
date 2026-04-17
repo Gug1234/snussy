@@ -1,5 +1,11 @@
 #define MAXIMUM_MARKINGS_PER_LIMB 3
 
+/// Per-entry pixel offset clamps for the body marking editor (±64, matching
+/// the custom piercing / taur genital editors). Entries outside this range
+/// are clamped silently on render.
+#define BODY_MARKING_OFFSET_MIN -64
+#define BODY_MARKING_OFFSET_MAX 64
+
 //Some defines for sprite accessories
 // Which color source we're using when the accessory is added
 #define DEFAULT_PRIMARY		1

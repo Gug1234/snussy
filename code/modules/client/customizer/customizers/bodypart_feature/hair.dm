@@ -17,6 +17,21 @@
 	hair_feature.natural_gradient = entry.natural_gradient
 	hair_feature.hair_dye_gradient = entry.dye_gradient
 
+/// Phase 6 — hair sub-entry overlay. Inherits parent's gradients but
+/// uses the sub-entry's own hair_color (falling back to parent color
+/// when the sub didn't set one). Keeps non-primary hair overlays
+/// visually consistent with gradient effects set at the parent level.
+/datum/customizer_choice/bodypart_feature/hair/customize_sub_feature(datum/bodypart_feature/feature, mob/living/carbon/human/human, datum/preferences/prefs, datum/customizer_entry/entry, datum/customizer_sub_entry/sub)
+	var/datum/customizer_entry/hair/hair_entry = entry
+	var/datum/bodypart_feature/hair/hair_feature = feature
+	var/effective_color = !isnull(sub.hair_color) ? sub.hair_color : hair_entry.hair_color
+	hair_feature.hair_color = effective_color
+	hair_feature.accessory_colors = effective_color
+	hair_feature.natural_color = hair_entry.natural_color
+	hair_feature.hair_dye_color = hair_entry.dye_color
+	hair_feature.natural_gradient = hair_entry.natural_gradient
+	hair_feature.hair_dye_gradient = hair_entry.dye_gradient
+
 /datum/customizer_choice/bodypart_feature/hair/validate_entry(datum/preferences/prefs, datum/customizer_entry/entry)
 	..()
 	var/datum/customizer_entry/hair/hair_entry = entry
