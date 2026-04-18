@@ -24,7 +24,7 @@
 		var/datum/body_marking/marking = GLOB.body_markings[marking_name]
 		if(!marking.covers_chest)
 			continue
-		var/marking_color = body_marking_entry_color(chest.markings[marking_name])
+		var/marking_color = chest.markings[marking_name]
 		return marking_color
 	return null
 
@@ -70,7 +70,7 @@
 		feature.hair_dye_gradient = /datum/hair_gradient/none
 	feature.hair_dye_color = new_dye_color
 	if(updates_body)
-		update_hair()
+		update_body_parts()
 
 /mob/living/carbon/human/proc/set_facial_hair_color(new_color, new_nat_gradient, new_nat_color, new_dye_gradient, new_dye_color, updates_body = TRUE)
 	var/datum/bodypart_feature/hair/feature = get_bodypart_feature_of_slot(BODYPART_FEATURE_FACIAL_HAIR)
@@ -88,7 +88,7 @@
 	feature.hair_dye_gradient = new_dye_gradient
 	feature.hair_dye_color = new_dye_color
 	if(updates_body)
-		update_hair()
+		update_body_parts()
 
 /mob/living/carbon/human/proc/cache_eye_color()
 	var/obj/item/organ/eyes/eyes = getorganslot(ORGAN_SLOT_EYES)

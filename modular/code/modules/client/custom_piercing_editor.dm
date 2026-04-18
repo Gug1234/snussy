@@ -37,7 +37,6 @@
 			// Refocus the existing window on the requested slot instead of spawning a second one.
 			if(slot_key)
 				existing.active_slot = slot_key
-				existing.prefs?.get_custom_piercing_slot(slot_key)
 			existing.ui_interact(user)
 			return
 	var/datum/custom_piercing_editor/editor = new(src, slot_key)
@@ -74,9 +73,6 @@
 	prefs = P
 	if(slot_key in GLOB.custom_piercing_slot_keys)
 		active_slot = slot_key
-		// Ensure the slot cfg exists so the TSX SlotPanel mounts on first
-		// open even when the player has never saved any custom piercings.
-		prefs.get_custom_piercing_slot(active_slot)
 	rate_limiter = new(
 		"Custom piercing editor",
 		CUSTOM_PIERCING_EDITOR_MAX_ACTS_PER_SECOND,
@@ -182,14 +178,6 @@
 			if(slot in GLOB.custom_piercing_slot_keys)
 				active_slot = slot
 				active_entry = 0
-				// Auto-materialize a default slot config on first focus so
-				// the TSX SlotPanel mounts even for players who have never
-				// saved a piercing layout. get_custom_piercing_slot() is a
-				// no-op if the cfg already exists. Not flagged dirty: an
-				// empty default config produced purely by tab navigation
-				// should not force a save.
-				if(prefs)
-					prefs.get_custom_piercing_slot(active_slot)
 				return TRUE
 
 		if("select_entry")

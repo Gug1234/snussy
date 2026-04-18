@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "python ./.github/hooks/scripts/flavor_text_style_hook.py",
+        "timeout": 8
+      }
+    ]
+  }
+}

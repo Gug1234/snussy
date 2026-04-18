@@ -272,7 +272,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["cursed_enabled"]				>> cursed_enabled
 	S["chastity_hardmode"]			>> chastity_hardmode
 	S["extreme_erp"]				>> extreme_erp
-	S["acknowledge_extreme_offsets"] >> acknowledge_extreme_offsets
 	S["edging"]						>> edging
 	S["jelly_controller_enabled"]	>> jelly_controller_enabled
 	S["show_intimate_examine"]		>> show_intimate_examine
@@ -419,7 +418,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["cursed_enabled"], cursed_enabled)
 	WRITE_FILE(S["chastity_hardmode"], chastity_hardmode)
 	WRITE_FILE(S["extreme_erp"], extreme_erp)
-	WRITE_FILE(S["acknowledge_extreme_offsets"], acknowledge_extreme_offsets)
 	WRITE_FILE(S["edging"], edging)
 	WRITE_FILE(S["jelly_controller_enabled"], jelly_controller_enabled)
 	WRITE_FILE(S["show_intimate_examine"], show_intimate_examine)
@@ -1044,15 +1042,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["body_markings"] >> body_markings
 	body_markings = SANITIZE_LIST(body_markings)
 	validate_body_markings()
-	normalize_body_markings()
-	var/raw_bm_v
-	S["body_markings_v"] >> raw_bm_v
-	body_markings_v = isnum(raw_bm_v) ? raw_bm_v : 1
-	// Sidecar JSON wins over the legacy flat-hex main-sav blob once the
-	// TGUI editor has promoted the character (body_markings_v >= 2). The
-	// legacy blob stays readable for admin tools / rollback.
-	if(body_markings_v >= 2)
-		load_body_markings_sidecar(parent, slot)
 
 	S["descriptor_entries"] >> descriptor_entries
 	descriptor_entries = SANITIZE_LIST(descriptor_entries)
@@ -1287,13 +1276,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	// Organs
 	WRITE_FILE(S["customizer_entries"] , customizer_entries)
-	WRITE_FILE(S["body_markings"] , serialize_body_markings_for_savefile())
-	// Sidecar JSON carries the full dict shape (color + offsets + transform).
-	// The legacy blob above is kept as a downgrade fallback.
-	save_body_markings_sidecar(parent, slot)
-	if(islist(body_markings) && length(body_markings))
-		body_markings_v = 2
-	WRITE_FILE(S["body_markings_v"] , body_markings_v)
+	WRITE_FILE(S["body_markings"] , body_markings)
 	WRITE_FILE(S["descriptor_entries"] , descriptor_entries)
 	WRITE_FILE(S["custom_descriptors"] , custom_descriptors)
 

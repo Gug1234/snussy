@@ -5,58 +5,109 @@
 			if(!(name in GLOB.body_markings_per_limb[zone]))
 				body_markings[zone] -= name
 
-/// Upgrades any flat-hex string entries in body_markings to the per-entry
-/// dict shape used by the TGUI editor. Safe to call repeatedly; entries
-/// already in dict shape are left alone (missing keys are back-filled from
-/// defaults).
-/datum/preferences/proc/normalize_body_markings()
-	if(!islist(body_markings))
-		body_markings = list()
-		return
-	for(var/zone in body_markings)
-		var/list/zone_list = body_markings[zone]
-		if(!islist(zone_list))
-			continue
-		for(var/name in zone_list)
-			var/entry = zone_list[name]
-			if(islist(entry))
-				// Back-fill any missing keys so downstream reads are safe.
-				var/list/defaults = body_marking_entry_defaults(entry["color"] || "FFFFFF")
-				for(var/key in defaults)
-					if(!(key in entry))
-						entry[key] = defaults[key]
-				// Clamp offsets defensively (hand-edited sidecars etc.).
-				entry["pixel_x"] = clamp(entry["pixel_x"], BODY_MARKING_OFFSET_MIN, BODY_MARKING_OFFSET_MAX)
-				entry["pixel_y"] = clamp(entry["pixel_y"], BODY_MARKING_OFFSET_MIN, BODY_MARKING_OFFSET_MAX)
-			else
-				zone_list[name] = body_marking_entry_defaults(entry)
-
-/// Returns a legacy-shape copy of body_markings (zone → name → flat hex
-/// string) suitable for writing to the main savefile. In-memory shape is
-/// left untouched. Used by the savefile write path until sidecar-backed
-/// persistence lands in Phase 3.
-/datum/preferences/proc/serialize_body_markings_for_savefile()
-	var/list/out = list()
-	if(!islist(body_markings))
-		return out
-	for(var/zone in body_markings)
-		var/list/zone_list = body_markings[zone]
-		if(!islist(zone_list))
-			continue
-		var/list/flat = list()
-		for(var/name in zone_list)
-			flat[name] = body_marking_entry_color(zone_list[name])
-		out[zone] = flat
-	return out
-
 /datum/preferences/proc/handle_body_markings_topic(mob/user, href_list)
-	// Phase 3: marking mutations now flow through the TGUI editor datum
-	// (/datum/body_marking_editor). The legacy href mutation router is
-	// stubbed to a redirect so stale client browser windows don't runtime;
-	// any action in those popups simply reopens the new editor.
-	if(user?.client)
-		user.client.open_body_marking_editor()
-	return
+	switch(href_list["preference"])
+		if("use_preset")
+			var/action = alert(usr, "Are you sure you want to use a preset (This will clear your existing markings)?", "Markings Preset", "Yes", "No")
+			if(action && action == "Yes")
+				var/list/candidates = marking_sets_for_species(pref_species)
+				if(length(candidates) == 0)
+					return
+				var/desired_set = input(user, "Choose your new body markings:", "Character Preference") as null|anything in candidates
+				if(desired_set)
+					var/datum/body_marking_set/BMS = GLOB.body_marking_sets[desired_set]
+					body_markings = assemble_body_markings_from_set(BMS, features, pref_species)
+		if("reset_color")
+			var/zone = href_list["key"]
+			var/name = href_list["name"]
+			if(!body_markings[zone] || !body_markings[zone][name])
+				return
+			var/datum/body_marking/BM = GLOB.body_markings[name]
+			body_markings[zone][name] = BM.get_default_color(features, pref_species)
+		if("change_color")
+			var/zone = href_list["key"]
+			var/name = href_list["name"]
+			if(!body_markings[zone] || !body_markings[zone][name])
+				return
+			var/color = body_markings[zone][name]
+			var/new_color = color_pick_sanitized(user, "Choose your markings color:", "Character Preference","#[color]")
+			if(new_color)
+				if(!body_markings[zone] || !body_markings[zone][name])
+					return
+				body_markings[zone][name] = sanitize_hexcolor(new_color, 6)
+		if("marking_move_up")
+			var/zone = href_list["key"]
+			var/name = href_list["name"]
+			var/list/marking_list = LAZYACCESS(body_markings, zone)
+			var/current_index = LAZYFIND(marking_list, name)
+			if(!current_index || --current_index < 1)
+				return
+			var/marking_content = marking_list[name]
+			marking_list -= name
+			marking_list.Insert(current_index, name)
+			marking_list[name] = marking_content
+		if("marking_move_down")
+			var/zone = href_list["key"]
+			var/name = href_list["name"]
+			var/list/marking_list = LAZYACCESS(body_markings, zone)
+			var/current_index = LAZYFIND(marking_list, name)
+			if(!current_index || ++current_index > length(marking_list))
+				return
+			var/marking_content = marking_list[name]
+			marking_list -= name
+			marking_list.Insert(current_index, name)
+			marking_list[name] = marking_content
+		if("add_marking")
+			var/zone = href_list["key"]
+			if(!GLOB.body_markings_per_limb[zone])
+				return
+			var/list/possible_candidates = marking_list_of_zone_for_species(zone, pref_species)
+			if(body_markings[zone])
+				//To prevent exploiting hrefs to bypass the marking limit
+				if(body_markings[zone].len >= MAXIMUM_MARKINGS_PER_LIMB)
+					return
+				//Remove already used markings from the candidates
+				for(var/keyed_name in body_markings[zone])
+					possible_candidates -= keyed_name
+			if(possible_candidates.len == 0)
+				return
+			var/desired_marking = input(user, "Choose your new marking to add:", "Character Preference") as null|anything in possible_candidates
+			if(desired_marking)
+				var/datum/body_marking/BD = GLOB.body_markings[desired_marking]
+				if(!body_markings[zone])
+					body_markings[zone] = list()
+				body_markings[zone][BD.name] = BD.get_default_color(features, pref_species)
+		if("remove_marking")
+			var/zone = href_list["key"]
+			var/name = href_list["name"]
+			if(!body_markings[zone] || !body_markings[zone][name])
+				return
+			body_markings[zone] -= name
+			if(body_markings[zone].len == 0)
+				body_markings -= zone
+		if("change_marking")
+			var/zone = href_list["key"]
+			var/changing_name = href_list["name"]
+			var/list/possible_candidates = marking_list_of_zone_for_species(zone, pref_species)
+			if(body_markings[zone])
+				//Remove already used markings from the candidates
+				for(var/keyed_name in body_markings[zone])
+					possible_candidates -= keyed_name
+			if(possible_candidates.len == 0)
+				return
+			var/desired_marking = input(user, "Choose a marking to change the current one to:", "Character Preference") as null|anything in possible_candidates
+			if(desired_marking)
+				if(!body_markings[zone] || !body_markings[zone][changing_name])
+					return
+				var/held_index = LAZYFIND(body_markings[zone], changing_name)
+				var/datum/body_marking/BD = GLOB.body_markings[desired_marking]
+				var/marking_content
+				marking_content = BD.get_default_color(features, pref_species)
+				body_markings[zone] -= changing_name
+				body_markings[zone].Insert(held_index, desired_marking)
+				body_markings[zone][desired_marking] = marking_content
+		if("reset_all_colors")
+			reset_body_marking_colors()
 
 /datum/preferences/proc/print_body_markings_page()
 	var/list/dat = list()
@@ -106,7 +157,7 @@
 				var/can_move_down = " "
 				var/color_line = " "
 				var/current_index = LAZYFIND(body_markings[zone], key)
-				var/color = body_marking_entry_color(body_markings[zone][key])
+				var/color = body_markings[zone][key]
 				color_line = "<a href='?_src_=prefs;name=[key];key=[zone];preference=reset_color;task=change_marking'>R</a>"
 				color_line += "<a href='?_src_=prefs;name=[key];key=[zone];preference=change_color;task=change_marking'><span class='color_holder_box' style='background-color:["#[color]"]'></span></a>"
 				if(current_index < length(body_markings[zone]))
@@ -141,22 +192,16 @@
 	return dat
 
 /datum/preferences/proc/ShowMarkings(mob/user)
-	// Phase 3: ShowMarkings is now a thin shim that redirects to the TGUI
-	// body marking editor. The legacy browser popup is retired, but the proc
-	// itself stays in place so stale client hrefs (and the change_marking
-	// task handler below) don't runtime on old saves. See
-	// modular/code/modules/client/body_marking_editor.dm for the real UI.
-	if(user?.client)
-		user.client.open_body_marking_editor()
+	var/list/dat = list()
+	dat += "<style>span.color_holder_box{display: inline-block; width: 20px; height: 8px; border:1px solid #000; padding: 0px;}</style>"
+	dat += print_body_markings_page()
+	var/datum/browser/popup = new(user, "markings_cusotmization", "<div align='center'>Markings customization</div>", 650, 710)
+	popup.set_content(dat.Join())
+	popup.open(FALSE)
 
 /datum/preferences/proc/reset_body_marking_colors()
 	for(var/zone in body_markings)
 		var/list/bml = body_markings[zone]
 		for(var/key in bml)
 			var/datum/body_marking/BM = GLOB.body_markings[key]
-			var/default_color = BM.get_default_color(features, pref_species)
-			var/entry = bml[key]
-			if(islist(entry))
-				entry["color"] = default_color
-			else
-				bml[key] = default_color
+			bml[key] = BM.get_default_color(features, pref_species)

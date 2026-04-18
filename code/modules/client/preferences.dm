@@ -117,11 +117,6 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/cursed_enabled = FALSE
 	var/chastity_hardmode = CHASTITY_HARDMODE_DISABLED
 	var/extreme_erp = FALSE
-	/// When TRUE the player acknowledges that characters saved with extreme pixel
-	/// offsets or oversized sprites will be logged to admin staff on round join.
-	/// When FALSE, saving such characters will require per-save confirmation
-	/// (save-time modal — gated by this pref in a later phase).
-	var/acknowledge_extreme_offsets = FALSE
 	var/edging = FALSE
 	/// When TRUE the player can volunteer for consensual strange jelly controller roles.
 	var/jelly_controller_enabled = FALSE
@@ -331,12 +326,6 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/dnr_pref = FALSE
 
 	var/list/customizer_entries = list()
-	// --- Phase 2 extreme-offset aggregate caches ---
-	// Recomputed via recompute_aggregate_extreme(). NOT serialized.
-	/// cache: recomputed, not serialized
-	var/aggregate_extreme = FALSE
-	/// cache: recomputed, not serialized
-	var/aggregate_offset_budget_used = 0
 	var/list/list/body_markings = list()
 	var/update_mutant_colors = TRUE
 
@@ -1687,20 +1676,14 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 		show_culinary_ui(user)
 		return
 	else if(href_list["preference"] == "markings")
-		if(user?.client)
-			user.client.open_body_marking_editor()
-		else
-			ShowMarkings(user)
+		ShowMarkings(user)
 		return
 	else if(href_list["preference"] == "descriptors")
 		show_descriptors_ui(user)
 		return
 
 	else if(href_list["preference"] == "customizers")
-		if(user?.client)
-			user.client.open_feature_customizer_editor()
-		else
-			ShowCustomizers(user)
+		ShowCustomizers(user)
 		return
 	else if(href_list["preference"] == "intimate_lobby")
 		if(!intimate_lobby_menu)
