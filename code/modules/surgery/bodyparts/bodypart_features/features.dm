@@ -19,10 +19,6 @@
 	temp.Blend(temp_hair, ICON_ADD)
 	var/mutable_appearance/gradient_appearance = mutable_appearance(temp)
 	gradient_appearance.color = gradient_color
-	// Phase 2: child overlays inherit parent pixel offsets but NOT transform,
-	// so mirror the feature's matrix transform onto the gradient so a rotated
-	// hair and its dye gradient stay aligned. No-op when transform is default.
-	apply_matrix_to_appearance(gradient_appearance)
 	standing.overlays += gradient_appearance
 
 /datum/bodypart_feature/hair/head

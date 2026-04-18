@@ -66,18 +66,14 @@
 /datum/customizer_choice/bodypart_feature/underwear
 	name = "Underwear"
 	feature_type = /datum/bodypart_feature/underwear
-	// Phase 6 — item-spawning slot. set_accessory_type qdels and
-	// re-spawns the worn obj; stacking sub-entries would duplicate
-	// worn items and churn on every edit.
-	allow_sub_entries = FALSE
+	default_accessory = /datum/sprite_accessory/underwear/athletic_leotard
 	sprite_accessories = list(
 		/datum/sprite_accessory/underwear/briefs,
 		/datum/sprite_accessory/underwear/panties,
 		/datum/sprite_accessory/underwear/bikini,
 		/datum/sprite_accessory/underwear/leotard,
 		/datum/sprite_accessory/underwear/athletic_leotard,
-		/datum/sprite_accessory/underwear/braies,
-		/datum/sprite_accessory/underwear/loinclothunder
+		/datum/sprite_accessory/underwear/braies
 		)
 
 /datum/customizer/bodypart_feature/legwear
@@ -89,8 +85,6 @@
 /datum/customizer_choice/bodypart_feature/legwear
 	name = "Legwear"
 	feature_type = /datum/bodypart_feature/legwear
-	// Phase 6 — item-spawning slot, see underwear note above.
-	allow_sub_entries = FALSE
 	//default_accessory = /datum/sprite_accessory/legwear/stockings
 	sprite_accessories = list(
 		/datum/sprite_accessory/legwear/stockings,

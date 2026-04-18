@@ -231,73 +231,14 @@
 	name = "Bodypart Feature"
 	/// Typepath of the bodypart feature
 	var/feature_type = /datum/bodypart_feature
-	/// Phase 6 — whether this choice supports composite sub-entries.
-	/// FALSE on item-spawning slots (underwear/legwear/chastity) where
-	/// set_accessory_type does qdel+new on worn items. Subtypes flip
-	/// this off rather than on — TRUE by default so new features
-	/// participate automatically.
-	var/allow_sub_entries = TRUE
 
 /datum/customizer_choice/bodypart_feature/apply_customizer_to_character(mob/living/carbon/human/human, datum/preferences/prefs, datum/customizer_entry/entry)
 	var/datum/bodypart_feature/feature = new feature_type()
 	if(entry.accessory_type)
 		var/colors_used = allows_accessory_color_customization ? entry.accessory_colors : null
 		feature.set_accessory_type(entry.accessory_type, colors_used, human)
-	// Phase 1 — carry per-entry transform onto the live feature. Render
-	// pipeline still ignores these in Phase 1; Phase 2 wires them in.
-	feature.pixel_x = entry.pixel_x
-	feature.pixel_y = entry.pixel_y
-	feature.flip_x = entry.flip_x
-	feature.flip_y = entry.flip_y
-	feature.rotation = entry.rotation
-	feature.scale = entry.scale
 	customize_feature(feature, human, prefs, entry)
 	human.add_bodypart_feature(feature)
-	// Phase 6 — composite fan-out. Primary sub-entry already rendered
-	// above via the parent's mirrored fields; iterate sub_entries[2..N]
-	// and spawn one extra feature per non-empty, non-primary sub. Use
-	// the stacked adder to bypass slot-uniqueness eviction.
-	apply_sub_entry_overlays(human, prefs, entry)
-
-/// Fan-out for composite sub-entries. No-op on item-spawning choices
-/// (allow_sub_entries == FALSE) or when no sub-entries beyond the primary
-/// exist.
-/datum/customizer_choice/bodypart_feature/proc/apply_sub_entry_overlays(mob/living/carbon/human/human, datum/preferences/prefs, datum/customizer_entry/entry)
-	if(!allow_sub_entries)
-		return
-	var/count = LAZYLEN(entry.sub_entries)
-	if(count <= 1)
-		return
-	for(var/i in 2 to count)
-		var/datum/customizer_sub_entry/sub = entry.sub_entries[i]
-		if(!istype(sub))
-			continue
-		if(isnull(sub.accessory_type))
-			continue
-		spawn_feature_from_sub_entry(human, prefs, entry, sub)
-
-/// Creates + attaches one bodypart_feature for a non-primary sub-entry.
-/// Overridable by subtypes that need per-sub customize hooks (e.g. hair
-/// injects parent gradients + per-sub hair_color onto the overlay).
-/datum/customizer_choice/bodypart_feature/proc/spawn_feature_from_sub_entry(mob/living/carbon/human/human, datum/preferences/prefs, datum/customizer_entry/entry, datum/customizer_sub_entry/sub)
-	var/datum/bodypart_feature/feature = new feature_type()
-	var/colors_used = allows_accessory_color_customization ? sub.accessory_colors : null
-	feature.set_accessory_type(sub.accessory_type, colors_used, human)
-	feature.pixel_x = sub.pixel_x
-	feature.pixel_y = sub.pixel_y
-	feature.flip_x = sub.flip_x
-	feature.flip_y = sub.flip_y
-	feature.rotation = sub.rotation
-	feature.scale = sub.scale
-	customize_sub_feature(feature, human, prefs, entry, sub)
-	human.add_bodypart_feature_stacked(feature)
-
-/// Per-subtype hook for sub-entry overlays. Default: reuse the parent-
-/// entry customize_feature so subtypes that don't care (shared state via
-/// the parent entry) do nothing extra. Hair overrides this to thread the
-/// sub's own hair_color while keeping parent gradients.
-/datum/customizer_choice/bodypart_feature/proc/customize_sub_feature(datum/bodypart_feature/feature, mob/living/carbon/human/human, datum/preferences/prefs, datum/customizer_entry/entry, datum/customizer_sub_entry/sub)
-	customize_feature(feature, human, prefs, entry)
 
 /datum/customizer_choice/bodypart_feature/proc/customize_feature(datum/bodypart_feature/feature, mob/living/carbon/human/human, datum/preferences/prefs, datum/customizer_entry/entry)
 	return

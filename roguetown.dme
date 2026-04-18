@@ -2088,7 +2088,6 @@
 #include "code\modules\mob\dead\new_player\new_player.dm"
 #include "code\modules\mob\dead\new_player\poll.dm"
 #include "code\modules\mob\dead\new_player\preferences_setup.dm"
-#include "code\modules\mob\dead\new_player\body_markings\body_marking_entry.dm"
 #include "code\modules\mob\dead\new_player\body_markings\body_marking_sets.dm"
 #include "code\modules\mob\dead\new_player\body_markings\body_markings.dm"
 #include "code\modules\mob\dead\new_player\body_markings\body_markings_moth.dm"

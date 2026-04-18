@@ -9,15 +9,6 @@
 	var/accessory_colors
 	/// Slot of the bodypart feature
 	var/feature_slot
-	// Phase 1 additions — per-feature offset + quantized transform.
-	// Populated from the owning customizer_entry at apply time. Render
-	// pipeline wiring is Phase 2; defaults are no-ops.
-	var/pixel_x = 0
-	var/pixel_y = 0
-	var/flip_x = FALSE
-	var/flip_y = FALSE
-	var/rotation = 0
-	var/scale = 1
 
 /// Proc to customize the base icon of the organ.
 /datum/bodypart_feature/proc/bodypart_icon(mutable_appearance/standing)
@@ -35,64 +26,10 @@
 	var/list/appearances = accessory.get_appearance(null, bodypart, accessory_colors)
 	if(!appearances)
 		return
-	// Phase 2: apply per-feature offset + quantized transform AFTER the
-	// subtype's bodypart_overlays() hook has attached any child overlays
-	// (e.g. hair gradient). BYOND child overlays inherit parent pixel
-	// offsets but NOT parent transform, so subtypes that add children
-	// must call apply_matrix_to_appearance() on those children themselves
-	// (see /datum/bodypart_feature/hair/add_gradient_overlay).
-	var/has_pixel_offset = (pixel_x || pixel_y)
-	var/has_matrix = has_matrix_transform()
-	for(var/mutable_appearance/standing as anything in appearances)
+	for(var/standing in appearances)
 		bodypart_icon(standing)
 		bodypart_overlays(standing)
-		if(has_pixel_offset || has_matrix)
-			apply_transform_to_appearance(standing)
 	return appearances
-
-/// TRUE if this feature has any non-default offset or transform field set.
-/datum/bodypart_feature/proc/has_transform()
-	return pixel_x || pixel_y || flip_x || flip_y || rotation || scale != 1
-
-/// TRUE if this feature has a non-identity matrix transform (scale/flip/rotation).
-/datum/bodypart_feature/proc/has_matrix_transform()
-	return flip_x || flip_y || rotation || (scale != 1)
-
-/// Applies this feature's pixel offsets AND matrix transform to MA.
-/// Use on the top-level standing appearance only. Child overlays inherit
-/// parent pixel offsets in BYOND, so for child overlays call
-/// apply_matrix_to_appearance() instead to avoid double-offset.
-/datum/bodypart_feature/proc/apply_transform_to_appearance(mutable_appearance/MA)
-	if(!MA)
-		return
-	if(pixel_x)
-		MA.pixel_x += clamp(pixel_x, FEATURE_OFFSET_MIN, FEATURE_OFFSET_MAX)
-	if(pixel_y)
-		MA.pixel_y += clamp(pixel_y, FEATURE_OFFSET_MIN, FEATURE_OFFSET_MAX)
-	apply_matrix_to_appearance(MA)
-
-/// Applies this feature's matrix transform (scale/flip/rotation) to MA.
-/// No-op when all matrix fields are defaults — no matrix is allocated.
-/datum/bodypart_feature/proc/apply_matrix_to_appearance(mutable_appearance/MA)
-	if(!MA)
-		return
-	if(!rotation && !flip_x && !flip_y && scale == 1)
-		return
-	var/matrix/M = matrix()
-	if(scale != 1)
-		M.Scale(scale, scale)
-	if(flip_x)
-		M.Scale(-1, 1)
-	if(flip_y)
-		M.Scale(1, -1)
-	if(rotation)
-		M.Turn(rotation)
-	// Compose with any existing transform so we don't clobber an accessory-
-	// specific matrix override (usually identity, but be safe).
-	if(MA.transform)
-		MA.transform = MA.transform * M
-	else
-		MA.transform = M
 
 /// Sets an accessory type and optionally colors too.
 /datum/bodypart_feature/proc/set_accessory_type(new_accessory_type, colors, owner)
@@ -132,23 +69,6 @@
 		owner.queue_icon_update(PENDING_UPDATE_BODY)
 	return TRUE
 
-/// Phase 6 — add a bodypart feature WITHOUT evicting same-slot siblings.
-/// Used for composite sub-entry overlays, which intentionally stack
-/// multiple features on the same feature_slot. Do NOT use for anything
-/// that expects slot uniqueness.
-/obj/item/bodypart/proc/add_bodypart_feature_stacked(datum/bodypart_feature/feature)
-	if(feature.body_zone != body_zone)
-		return FALSE
-	if(!bodypart_features)
-		bodypart_features = list()
-	bodypart_features += feature
-	if(owner)
-		if(ishuman(owner))
-			var/mob/living/carbon/human/H = owner
-			H.icon_render_key = null
-		owner.queue_icon_update(PENDING_UPDATE_BODY)
-	return TRUE
-
 /obj/item/bodypart/proc/remove_bodypart_feature(datum/bodypart_feature/feature)
 	if(!(feature in bodypart_features))
 		return
@@ -179,13 +99,6 @@
 	if(!bodypart)
 		return
 	bodypart.add_bodypart_feature(feature)
-
-/// Phase 6 — stacked mob-level helper (see the bodypart equivalent).
-/mob/living/carbon/proc/add_bodypart_feature_stacked(datum/bodypart_feature/feature)
-	var/obj/item/bodypart/bodypart = get_bodypart(feature.body_zone)
-	if(!bodypart)
-		return
-	bodypart.add_bodypart_feature_stacked(feature)
 
 /mob/living/carbon/proc/add_bodypart_feature_list(list/feature_list)
 	for(var/feature in feature_list)

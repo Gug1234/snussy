@@ -289,11 +289,6 @@
 
 	log_admin("[department] >> [H.key]/([H.real_name]) has joined as [H.mind.assigned_role].")
 
-	// Phase 4: batched extreme-offset admin log (once per ckey per round).
-	// See modular/code/datums/extreme_offset_policy.dm.
-	if(ishuman(H))
-		report_extreme_offsets_on_roundjoin(H)
-
 /client/verb/set_mugshot()
 	set category = "OOC"
 	set name = "Set Credits Mugshot"
