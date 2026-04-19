@@ -38,17 +38,17 @@
 
 	// Each region has two sub-slots: piercing and insertable.
 	var/list/slot_defs = list(
-		list("key" = "genital_piercing",    "label" = "Genital Piercing",    "pref" = prefs.pref_intimate_genital_piercing),
-		list("key" = "genital_insertable",  "label" = "Genital Insertable",  "pref" = prefs.pref_intimate_genital_insertable),
-		list("key" = "rear_piercing",       "label" = "Rear Piercing",       "pref" = prefs.pref_intimate_rear_piercing),
-		list("key" = "rear_insertable",     "label" = "Rear Insertable",     "pref" = prefs.pref_intimate_rear_insertable),
-		list("key" = "breast_piercing",     "label" = "Breast Piercing",     "pref" = prefs.pref_intimate_breast_piercing),
+		list("key" = "genital_piercing",    "label" = "Genital Piercing",    "custom_key" = "genital",             "pref" = prefs.get_custom_piercing_slot_equipped_typepath("genital")),
+		list("key" = "genital_insertable",  "label" = "Genital Insertable",  "custom_key" = "insertable_genital",   "pref" = prefs.get_custom_piercing_slot_equipped_typepath("insertable_genital")),
+		list("key" = "rear_piercing",       "label" = "Rear Piercing",       "custom_key" = "rear",                 "pref" = prefs.get_custom_piercing_slot_equipped_typepath("rear")),
+		list("key" = "rear_insertable",     "label" = "Rear Insertable",     "custom_key" = "insertable_rear",      "pref" = prefs.get_custom_piercing_slot_equipped_typepath("insertable_rear")),
+		list("key" = "breast_piercing",     "label" = "Breast Piercing",     "custom_key" = "breast",               "pref" = prefs.get_custom_piercing_slot_equipped_typepath("breast")),
 		list("key" = "breast_insertable",   "label" = "Breast Insertable",   "pref" = prefs.pref_intimate_breast_insertable),
-		list("key" = "mouth_piercing",      "label" = "Mouth Piercing",      "pref" = prefs.pref_intimate_mouth_piercing),
+		list("key" = "mouth_piercing",      "label" = "Mouth Piercing",      "custom_key" = "tongue",               "pref" = prefs.get_custom_piercing_slot_equipped_typepath("tongue")),
 		list("key" = "mouth_insertable",    "label" = "Mouth Insertable",    "pref" = prefs.pref_intimate_mouth_insertable),
-		list("key" = "ear_piercing",        "label" = "Ear Piercing",        "pref" = prefs.pref_intimate_ear_piercing),
-		list("key" = "nose_piercing",       "label" = "Nose Piercing",       "pref" = prefs.pref_intimate_nose_piercing),
-		list("key" = "belly_piercing",      "label" = "Belly Piercing",      "pref" = prefs.pref_intimate_belly_piercing),
+		list("key" = "ear_piercing",        "label" = "Ear Piercing",        "custom_key" = "ear",                  "pref" = prefs.get_custom_piercing_slot_equipped_typepath("ear")),
+		list("key" = "nose_piercing",       "label" = "Nose Piercing",       "custom_key" = "nose",                 "pref" = prefs.get_custom_piercing_slot_equipped_typepath("nose")),
+		list("key" = "belly_piercing",      "label" = "Belly Piercing",      "custom_key" = "belly",                "pref" = prefs.get_custom_piercing_slot_equipped_typepath("belly")),
 	)
 
 	for(var/list/def in slot_defs)
@@ -57,7 +57,8 @@
 		for(var/name in options)
 			option_names += name
 
-		var/current_display = prefs.get_intimate_option_display_name(def["pref"])
+		var/current_pref = def["custom_key"] ? prefs.get_custom_piercing_slot_equipped_typepath(def["custom_key"]) : def["pref"]
+		var/current_display = prefs.get_intimate_option_display_name(current_pref)
 		slots += list(list(
 			"key"     = def["key"],
 			"label"   = def["label"],
@@ -70,30 +71,7 @@
 
 /// Returns the assoc options list for a given slot key string.
 /datum/intimate_lobby_menu/proc/_get_options_for_slot(slot_key)
-	switch(slot_key)
-		if("genital_piercing")
-			return prefs.get_intimate_genital_piercing_options()
-		if("genital_insertable")
-			return prefs.get_intimate_genital_insertable_options()
-		if("rear_piercing")
-			return prefs.get_intimate_rear_piercing_options()
-		if("rear_insertable")
-			return prefs.get_intimate_rear_insertable_options()
-		if("breast_piercing")
-			return prefs.get_intimate_breast_piercing_options()
-		if("breast_insertable")
-			return prefs.get_intimate_breast_insertable_options()
-		if("mouth_piercing")
-			return prefs.get_intimate_mouth_piercing_options()
-		if("mouth_insertable")
-			return prefs.get_intimate_mouth_insertable_options()
-		if("ear_piercing")
-			return prefs.get_intimate_ear_piercing_options()
-		if("nose_piercing")
-			return prefs.get_intimate_nose_piercing_options()
-		if("belly_piercing")
-			return prefs.get_intimate_belly_piercing_options()
-	return list()
+	return prefs.get_custom_piercing_slot_options(slot_key)
 
 /datum/intimate_lobby_menu/ui_act(action, list/params, datum/tgui/ui)
 	. = ..()
@@ -113,30 +91,31 @@
 
 			switch(slot_key)
 				if("genital_piercing")
-					prefs.pref_intimate_genital_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("genital", typepath)
 				if("genital_insertable")
-					prefs.pref_intimate_genital_insertable = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("insertable_genital", typepath)
 				if("rear_piercing")
-					prefs.pref_intimate_rear_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("rear", typepath)
 				if("rear_insertable")
-					prefs.pref_intimate_rear_insertable = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("insertable_rear", typepath)
 				if("breast_piercing")
-					prefs.pref_intimate_breast_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("breast", typepath)
 				if("breast_insertable")
 					prefs.pref_intimate_breast_insertable = typepath
 				if("mouth_piercing")
-					prefs.pref_intimate_mouth_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("tongue", typepath)
 				if("mouth_insertable")
 					prefs.pref_intimate_mouth_insertable = typepath
 				if("ear_piercing")
-					prefs.pref_intimate_ear_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("ear", typepath)
 				if("nose_piercing")
-					prefs.pref_intimate_nose_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("nose", typepath)
 				if("belly_piercing")
-					prefs.pref_intimate_belly_piercing = typepath
+					prefs.set_custom_piercing_slot_equipped_typepath("belly", typepath)
 				else
 					return FALSE
 
+			prefs.save_custom_piercings(prefs.default_slot)
 			prefs.save_character()
 			prefs.update_preview_icon()
 			return TRUE
@@ -145,30 +124,31 @@
 			var/slot_key = params["slot"]
 			switch(slot_key)
 				if("genital_piercing")
-					prefs.pref_intimate_genital_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("genital", null)
 				if("genital_insertable")
-					prefs.pref_intimate_genital_insertable = null
+					prefs.set_custom_piercing_slot_equipped_typepath("insertable_genital", null)
 				if("rear_piercing")
-					prefs.pref_intimate_rear_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("rear", null)
 				if("rear_insertable")
-					prefs.pref_intimate_rear_insertable = null
+					prefs.set_custom_piercing_slot_equipped_typepath("insertable_rear", null)
 				if("breast_piercing")
-					prefs.pref_intimate_breast_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("breast", null)
 				if("breast_insertable")
 					prefs.pref_intimate_breast_insertable = null
 				if("mouth_piercing")
-					prefs.pref_intimate_mouth_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("tongue", null)
 				if("mouth_insertable")
 					prefs.pref_intimate_mouth_insertable = null
 				if("ear_piercing")
-					prefs.pref_intimate_ear_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("ear", null)
 				if("nose_piercing")
-					prefs.pref_intimate_nose_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("nose", null)
 				if("belly_piercing")
-					prefs.pref_intimate_belly_piercing = null
+					prefs.set_custom_piercing_slot_equipped_typepath("belly", null)
 				else
 					return FALSE
 
+			prefs.save_custom_piercings(prefs.default_slot)
 			prefs.save_character()
 			prefs.update_preview_icon()
 			return TRUE

@@ -6,12 +6,19 @@ GLOBAL_LIST_INIT(taur_genital_part_keys, list("penis", "testicles", "vagina"))
 /// Per-direction field keys inside a taur-genital props list.
 /// Schema matches /obj/item/proc/getonmobprop — plus per-part/per-dir `hide`.
 ///   x/y      : pixel_x / pixel_y offset, -64..64
-///   turn     : rotation degrees, wrapped 0..359
+///   turn     : rotation degrees, signed -359..359
 ///   flip     : horizontal mirror (scale -1), 0 or 1
 ///   above    : layer override — 0 = BODY_BEHIND, 1 = BODY_FRONT
 ///   hide     : omit the overlay entirely for this direction, 0 or 1
 ///   shrink   : scale factor, 0.1..4.0 (1.0 = native size)
 GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above", "hide", "shrink"))
+/// Penis-only arousal states. Order must stay stable for the editor tabs.
+GLOBAL_LIST_INIT(taur_genital_erect_state_keys, list(ERECT_STATE_NONE, ERECT_STATE_PARTIAL, ERECT_STATE_HARD))
+GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
+	"[ERECT_STATE_NONE]" = "Flaccid",
+	"[ERECT_STATE_PARTIAL]" = "Partial",
+	"[ERECT_STATE_HARD]" = "Hard",
+))
 
 /// Per-part default `above` (whether the sprite draws over the body).
 /// Vaginas default to FRONT so they overlay the rear properly; penises and testicles
@@ -54,8 +61,7 @@ GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above"
 		var/sk = "[dir_key]shrink"
 		out[xk] = clamp(round(text2num_safe(props[xk], defaults[xk])), TAUR_GENITAL_OFFSET_MIN, TAUR_GENITAL_OFFSET_MAX)
 		out[yk] = clamp(round(text2num_safe(props[yk], defaults[yk])), TAUR_GENITAL_OFFSET_MIN, TAUR_GENITAL_OFFSET_MAX)
-		var/t = round(text2num_safe(props[tk], defaults[tk]))
-		out[tk] = ((t % 360) + 360) % 360
+		out[tk] = clamp(round(text2num_safe(props[tk], defaults[tk])), -359, 359)
 		out[fk] = text2num_safe(props[fk], defaults[fk]) ? 1 : 0
 		out[ak] = text2num_safe(props[ak], defaults[ak]) ? 1 : 0
 		out[hk] = text2num_safe(props[hk], defaults[hk]) ? 1 : 0
@@ -64,6 +70,42 @@ GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above"
 			shrink = 1.0
 		out[sk] = clamp(shrink, 0.1, 4.0)
 	return out
+
+/// Returns the default per-arousal-state penis offset map.
+/proc/default_taur_penis_erect_state_props()
+	. = list()
+	for(var/erect_state in GLOB.taur_genital_erect_state_keys)
+		.["[erect_state]"] = default_taur_genital_props("penis")
+
+/// Sanitizes the penis arousal-state map. Legacy flat penis props are used as the
+/// fallback for any missing state, so old saves migrate cleanly.
+/proc/sanitize_taur_penis_erect_state_props(list/state_props, list/fallback_props = null)
+	var/list/fallback = sanitize_taur_genital_props(fallback_props, "penis")
+	if(!islist(state_props))
+		. = list()
+		for(var/erect_state in GLOB.taur_genital_erect_state_keys)
+			.["[erect_state]"] = fallback.Copy()
+		return
+	. = list()
+	for(var/erect_state in GLOB.taur_genital_erect_state_keys)
+		var/state_key = "[erect_state]"
+		var/list/state_entry = state_props[state_key]
+		if(!islist(state_entry))
+			state_entry = fallback
+		.[state_key] = sanitize_taur_genital_props(state_entry, "penis")
+
+/// Returns the penis props for a specific arousal state, falling back to the
+/// legacy flat penis props if a nested state list is missing.
+/proc/get_taur_penis_props_for_state(mob/living/carbon/human/H, erect_state = ERECT_STATE_NONE)
+	if(!istype(H))
+		return null
+	H.taur_penis_props = sanitize_taur_genital_props(H.taur_penis_props, "penis")
+	H.taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(H.taur_penis_erect_state_props, H.taur_penis_props)
+	var/state_num = clamp(round(text2num_safe(erect_state, ERECT_STATE_NONE)), ERECT_STATE_NONE, ERECT_STATE_HARD)
+	var/list/props = H.taur_penis_erect_state_props["[state_num]"]
+	if(islist(props))
+		return props
+	return H.taur_penis_props
 
 /// Returns the default global-hide list (one entry per cardinal direction, all zero).
 /proc/default_taur_genital_global_hide()
@@ -118,8 +160,9 @@ GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above"
  * @param appearance_list  The list of mutable_appearance overlays to adjust in place.
  * @param owner            The carbon mob whose prefs/vars are consulted.
  * @param genital_type     One of "vagina", "penis", or "testicles".
+ * @param organ            Optional organ used to read the penis erect state.
  */
-/proc/apply_taur_genital_offsets(list/appearance_list, mob/living/carbon/owner, genital_type = "")
+/proc/apply_taur_genital_offsets(list/appearance_list, mob/living/carbon/owner, genital_type = "", obj/item/organ/organ = null)
 	if(!islist(appearance_list) || !length(appearance_list) || !owner)
 		return
 	var/mob/living/carbon/human/H = owner
@@ -138,7 +181,8 @@ GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above"
 	var/list/props
 	switch(genital_type)
 		if("penis")
-			props = H.taur_penis_props
+			var/obj/item/organ/penis/penis_organ = organ
+			props = get_taur_penis_props_for_state(H, penis_organ?.erect_state)
 		if("testicles")
 			props = H.taur_testicles_props
 		if("vagina")
@@ -354,7 +398,7 @@ GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above"
 /datum/sprite_accessory/penis/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BELT, OFFSET_BELT_F)
 	if(owner_uses_taur_sprites(owner))
-		apply_taur_genital_offsets(appearance_list, owner, "penis")
+		apply_taur_genital_offsets(appearance_list, owner, "penis", organ)
 
 /datum/sprite_accessory/penis/get_icon_state(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	var/obj/item/organ/penis/pp = organ
@@ -478,6 +522,8 @@ GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above"
 
 /datum/sprite_accessory/testicles/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BELT, OFFSET_BELT_F)
+	if(owner_uses_taur_sprites(owner))
+		apply_taur_genital_offsets(appearance_list, owner, "testicles")
 	if(!chastity_shows_testicles(owner))
 		return
 

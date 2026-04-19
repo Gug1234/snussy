@@ -32,7 +32,10 @@
 		return
 	var/list/new_appearances = list()
 	for(var/slot_key in GLOB.custom_piercing_post_render_slots)
-		new_appearances += compose_custom_piercing_slot_appearances(src, slot_key)
+		var/list/slot_appearances = compose_custom_piercing_slot_appearances(src, slot_key)
+		if(!(slot_key in GLOB.custom_piercing_freeform_slots))
+			apply_custom_piercing_slot_props(slot_appearances, src, slot_key)
+		new_appearances += slot_appearances
 	if(!length(new_appearances))
 		return
 	_custom_piercing_post_overlays = new_appearances

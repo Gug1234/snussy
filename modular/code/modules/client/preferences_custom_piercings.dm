@@ -94,6 +94,133 @@
 	ensure_custom_piercings()
 	var/list/cfg = custom_piercings[slot_key]
 	if(!islist(cfg))
-		cfg = sanitize_custom_piercing_slot_config(null)
+		cfg = sanitize_custom_piercing_slot_config(slot_key, null)
 		custom_piercings[slot_key] = cfg
 	return cfg
+
+/**
+ * Returns the slot-level directional transform block for a slot, creating a
+ * default block if one does not yet exist.
+ */
+/datum/preferences/proc/get_custom_piercing_slot_props(slot_key)
+	if(!(slot_key in GLOB.custom_piercing_slot_keys))
+		return null
+	var/list/cfg = get_custom_piercing_slot(slot_key)
+	if(!cfg)
+		return null
+	var/list/props = cfg["slot_props"]
+	if(!islist(props))
+		props = default_custom_piercing_slot_props()
+		cfg["slot_props"] = props
+		cfg["props"] = props
+	return props
+
+/**
+ * Stores the slot-level directional transform block for a slot.
+ */
+/datum/preferences/proc/set_custom_piercing_slot_props(slot_key, list/props)
+	if(!(slot_key in GLOB.custom_piercing_slot_keys))
+		return FALSE
+	var/list/cfg = get_custom_piercing_slot(slot_key)
+	if(!cfg)
+		return FALSE
+	var/list/cleaned = sanitize_custom_piercing_slot_props(props)
+	cfg["slot_props"] = cleaned
+	cfg["props"] = cleaned
+	return TRUE
+
+/**
+ * Returns the equipped accessory typepath for a slot, falling back to the
+ * legacy per-slot preference vars if the slot has not yet been migrated.
+ */
+/datum/preferences/proc/get_custom_piercing_slot_equipped_typepath(slot_key)
+	if(!(slot_key in GLOB.custom_piercing_slot_keys))
+		return null
+	ensure_custom_piercings()
+	var/list/cfg = custom_piercings[slot_key]
+	var/equipped = islist(cfg) ? cfg["equipped_typepath"] : null
+	if(!ispath(equipped, /obj/item/intimate_accessory) && !istext(equipped))
+		equipped = islist(cfg) ? cfg["typepath"] : null
+	if(ispath(equipped, /obj/item/intimate_accessory))
+		return equipped
+	if(istext(equipped) && length(equipped))
+		var/path = text2path(equipped)
+		if(ispath(path, /obj/item/intimate_accessory))
+			cfg["equipped_typepath"] = "[path]"
+			cfg["enabled"] = 1
+			return path
+	var/legacy_equipped = _custom_piercing_legacy_equipped_typepath(slot_key)
+	if(legacy_equipped)
+		if(!islist(cfg))
+			cfg = get_custom_piercing_slot(slot_key)
+		cfg["equipped_typepath"] = "[legacy_equipped]"
+		cfg["enabled"] = 1
+		return legacy_equipped
+	return null
+
+/**
+ * Stores the equipped accessory typepath for a slot and mirrors the legacy
+ * preference vars so older consumers continue to see the same choice.
+ */
+/datum/preferences/proc/set_custom_piercing_slot_equipped_typepath(slot_key, typepath)
+	if(!(slot_key in GLOB.custom_piercing_slot_keys))
+		return FALSE
+	ensure_custom_piercings()
+	var/list/cfg = get_custom_piercing_slot(slot_key)
+	if(!cfg)
+		return FALSE
+	var/normalized = null
+	if(ispath(typepath, /obj/item/intimate_accessory))
+		normalized = "[typepath]"
+	else if(istext(typepath) && length(typepath))
+		var/path = text2path(typepath)
+		if(ispath(path, /obj/item/intimate_accessory))
+			normalized = "[path]"
+	cfg["equipped_typepath"] = normalized
+	cfg["typepath"] = normalized
+	cfg["enabled"] = normalized ? 1 : 0
+	_custom_piercing_sync_legacy_equipped_typepath(slot_key, normalized ? text2path(normalized) : null)
+	return TRUE
+
+/datum/preferences/proc/_custom_piercing_legacy_equipped_typepath(slot_key)
+	switch(slot_key)
+		if("genital")
+			return pref_intimate_genital_piercing
+		if("insertable_genital")
+			return pref_intimate_genital_insertable
+		if("rear")
+			return pref_intimate_rear_piercing
+		if("insertable_rear")
+			return pref_intimate_rear_insertable
+		if("breast")
+			return pref_intimate_breast_piercing
+		if("tongue")
+			return pref_intimate_mouth_piercing
+		if("ear")
+			return pref_intimate_ear_piercing
+		if("nose")
+			return pref_intimate_nose_piercing
+		if("belly")
+			return pref_intimate_belly_piercing
+	return null
+
+/datum/preferences/proc/_custom_piercing_sync_legacy_equipped_typepath(slot_key, typepath)
+	switch(slot_key)
+		if("genital")
+			pref_intimate_genital_piercing = typepath
+		if("insertable_genital")
+			pref_intimate_genital_insertable = typepath
+		if("rear")
+			pref_intimate_rear_piercing = typepath
+		if("insertable_rear")
+			pref_intimate_rear_insertable = typepath
+		if("breast")
+			pref_intimate_breast_piercing = typepath
+		if("tongue")
+			pref_intimate_mouth_piercing = typepath
+		if("ear")
+			pref_intimate_ear_piercing = typepath
+		if("nose")
+			pref_intimate_nose_piercing = typepath
+		if("belly")
+			pref_intimate_belly_piercing = typepath

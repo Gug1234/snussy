@@ -394,7 +394,7 @@ const CustomPiercingEntryCard = (props: {
           <Stack.Item>
             <DmIcon
               icon={stickerIcon}
-              icon_state={entry.sticker_id}
+              icon_state={`${entry.sticker_id}_metal`}
               width={32}
               height={32}
             />

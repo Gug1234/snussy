@@ -55,21 +55,24 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = () => {
     timeout,
     message,
     autofocus,
-    default_color = '#000000',
-    presets = '',
   } = data;
+  const defaultColor =
+    typeof data.default_color === 'string' && data.default_color.length
+      ? data.default_color
+      : '#000000';
+  const presets = typeof data.presets === 'string' ? data.presets : '';
   let { title } = data;
 
   const [selectedColor, setSelectedColor] = useState<HsvaColor>(
-    hexToHsva(default_color),
+    hexToHsva(defaultColor),
   );
 
   const [lastSelectedColor, setLastSelectedColor] = useState<string>('');
   const [allowEditing, setAllowEditing] = useState<boolean>(false);
 
   useEffect(() => {
-    setSelectedColor(hexToHsva(default_color));
-  }, [default_color]);
+    setSelectedColor(hexToHsva(defaultColor));
+  }, [defaultColor]);
 
   useEffect(() => {
     const hexCol = hsvaToHex(selectedColor);
@@ -133,7 +136,7 @@ export const ColorPickerModal: React.FC<ColorPickerModalProps> = () => {
               <ColorSelector
                 color={selectedColor}
                 setColor={setSelectedColor}
-                defaultColor={default_color}
+                defaultColor={defaultColor}
                 presetList={presetList}
                 selectedPreset={selectedPreset}
                 onSelectedPreset={setSelectedPreset}

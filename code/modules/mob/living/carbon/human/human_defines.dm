@@ -157,10 +157,13 @@
 	/// Per-genital per-direction taur props lists, copied from prefs.
 	/// Schema documented in genitals.dm (default_taur_genital_props).
 	var/list/taur_penis_props
+	var/list/taur_penis_erect_state_props
 	var/list/taur_testicles_props
 	var/list/taur_vagina_props
 	/// Global per-direction hide toggles for all taur genital overlays.
 	var/list/taur_genital_global_hide
+	/// Copied custom piercing slot config for clientless preview mannequins.
+	var/list/custom_piercings
 
 	var/list/img_gallery = list()
 	var/list/nsfw_img_gallery = list()

@@ -15,6 +15,23 @@
  * directly is safe but unused in the normal render path.
  */
 
+/// Returns the slot config stored on the mob itself, falling back to the
+/// live client prefs when available. Lobby preview mannequins are clientless,
+/// so the composer and examine hooks need the copied mob-side state.
+/proc/custom_piercing_get_slot_config_source(mob/living/carbon/wearer, slot_key)
+	if(!ishuman(wearer) || !istext(slot_key))
+		return null
+	var/mob/living/carbon/human/H = wearer
+	var/list/slot_cfg = islist(H.custom_piercings) ? H.custom_piercings[slot_key] : null
+	if(islist(slot_cfg))
+		return slot_cfg
+	var/client/C = H.client
+	if(C?.prefs && islist(C.prefs.custom_piercings))
+		slot_cfg = C.prefs.custom_piercings[slot_key]
+		if(islist(slot_cfg))
+			return slot_cfg
+	return null
+
 /// Returns TRUE if the wearer currently has the underlying intimate item /
 /// organ that the given slot represents. Slots with no resolvable equipment
 /// return FALSE so nothing ever renders in an empty slot.
@@ -28,6 +45,12 @@
 	// examine visibility is enforced separately in the examine hook.
 	if(slot_key in GLOB.custom_piercing_freeform_slots)
 		return TRUE
+	// Lobby preview mannequins are clientless; at that stage the round-start
+	// item/organ equip has not happened yet, so trust the copied slot config as
+	// the preview-time source of truth.
+	if(!wearer.client)
+		var/list/slot_cfg = custom_piercing_get_slot_config_source(wearer, slot_key)
+		return islist(slot_cfg) ? !!slot_cfg["enabled"] : FALSE
 	var/lookup = GLOB.custom_piercing_slot_equip_lookup[slot_key]
 	if(!istext(lookup))
 		return FALSE
@@ -41,8 +64,7 @@
 
 /// Applies a per-direction prop block to a mutable appearance. Sets the
 /// appearance's `dir`, pixel offsets, and a transform matrix that combines
-/// shrink, turn, and flip. Callers are expected to emit ONE appearance per
-/// direction so BYOND will pick the right one for the mob's current facing.
+/// shrink, turn, and flip.
 /proc/apply_custom_piercing_appearance_props(mutable_appearance/MA, list/props, dir_key)
 	if(!MA || !islist(props) || !istext(dir_key))
 		return
@@ -73,6 +95,37 @@
 		M = M.Turn(turn_deg)
 	MA.transform = M
 
+/// Returns the canonical dir key for a BYOND dir constant.
+/proc/custom_piercing_dir_to_key(dir)
+	switch(dir)
+		if(NORTH)
+			return "n"
+		if(EAST)
+			return "e"
+		if(WEST)
+			return "w"
+	return "s"
+
+/// Applies a slot-level per-direction prop block to every appearance in the list.
+/// Used for the normal-slot offset panel so all mask layers stay in lockstep.
+/proc/apply_custom_piercing_slot_props(list/appearance_list, mob/living/carbon/owner, slot_key)
+	if(!islist(appearance_list) || !length(appearance_list) || !owner || !istext(slot_key))
+		return
+	var/list/slot_cfg = custom_piercing_get_slot_config_source(owner, slot_key)
+	if(!islist(slot_cfg))
+		return
+	var/list/props = slot_cfg["slot_props"]
+	if(!islist(props))
+		props = slot_cfg["props"]
+	if(!islist(props))
+		return
+	var/dir_key = custom_piercing_dir_to_key(owner.dir)
+	if(props["[dir_key]hide"])
+		appearance_list.Cut()
+		return
+	for(var/mutable_appearance/A as anything in appearance_list)
+		apply_custom_piercing_appearance_props(A, props, dir_key)
+
 /// Builds the list of mutable appearances for all stickers the wearer has
 /// configured on the given slot. Returns an empty list unless the slot is
 /// (a) enabled in the character's custom_piercings config AND (b) backed by
@@ -87,13 +140,7 @@
 	var/list/appearances = list()
 	if(!ishuman(wearer) || !istext(slot_key))
 		return appearances
-	var/datum/preferences/prefs
-	var/client/C = wearer.client
-	if(C)
-		prefs = C.prefs
-	if(!prefs || !islist(prefs.custom_piercings))
-		return appearances
-	var/list/slot_cfg = prefs.custom_piercings[slot_key]
+	var/list/slot_cfg = custom_piercing_get_slot_config_source(wearer, slot_key)
 	if(!islist(slot_cfg) || !slot_cfg["enabled"])
 		return appearances
 	if(!custom_piercing_slot_is_equipped(wearer, slot_key))
@@ -101,6 +148,14 @@
 	var/list/entries = slot_cfg["entries"]
 	if(!islist(entries) || !length(entries))
 		return appearances
+	var/dir_key = "s"
+	switch(wearer.dir)
+		if(NORTH)
+			dir_key = "n"
+		if(EAST)
+			dir_key = "e"
+		if(WEST)
+			dir_key = "w"
 
 	for(var/list/entry in entries)
 		var/datum/piercing_sticker/sticker = get_custom_piercing_sticker(entry["sticker"])
@@ -134,31 +189,27 @@
 			else
 				gem_state = null
 
-		// Emit one appearance per dir so the per-dir `hide` / offset / turn
-		// / flip / shrink fields can take effect. BYOND renders only the
-		// appearance whose `dir` matches the mob's current facing.
-		for(var/dir_key in GLOB.custom_piercing_dir_keys)
-			if(props["[dir_key]hide"])
-				continue
+		if(props["[dir_key]hide"])
+			continue
 
-			var/mutable_appearance/metal_MA = mutable_appearance(
+		var/mutable_appearance/metal_MA = mutable_appearance(
+			CUSTOM_PIERCING_STICKER_ICON,
+			metal_state,
+			FLOAT_LAYER,
+		)
+		metal_MA.color = metal_color
+		apply_custom_piercing_appearance_props(metal_MA, props, dir_key)
+		appearances += metal_MA
+
+		if(gem_state)
+			var/mutable_appearance/gem_MA = mutable_appearance(
 				CUSTOM_PIERCING_STICKER_ICON,
-				metal_state,
+				gem_state,
 				FLOAT_LAYER,
 			)
-			metal_MA.color = metal_color
-			apply_custom_piercing_appearance_props(metal_MA, props, dir_key)
-			appearances += metal_MA
-
-			if(gem_state)
-				var/mutable_appearance/gem_MA = mutable_appearance(
-					CUSTOM_PIERCING_STICKER_ICON,
-					gem_state,
-					FLOAT_LAYER,
-				)
-				gem_MA.color = gem_color
-				apply_custom_piercing_appearance_props(gem_MA, props, dir_key)
-				appearances += gem_MA
+			gem_MA.color = gem_color
+			apply_custom_piercing_appearance_props(gem_MA, props, dir_key)
+			appearances += gem_MA
 
 	return appearances
 
@@ -169,13 +220,7 @@
 /proc/custom_piercing_slot_suppresses_legacy(mob/living/carbon/wearer, slot_key)
 	if(!ishuman(wearer) || !istext(slot_key))
 		return FALSE
-	var/datum/preferences/prefs
-	var/client/C = wearer.client
-	if(C)
-		prefs = C.prefs
-	if(!prefs || !islist(prefs.custom_piercings))
-		return FALSE
-	var/list/slot_cfg = prefs.custom_piercings[slot_key]
+	var/list/slot_cfg = custom_piercing_get_slot_config_source(wearer, slot_key)
 	if(!islist(slot_cfg))
 		return FALSE
 	return (slot_cfg["enabled"] && slot_cfg["suppress_legacy"]) ? TRUE : FALSE

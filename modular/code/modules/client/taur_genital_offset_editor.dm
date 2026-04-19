@@ -8,18 +8,10 @@
  * Props are stored on /datum/preferences as `taur_<part>_props` lists keyed by
  * cardinal direction (see default_taur_genital_props for the full schema).
  *
- * Live preview: the editor re-renders the preferences mannequin on every edit
- * and sends the resulting icon as a base64 PNG so the TGUI frontend can show
- * the current direction with all edits applied without a round-trip to the
- * classic character preview window.
+ * The editor is now controls-only: the lobby mannequin is the only preview
+ * source of truth, and this window no longer renders or drag-manipulates a
+ * local preview image.
  */
-/// Time dilation (% reported by SStime_track.time_dilation_avg_fast) at or
-/// above which mouse-drag sprite manipulation is force-disabled on the client.
-/// Dragging hammers Topic() with many small deltas per second, so when the
-/// server is already struggling we want players to fall back to the numeric
-/// inputs, which only emit one Topic() per edit.
-#define TAUR_EDITOR_DRAG_DISABLE_TIME_DILATION 40
-
 /// Clamp bounds for taur-genital x/y pixel offsets. Wider than the native
 /// 32px tile so players can push parts well past the body edge (preview
 /// renders into a 96x96 canvas to accommodate). Consumed by both the editor's
@@ -66,6 +58,8 @@
 	var/datum/preferences/prefs
 	/// Which part is currently selected in the editor ("penis" / "testicles" / "vagina").
 	var/active_part = "penis"
+	/// Which erect state is currently selected for penis edits.
+	var/active_erect_state = ERECT_STATE_NONE
 	/// Which direction tab is currently selected ("s" / "n" / "e" / "w").
 	var/active_dir = "s"
 	/// Shared Topic() flood limiter. Replaces the old per-editor state fields.
@@ -80,6 +74,8 @@
 	prefs = P
 	if(part in GLOB.taur_genital_part_keys)
 		active_part = part
+	if(active_part == "penis")
+		active_erect_state = prefs.preview_erect_state
 	rate_limiter = new(
 		"Taur genital editor",
 		TAUR_EDITOR_MAX_ACTS_PER_SECOND,
@@ -107,15 +103,30 @@
 /datum/taur_genital_offset_editor/ui_state(mob/user)
 	return GLOB.always_state
 
+/// Returns the props list for a given penis arousal state, sanitizing (and writing
+/// back) in place so defaults are always present for any new fields added to the
+/// schema.
+/datum/taur_genital_offset_editor/proc/_get_penis_state_props(erect_state = ERECT_STATE_NONE)
+	if(!prefs)
+		return null
+	prefs.taur_penis_props = sanitize_taur_genital_props(prefs.taur_penis_props, "penis")
+	prefs.taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(prefs.taur_penis_erect_state_props, prefs.taur_penis_props)
+	var/state_num = clamp(round(text2num_safe(erect_state, ERECT_STATE_NONE)), ERECT_STATE_NONE, ERECT_STATE_HARD)
+	var/list/props = prefs.taur_penis_erect_state_props["[state_num]"]
+	if(islist(props))
+		return props
+	return prefs.taur_penis_props
+
 /// Returns the props list for a given part, sanitizing (and writing back) in place
 /// so defaults are always present for any new fields added to the schema.
-/datum/taur_genital_offset_editor/proc/_get_props(part)
+/datum/taur_genital_offset_editor/proc/_get_props(part, erect_state = null)
 	if(!prefs)
 		return null
 	switch(part)
 		if("penis")
-			prefs.taur_penis_props = sanitize_taur_genital_props(prefs.taur_penis_props, "penis")
-			return prefs.taur_penis_props
+			if(isnull(erect_state))
+				erect_state = active_erect_state
+			return _get_penis_state_props(erect_state)
 		if("testicles")
 			prefs.taur_testicles_props = sanitize_taur_genital_props(prefs.taur_testicles_props, "testicles")
 			return prefs.taur_testicles_props
@@ -123,6 +134,21 @@
 			prefs.taur_vagina_props = sanitize_taur_genital_props(prefs.taur_vagina_props, "vagina")
 			return prefs.taur_vagina_props
 	return null
+
+/datum/taur_genital_offset_editor/proc/_mirror_east_to_west(part)
+	var/list/props = _get_props(part)
+	if(!props)
+		return FALSE
+	for(var/field in GLOB.taur_genital_field_keys)
+		var/source_key = "e[field]"
+		var/dest_key = "w[field]"
+		var/value = props[source_key]
+		if(field == "x")
+			value = -text2num_safe(value, 0)
+		else if(field == "turn")
+			value = -text2num_safe(value, 0)
+		_apply_field(props, dest_key, field, value)
+	return TRUE
 
 /// Grabs the pre-rendered per-direction mannequin appearance from the prefs client
 /// preview overlays and returns a base64 PNG. Returns null if the preview isn't ready.
@@ -254,8 +280,11 @@
 /datum/taur_genital_offset_editor/ui_data(mob/user)
 	var/list/data = list()
 	data["active_part"] = active_part
+	data["active_erect_state"] = active_erect_state
 	data["active_dir"] = active_dir
 	data["part_keys"] = GLOB.taur_genital_part_keys
+	data["erect_state_keys"] = GLOB.taur_genital_erect_state_keys
+	data["erect_state_labels"] = GLOB.taur_genital_erect_state_labels
 	data["dir_keys"] = GLOB.taur_genital_dir_keys
 	data["field_keys"] = GLOB.taur_genital_field_keys
 
@@ -270,22 +299,6 @@
 		prefs.taur_genital_global_hide = sanitize_taur_genital_global_hide(prefs.taur_genital_global_hide)
 		data["global_hide"] = prefs.taur_genital_global_hide
 
-	// Base64 preview of the mannequin facing the active direction, with all edits applied.
-	// `part_bucket["b64"]` is populated as a side-effect by _get_preview_base64 and
-	// carries the transform-free, part-only render for the frontend overlay + ghost.
-	var/list/part_bucket = list()
-	data["preview_b64"] = _get_preview_base64(active_dir, part_bucket)
-	data["part_preview_b64"] = part_bucket["b64"]
-
-	// Report live time dilation so the frontend can hard-disable drag when the
-	// server is lagging. Drag sends many Topic() calls per second; numeric
-	// inputs send one per edit, so under lag we force the lighter path.
-	var/time_dilation = 0
-	if(SStime_track)
-		time_dilation = SStime_track.time_dilation_avg_fast
-	data["time_dilation"] = time_dilation
-	data["drag_disable_threshold"] = TAUR_EDITOR_DRAG_DISABLE_TIME_DILATION
-	data["drag_disabled"] = (time_dilation >= TAUR_EDITOR_DRAG_DISABLE_TIME_DILATION)
 	return data
 
 /datum/taur_genital_offset_editor/ui_act(action, list/params)
@@ -302,7 +315,18 @@
 			var/part = params["part"]
 			if(part in GLOB.taur_genital_part_keys)
 				active_part = part
+				prefs.update_preview_icon()
 				return TRUE
+
+		if("select_state")
+			if(active_part != "penis")
+				return FALSE
+			var/state = clamp(round(text2num_safe(params["state"], ERECT_STATE_NONE)), ERECT_STATE_NONE, ERECT_STATE_HARD)
+			if(!(state in GLOB.taur_genital_erect_state_keys))
+				return FALSE
+			active_erect_state = state
+			prefs.update_preview_icon()
+			return TRUE
 
 		if("select_dir")
 			var/dir_key = params["dir"]
@@ -376,6 +400,16 @@
 			prefs.update_preview_icon()
 			return TRUE
 
+		if("mirror_east_to_west")
+			var/part = params["part"]
+			if(!(part in GLOB.taur_genital_part_keys))
+				return FALSE
+			if(!_mirror_east_to_west(part))
+				return FALSE
+			prefs.save_preferences()
+			prefs.update_preview_icon()
+			return TRUE
+
 		if("reset_dir")
 			// Reset one direction of one part to defaults.
 			var/part = params["part"]
@@ -403,6 +437,7 @@
 			switch(part)
 				if("penis")
 					prefs.taur_penis_props = default_taur_genital_props("penis")
+					prefs.taur_penis_erect_state_props = default_taur_penis_erect_state_props()
 				if("testicles")
 					prefs.taur_testicles_props = default_taur_genital_props("testicles")
 				if("vagina")
@@ -421,45 +456,7 @@
 			prefs.update_preview_icon()
 			return TRUE
 
-		if("commit_drag")
-			// Called once on mouseup at the end of a ghost-drag. Applies any
-			// subset of {x, y, turn, shrink} absolute values and regens the
-			// mannequin preview exactly ONCE, instead of per-mousemove during
-			// the drag. Dramatically cuts Topic()+getFlatIcon() load vs. the
-			// old drag_xy/drag_turn/drag_shrink per-delta handlers.
-			if(_drag_disabled_by_lag())
-				return FALSE
-			var/part = params["part"]
-			var/dir_key = params["dir"]
-			if(!(part in GLOB.taur_genital_part_keys))
-				return FALSE
-			if(!(dir_key in GLOB.taur_genital_dir_keys))
-				return FALSE
-			var/list/props = _get_props(part)
-			if(!props)
-				return FALSE
-			var/any_applied = FALSE
-			for(var/field in list("x", "y", "turn", "shrink"))
-				if(!(field in params))
-					continue
-				_apply_field(props, "[dir_key][field]", field, params[field])
-				any_applied = TRUE
-			if(!any_applied)
-				return FALSE
-			prefs.save_preferences()
-			prefs.update_preview_icon()
-			return TRUE
-
 	return FALSE
-
-/// Returns TRUE when mouse-drag edits should be rejected because the server is
-/// lagging hard enough that the flood of Topic() calls from a drag would make
-/// things worse. Players are expected to fall back to the numeric inputs in
-/// this case, which only emit one Topic() per commit.
-/datum/taur_genital_offset_editor/proc/_drag_disabled_by_lag()
-	if(!SStime_track)
-		return FALSE
-	return SStime_track.time_dilation_avg_fast >= TAUR_EDITOR_DRAG_DISABLE_TIME_DILATION
 
 /// Writes a single field into the props list with the appropriate type coercion
 /// and clamp for that field. `key` must be the fully-prefixed `<dir><field>` key.
@@ -470,8 +467,7 @@
 		if("x", "y")
 			props[key] = clamp(round(text2num_safe(value, 0)), TAUR_GENITAL_OFFSET_MIN, TAUR_GENITAL_OFFSET_MAX)
 		if("turn")
-			var/t = round(text2num_safe(value, 0))
-			props[key] = ((t % 360) + 360) % 360
+			props[key] = clamp(round(text2num_safe(value, 0)), -359, 359)
 		if("flip", "above", "hide")
 			props[key] = text2num_safe(value, 0) ? 1 : 0
 		if("shrink")

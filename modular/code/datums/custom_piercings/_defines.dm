@@ -63,6 +63,50 @@ GLOBAL_LIST_INIT(custom_piercing_slot_keys, list(
 	"custom_lower",
 ))
 
+/// Canonical slot groups used by the rebuilt editor UI. These are the only
+/// groupings the TGUI should use when building the regular-slot tabs.
+GLOBAL_LIST_INIT(custom_piercing_slot_groups, list(
+	"head" = list("ear", "nose", "tongue"),
+	"torso" = list("breast", "belly"),
+	"genital" = list("genital", "insertable_genital", "pintle"),
+	"rear" = list("rear", "insertable_rear"),
+	"custom" = list("custom_upper", "custom_lower"),
+))
+
+/// Slots that participate in the standard intimate accessory editor surface.
+/// Freeform sticker slots and chastity are intentionally excluded.
+GLOBAL_LIST_INIT(custom_piercing_regular_slot_keys, list(
+	"ear",
+	"nose",
+	"tongue",
+	"breast",
+	"belly",
+	"genital",
+	"rear",
+	"pintle",
+	"insertable_genital",
+	"insertable_rear",
+))
+
+/// Render families used by the shared composer and preview pipeline.
+/// The editor can use these to decide whether a slot is a legacy overlay,
+/// post-render overlay, or freeform sticker stack.
+GLOBAL_LIST_INIT(custom_piercing_slot_render_families, list(
+	"ear" = "legacy_overlay",
+	"nose" = "post_render",
+	"tongue" = "post_render",
+	"breast" = "legacy_overlay",
+	"belly" = "post_render",
+	"genital" = "legacy_overlay",
+	"rear" = "post_render",
+	"pintle" = "legacy_overlay",
+	"chastity" = "legacy_overlay",
+	"insertable_genital" = "post_render",
+	"insertable_rear" = "legacy_overlay",
+	"custom_upper" = "freeform",
+	"custom_lower" = "freeform",
+))
+
 /// Human-readable slot labels for the editor UI. Keyed by the strings above.
 /// For freeform slots the label is only used when the player hasn't yet set
 /// a custom `display_name` on the slot; once they do, the display_name wins

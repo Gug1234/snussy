@@ -59,6 +59,8 @@
 			highest_pref = job_preferences[job]
 	var/mob/living/carbon/human/dummy/mannequin = generate_or_wait_for_human_dummy(DUMMY_HUMAN_SLOT_PREFERENCES)
 	copy_to(mannequin, 1, TRUE, TRUE)
+	if(parent?.taur_genital_editor_instance && mannequin.sexcon)
+		mannequin.sexcon.bottom_exposed = TRUE
 
 	if(jobOnly)
 		mannequin.job = previewJob.title
@@ -74,7 +76,11 @@
 	// verify genital sprite alignment at different erection levels from the lobby.
 	var/obj/item/organ/penis/preview_penis = mannequin.getorganslot(ORGAN_SLOT_PENIS)
 	if(preview_penis)
-		preview_penis.erect_state = preview_erect_state
+		var/datum/taur_genital_offset_editor/taur_editor = parent?.taur_genital_editor_instance
+		if(taur_editor?.active_part == "penis")
+			preview_penis.erect_state = taur_editor.active_erect_state
+		else
+			preview_penis.erect_state = preview_erect_state
 
 	mannequin.regenerate_clothes()
 	mannequin.update_body()

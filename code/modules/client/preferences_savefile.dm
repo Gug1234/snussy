@@ -790,6 +790,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["taur_markings"]		>> taur_markings
 	S["taur_tertiary"]		>> taur_tertiary
 	S["taur_penis_props"]			>> taur_penis_props
+	S["taur_penis_erect_state_props"]	>> taur_penis_erect_state_props
 	S["taur_testicles_props"]		>> taur_testicles_props
 	S["taur_vagina_props"]			>> taur_vagina_props
 	S["taur_genital_global_hide"]	>> taur_genital_global_hide
@@ -848,6 +849,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	if(!S)
 		return FALSE
 	S.cd = "/"
+	custom_piercings = null
+	reset_intimate_accessory_preferences()
 	if(!slot)
 		slot = default_slot
 	slot = sanitize_integer(slot, 1, max_save_slots, initial(default_slot))
@@ -1034,6 +1037,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	taur_markings = sanitize_hexcolor(taur_markings, 6, 0)
 	taur_tertiary = sanitize_hexcolor(taur_tertiary, 6, 0)
 	taur_penis_props = sanitize_taur_genital_props(taur_penis_props, "penis")
+	taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(taur_penis_erect_state_props, taur_penis_props)
 	taur_testicles_props = sanitize_taur_genital_props(taur_testicles_props, "testicles")
 	taur_vagina_props = sanitize_taur_genital_props(taur_vagina_props, "vagina")
 	taur_genital_global_hide = sanitize_taur_genital_global_hide(taur_genital_global_hide)
@@ -1249,6 +1253,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["taur_markings"]		, taur_markings)
 	WRITE_FILE(S["taur_tertiary"]		, taur_tertiary)
 	WRITE_FILE(S["taur_penis_props"]		, taur_penis_props)
+	WRITE_FILE(S["taur_penis_erect_state_props"], taur_penis_erect_state_props)
 	WRITE_FILE(S["taur_testicles_props"]	, taur_testicles_props)
 	WRITE_FILE(S["taur_vagina_props"]		, taur_vagina_props)
 	WRITE_FILE(S["taur_genital_global_hide"], taur_genital_global_hide)

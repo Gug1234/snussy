@@ -5,18 +5,18 @@
  * Data contract matches /datum/custom_piercing_editor::ui_data. Mutations on
  * the backend only touch in-memory state + set `dirty`; persistence to disk
  * happens on the explicit "Save" button or when the window is closed
- * (autosave on Destroy). This matches the custom sex flavor editor pattern
- * and keeps disk thrash manageable at 200+ concurrent editors.
+ * (autosave on Destroy). The top half mirrors the lobby intimate-accessory
+ * prefs for selection and keyed-slot offsets; the bottom half is the two-slot
+ * freeform sticker editor.
  */
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useBackend } from 'tgui/backend';
 import { Window } from 'tgui/layouts';
 import {
   Box,
   Button,
   Divider,
-  DmIcon,
   Dropdown,
   Flex,
   Input,
@@ -63,7 +63,26 @@ type SlotConfig = {
   entries: PiercingEntry[];
 };
 
+type AccessorySlotData = {
+  key: string;
+  custom_key?: string | null;
+  label: string;
+  group?: AccessoryGroupKey | null;
+  current: string;
+  options: string[];
+  slot_props?: Record<string, number> | null;
+};
+
+type AccessoryGroupKey = 'genital' | 'rear' | 'torso' | 'head' | 'other';
+
+type AccessoryGroupData = {
+  key: AccessoryGroupKey;
+  label: string;
+  slots: AccessorySlotData[];
+};
+
 type BackendData = {
+  regular_slots: AccessorySlotData[];
   active_slot: SlotKey | null;
   active_entry: number;
   slot_keys: SlotKey[];
@@ -73,7 +92,6 @@ type BackendData = {
   entry_zone_labels: Record<string, string>;
   dir_keys: DirKey[];
   field_keys: string[];
-  sticker_icon: string;
   max_per_slot: number;
   max_total: number;
   max_name_length: number;
@@ -98,22 +116,89 @@ const DIR_LABELS: Record<DirKey, string> = {
   w: 'West',
 };
 
-function groupStickersByCategory(
-  registry: Record<string, StickerInfo>,
-): Record<string, StickerInfo[]> {
-  const out: Record<string, StickerInfo[]> = {};
-  for (const id of Object.keys(registry)) {
-    const s = registry[id];
-    const cat = s.category || 'misc';
-    if (!out[cat]) {
-      out[cat] = [];
+const ACCESSORY_GROUP_LABELS: Record<AccessoryGroupKey, string> = {
+  genital: 'Genital',
+  rear: 'Rear',
+  torso: 'Torso',
+  head: 'Head',
+  other: 'Other',
+};
+
+const ACCESSORY_GROUP_ORDER: AccessoryGroupKey[] = [
+  'genital',
+  'rear',
+  'torso',
+  'head',
+  'other',
+];
+
+function getAccessoryGroupKey(slotKey: string): AccessoryGroupKey {
+  switch (slotKey) {
+    case 'ear':
+    case 'nose':
+    case 'tongue':
+      return 'head';
+    case 'breast':
+    case 'belly':
+      return 'torso';
+    case 'genital':
+    case 'insertable_genital':
+    case 'pintle':
+      return 'genital';
+    case 'rear':
+    case 'insertable_rear':
+      return 'rear';
+    case 'genital_piercing':
+    case 'genital_insertable':
+      return 'genital';
+    case 'rear_piercing':
+    case 'rear_insertable':
+      return 'rear';
+    case 'breast_piercing':
+    case 'breast_insertable':
+    case 'belly_piercing':
+      return 'torso';
+    case 'mouth_piercing':
+    case 'mouth_insertable':
+    case 'ear_piercing':
+    case 'nose_piercing':
+      return 'head';
+    default:
+      return 'other';
+  }
+}
+
+function groupAccessorySlots(slots: AccessorySlotData[]): AccessoryGroupData[] {
+  const sourceSlots = Array.isArray(slots) ? slots : [];
+  const grouped: Record<AccessoryGroupKey, AccessorySlotData[]> = {
+    genital: [],
+    rear: [],
+    torso: [],
+    head: [],
+    other: [],
+  };
+
+  for (const slot of sourceSlots) {
+    if (!slot?.key) {
+      continue;
     }
-    out[cat].push(s);
+    grouped[(slot.group as AccessoryGroupKey) || getAccessoryGroupKey(slot.key)].push(slot);
   }
-  for (const cat of Object.keys(out)) {
-    out[cat].sort((a, b) => a.name.localeCompare(b.name));
-  }
-  return out;
+
+  return ACCESSORY_GROUP_ORDER.flatMap((key) => {
+    const groupSlots = grouped[key];
+    if (!groupSlots.length) {
+      return [];
+    }
+
+    return [
+      {
+        key,
+        label: ACCESSORY_GROUP_LABELS[key],
+        slots: groupSlots,
+      },
+    ];
+  });
 }
 
 // ── Top-level component ──────────────────────────────────────────────────────
@@ -121,18 +206,27 @@ function groupStickersByCategory(
 export function CustomPiercingEditor(props) {
   const { act, data } = useBackend<BackendData>();
   const {
+    regular_slots = [] as AccessorySlotData[],
     active_slot,
     active_entry,
     slot_keys = [],
     slot_labels = {},
+    freeform_slots = [],
     custom_piercings = {},
     dirty,
     export_payload,
     import_status,
   } = data;
-
-  const slotCfg: SlotConfig | undefined = active_slot
-    ? custom_piercings[active_slot]
+  const accessoryGroups = groupAccessorySlots(regular_slots);
+  const [activeAccessoryTab, setActiveAccessoryTab] = useState<AccessoryGroupKey>(
+    accessoryGroups[0]?.key ?? 'genital',
+  );
+  const activeCustomSlot = !!active_slot && freeform_slots.includes(active_slot);
+  const selectedFreeformSlot = activeCustomSlot
+    ? active_slot
+    : freeform_slots[0] ?? null;
+  const slotCfg: SlotConfig | undefined = selectedFreeformSlot
+    ? custom_piercings[selectedFreeformSlot]
     : undefined;
   const entries = slotCfg?.entries ?? [];
   const entry =
@@ -150,7 +244,7 @@ export function CustomPiercingEditor(props) {
     <Window theme="rogue" width={860} height={720}>
       <Window.Content scrollable>
         <Section
-          title="Custom Piercings"
+          title="Intimate Accessories"
           buttons={
             <>
               {!!dirty && (
@@ -190,9 +284,10 @@ export function CustomPiercingEditor(props) {
           }
         >
           <NoticeBox info>
-            Stickers only render when the matching intimate accessory item is
-            equipped. Changes are saved when you press Save or close this
-            window.
+            Normal slots are offset-only: edit the per-direction metal-base
+            position here, and let the game keep the gem/cross masks aligned
+            automatically. The freeform slots below are the only place where
+            sticker layouts, colors, and per-sticker transforms are edited.
           </NoticeBox>
 
           {modalOpen && (
@@ -205,44 +300,311 @@ export function CustomPiercingEditor(props) {
             />
           )}
 
-          <Tabs>
-            {slot_keys.map((slot) => {
-              const cfg = custom_piercings[slot];
-              const count = cfg?.entries?.length ?? 0;
-              const label =
-                (cfg?.display_name && cfg.display_name.trim()) ||
-                slot_labels[slot] ||
-                slot;
-              return (
-                <Tabs.Tab
-                  key={slot}
-                  selected={slot === active_slot}
-                  onClick={() => act('select_slot', { slot })}
-                >
-                  {label}
-                  {count > 0 ? ` (${count})` : ''}
-                </Tabs.Tab>
-              );
-            })}
-          </Tabs>
-
-          {!active_slot && (
-            <Box mt={2} opacity={0.6} italic>
-              Pick a slot tab to begin.
+          {!!accessoryGroups.length && (
+            <Box mt={1}>
+              <AccessorySlotsSection
+                groups={accessoryGroups}
+                activeGroup={activeAccessoryTab}
+                setActiveGroup={setActiveAccessoryTab}
+              />
             </Box>
           )}
 
-          {!!active_slot && !!slotCfg && (
-            <SlotPanel
-              slotKey={active_slot}
+          <Box mt={2}>
+            <FreeformStickerSlotsSection
+              activeSlot={selectedFreeformSlot}
+              activeEntry={active_entry}
+              slotKeys={slot_keys}
+              slotLabels={slot_labels}
               slotCfg={slotCfg}
               entry={entry}
-              entryIndex={active_entry}
+              customPiercings={custom_piercings}
+              onSelectSlot={(slot) => act('select_slot', { slot })}
             />
-          )}
+          </Box>
         </Section>
       </Window.Content>
     </Window>
+  );
+}
+
+// ── Normal-slot offsets ─────────────────────────────────────────────────────
+
+function AccessorySlotsSection(props: {
+  groups: AccessoryGroupData[];
+  activeGroup: AccessoryGroupKey;
+  setActiveGroup: (group: AccessoryGroupKey) => void;
+}) {
+  const { groups, activeGroup, setActiveGroup } = props;
+  const group = groups.find((candidate) => candidate.key === activeGroup) ?? groups[0];
+  const slots = group?.slots ?? [];
+
+  if (!group || !slots.length) {
+    return (
+      <Section title="Normal Slot Offsets">
+        <Box italic color="label">
+          No offset-editable normal slots are available yet.
+        </Box>
+      </Section>
+    );
+  }
+
+  return (
+    <Section
+      title="Normal Slot Controls"
+      buttons={
+        <Box opacity={0.6} fontSize="11px" mt="4px">
+          Choose the equipped accessory here; keyed slots also expose transform controls.
+        </Box>
+      }
+    >
+      <Tabs>
+        {groups.map((candidate) => (
+          <Tabs.Tab
+            key={candidate.key}
+            selected={activeGroup === candidate.key}
+            onClick={() => setActiveGroup(candidate.key)}
+          >
+            {candidate.label}
+          </Tabs.Tab>
+        ))}
+      </Tabs>
+
+      <Box mt={1}>
+      <Stack vertical>
+        {slots.map((slot) => (
+          <Stack.Item key={slot.key}>
+            <RegularSlotCard slot={slot} />
+          </Stack.Item>
+        ))}
+      </Stack>
+      </Box>
+    </Section>
+  );
+}
+
+function RegularSlotCard(props: { slot: AccessorySlotData }) {
+  const { act } = useBackend<BackendData>();
+  const { slot } = props;
+  const options = Array.isArray(slot.options) && slot.options.length ? slot.options : ['None'];
+
+  return (
+    <Section
+      title={`${slot.label} Slot`}
+      buttons={
+        slot.current !== 'None' && (
+          <Button
+            icon="times"
+            color="bad"
+            compact
+            tooltip="Clear this slot"
+            onClick={() =>
+              act('set_regular_slot_equipped', {
+                slot: slot.key,
+                option: 'None',
+              })
+            }
+          />
+        )
+      }
+    >
+      <Stack align="center">
+        <Stack.Item grow>
+          <Dropdown
+            width="100%"
+            selected={slot.current}
+            options={options}
+            onSelected={(value: string) =>
+              act('set_regular_slot_equipped', {
+                slot: slot.key,
+                option: value,
+              })
+            }
+          />
+        </Stack.Item>
+      </Stack>
+
+      {slot.custom_key ? (
+        <Box mt={1}>
+          <RegularSlotOffsetEditor slot={slot} />
+        </Box>
+      ) : (
+        <Box mt={1} opacity={0.65} italic fontSize="11px">
+          This slot does not expose transform controls.
+        </Box>
+      )}
+    </Section>
+  );
+}
+
+function RegularSlotOffsetEditor(props: { slot: AccessorySlotData }) {
+  const { act, data } = useBackend<BackendData>();
+  const { slot } = props;
+  const slotKey = slot.custom_key;
+  const { dir_keys = ['s', 'n', 'e', 'w'] } = data;
+  const [activeDir, setActiveDir] = useState<DirKey>(
+    (dir_keys[0] as DirKey) ?? 's',
+  );
+  const props_ = slot.slot_props ?? {};
+
+  if (!slotKey) {
+    return null;
+  }
+
+  const getN = (key: 'x' | 'y', fallback = 0): number => {
+    const v = props_[`${activeDir}${key}`];
+    return typeof v === 'number' ? v : fallback;
+  };
+
+  const updateField = (field: 'x' | 'y', value: number) => {
+    act('set_slot_prop_field', {
+      slot: slotKey,
+      dir: activeDir,
+      field,
+      value,
+    });
+  };
+
+  const nudgeField = (field: 'x' | 'y', delta: number) => {
+    act('nudge_slot_prop_field', {
+      slot: slotKey,
+      dir: activeDir,
+      field,
+      delta,
+    });
+  };
+
+  return (
+    <Box>
+      <Flex align="center" mb={1} wrap>
+        <Flex.Item>
+          <Box bold mr={1}>
+            Per-direction offsets:
+          </Box>
+        </Flex.Item>
+        {dir_keys.map((dir) => (
+          <Flex.Item key={dir} mr={0.5} mb={0.25}>
+            <Button
+              selected={dir === activeDir}
+              onClick={() => setActiveDir(dir as DirKey)}
+            >
+              {DIR_LABELS[dir as DirKey] ?? dir}
+            </Button>
+          </Flex.Item>
+        ))}
+        <Flex.Item grow={1} />
+        <Flex.Item>
+          <Button
+            icon="undo"
+            tooltip="Reset this slot to the default offset block"
+            onClick={() => act('reset_slot_props', { slot: slotKey })}
+          >
+            Reset
+          </Button>
+        </Flex.Item>
+      </Flex>
+
+      <LabeledList>
+        <LabeledList.Item label="X offset">
+          <NumberInput
+            value={getN('x')}
+            minValue={-64}
+            maxValue={64}
+            step={1}
+            width="60px"
+            onChange={(value) => updateField('x', value)}
+          />
+          <Button ml={1} icon="minus" onClick={() => nudgeField('x', -1)} />
+          <Button icon="plus" onClick={() => nudgeField('x', 1)} />
+        </LabeledList.Item>
+
+        <LabeledList.Item label="Y offset">
+          <NumberInput
+            value={getN('y')}
+            minValue={-64}
+            maxValue={64}
+            step={1}
+            width="60px"
+            onChange={(value) => updateField('y', value)}
+          />
+          <Button ml={1} icon="minus" onClick={() => nudgeField('y', -1)} />
+          <Button icon="plus" onClick={() => nudgeField('y', 1)} />
+        </LabeledList.Item>
+      </LabeledList>
+
+      <Box mt={0.5} opacity={0.65} italic fontSize="11px">
+        The same offset block is applied to every mask layer for this slot.
+      </Box>
+    </Box>
+  );
+}
+
+function FreeformStickerSlotsSection(props: {
+  activeSlot: SlotKey | null;
+  activeEntry: number;
+  slotKeys: SlotKey[];
+  slotLabels: Record<SlotKey, string>;
+  slotCfg: SlotConfig | undefined;
+  entry: PiercingEntry | undefined;
+  customPiercings: Record<SlotKey, SlotConfig>;
+  onSelectSlot: (slot: SlotKey) => void;
+}) {
+  const {
+    activeSlot,
+    activeEntry,
+    slotKeys,
+    slotLabels,
+    slotCfg,
+    entry,
+    customPiercings,
+    onSelectSlot,
+  } = props;
+
+  return (
+    <Section
+      title="Freeform Sticker Slots"
+      buttons={
+        <Box opacity={0.6} fontSize="11px" mt="4px">
+          These are the only slots that expose sticker editing.
+        </Box>
+      }
+    >
+      <Tabs>
+        {slotKeys.map((slot) => {
+          const cfg = customPiercings[slot];
+          const count = cfg?.entries?.length ?? 0;
+          const label =
+            (cfg?.display_name && cfg.display_name.trim()) ||
+            slotLabels[slot] ||
+            slot;
+          return (
+            <Tabs.Tab
+              key={slot}
+              selected={slot === activeSlot}
+              onClick={() => onSelectSlot(slot)}
+            >
+              {label}
+              {count > 0 ? ` (${count})` : ''}
+            </Tabs.Tab>
+          );
+        })}
+      </Tabs>
+
+      {!activeSlot && (
+        <Box mt={2} opacity={0.6} italic>
+          Pick a freeform slot tab to begin.
+        </Box>
+      )}
+
+      {!!activeSlot && !!slotCfg && (
+        <SlotPanel
+          slotKey={activeSlot}
+          slotCfg={slotCfg}
+          entry={entry}
+          entryIndex={activeEntry}
+        />
+      )}
+    </Section>
   );
 }
 
@@ -313,8 +675,9 @@ function ImportExportModal(props: {
       {isExport ? (
         <>
           <Box mb={0.5} fontSize="0.85em" color="label">
-            Copy this JSON to share your loadout. Paste it into the Import
-            dialog on another character to apply it.
+            Copy this JSON to share your base accessory choices and sticker
+            layout. Paste it into the Import dialog on another character to
+            apply it.
           </Box>
           <TextArea
             fluid
@@ -336,8 +699,8 @@ function ImportExportModal(props: {
             <Box inline bold color="bad">
               replace
             </Box>{' '}
-            your current stickers across all slots. You can still undo by
-            closing the editor without saving.
+            your current base accessory choices and stickers across all slots.
+            You can still undo by closing the editor without saving.
           </Box>
           <TextArea
             fluid
@@ -378,7 +741,13 @@ function SlotPanel(props: {
 }) {
   const { act, data } = useBackend<BackendData>();
   const { slotKey, slotCfg, entry, entryIndex } = props;
-  const { slot_labels = {}, freeform_slots = [], max_per_slot, max_name_length, dir_keys = ['s', 'n', 'e', 'w'] } = data;
+  const {
+    slot_labels = {},
+    freeform_slots = [],
+    max_per_slot,
+    max_name_length,
+    dir_keys = ['s', 'n', 'e', 'w'],
+  } = data;
   const entries = slotCfg.entries ?? [];
   const atCap = entries.length >= max_per_slot;
   const isFreeform = freeform_slots.includes(slotKey);
@@ -403,7 +772,7 @@ function SlotPanel(props: {
                 {slotCfg.enabled ? 'Yes' : 'No'}
               </Button.Checkbox>
             </LabeledList.Item>
-            {isFreeform && (
+            {isFreeform ? (
               <>
                 <LabeledList.Item label="Slot name">
                   <Input
@@ -433,8 +802,7 @@ function SlotPanel(props: {
                   </Box>
                 </LabeledList.Item>
               </>
-            )}
-            {!isFreeform && (
+            ) : (
               <LabeledList.Item label="Replace legacy overlay">
                 <Button.Checkbox
                   checked={!!slotCfg.suppress_legacy}
@@ -460,13 +828,6 @@ function SlotPanel(props: {
               activeIndex={entryIndex}
             />
           </Flex.Item>
-          <Flex.Item ml={1} basis="180px" shrink={0}>
-            <PreviewPanel
-              entries={entries}
-              activeIndex={entryIndex}
-              activeDir={activeDir}
-            />
-          </Flex.Item>
           <Flex.Item ml={1} grow={1}>
             {entry ? (
               <EntryDetail
@@ -486,10 +847,14 @@ function SlotPanel(props: {
             )}
           </Flex.Item>
         </Flex>
+        <Box mt={1} opacity={0.55} italic fontSize="11px">
+          Select a slot above, then use the piece bank and per-direction offset
+          controls here.
+        </Box>
       </Stack.Item>
 
       <Stack.Item>
-        <StickerPicker slotKey={slotKey} disabled={atCap} />
+        <StickerPicker key={slotKey} slotKey={slotKey} disabled={atCap} />
         {!!atCap && (
           <Box mt={1} color="bad" italic fontSize="11px">
             Slot is full ({max_per_slot} pieces). Remove one to add another.
@@ -521,144 +886,209 @@ function EntryList(props: {
   }
 
   return (
-    <Section title={`Pieces (${entries.length})`} scrollable maxHeight="280px">
-      {entries.map((entry, idx) => {
-        const oneIdx = idx + 1;
-        const selected = oneIdx === activeIndex;
-        const info = sticker_registry[entry.sticker];
-        const label = entry.custom_name || info?.name || entry.sticker;
-        return (
-          <Box
-            key={oneIdx}
-            p={0.5}
-            mb={0.5}
-            backgroundColor={selected ? 'rgba(255,255,255,0.08)' : undefined}
-            style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-          >
-            <Flex align="center">
-              <Flex.Item grow={1}>
-                <Button
-                  fluid
-                  selected={selected}
-                  onClick={() =>
-                    act('select_entry', { index: selected ? 0 : oneIdx })
-                  }
-                >
-                  <StickerThumb
-                    stickerId={entry.sticker}
-                    metalColor={entry.metal_color}
+    <Section title={`Pieces (${entries.length})`} scrollable maxHeight="220px">
+      <Box
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          overflowX: 'auto',
+          paddingBottom: '0.25rem',
+        }}
+      >
+        {entries.map((entry, idx) => {
+          const oneIdx = idx + 1;
+          const selected = oneIdx === activeIndex;
+          const info = sticker_registry[entry.sticker];
+          const label = entry.custom_name || info?.name || entry.sticker;
+          return (
+            <Box key={oneIdx} style={{ flex: '0 0 auto', width: '112px' }}>
+              <Button
+                selected={selected}
+                onClick={() =>
+                  act('select_entry', { index: selected ? 0 : oneIdx })
+                }
+                style={{
+                  width: '100%',
+                  minHeight: '48px',
+                  padding: '8px 10px',
+                  textAlign: 'left',
+                }}
+              >
+                <Box bold>
+                  {oneIdx}. {label}
+                </Box>
+                <Box fontSize="11px" opacity={0.7}>
+                  {info?.category || 'misc'}
+                  {entry.custom_name ? ' · custom name' : ''}
+                </Box>
+              </Button>
+              <Flex justify="center" mt={0.25}>
+                <Flex.Item mr={0.25}>
+                  <Button
+                    icon="arrow-up"
+                    compact
+                    tooltip="Move up"
+                    disabled={oneIdx === 1}
+                    onClick={() =>
+                      act('move_entry', { index: oneIdx, delta: -1 })
+                    }
                   />
-                  <Box inline ml={1}>
-                    {oneIdx}. {label}
-                  </Box>
-                </Button>
-              </Flex.Item>
-              <Flex.Item ml={0.5}>
-                <Button
-                  icon="arrow-up"
-                  tooltip="Move up"
-                  disabled={oneIdx === 1}
-                  onClick={() =>
-                    act('move_entry', { index: oneIdx, delta: -1 })
-                  }
-                />
-                <Button
-                  icon="arrow-down"
-                  tooltip="Move down"
-                  disabled={oneIdx === entries.length}
-                  onClick={() => act('move_entry', { index: oneIdx, delta: 1 })}
-                />
-                <Button
-                  icon="trash"
-                  color="bad"
-                  tooltip="Remove"
-                  onClick={() => act('remove_entry', { index: oneIdx })}
-                />
-              </Flex.Item>
-            </Flex>
-          </Box>
-        );
-      })}
+                </Flex.Item>
+                <Flex.Item mr={0.25}>
+                  <Button
+                    icon="arrow-down"
+                    compact
+                    tooltip="Move down"
+                    disabled={oneIdx === entries.length}
+                    onClick={() =>
+                      act('move_entry', { index: oneIdx, delta: 1 })
+                    }
+                  />
+                </Flex.Item>
+                <Flex.Item>
+                  <Button
+                    icon="trash"
+                    compact
+                    color="bad"
+                    tooltip="Remove"
+                    onClick={() => act('remove_entry', { index: oneIdx })}
+                  />
+                </Flex.Item>
+              </Flex>
+            </Box>
+          );
+        })}
+      </Box>
     </Section>
   );
 }
 
-// ── Sticker thumbnail via DmIcon (reads the shared sticker DMI directly) ────
-
-function StickerThumb(props: {
-  stickerId: string;
-  metalColor?: string;
-  scale?: number;
-}) {
-  const { data } = useBackend<BackendData>();
-  const { sticker_icon } = data;
-  const { stickerId, metalColor, scale = 1 } = props;
-  // Raw DMI thumbnail. Color overlays aren't composited here (DmIcon doesn't
-  // support multi-layer tinting); the metal color shows as a swatch.
-  return (
-    <Flex inline align="center">
-      <DmIcon
-        icon={sticker_icon}
-        icon_state={stickerId}
-        width={32 * scale}
-        height={32 * scale}
-      />
-      {!!metalColor && (
-        <Box
-          inline
-          ml={0.5}
-          style={{
-            width: '10px',
-            height: '10px',
-            backgroundColor: metalColor,
-            border: '1px solid #222',
-          }}
-        />
-      )}
-    </Flex>
-  );
-}
-
-// ── Sticker picker grid ──────────────────────────────────────────────────────
+// ── Sticker picker list ─────────────────────────────────────────────────────
 
 function StickerPicker(props: { slotKey: SlotKey; disabled: boolean }) {
   const { act, data } = useBackend<BackendData>();
   const { slotKey, disabled } = props;
   const { sticker_registry = {} } = data;
-  const grouped = groupStickersByCategory(sticker_registry);
-  const categories = Object.keys(grouped).sort();
+  const stickers = Object.values(sticker_registry).sort((left, right) => {
+    const categoryCompare = (left.category || 'misc').localeCompare(
+      right.category || 'misc',
+    );
+    if (categoryCompare !== 0) {
+      return categoryCompare;
+    }
+    const nameCompare = left.name.localeCompare(right.name);
+    if (nameCompare !== 0) {
+      return nameCompare;
+    }
+    return left.id.localeCompare(right.id);
+  });
+
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(
+    () =>
+      stickers.find((sticker) => sticker.suggested_slots?.includes(slotKey))
+        ?.id ?? stickers[0]?.id ?? null,
+  );
+
+  const selectedSticker = selectedStickerId
+    ? sticker_registry[selectedStickerId]
+    : null;
+
+  const handlePick = (stickerId: string) => {
+    setSelectedStickerId(stickerId);
+    act('add_entry', {
+      slot: slotKey,
+      sticker: stickerId,
+    });
+  };
 
   return (
     <Section title="Add sticker">
-      {categories.map((cat) => (
-        <Box key={cat} mb={1}>
-          <Box bold mb={0.5}>
-            {cat}
+      <Flex gap={1} align="start">
+        <Flex.Item basis="65%" grow={1}>
+          <Box
+            style={{
+              maxHeight: '280px',
+              overflowY: 'auto',
+              paddingRight: '0.25rem',
+            }}
+          >
+            <Stack vertical>
+              {stickers.length ? (
+                stickers.map((sticker) => {
+                  const suggested = sticker.suggested_slots?.includes(slotKey);
+                  const selected = sticker.id === selectedStickerId;
+                  return (
+                    <Stack.Item key={sticker.id}>
+                      <Button
+                        fluid
+                        selected={selected}
+                        disabled={disabled}
+                        color={suggested ? 'good' : undefined}
+                        tooltip={`${sticker.name}${suggested ? ' (suggested)' : ''}${sticker.has_gem ? ' · has gem' : ''}`}
+                        onClick={() => handlePick(sticker.id)}
+                        style={{ textAlign: 'left' }}
+                      >
+                        <Flex align="center">
+                          <Flex.Item grow={1}>
+                            <Box bold inline>
+                              {sticker.name}
+                            </Box>
+                            <Box inline ml={1} opacity={0.7} fontSize="11px">
+                              {sticker.category || 'misc'}
+                            </Box>
+                            {suggested && (
+                              <Box inline ml={1} color="good" fontSize="11px">
+                                suggested
+                              </Box>
+                            )}
+                            {sticker.has_gem && (
+                              <Box inline ml={1} opacity={0.7} fontSize="11px">
+                                gem
+                              </Box>
+                            )}
+                          </Flex.Item>
+                        </Flex>
+                      </Button>
+                    </Stack.Item>
+                  );
+                })
+              ) : (
+                <Box opacity={0.6} italic>
+                  No stickers available.
+                </Box>
+              )}
+            </Stack>
           </Box>
-          <Flex wrap="wrap">
-            {grouped[cat].map((sticker) => {
-              const suggested = sticker.suggested_slots?.includes(slotKey);
-              return (
-                <Flex.Item key={sticker.id} m={0.25}>
-                  <Button
-                    disabled={disabled}
-                    color={suggested ? 'good' : undefined}
-                    tooltip={`${sticker.name}${suggested ? ' (suggested)' : ''}${sticker.has_gem ? ' · has gem' : ''}`}
-                    onClick={() => act('add_entry', { sticker: sticker.id })}
-                  >
-                    <Flex inline align="center">
-                      <StickerThumb stickerId={sticker.id} />
-                      <Box inline ml={0.5}>
-                        {sticker.name}
-                      </Box>
-                    </Flex>
-                  </Button>
-                </Flex.Item>
-              );
-            })}
-          </Flex>
-        </Box>
-      ))}
+        </Flex.Item>
+
+        <Flex.Item basis="220px" shrink={0}>
+          <Section title="Selected">
+            {selectedSticker ? (
+              <Stack vertical>
+                <Stack.Item>
+                  <Box bold>{selectedSticker.name}</Box>
+                </Stack.Item>
+                <Stack.Item>
+                  <Box opacity={0.75} fontSize="11px">
+                    {selectedSticker.category || 'misc'}
+                    {selectedSticker.has_gem ? ' · has gem' : ''}
+                    {selectedSticker.directional ? ' · directional' : ''}
+                  </Box>
+                </Stack.Item>
+                <Stack.Item>
+                  <Box opacity={0.6} italic fontSize="11px">
+                    Click a row to add it. The mannequin shows the rendered result.
+                  </Box>
+                </Stack.Item>
+              </Stack>
+            ) : (
+              <Box opacity={0.6} italic>
+                Select an option to inspect it.
+              </Box>
+            )}
+          </Section>
+        </Flex.Item>
+      </Flex>
     </Section>
   );
 }
@@ -962,7 +1392,7 @@ function OffsetEditor(props: {
             step={1}
             unit="°"
             width="200px"
-            onChange={(value) =>
+            onChange={(_event, value) =>
               act('set_prop_field', {
                 index: entryIndex,
                 dir: activeDir,
@@ -981,7 +1411,7 @@ function OffsetEditor(props: {
             step={0.05}
             format={(v) => v.toFixed(2)}
             width="200px"
-            onChange={(value) =>
+            onChange={(_event, value) =>
               act('set_prop_field', {
                 index: entryIndex,
                 dir: activeDir,
@@ -1057,213 +1487,3 @@ function OffsetEditor(props: {
  * coordinates use +y = up (matching Byond); CSS uses +y = down, so we invert.
  */
 
-// Piercing preview constants.
-const PIERCING_PREVIEW_PX = 288; // on-screen canvas size (96 sprite * 3x zoom)
-// Virtual sprite-space size used purely for offset math — matches the taur
-// editor's 96x96 padded canvas so stickers can travel ±64 without clipping.
-const PIERCING_SPRITE_PX = 96;
-// Actual render size of an individual sticker DMI (native 32x32 tile).
-const PIERCING_STICKER_PX = 32;
-const PIERCING_SCREEN_SCALE = PIERCING_PREVIEW_PX / PIERCING_SPRITE_PX;
-const PIERCING_XY_MIN = -64;
-const PIERCING_XY_MAX = 64;
-
-const piercingClamp = (v: number, lo: number, hi: number) =>
-  Math.max(lo, Math.min(hi, v));
-
-function PreviewPanel(props: {
-  entries: PiercingEntry[];
-  activeIndex: number;
-  activeDir: DirKey;
-}) {
-  const { act, data } = useBackend<BackendData>();
-  const { entries, activeIndex, activeDir } = props;
-  const { sticker_icon, sticker_registry = {} } = data;
-
-  // Ghost drag state. Only the active entry can be dragged.
-  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
-  const dragStartVals = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [ghost, setGhost] = useState<{ dx: number; dy: number } | null>(null);
-
-  const activeEntry =
-    activeIndex >= 1 && activeIndex <= entries.length
-      ? entries[activeIndex - 1]
-      : undefined;
-
-  const propN = (entry: PiercingEntry, key: string, fallback = 0): number => {
-    const v = entry.props?.[`${activeDir}${key}`];
-    return typeof v === 'number' ? v : fallback;
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!activeEntry || e.button !== 0) {
-      return;
-    }
-    e.preventDefault();
-    dragStartPos.current = { x: e.clientX, y: e.clientY };
-    dragStartVals.current = {
-      x: propN(activeEntry, 'x'),
-      y: propN(activeEntry, 'y'),
-    };
-    setGhost({ dx: 0, dy: 0 });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragStartPos.current) {
-      return;
-    }
-    setGhost({
-      dx: e.clientX - dragStartPos.current.x,
-      dy: e.clientY - dragStartPos.current.y,
-    });
-  };
-
-  const finishDrag = () => {
-    const g = ghost;
-    const start = dragStartVals.current;
-    dragStartPos.current = null;
-    setGhost(null);
-    if (!g || !activeEntry) {
-      return;
-    }
-    if (g.dx === 0 && g.dy === 0) {
-      return;
-    }
-    // Screen pixels → sprite pixels. Invert dy because sprite +y = up.
-    const nextX = piercingClamp(
-      Math.round(start.x + g.dx / PIERCING_SCREEN_SCALE),
-      PIERCING_XY_MIN,
-      PIERCING_XY_MAX,
-    );
-    const nextY = piercingClamp(
-      Math.round(start.y - g.dy / PIERCING_SCREEN_SCALE),
-      PIERCING_XY_MIN,
-      PIERCING_XY_MAX,
-    );
-    act('commit_drag', {
-      index: activeIndex,
-      dir: activeDir,
-      x: nextX,
-      y: nextY,
-    });
-  };
-
-  // Build entry render list. Active entry is rendered last (on top) and
-  // offset by the live ghost delta during a drag; other entries use their
-  // committed props unchanged.
-  const renderEntry = (entry: PiercingEntry, oneIdx: number) => {
-    if (!sticker_registry[entry.sticker]) {
-      return null;
-    }
-    const x = propN(entry, 'x');
-    const y = propN(entry, 'y');
-    const turn = propN(entry, 'turn', 0);
-    const shrink = propN(entry, 'shrink', 1);
-    const hide = propN(entry, 'hide', 0);
-    const flip = propN(entry, 'flip', 0);
-    if (hide) {
-      return null;
-    }
-    const isActive = oneIdx === activeIndex;
-    const isDragging = isActive && !!ghost;
-    // Sprite space → screen space (center-anchored). The sticker renders at
-    // its native 32x32 tile size; PIERCING_SPRITE_PX is only used for the
-    // offset math's coordinate space.
-    const centerOffset = (PIERCING_PREVIEW_PX - PIERCING_STICKER_PX) / 2;
-    let screenX = centerOffset + x * PIERCING_SCREEN_SCALE;
-    let screenY = centerOffset - y * PIERCING_SCREEN_SCALE;
-    if (isDragging && ghost) {
-      screenX += ghost.dx;
-      screenY += ghost.dy;
-    }
-    // Flip is rendered client-side via CSS scaleX(-1) rather than a server
-    // regenerated sprite: BYOND's getFlatIcon does not honor
-    // mutable_appearance.transform, so any scale/rotate/flip has to happen
-    // in the DOM to show up live.
-    const scaleX = shrink * (flip ? -1 : 1);
-    return (
-      <Box
-        key={oneIdx}
-        style={{
-          position: 'absolute',
-          left: `${screenX}px`,
-          top: `${screenY}px`,
-          width: `${PIERCING_STICKER_PX}px`,
-          height: `${PIERCING_STICKER_PX}px`,
-          transform: `rotate(${turn}deg) scale(${scaleX}, ${shrink})`,
-          transformOrigin: '50% 50%',
-          pointerEvents: 'none',
-          opacity: isDragging ? 0.7 : 1,
-          outline: isActive ? '1px dashed #ffffff80' : undefined,
-          outlineOffset: '-1px',
-        }}
-      >
-        <DmIcon
-          icon={sticker_icon}
-          icon_state={entry.sticker}
-          width={PIERCING_STICKER_PX}
-          height={PIERCING_STICKER_PX}
-          color={entry.metal_color}
-        />
-      </Box>
-    );
-  };
-
-  return (
-    <Section title="Preview" fill>
-      <Box
-        style={{
-          position: 'relative',
-          width: `${PIERCING_PREVIEW_PX}px`,
-          height: `${PIERCING_PREVIEW_PX}px`,
-          margin: '0 auto',
-          background: '#0e0e0e',
-          border: '1px solid #333',
-          imageRendering: 'pixelated',
-          userSelect: 'none',
-          cursor: activeEntry ? (ghost ? 'grabbing' : 'grab') : 'default',
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={finishDrag}
-        onMouseLeave={finishDrag}
-      >
-        {/* Center crosshair for orientation. */}
-        <Box
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: 0,
-            bottom: 0,
-            width: '1px',
-            background: 'rgba(255,255,255,0.08)',
-            pointerEvents: 'none',
-          }}
-        />
-        <Box
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: 0,
-            right: 0,
-            height: '1px',
-            background: 'rgba(255,255,255,0.08)',
-            pointerEvents: 'none',
-          }}
-        />
-        {entries.map((entry, idx) =>
-          idx + 1 === activeIndex ? null : renderEntry(entry, idx + 1),
-        )}
-        {activeEntry ? renderEntry(activeEntry, activeIndex) : null}
-      </Box>
-      <Box mt={0.5} fontSize="10px" opacity={0.5} textAlign="center">
-        Dir: {DIR_LABELS[activeDir as DirKey] ?? activeDir}
-      </Box>
-      <Box mt={0.5} fontSize="10px" opacity={0.4} textAlign="center" italic>
-        {activeEntry
-          ? 'Drag active piercing to reposition. Release to save.'
-          : 'Select a piercing to drag it.'}
-      </Box>
-    </Section>
-  );
-}

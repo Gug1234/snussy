@@ -196,7 +196,7 @@
 	)
 
 	for(var/slot_key in GLOB.custom_piercing_slot_keys)
-		var/list/slot_cfg = client.prefs.custom_piercings[slot_key]
+		var/list/slot_cfg = custom_piercing_get_slot_config_source(src, slot_key)
 		if(!islist(slot_cfg) || !slot_cfg["enabled"])
 			continue
 		// Per-slot examine opt-out: player has hidden this slot from others.

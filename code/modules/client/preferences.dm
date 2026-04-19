@@ -436,6 +436,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	/// values for each cardinal direction (n/s/e/w). See default_taur_genital_props() for the
 	/// full schema and defaults. Edited via the TGUI TaurGenitalOffsetEditor window.
 	var/list/taur_penis_props
+	/// Penis-only arousal-state offset map keyed by ERECT_STATE_*.
+	var/list/taur_penis_erect_state_props
 	var/list/taur_testicles_props
 	var/list/taur_vagina_props
 	/// Global per-direction hide toggles applied to ALL taur genital parts.
@@ -830,7 +832,6 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<br><b>Intimate Accessories:</b> <a href='?_src_=prefs;preference=intimate_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>Chastity Device:</b> <a href='?_src_=prefs;preference=chastity_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>Custom Sex Actions:</b> <a href='?_src_=prefs;preference=sex_flavor_lobby;task=menu'>Configure</a>"
-			dat += "<br><b>Custom Piercings:</b> <a href='?_src_=prefs;preference=open_custom_piercing_editor'>Configure</a>"
 			dat += "<br><b>Intimate Reactions:</b> <a href='?_src_=prefs;preference=intimate_reaction_lobby;task=menu'>Configure</a>"
 			dat += "<br><b>ERP Preferences:</b><a href='?_src_=prefs;preference=formathelp;task=input'>(?)</a><a href='?_src_=prefs;preference=erpprefs;task=input'>Change</a>"
 			dat += "<br><b>Song:</b> <a href='?_src_=prefs;preference=ooc_extra;task=input'>Change URL</a>"
@@ -1686,9 +1687,8 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 		ShowCustomizers(user)
 		return
 	else if(href_list["preference"] == "intimate_lobby")
-		if(!intimate_lobby_menu)
-			intimate_lobby_menu = new(src)
-		intimate_lobby_menu.ui_interact(user)
+		var/slot_key = href_list["slot"]
+		src.open_custom_piercing_editor(user, slot_key)
 		return
 	else if(href_list["preference"] == "chastity_lobby")
 		if(!chastity_lobby_menu)
@@ -3065,7 +3065,7 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 						if(part in GLOB.taur_genital_part_keys)
 							src.open_taur_genital_editor(user, part)
 
-				// --- Open the custom piercing editor from the lobby ---
+				// --- Open the combined intimate accessory editor from the lobby ---
 				if("open_custom_piercing_editor")
 					if(!chastenable)
 						to_chat(user, span_warning("I have intimate content disabled."))
@@ -3411,12 +3411,15 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 		// Copy taur genital prefs to the mob so clientless mannequins can read them
 		character.use_taur_genital_sprites = use_taur_genital_sprites
 		character.taur_penis_props = taur_penis_props?.Copy()
+		character.taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(taur_penis_erect_state_props, taur_penis_props)
 		character.taur_testicles_props = taur_testicles_props?.Copy()
 		character.taur_vagina_props = taur_vagina_props?.Copy()
 		character.taur_genital_global_hide = taur_genital_global_hide?.Copy()
 	else if(character_setup)
 		// This should only ever ~do~ anything for previews
 		character.ensure_not_taur()
+
+	character.custom_piercings = sanitize_custom_piercings(custom_piercings)
 
 	if(icon_updates)
 		character.update_body()

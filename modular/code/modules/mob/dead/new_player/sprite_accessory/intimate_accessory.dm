@@ -241,6 +241,7 @@
 	if(custom_piercing_slot_suppresses_legacy(owner, "ear"))
 		appearance_list.Cut()
 	appearance_list += compose_custom_piercing_slot_appearances(owner, "ear")
+	apply_custom_piercing_slot_props(appearance_list, owner, "ear")
 
 /datum/sprite_accessory/intimate_accessory/piercing_ear/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	if(suffix)
@@ -318,6 +319,7 @@
 	appearance_list += compose_custom_piercing_slot_appearances(owner, "breast")
 	// Keep piercing overlays aligned to the same chest offsets as breast sprites.
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BREASTS, OFFSET_BREASTS_F)
+	apply_custom_piercing_slot_props(appearance_list, owner, "breast")
 
 /datum/sprite_accessory/intimate_accessory/piercing_genital
 	name = "Genital Piercing"
@@ -359,6 +361,7 @@
 	appearance_list += compose_custom_piercing_slot_appearances(owner, "chastity")
 	// Keep genital piercing overlays aligned to the same belt offsets as genital organ sprites.
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BELT, OFFSET_BELT_F)
+	apply_custom_piercing_slot_props(appearance_list, owner, "genital")
 
 /datum/sprite_accessory/intimate_accessory/rear_plug
 	name = "Rear Plug"
@@ -370,6 +373,7 @@
 	if(custom_piercing_slot_suppresses_legacy(owner, "insertable_rear"))
 		appearance_list.Cut()
 	appearance_list += compose_custom_piercing_slot_appearances(owner, "insertable_rear")
+	apply_custom_piercing_slot_props(appearance_list, owner, "insertable_rear")
 
 /datum/sprite_accessory/intimate_accessory/rear_plug/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	if(suffix)
@@ -405,6 +409,7 @@
 	if(custom_piercing_slot_suppresses_legacy(owner, "insertable_rear"))
 		appearance_list.Cut()
 	appearance_list += compose_custom_piercing_slot_appearances(owner, "insertable_rear")
+	apply_custom_piercing_slot_props(appearance_list, owner, "insertable_rear")
 
 /datum/sprite_accessory/intimate_accessory/rear_beads/get_icon_state(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	var/bead_count = "short"

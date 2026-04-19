@@ -14,6 +14,28 @@
 // ── Option-list helpers ────────────────────────────────────────────────────
 // Each region now has separate piercing and insertable option lists.
 
+/// Clears per-slot intimate and chastity prefs before loading a new slot.
+/datum/preferences/proc/reset_intimate_accessory_preferences()
+	pref_intimate_genital_piercing = initial(pref_intimate_genital_piercing)
+	pref_intimate_genital_insertable = initial(pref_intimate_genital_insertable)
+	pref_intimate_rear_piercing = initial(pref_intimate_rear_piercing)
+	pref_intimate_rear_insertable = initial(pref_intimate_rear_insertable)
+	pref_intimate_breast_piercing = initial(pref_intimate_breast_piercing)
+	pref_intimate_breast_insertable = initial(pref_intimate_breast_insertable)
+	pref_intimate_mouth_piercing = initial(pref_intimate_mouth_piercing)
+	pref_intimate_mouth_insertable = initial(pref_intimate_mouth_insertable)
+	pref_intimate_ear_piercing = initial(pref_intimate_ear_piercing)
+	pref_intimate_nose_piercing = initial(pref_intimate_nose_piercing)
+	pref_intimate_belly_piercing = initial(pref_intimate_belly_piercing)
+	pref_chastity_enabled = initial(pref_chastity_enabled)
+	pref_chastity_flat = initial(pref_chastity_flat)
+	pref_chastity_anal = initial(pref_chastity_anal)
+	pref_chastity_spiked = initial(pref_chastity_spiked)
+	pref_chastity_locked = initial(pref_chastity_locked)
+	pref_chastity_spawn_key = initial(pref_chastity_spawn_key)
+	pref_chastity_key_stashes = initial(pref_chastity_key_stashes)
+	pref_chastity_random_keys = initial(pref_chastity_random_keys)
+
 /// Returns insertable options for the REAR slot (plugs, beads).
 /datum/preferences/proc/get_intimate_rear_insertable_options()
 	var/static/list/options
@@ -226,6 +248,8 @@
 /datum/preferences/proc/get_intimate_option_display_name(typepath)
 	if(!typepath)
 		return "None"
+	if(istext(typepath))
+		typepath = text2path(typepath)
 	var/list/all_options = get_intimate_rear_insertable_options() + get_intimate_rear_piercing_options() \
 		+ get_intimate_genital_insertable_options() + get_intimate_genital_piercing_options() \
 		+ get_intimate_breast_piercing_options() + get_intimate_breast_insertable_options() \
@@ -236,6 +260,101 @@
 		if(all_options[label] == typepath)
 			return label
 	return "[typepath]"
+
+/// Returns the dropdown option list for a regular-slot row in the custom
+/// piercing editor / lobby intimate accessory menu.
+/datum/preferences/proc/get_custom_piercing_slot_options(slot_key)
+	switch(slot_key)
+		if("genital_piercing")
+			return get_intimate_genital_piercing_options()
+		if("genital_insertable")
+			return get_intimate_genital_insertable_options()
+		if("rear_piercing")
+			return get_intimate_rear_piercing_options()
+		if("rear_insertable")
+			return get_intimate_rear_insertable_options()
+		if("breast_piercing")
+			return get_intimate_breast_piercing_options()
+		if("breast_insertable")
+			return get_intimate_breast_insertable_options()
+		if("mouth_piercing")
+			return get_intimate_mouth_piercing_options()
+		if("mouth_insertable")
+			return get_intimate_mouth_insertable_options()
+		if("ear_piercing")
+			return get_intimate_ear_piercing_options()
+		if("nose_piercing")
+			return get_intimate_nose_piercing_options()
+		if("belly_piercing")
+			return get_intimate_belly_piercing_options()
+	return list("None" = null)
+
+/// Builds one regular-slot row for the custom piercing editor data payload.
+/datum/preferences/proc/build_custom_piercing_editor_regular_slot_row(slot_key, label, custom_key, group)
+	var/current_pref = null
+	if(custom_key)
+		current_pref = get_custom_piercing_slot_equipped_typepath(custom_key)
+	if(!current_pref)
+		switch(slot_key)
+			if("breast_insertable")
+				current_pref = pref_intimate_breast_insertable
+			if("mouth_insertable")
+				current_pref = pref_intimate_mouth_insertable
+
+	var/current_display = get_intimate_option_display_name(current_pref)
+	var/list/options = get_custom_piercing_slot_options(slot_key)
+	var/list/option_names = list()
+	for(var/name in options)
+		option_names += name
+	if(!(current_display in option_names))
+		option_names.Insert(1, current_display)
+
+	var/list/slot_props = null
+	if(custom_key)
+		slot_props = get_custom_piercing_slot_props(custom_key)
+
+	return list(
+		"key" = slot_key,
+		"custom_key" = custom_key || null,
+		"label" = label,
+		"group" = group || null,
+		"current" = current_display,
+		"options" = option_names,
+		"slot_props" = slot_props
+	)
+
+/// Returns the regular-slot rows shown in the custom editor offset surface.
+/datum/preferences/proc/get_custom_piercing_editor_regular_slot_data()
+	return list(
+		build_custom_piercing_editor_regular_slot_row("genital_piercing", "Genital Piercing", "genital", "genital"),
+		build_custom_piercing_editor_regular_slot_row("genital_insertable", "Genital Insertable", "insertable_genital", "genital"),
+		build_custom_piercing_editor_regular_slot_row("rear_piercing", "Rear Piercing", "rear", "rear"),
+		build_custom_piercing_editor_regular_slot_row("rear_insertable", "Rear Insertable", "insertable_rear", "rear"),
+		build_custom_piercing_editor_regular_slot_row("breast_piercing", "Breast Piercing", "breast", "torso"),
+		build_custom_piercing_editor_regular_slot_row("breast_insertable", "Breast Insertable", null, "torso"),
+		build_custom_piercing_editor_regular_slot_row("mouth_piercing", "Mouth Piercing", "tongue", "head"),
+		build_custom_piercing_editor_regular_slot_row("mouth_insertable", "Mouth Insertable", null, "head"),
+		build_custom_piercing_editor_regular_slot_row("ear_piercing", "Ear Piercing", "ear", "head"),
+		build_custom_piercing_editor_regular_slot_row("nose_piercing", "Nose Piercing", "nose", "head"),
+		build_custom_piercing_editor_regular_slot_row("belly_piercing", "Belly Piercing", "belly", "torso")
+	)
+
+/// Returns the regular-slot rows shown in the custom editor offset surface.
+/// The TGUI should use this instead of hardcoding its own slot map.
+/datum/preferences/proc/get_custom_piercing_editor_regular_slot_defs()
+	return list(
+		list("key" = "genital_piercing",   "label" = "Genital Piercing",   "custom_key" = "genital",             "group" = "genital"),
+		list("key" = "genital_insertable", "label" = "Genital Insertable", "custom_key" = "insertable_genital",   "group" = "genital"),
+		list("key" = "rear_piercing",      "label" = "Rear Piercing",      "custom_key" = "rear",                 "group" = "rear"),
+		list("key" = "rear_insertable",    "label" = "Rear Insertable",    "custom_key" = "insertable_rear",      "group" = "rear"),
+		list("key" = "breast_piercing",    "label" = "Breast Piercing",    "custom_key" = "breast",               "group" = "torso"),
+		list("key" = "breast_insertable",  "label" = "Breast Insertable",  "group" = "torso"),
+		list("key" = "mouth_piercing",     "label" = "Mouth Piercing",     "custom_key" = "tongue",               "group" = "head"),
+		list("key" = "mouth_insertable",   "label" = "Mouth Insertable",   "group" = "head"),
+		list("key" = "ear_piercing",       "label" = "Ear Piercing",       "custom_key" = "ear",                  "group" = "head"),
+		list("key" = "nose_piercing",      "label" = "Nose Piercing",      "custom_key" = "nose",                 "group" = "head"),
+		list("key" = "belly_piercing",     "label" = "Belly Piercing",     "custom_key" = "belly",                "group" = "torso"),
+	)
 
 // ── Force-equip for spawn / preview ────────────────────────────────────────
 /**
@@ -252,19 +371,18 @@
 		return
 
 	// Helper list: slot constant -> pref typepath
-	// Each region has two entries: piercing and insertable.
 	var/list/slot_prefs = list(
-		"[INTIMATE_SLOT_GENITAL]_p" = pref_intimate_genital_piercing,
-		"[INTIMATE_SLOT_GENITAL]_i" = pref_intimate_genital_insertable,
-		"[INTIMATE_SLOT_REAR]_p"    = pref_intimate_rear_piercing,
-		"[INTIMATE_SLOT_REAR]_i"    = pref_intimate_rear_insertable,
-		"[INTIMATE_SLOT_BREAST]_p"  = pref_intimate_breast_piercing,
+		"[INTIMATE_SLOT_GENITAL]_p" = get_custom_piercing_slot_equipped_typepath("genital"),
+		"[INTIMATE_SLOT_GENITAL]_i" = get_custom_piercing_slot_equipped_typepath("insertable_genital"),
+		"[INTIMATE_SLOT_REAR]_p"    = get_custom_piercing_slot_equipped_typepath("rear"),
+		"[INTIMATE_SLOT_REAR]_i"    = get_custom_piercing_slot_equipped_typepath("insertable_rear"),
+		"[INTIMATE_SLOT_BREAST]_p"  = get_custom_piercing_slot_equipped_typepath("breast"),
 		"[INTIMATE_SLOT_BREAST]_i"  = pref_intimate_breast_insertable,
-		"[INTIMATE_SLOT_MOUTH]_p"   = pref_intimate_mouth_piercing,
+		"[INTIMATE_SLOT_MOUTH]_p"   = get_custom_piercing_slot_equipped_typepath("tongue"),
 		"[INTIMATE_SLOT_MOUTH]_i"   = pref_intimate_mouth_insertable,
-		"[INTIMATE_SLOT_EAR]_p"     = pref_intimate_ear_piercing,
-		"[INTIMATE_SLOT_NOSE]_p"    = pref_intimate_nose_piercing,
-		"[INTIMATE_SLOT_BELLY]_p"   = pref_intimate_belly_piercing,
+		"[INTIMATE_SLOT_EAR]_p"     = get_custom_piercing_slot_equipped_typepath("ear"),
+		"[INTIMATE_SLOT_NOSE]_p"    = get_custom_piercing_slot_equipped_typepath("nose"),
+		"[INTIMATE_SLOT_BELLY]_p"   = get_custom_piercing_slot_equipped_typepath("belly"),
 	)
 
 	for(var/slot_key in slot_prefs)

@@ -8,7 +8,9 @@
  *     "<slot_key>" = list(
  *       "enabled"         = 0|1,        // bool, gates whole slot
  *       "suppress_legacy" = 0|1,        // bool, hides legacy overlay
- *       "entries"         = list(       // ordered — back-to-front render
+ *       "equipped_typepath" = null or "/obj/item/...", // base accessory
+ *       "slot_props"      = list(...),  // per-dir transform block for the slot
+ *       "entries"         = list(       // ordered sticker stack for freeform
  *         list(
  *           "sticker"       = "<id>",   // key from GLOB.custom_piercing_stickers
  *           "metal_color"   = "#RRGGBB",
@@ -33,7 +35,8 @@
 #define CUSTOM_PIERCING_DEFAULT_GEM_COLOR "#55D6FF"
 
 /// Returns a fresh per-direction prop list with sane defaults.
-/// Mirrors default_taur_genital_props() semantics.
+/// Mirrors default_taur_genital_props() semantics and is shared by both slot-
+/// level transforms and freeform sticker entries.
 /proc/default_custom_piercing_props()
 	var/list/props = list()
 	for(var/dir_key in GLOB.custom_piercing_dir_keys)
@@ -46,6 +49,15 @@
 		props["[dir_key]hide"] = 0
 		props["[dir_key]shrink"] = 1.0
 	return props
+
+/// Slot-level directional transform block. Kept as an explicit alias so the
+/// rebuilt UI can talk about regular-slot offsets without entry terminology.
+/proc/default_custom_piercing_slot_props()
+	return default_custom_piercing_props()
+
+/// Sanitizes a slot-level per-direction transform block.
+/proc/sanitize_custom_piercing_slot_props(list/props)
+	return sanitize_custom_piercing_props(props)
 
 /// Sanitizes a per-direction prop list. Unknown keys are dropped; out-of-range
 /// values are clamped. Defensively rebuilds from defaults if input is garbage.
@@ -123,17 +135,39 @@
 	return out
 
 /// Sanitizes one slot's config block.
-/proc/sanitize_custom_piercing_slot_config(list/cfg)
+/proc/sanitize_custom_piercing_slot_config(slot_key, list/cfg)
 	var/list/out = list()
-	out["enabled"] = 0
+	out["enabled"] = (slot_key in GLOB.custom_piercing_freeform_slots) ? 1 : 0
 	out["suppress_legacy"] = 0
+	out["equipped_typepath"] = null
+	out["typepath"] = null
+	out["slot_props"] = default_custom_piercing_slot_props()
 	out["display_name"] = null
 	out["hide_from_examine"] = 0
 	out["entries"] = list()
 	if(!islist(cfg))
+		out["props"] = out["slot_props"]
 		return out
 	out["enabled"] = cfg["enabled"] ? 1 : 0
 	out["suppress_legacy"] = cfg["suppress_legacy"] ? 1 : 0
+	var/raw_equipped = cfg["equipped_typepath"]
+	if(!istext(raw_equipped) && !ispath(raw_equipped, /obj/item/intimate_accessory))
+		raw_equipped = cfg["typepath"]
+	if(ispath(raw_equipped, /obj/item/intimate_accessory))
+		out["equipped_typepath"] = "[raw_equipped]"
+		out["enabled"] = 1
+	else if(istext(raw_equipped) && length(raw_equipped))
+		var/path = text2path(raw_equipped)
+		if(ispath(path, /obj/item/intimate_accessory))
+			out["equipped_typepath"] = "[path]"
+			out["enabled"] = 1
+	out["typepath"] = out["equipped_typepath"]
+	var/list/raw_slot_props = cfg["slot_props"]
+	if(!islist(raw_slot_props))
+		raw_slot_props = cfg["props"]
+	if(islist(raw_slot_props))
+		out["slot_props"] = sanitize_custom_piercing_slot_props(raw_slot_props)
+	out["props"] = out["slot_props"]
 	out["hide_from_examine"] = cfg["hide_from_examine"] ? 1 : 0
 	// Slot-level player-authored label. Used for freeform slots in both the
 	// editor tabs and the examine hook. Sanitized identically to entry names.
@@ -163,7 +197,7 @@
 	for(var/slot_key in raw)
 		if(!(slot_key in GLOB.custom_piercing_slot_keys))
 			continue
-		var/list/cleaned_slot = sanitize_custom_piercing_slot_config(raw[slot_key])
+		var/list/cleaned_slot = sanitize_custom_piercing_slot_config(slot_key, raw[slot_key])
 		// Enforce global cap across slots.
 		var/list/slot_entries = cleaned_slot["entries"]
 		while(length(slot_entries) && total + length(slot_entries) > CUSTOM_PIERCING_MAX_TOTAL_ENTRIES)
