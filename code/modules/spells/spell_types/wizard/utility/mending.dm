@@ -41,6 +41,15 @@
 		revert_cast()
 		return
 
+	user.visible_message(
+			span_warning("[user] begins to concentrate on [I]!"),
+			span_notice("I begin to concentrate on [I]..")
+	)
+	if(!do_after(user, 4 SECONDS, TRUE, I, TRUE))
+		to_chat(user, span_warning("My concentration breaks! I could not repair [I]."))
+		revert_cast()
+		return
+
 	var/repair_amount = (repair_percent + (user.STAINT * 0.01)) * I.max_integrity
 
 	I.obj_integrity = min(I.obj_integrity + repair_amount, I.max_integrity)
