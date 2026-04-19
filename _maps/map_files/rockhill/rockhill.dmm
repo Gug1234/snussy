@@ -3738,16 +3738,12 @@
 	pixel_x = 10;
 	pixel_y = 10
 	},
-/obj/item/seeds/potato{
-	pixel_x = 10;
-	pixel_y = 10
-	},
 /obj/item/seeds/apple{
 	pixel_x = 10
 	},
-/obj/item/seeds/apple{
-	pixel_x = 10
-	},
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
 /turf/open/floor/rogue/twig,
 /area/rogue/outdoors/town/grove)
 "aTJ" = (
@@ -17545,6 +17541,10 @@
 "egP" = (
 /obj/item/seeds/wheat,
 /obj/structure/table/wood/poor,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
 /turf/open/floor/rogue/hexstone,
 /area/rogue/indoors)
 "egQ" = (
@@ -25679,9 +25679,6 @@
 /area/rogue/indoors/town/garrison)
 "geS" = (
 /turf/open/floor/rogue/rooftop/green/corner1,
-/area/rogue/outdoors/town/roofs/keep)
-"geT" = (
-/turf/closed,
 /area/rogue/outdoors/town/roofs/keep)
 "geY" = (
 /obj/structure/table/wood,
@@ -39288,6 +39285,14 @@
 	},
 /turf/open/floor/rogue/blocks,
 /area/rogue/indoors/town/church)
+"jzp" = (
+/obj/structure/rack/rogue,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/turf/open/floor/rogue/dirt/road,
+/area/rogue/indoors)
 "jzt" = (
 /obj/structure/bed/rogue/inn/double{
 	dir = 1
@@ -42178,13 +42183,6 @@
 /obj/machinery/light/rogue/candle/blue/l,
 /turf/open/floor/rogue/hexstone,
 /area/rogue/under/underdarker/rockhill)
-"kiZ" = (
-/obj/structure/fluff/walldeco/church/line{
-	dir = 1;
-	layer = 2
-	},
-/turf/open/floor/rogue/church,
-/area/rogue/outdoors/beach/harbor)
 "kjd" = (
 /mob/living/simple_animal/hostile/rogue/deepone,
 /turf/open/water/swamp/deep,
@@ -44697,13 +44695,6 @@
 /obj/structure/rack/rogue/shelf,
 /turf/open/floor/carpet/red,
 /area/rogue/indoors/town/tavern)
-"kOj" = (
-/obj/structure/table/church/m,
-/obj/machinery/light/rogue/hearth{
-	pixel_y = 10
-	},
-/turf/open/floor/rogue/churchbrick,
-/area/rogue/outdoors/town/roofs/keep)
 "kOn" = (
 /turf/open/floor/rogue/wood,
 /area/rogue/indoors/town/church)
@@ -49567,6 +49558,10 @@
 /obj/item/seeds/wheat,
 /obj/machinery/light/rogue/torchholder/r,
 /obj/structure/closet/crate/chest/wicker,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
 /turf/open/floor/rogue/twig,
 /area/rogue/indoors)
 "lZR" = (
@@ -58590,9 +58585,6 @@
 "ohU" = (
 /turf/open/floor/rogue/carpet/lord/left,
 /area/rogue/indoors/town/manor/rockhill)
-"ohW" = (
-/turf/closed,
-/area/rogue/outdoors/beach/harbor)
 "ohX" = (
 /obj/structure/rack/rogue/shelf,
 /turf/open/floor/rogue/herringbone,
@@ -70826,6 +70818,11 @@
 /obj/structure/closet/crate/roguecloset/dark{
 	keylock = 1;
 	lockid = "puritan"
+	},
+/obj/structure/lever/wall{
+	dir = 8;
+	pixel_y = 9;
+	redstone_id = "inqsecret"
 	},
 /turf/open/floor/rogue/herringbone,
 /area/rogue/indoors/inq/office)
@@ -91377,11 +91374,8 @@
 	lockid = "puritan";
 	name = "Rooftop Exit"
 	},
-/obj/structure/fluff/walldeco/fakewall{
-	icon = 'icons/turf/roguewall.dmi';
-	icon_state = "roofTurf_M";
-	name = "Suspicious Tiles";
-	pixel_y = -1
+/obj/structure/bars/passage/shutter{
+	redstone_id = "inqsecret"
 	},
 /turf/open/floor/rogue/ruinedwood/spiral,
 /area/rogue/indoors/inq/office)
@@ -93574,6 +93568,10 @@
 /obj/item/reagent_containers/glass/bowl{
 	pixel_x = 5
 	},
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
 /turf/open/floor/rogue/woodturned,
 /area/rogue/indoors)
 "wOa" = (
@@ -257282,7 +257280,7 @@ dlR
 dlR
 hHF
 hHF
-fVy
+jzp
 wOD
 qvR
 uaL
@@ -618267,7 +618265,7 @@ llU
 mRr
 mRr
 mRr
-geT
+mRr
 mRr
 mRr
 mRr
@@ -618687,9 +618685,9 @@ euP
 euP
 euP
 euP
-rdE
-ohW
-kiZ
+euP
+euP
+euP
 euP
 vXU
 eRa
@@ -618699,7 +618697,7 @@ llU
 mRr
 mRr
 mRr
-geT
+mRr
 mRr
 mRr
 mRr
@@ -619119,9 +619117,9 @@ euP
 euP
 euP
 euP
-rdE
-ohW
-kiZ
+euP
+euP
+euP
 euP
 vXU
 qsx
@@ -619131,7 +619129,7 @@ llU
 mRr
 mRr
 mRr
-kOj
+mRr
 mRr
 mRr
 mRr
@@ -619551,9 +619549,9 @@ euP
 euP
 euP
 euP
-rdE
-ohW
-kiZ
+euP
+euP
+euP
 euP
 vXU
 qsx

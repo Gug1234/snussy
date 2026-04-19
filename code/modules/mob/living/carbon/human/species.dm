@@ -1790,6 +1790,8 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 						span_danger("I block [I]!"))
 		return 0
 
+	SEND_SIGNAL(H, COMSIG_SPECIES_ATTACKED_BY)
+
 	var/hit_area
 
 	selzone = accuracy_check(user.zone_selected, user, H, I.associated_skill, user.used_intent, I)

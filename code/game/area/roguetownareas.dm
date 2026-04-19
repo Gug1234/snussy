@@ -588,9 +588,6 @@ GLOBAL_LIST_INIT(roguetown_areas_typecache, typecacheof(/area/rogue/indoors/town
 	warden_area = TRUE
 	deathsight_message = "a moss covered stone redoubt, guarding against the wilds"
 
-/area/rogue/indoors/town/warehouse/can_craft_here()
-	return FALSE
-
 /area/rogue/indoors/inq
 	name = "The Inquisition"
 	icon_state = "chapel"

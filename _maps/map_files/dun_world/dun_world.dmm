@@ -6071,6 +6071,10 @@
 /area/rogue/indoors/inq)
 "blG" = (
 /obj/structure/curtain/brown,
+/obj/structure/roguewindow/openclose/reinforced{
+	dir = 1;
+	opacity = 0
+	},
 /turf/open/floor/rogue/tile/harem1,
 /area/rogue/indoors/town/manor)
 "blI" = (
@@ -74633,6 +74637,15 @@
 /obj/item/reagent_containers/food/snacks/grown/wheat,
 /turf/open/floor/rogue/wood,
 /area/rogue/under/town/basement)
+"pqT" = (
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/item/seeds/random,
+/obj/structure/closet/crate/chest/wicker,
+/turf/open/floor/rogue/ruinedwood,
+/area/rogue/indoors/town)
 "pqU" = (
 /turf/open/floor/rogue/dirt/road,
 /area/rogue/under/cavewet/bogcaves/north)
@@ -412458,7 +412471,7 @@ cDX
 asS
 lLG
 cDX
-apZ
+pqT
 nai
 cDX
 aBB
