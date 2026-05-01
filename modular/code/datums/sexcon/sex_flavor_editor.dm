@@ -929,3 +929,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 
 /datum/sex_flavor_editor/lobby/ui_state(mob/user)
 	return GLOB.always_state
+
+/datum/sex_flavor_editor/ui_close(mob/user)
+	user?.client?.prefs_resume_after_singleton()
+	return ..()

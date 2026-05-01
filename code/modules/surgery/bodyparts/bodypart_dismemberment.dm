@@ -337,6 +337,8 @@
 	if(organ_slowdown)
 		was_owner.remove_movespeed_modifier("[src.type]_slow", update = TRUE)
 	was_owner.bodyparts -= src
+	if(was_owner.taur_bodypart == src)
+		was_owner.taur_bodypart = null
 	owner = null
 
 	if(ishuman(was_owner))
@@ -529,7 +531,9 @@
 	moveToNullspace()
 	owner = C
 	C.bodyparts += src
-	if(src.body_zone == BODY_ZONE_TAUR)
+	if(src.body_zone == BODY_ZONE_TAUR && istype(src, /obj/item/bodypart/taur))
+		var/obj/item/bodypart/taur/taur = src
+		C.taur_bodypart = taur
 		ADD_TRAIT(C, TRAIT_PONYGIRL_RIDEABLE, BODY_ZONE_TAUR)
 	if(held_index)
 		if(held_index > C.hand_bodyparts.len)

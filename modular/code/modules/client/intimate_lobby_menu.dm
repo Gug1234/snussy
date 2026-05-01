@@ -36,28 +36,13 @@
 	var/list/data = list()
 	var/list/slots = list()
 
-	// Each region has two sub-slots: piercing and insertable.
-	var/list/slot_defs = list(
-		list("key" = "genital_piercing",    "label" = "Genital Piercing",    "custom_key" = "genital",             "pref" = prefs.get_custom_piercing_slot_equipped_typepath("genital")),
-		list("key" = "genital_insertable",  "label" = "Genital Insertable",  "custom_key" = "insertable_genital",   "pref" = prefs.get_custom_piercing_slot_equipped_typepath("insertable_genital")),
-		list("key" = "rear_piercing",       "label" = "Rear Piercing",       "custom_key" = "rear",                 "pref" = prefs.get_custom_piercing_slot_equipped_typepath("rear")),
-		list("key" = "rear_insertable",     "label" = "Rear Insertable",     "custom_key" = "insertable_rear",      "pref" = prefs.get_custom_piercing_slot_equipped_typepath("insertable_rear")),
-		list("key" = "breast_piercing",     "label" = "Breast Piercing",     "custom_key" = "breast",               "pref" = prefs.get_custom_piercing_slot_equipped_typepath("breast")),
-		list("key" = "breast_insertable",   "label" = "Breast Insertable",   "pref" = prefs.pref_intimate_breast_insertable),
-		list("key" = "mouth_piercing",      "label" = "Mouth Piercing",      "custom_key" = "tongue",               "pref" = prefs.get_custom_piercing_slot_equipped_typepath("tongue")),
-		list("key" = "mouth_insertable",    "label" = "Mouth Insertable",    "pref" = prefs.pref_intimate_mouth_insertable),
-		list("key" = "ear_piercing",        "label" = "Ear Piercing",        "custom_key" = "ear",                  "pref" = prefs.get_custom_piercing_slot_equipped_typepath("ear")),
-		list("key" = "nose_piercing",       "label" = "Nose Piercing",       "custom_key" = "nose",                 "pref" = prefs.get_custom_piercing_slot_equipped_typepath("nose")),
-		list("key" = "belly_piercing",      "label" = "Belly Piercing",      "custom_key" = "belly",                "pref" = prefs.get_custom_piercing_slot_equipped_typepath("belly")),
-	)
-
-	for(var/list/def in slot_defs)
+	for(var/list/def in prefs.get_custom_piercing_editor_regular_slot_defs())
 		var/list/options = _get_options_for_slot(def["key"])
 		var/list/option_names = list()
 		for(var/name in options)
 			option_names += name
 
-		var/current_pref = def["custom_key"] ? prefs.get_custom_piercing_slot_equipped_typepath(def["custom_key"]) : def["pref"]
+		var/current_pref = _get_current_pref_for_slot_def(def)
 		var/current_display = prefs.get_intimate_option_display_name(current_pref)
 		slots += list(list(
 			"key"     = def["key"],
@@ -72,6 +57,20 @@
 /// Returns the assoc options list for a given slot key string.
 /datum/intimate_lobby_menu/proc/_get_options_for_slot(slot_key)
 	return prefs.get_custom_piercing_slot_options(slot_key)
+
+/// Returns the currently selected typepath for one shared regular-slot row.
+/datum/intimate_lobby_menu/proc/_get_current_pref_for_slot_def(list/slot_def)
+	if(!islist(slot_def))
+		return null
+	var/custom_key = slot_def["custom_key"]
+	if(custom_key)
+		return prefs.get_custom_piercing_slot_equipped_typepath(custom_key)
+	switch(slot_def["key"])
+		if("breast_insertable")
+			return prefs.pref_intimate_breast_insertable
+		if("mouth_insertable")
+			return prefs.pref_intimate_mouth_insertable
+	return null
 
 /datum/intimate_lobby_menu/ui_act(action, list/params, datum/tgui/ui)
 	. = ..()
@@ -155,3 +154,6 @@
 
 	return FALSE
 
+/datum/intimate_lobby_menu/ui_close(mob/user)
+	user?.client?.prefs_resume_after_singleton()
+	return ..()

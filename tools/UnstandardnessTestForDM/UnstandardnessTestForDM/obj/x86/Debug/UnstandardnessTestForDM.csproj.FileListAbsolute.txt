@@ -16,3 +16,5 @@ C:\Users\Baloh\Desktop\tgs13\tools\UnstandardnessTestForDM\UnstandardnessTestFor
 C:\Users\Baloh\Desktop\tgs13\tools\UnstandardnessTestForDM\UnstandardnessTestForDM\obj\x86\Debug\GenerateResource.write.1.tlog
 C:\Users\Baloh\Desktop\tgs13\tools\UnstandardnessTestForDM\UnstandardnessTestForDM\obj\x86\Debug\UnstandardnessTestForDM.exe
 C:\Users\Baloh\Desktop\tgs13\tools\UnstandardnessTestForDM\UnstandardnessTestForDM\obj\x86\Debug\UnstandardnessTestForDM.pdb
+D:\Games\snussy\snussy-erp-test\tools\UnstandardnessTestForDM\UnstandardnessTestForDM\obj\x86\Debug\UnstandardnessTestForDM.exe
+D:\Games\snussy\snussy-erp-test\tools\UnstandardnessTestForDM\UnstandardnessTestForDM\obj\x86\Debug\UnstandardnessTestForDM.pdb

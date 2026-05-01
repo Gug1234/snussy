@@ -161,10 +161,16 @@
 	return null
 
 /mob/living/carbon/get_taur_tail()
-	for(var/X in bodyparts)
-		var/obj/item/bodypart/affecting = X
-		if(affecting.body_zone == BODY_ZONE_TAUR)
-			return affecting
+	if(istype(taur_bodypart, /obj/item/bodypart/taur) && taur_bodypart.owner == src)
+		return taur_bodypart
+	taur_bodypart = null
+	for(var/obj/item/bodypart/affecting as anything in bodyparts)
+		if(affecting.body_zone != BODY_ZONE_TAUR)
+			continue
+		if(istype(affecting, /obj/item/bodypart/taur))
+			var/obj/item/bodypart/taur/taur = affecting
+			taur_bodypart = taur
+			return taur
 	return null
 
 //Helper for quickly creating a new limb - used by augment code in species.dm spec_attacked_by

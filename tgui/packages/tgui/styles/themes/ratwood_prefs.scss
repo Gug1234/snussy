@@ -1,0 +1,35 @@
+.theme-ratwood_prefs:root {
+  --color-base: #1e1c18;
+  --color-base-start: #1e1c18;
+  --color-base-end: #14120f;
+  --color-text: #e7dcc0;
+  --color-label: #9b8e6b;
+  --color-scrollbar-thumb: #c9a24b;
+  --section-separator-color: #c9a24b;
+  --button-background: #2d2a23;
+  --button-background-default: #2d2a23;
+  --button-background-selected: #4a3b1d;
+  --button-background-hover: #3a3327;
+  --font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  scrollbar-color: #c9a24b #14120f;
+
+  .Layout__content {
+    background-image: none;
+    background-color: #14120f;
+  }
+
+  .TitleBar {
+    background-color: #140f0a;
+    background-image: url('../assets/ratwoodhoodclassic/wood_topbar16.png');
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    box-shadow: none;
+  }
+
+  .TitleBar__title {
+    color: #e7dcc0;
+    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+}

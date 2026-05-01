@@ -76,7 +76,8 @@ export const TextInputModal = (props) => {
   // so they're comfortable to read and edit. visualMultiline (input overflow) gets a modest bump.
   // bigmodal hard-overrides both for the largest inputs.
   let windowHeight =
-    145 + dynamicHeight +
+    145 +
+    dynamicHeight +
     (multiline ? 225 : visualMultiline ? 80 : 0) +
     (message.length && large_buttons ? 5 : 0);
   if (bigmodal) windowHeight = 500;
@@ -90,7 +91,7 @@ export const TextInputModal = (props) => {
       act('cancel');
     }
   }
-// gate for chastity hardmode prayer to prevent cheaters from copy pasting
+  // gate for chastity hardmode prayer to prevent cheaters from copy pasting
   const handleBlockedInput = (event) => {
     if (!disable_paste) {
       return;
@@ -109,7 +110,11 @@ export const TextInputModal = (props) => {
             </Stack.Item>
             <Stack.Item grow>
               {/* height:100% propagates the Stack.Item's grown height down to the TextArea */}
-              <div style={{ height: '100%' }} onDrop={handleBlockedInput} onPaste={handleBlockedInput}>
+              <div
+                style={{ height: '100%' }}
+                onDrop={handleBlockedInput}
+                onPaste={handleBlockedInput}
+              >
                 <TextArea
                   autoFocus
                   autoSelect
@@ -125,10 +130,7 @@ export const TextInputModal = (props) => {
               </div>
             </Stack.Item>
             <Stack.Item>
-              <InputButtons
-                input={input}
-                message={`${input.length}`}
-              />
+              <InputButtons input={input} message={`${input.length}`} />
             </Stack.Item>
           </Stack>
         </Section>

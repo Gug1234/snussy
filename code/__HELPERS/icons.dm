@@ -1302,6 +1302,8 @@ GLOBAL_LIST_INIT(freon_color_matrix, list("#2E5E69", "#60A2A8", "#A1AFB1", rgb(0
 
 		//its either an atom, image, or mutable_appearance, we want its icon var
 		icon2collapse = thing.icon
+		if(!is_dmi_icon_source(icon2collapse))
+			return
 
 		if (isnull(icon_state))
 			icon_state = thing.icon_state
@@ -1324,6 +1326,8 @@ GLOBAL_LIST_INIT(freon_color_matrix, list("#2E5E69", "#60A2A8", "#A1AFB1", rgb(0
 			dir = SOUTH
 		if (isnull(icon_state))
 			icon_state = ""
+	if(!is_dmi_icon_source(icon2collapse))
+		return
 
 	icon2collapse = icon(icon2collapse, icon_state, dir, frame, moving)
 

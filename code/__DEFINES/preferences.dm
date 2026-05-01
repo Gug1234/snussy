@@ -143,6 +143,31 @@ GLOBAL_LIST_INIT(pronouns_list, list(HE_HIM, SHE_HER, THEY_THEM, THEY_THEM_F, IT
 
 #define VOICE_TYPE_MASC	"Masculine"
 #define VOICE_TYPE_FEM	"Feminine"
+
+// =============================================================================
+// Appearance preview families + tabs (Phase 1 — tgstation map_view port).
+// =============================================================================
+// A "family" identifies which character-appearance layer is currently under
+// edit by the open preferences tab. The /atom/movable/screen/map_view/char_preview
+// uses this to run a strip pass over the shared dummy so the layer being
+// edited isn't rendered twice (once on the live backdrop and once by the
+// editor overlay).
+#define APPEARANCE_PREVIEW_FAMILY_NONE				null
+#define APPEARANCE_PREVIEW_FAMILY_TAUR_OFFSETS		"taur_offsets"
+#define APPEARANCE_PREVIEW_FAMILY_CUSTOM_PIERCINGS	"custom_piercings"
+#define APPEARANCE_PREVIEW_FAMILY_INTIMATE_ACCESSORY_OFFSETS	"intimate_accessory_offsets"
+
+// Preferences-menu tab identifiers. Kept as string constants so they round-trip
+// cleanly to TGUI (where `set_active_tab` takes a `tab` param of the same value)
+// and so the tab -> family assoc list is human-readable.
+#define APPEARANCE_PREVIEW_TAB_INFO					"info"
+#define APPEARANCE_PREVIEW_TAB_FEATURES				"features"
+#define APPEARANCE_PREVIEW_TAB_TAUR_OFFSETS			"taur_offsets"
+#define APPEARANCE_PREVIEW_TAB_MARKINGS				"markings"
+#define APPEARANCE_PREVIEW_TAB_INTIMATE_ACCESSORIES	"intimate_accessories"
+#define APPEARANCE_PREVIEW_TAB_KEYBINDS				"keybinds"
+#define APPEARANCE_PREVIEW_TAB_GAME					"game"
+
 #define VOICE_TYPE_ANDR	"Androgynous"
 
 GLOBAL_LIST_INIT(voice_types_list, list(VOICE_TYPE_MASC, VOICE_TYPE_FEM, VOICE_TYPE_ANDR))

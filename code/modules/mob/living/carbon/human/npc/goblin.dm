@@ -106,7 +106,7 @@
 /obj/item/bodypart/head/goblin/update_icon_dropped()
 	return
 
-/obj/item/bodypart/head/goblin/get_limb_icon(dropped, hideaux = FALSE)
+/obj/item/bodypart/head/goblin/get_limb_icon(dropped, hideaux = FALSE, list/organs_by_zone = null)
 	return
 
 /obj/item/bodypart/head/goblin/skeletonize()

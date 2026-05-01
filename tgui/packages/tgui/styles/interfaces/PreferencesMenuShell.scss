@@ -1,0 +1,331 @@
+/**
+ * PreferencesMenuShell.scss
+ *
+ * Step 19 — Slate/gold Ratwood Original theme for the rebuilt PreferencesMenu
+ * shell. Targets the `.PrefsMenu` namespace (shell-era classes); the
+ * legacy `.PreferencesMenu` namespace in PreferencesMenu.scss is left
+ * untouched and continues to style the phase-1 tab bodies until they
+ * are fully retired.
+ *
+ * Palette source: spec §5.2.
+ *   - Slate-black panel:        #1e1c18
+ *   - Dark parchment row:       #2d2a23
+ *   - Warm gold border/active:  #c9a24b
+ *   - Highlight gold hover:     #e8c880
+ *   - Warning red:              #8a1b1b
+ *   - Body text on slate:       #e7dcc0  (contrast 11.8:1 — AAA)
+ *   - Muted text on slate:      #9b8e6b  (contrast 5.3:1  — AA)
+ *
+ * Leather frame asset: 144×144 source, 48-px 9-slice corners. Bordered
+ * via `border-image` with a 24-px transparent border so the browser
+ * down-scales 2:1 cleanly under `image-rendering: pixelated`.
+ *
+ * Animations (spec §5.5):
+ *   - Middle-column body swap: 180 ms fade.
+ *   - Active-row gold-frame ease: 120 ms.
+ *   - Disabled gold elements: 40% opacity.
+ *
+ * Font: spec called for EB Garamond. The OFL woff2 is not bundled in
+ * this commit (see USER INSTRUCTIONS in the Step 19 changelog); the
+ * cascade falls back to "Georgia, 'Times New Roman', serif" which
+ * remains visually on-brand for the FromSoft tone. Once the woff2 is
+ * dropped in and the @font-face block is uncommented, the cascade
+ * picks it up with no other change.
+ */
+
+/* -------------------------------------------------------------------- */
+/* EB Garamond — variable woff2 (OFL 1.1, GPLv3-compatible).            */
+/* Two files cover the full upright + italic weight range 400..800.     */
+/* -------------------------------------------------------------------- */
+@font-face {
+  font-family: 'EB Garamond';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src:
+    url('./fonts/EBGaramond-VariableFont_wght.woff2') format('woff2-variations'),
+    url('./fonts/EBGaramond-VariableFont_wght.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  font-style: italic;
+  font-weight: 400 800;
+  font-display: swap;
+  src:
+    url('./fonts/EBGaramond-Italic-VariableFont_wght.woff2')
+      format('woff2-variations'),
+    url('./fonts/EBGaramond-Italic-VariableFont_wght.woff2') format('woff2');
+}
+
+/* -------------------------------------------------------------------- */
+/* Theme tokens — scoped to the shell so other interfaces are unaffected. */
+/* -------------------------------------------------------------------- */
+.PrefsMenu {
+  /* Palette */
+  --prefs-slate: #1e1c18;
+  --prefs-slate-row: #2d2a23;
+  --prefs-gold: #c9a24b;
+  --prefs-gold-hover: #e8c880;
+  --prefs-warning: #8a1b1b;
+  --prefs-text: #e7dcc0;
+  --prefs-text-muted: #9b8e6b;
+
+  /* Typography */
+  --prefs-font-serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --prefs-font-body: inherit;
+
+  /* Motion */
+  --prefs-fade-ms: 180ms;
+  --prefs-active-ms: 120ms;
+
+  /* Border-image asset (144×144, 48-px slice). */
+  --prefs-frame-url: url('../assets/ratwoodhoodclassic/frame_leather.png');
+  --prefs-topbar-url: url('../assets/ratwoodhoodclassic/wood_topbar.png');
+  --prefs-topbar-min-height: 34px;
+
+  /* -------------------------------------------------------------------- */
+  /* Override tgui-core / theme tokens that would otherwise leak through  */
+  /* (azure_green/lane/purple all rebind these on `.theme-*:root`). By    */
+  /* re-binding inside `.PrefsMenu` we win the cascade for any descendant */
+  /* that consumes them.                                                  */
+  /* -------------------------------------------------------------------- */
+  --color-text: var(--prefs-text);
+  --color-label: var(--prefs-text-muted);
+  --color-base: var(--prefs-slate);
+  --color-base-start: var(--prefs-slate);
+  --color-base-end: var(--prefs-slate);
+  --section-separator-color: var(--prefs-gold);
+  --button-background-default: var(--prefs-slate-row);
+  --button-background-selected: color-mix(
+    in srgb,
+    var(--prefs-gold) 25%,
+    var(--prefs-slate-row)
+  );
+  --font-family: var(--prefs-font-body);
+}
+
+/* -------------------------------------------------------------------- */
+/* Shell root — applied to the Window.Content child wrapper in index.tsx. */
+/* CSS-only ER vignette: radial gradient + inset shadow. No bitmap.      */
+/* -------------------------------------------------------------------- */
+.PrefsMenu {
+  background-color: var(--prefs-slate);
+  background-image: radial-gradient(
+    ellipse at center,
+    #28251f 0%,
+    #1e1c18 55%,
+    #14120f 100%
+  );
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.55);
+  color: var(--prefs-text);
+  font-family: var(--prefs-font-body);
+  height: 100%;
+
+  /* Headings inside the shell adopt the serif. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .PrefsMenu__heading {
+    font-family: var(--prefs-font-serif);
+    color: var(--prefs-gold-hover);
+    letter-spacing: 0.02em;
+  }
+}
+
+.PrefsMenu--frame-leather {
+  --prefs-frame-url: url('../assets/ratwoodhoodclassic/frame_leather.png');
+}
+
+.PrefsMenu--frame-gilded {
+  --prefs-frame-url: url('../assets/ratwoodhoodclassic/frame_gilded.png');
+}
+
+.PrefsMenu--frame-stone {
+  --prefs-frame-url: url('../assets/ratwoodhoodclassic/frame_stone.png');
+}
+
+.PrefsMenu--topbar-wide {
+  --prefs-topbar-url: url('../assets/ratwoodhoodclassic/wood_topbar.png');
+  --prefs-topbar-min-height: 34px;
+}
+
+.PrefsMenu--topbar-slim {
+  --prefs-topbar-url: url('../assets/ratwoodhoodclassic/wood_topbar16.png');
+  --prefs-topbar-min-height: 22px;
+}
+
+.PrefsMenu__mainArea,
+.PrefsMenu__columns,
+.PrefsMenu__middlePane {
+  min-height: 0;
+}
+
+.PrefsMenu__middlePane {
+  min-width: 0;
+  display: flex;
+}
+
+/* -------------------------------------------------------------------- */
+/* Panels — leather-framed Section wrappers (LeftColumn, MiddleColumn,   */
+/* RightColumn).                                                         */
+/* -------------------------------------------------------------------- */
+.PrefsMenu__leftColumn,
+.PrefsMenu__middleColumn,
+.PrefsMenu__rightColumn {
+  background-color: var(--prefs-slate);
+  color: var(--prefs-text);
+  border: 24px solid transparent;
+  border-image: var(--prefs-frame-url) 48 fill round;
+  image-rendering: pixelated;
+  /* Negative outer margin is unnecessary because index.tsx already
+     spaces the columns via Flex `mr={1}`. */
+}
+
+.PrefsMenu__rightColumn {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Section title bars inside the shell read as gilded parchment. */
+.PrefsMenu__leftColumn .Section__title,
+.PrefsMenu__middleColumn .Section__title,
+.PrefsMenu__rightColumn .Section__title {
+  font-family: var(--prefs-font-serif);
+  color: var(--prefs-gold);
+  border-bottom: 1px solid var(--prefs-gold);
+}
+
+/* -------------------------------------------------------------------- */
+/* LeftColumn rows — gilded on hover, fully framed on active.            */
+/* -------------------------------------------------------------------- */
+.PrefsMenu__row {
+  background-color: var(--prefs-slate-row);
+  color: var(--prefs-text);
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition:
+    border-color var(--prefs-active-ms) ease-out,
+    background-color var(--prefs-active-ms) ease-out;
+
+  &:hover {
+    border-color: var(--prefs-gold-hover);
+  }
+
+  &--active {
+    border-color: var(--prefs-gold);
+    background-color: color-mix(
+      in srgb,
+      var(--prefs-gold) 12%,
+      var(--prefs-slate-row)
+    );
+  }
+}
+
+/* -------------------------------------------------------------------- */
+/* MiddleColumn body fade-in. The animation re-fires every time the      */
+/* React subtree re-mounts, which happens on (activeCategory, activeRow) */
+/* change because we key the body by the row id implicitly through      */
+/* getBodyComponent().                                                   */
+/* -------------------------------------------------------------------- */
+.PrefsMenu__middleColumn {
+  background-color: var(--prefs-slate);
+  color: var(--prefs-text);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  height: 100%;
+  animation: prefs-fade-in var(--prefs-fade-ms) ease-out;
+
+  &--empty {
+    color: var(--prefs-text-muted);
+    font-style: italic;
+    padding: var(--space-l, 16px);
+  }
+}
+
+@keyframes prefs-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* -------------------------------------------------------------------- */
+/* TopBar / BottomBar — slimmer panels, gold-trimmed top/bottom edge.    */
+/* -------------------------------------------------------------------- */
+.PrefsMenu__topBar {
+  background-color: #140f0a;
+  background-image: var(--prefs-topbar-url);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  color: var(--prefs-text);
+  border-bottom: 1px solid var(--prefs-gold);
+  min-height: var(--prefs-topbar-min-height);
+}
+
+.PrefsMenu__bottomBar {
+  background-color: var(--prefs-slate);
+  color: var(--prefs-text);
+  border-top: 1px solid var(--prefs-gold);
+}
+
+/* -------------------------------------------------------------------- */
+/* Disabled gold treatment — applied to any tgui Button color="good"     */
+/* inside the shell. Spec §5.2 calls for 40% opacity on the gold token  */
+/* when disabled.                                                        */
+/* -------------------------------------------------------------------- */
+.PrefsMenu .Button[disabled],
+.PrefsMenu .Button.disabled {
+  opacity: 0.4;
+}
+
+/* Bracketed value slot — keeps the gold ring readable on slate. */
+.PrefsMenu .BracketedValueSlot {
+  border: 1px solid var(--prefs-gold);
+  color: var(--prefs-text);
+  background-color: var(--prefs-slate-row);
+}
+
+.PrefsMenu__skinPicker {
+  border-left: 1px solid rgba(201, 162, 75, 0.35);
+  padding-left: 0.5rem;
+}
+
+.PrefsMenu__skinButton {
+  min-width: 26px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.PrefsMenu__skinSwatch {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(232, 200, 128, 0.65);
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
+}
+
+.PrefsMenu__skinSwatch--leather {
+  background-image: url('../assets/ratwoodhoodclassic/frame_leather.png');
+}
+
+.PrefsMenu__skinSwatch--gilded {
+  background-image: url('../assets/ratwoodhoodclassic/frame_gilded.png');
+}
+
+.PrefsMenu__skinSwatch--stone {
+  background-image: url('../assets/ratwoodhoodclassic/frame_stone.png');
+}

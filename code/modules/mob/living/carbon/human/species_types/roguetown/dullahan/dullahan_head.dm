@@ -320,9 +320,9 @@
 		I.pixel_y += px_y
 	add_overlay(standing)
 
-/obj/item/bodypart/head/dullahan/get_limb_icon(dropped, hideaux = FALSE)
+/obj/item/bodypart/head/dullahan/get_limb_icon(dropped, hideaux = FALSE, list/organs_by_zone = null)
 	cut_overlays()
-	var/list/standing = ..()
+	var/list/standing = ..(dropped, hideaux, organs_by_zone = organs_by_zone)
 
 	. = standing
 	var/hidden_slots = NONE
@@ -340,9 +340,9 @@
 			continue
 		if(!(organ.slot in ORGAN_SLOTS_HEAD_ORGANS))
 			continue
-		var/mutable_appearance/organ_appearance = organ.get_bodypart_overlay(src)
-		if(organ_appearance)
-			. += organ_appearance
+		var/organ_overlays = organ.get_bodypart_overlay(src)
+		if(organ_overlays)
+			. += organ_overlays
 
 	var/obj/item/wear_mask = head_items["[SLOT_WEAR_MASK]"]
 	if(wear_mask)

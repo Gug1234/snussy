@@ -2,7 +2,11 @@
 	customizer_entries = SANITIZE_LIST(customizer_entries)
 	listclearnulls(customizer_entries)
 	var/datum/species/species = pref_species
+	if(!species)
+		return
 	var/list/customizers = species.customizers
+	if(!customizers)
+		return
 	/// Check if we have any customizer entries that don't match.
 	for(var/datum/customizer_entry/entry as anything in customizer_entries)
 		var/validated = FALSE
@@ -56,7 +60,7 @@
 			continue
 		if(!customizer.is_allowed(src))
 			continue
-		var/datum/customizer_entry/entry = get_customizer_entry_for_customizer_type(customizer_type)
+		var/datum/customizer_entry/entry = get_or_seed_customizer_entry_for_customizer_type(customizer_type)
 		if(!entry)
 			stack_trace("Missing customizer entry in preferences for customizer [customizer_type]")
 			continue
@@ -101,6 +105,15 @@
 		if(entry.customizer_type == customizer_type)
 			return entry
 
+/datum/preferences/proc/get_or_seed_customizer_entry_for_customizer_type(customizer_type)
+	var/datum/customizer_entry/entry = get_customizer_entry_for_customizer_type(customizer_type)
+	if(entry)
+		return entry
+	if(!pref_species || !(customizer_type in pref_species.customizers))
+		return null
+	validate_customizer_entries()
+	return get_customizer_entry_for_customizer_type(customizer_type)
+
 /// Gets an associative list of organ slots to organ dna created from organ customization
 /datum/preferences/proc/get_organ_dna_list()
 	var/list/organ_list = list()
@@ -143,11 +156,17 @@
 /datum/preferences/proc/handle_customizer_topic(mob/user, href_list)
 	//needs_update = TRUE
 	var/customizer_type = text2path(href_list["customizer"])
-	var/datum/customizer_entry/entry = get_customizer_entry_for_customizer_type(customizer_type)
+	if(!ispath(customizer_type, /datum/customizer))
+		return
+	var/datum/customizer/customizer = CUSTOMIZER(customizer_type)
+	if(!customizer)
+		return
+	var/datum/customizer_entry/entry = get_or_seed_customizer_entry_for_customizer_type(customizer_type)
 	if(!entry)
 		return
 	var/datum/customizer_choice/choice = CUSTOMIZER_CHOICE(entry.customizer_choice_type)
-	var/datum/customizer/customizer = CUSTOMIZER(customizer_type)
+	if(!choice)
+		return
 	switch(href_list["customizer_task"])
 		if("toggle_missing")
 			if(customizer.allows_disabling)

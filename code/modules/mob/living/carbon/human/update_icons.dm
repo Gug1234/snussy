@@ -58,9 +58,10 @@ There are several things that need to be remembered:
 	return jazz
 
 //HAIR OVERLAY
-/mob/living/carbon/human/update_hair()
+/mob/living/carbon/human/update_hair(rebuild_bodyparts = TRUE)
 	rebuild_obscured_flags()
-	update_body_parts(TRUE)
+	if(rebuild_bodyparts)
+		update_body_parts(TRUE)
 	return
 
 /mob/living/carbon/human/update_body()
@@ -1614,17 +1615,25 @@ There are several things that need to be remembered:
 		throw_alert("legcuffed", /atom/movable/screen/alert/restrained/legcuffed, new_master = src.legcuffed)
 
 /proc/wear_female_version(t_color, icon, layer, type)
+	if(!is_dmi_icon_source(icon))
+		return
 	var/index = t_color
 	var/icon/female_clothing_icon = GLOB.female_clothing_icons[index]
 	if(!female_clothing_icon) 	//Create standing/laying icons if they don't exist
 		generate_female_clothing(index,t_color,icon,type)
+	if(!GLOB.female_clothing_icons[t_color])
+		return
 	return mutable_appearance(GLOB.female_clothing_icons[t_color], layer = -layer)
 
 /proc/wear_dismembered_version(t_color, icon, layer, sleeveindex, type)
+	if(!is_dmi_icon_source(icon))
+		return
 	var/index = "[t_color][sleeveindex]"
 	var/icon/clothing_icon = GLOB.dismembered_clothing_icons[index]
 	if(!clothing_icon) 	//Create standing/laying icons if they don't exist
 		generate_dismembered_clothing(index,t_color,icon,sleeveindex, type)
+	if(!GLOB.dismembered_clothing_icons[index])
+		return
 	return mutable_appearance(GLOB.dismembered_clothing_icons[index], layer = -layer)
 
 
@@ -1753,6 +1762,10 @@ generate/load female uniform sprites matching all previously decided variables
 		file2use = mob_overlay_icon
 	if(!file2use)
 		file2use = default_icon_file
+	if(!is_dmi_icon_source(file2use))
+		file2use = default_icon_file
+	if(!is_dmi_icon_source(file2use))
+		return
 
 	//Find a valid layer from variables+arguments
 	var/layer2use
@@ -1988,6 +2001,9 @@ generate/load female uniform sprites matching all previously decided variables
 		else //No offsets or Unwritten number of hands
 			return list("x" = 0, "y" = 0)//Handle held offsets
 
+/mob/living/carbon/proc/generate_supplemental_overlay_visibility_key()
+	return md5("[dir]|[obscured_flags]")
+
 //produces a key based on the human's limbs
 /mob/living/carbon/human/generate_icon_render_key()
 	. = list(dna.species.limbs_id)
@@ -2026,6 +2042,19 @@ generate/load female uniform sprites matching all previously decided variables
 		. += "husk"
 	return jointext(., "-")
 
+/mob/living/carbon/human/generate_supplemental_overlay_visibility_key()
+	var/obj/item/undies/current_underwear = underwear
+	var/obj/item/chastity/current_chastity = chastity_device
+	var/obj/item/bodypart/taur/current_taur = get_taur_tail()
+	var/datum/sex_controller/current_sexcon = sexcon
+	var/top_exposed = FALSE
+	if(current_sexcon)
+		var/list/sexcon_vars = current_sexcon.vars
+		if("top_exposed" in sexcon_vars)
+			top_exposed = sexcon_vars["top_exposed"]
+	var/bottom_exposed = current_sexcon ? current_sexcon.bottom_exposed : FALSE
+	return md5("[dir]|[obscured_flags]|[current_underwear?.type]|[current_underwear?.covers_breasts ? 1 : 0]|[current_chastity?.type]|[current_chastity?.cursed_front_mode]|[current_chastity?.cursed_anal_open ? 1 : 0]|[top_exposed ? 1 : 0]|[bottom_exposed ? 1 : 0]|[use_taur_genital_sprites ? 1 : 0]|[current_taur ? 1 : 0]")
+
 /mob/living/carbon/human/load_limb_from_cache()
 	..()
 	update_hair()
@@ -2063,15 +2092,25 @@ generate/load female uniform sprites matching all previously decided variables
 	var/hiden = (wear_armor?.flags_inv & HIDEBOOB) || (wear_shirt?.flags_inv & HIDEBOOB) || (cloak?.flags_inv & HIDEBOOB)
 	var/hidearms = (wear_armor && (wear_armor.body_parts_covered & ARMS) && !wear_armor.sleeved) || \
 					(wear_shirt && (wear_shirt.body_parts_covered & ARMS) && !wear_shirt.sleeved)
+	var/list/visible_organs_by_zone = list()
+	for(var/obj/item/organ/organ as anything in internal_organs)
+		if(!organ.is_visible())
+			continue
+		var/organ_zone = check_zone(organ.zone)
+		if(!organ_zone)
+			continue
+		if(!islist(visible_organs_by_zone[organ_zone]))
+			visible_organs_by_zone[organ_zone] = list()
+		visible_organs_by_zone[organ_zone] += organ
 
 	for(var/obj/item/bodypart/BP as anything in bodyparts)
 		BP.update_limb()
 		if(BP.body_zone == BODY_ZONE_CHEST)
-			new_limbs += BP.get_limb_icon(hideaux = hiden)
+			new_limbs += BP.get_limb_icon(hideaux = hiden, organs_by_zone = visible_organs_by_zone)
 		else if(BP.body_part == ARM_LEFT || BP.body_part == ARM_RIGHT)
-			new_limbs += BP.get_limb_icon(hideaux = hidearms)
+			new_limbs += BP.get_limb_icon(hideaux = hidearms, organs_by_zone = visible_organs_by_zone)
 		else
-			new_limbs += BP.get_limb_icon()
+			new_limbs += BP.get_limb_icon(organs_by_zone = visible_organs_by_zone)
 
 	if(length(new_limbs))
 		overlays_standing[BODYPARTS_LAYER] = new_limbs

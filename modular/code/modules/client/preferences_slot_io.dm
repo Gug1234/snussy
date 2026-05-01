@@ -244,6 +244,11 @@
 	if(!save_character())
 		return list("ok" = FALSE, "message" = "Import loaded into memory but save_character() failed — slot state may be inconsistent.")
 
+	// Commit contract (Step 12): persist-then-refresh semantics apply to
+	// slot import too. The just-imported slot becomes the current default
+	// slot, so the lobby mannequin must reflect the freshly loaded fields.
+	appearance_preview_refresh_character_preview(src)
+
 	return list("ok" = TRUE, "message" = "Imported into slot [target_slot].")
 
 /**

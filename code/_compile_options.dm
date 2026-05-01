@@ -21,6 +21,28 @@
 #define MODE_RESTART
 //comment out if you want to restart the server instead of shutting down
 
+// When defined, compiles the legacy `getFlatIcon`-based mannequin preview path
+// (build_mannequin_previews, cached_mannequin_previews, invalidate_mannequin_cache,
+// the dir_appearances loop in update_preview_icon, the legacy branch of
+// show_character_previews/clear_character_previews, and the standalone admin-VV
+// editor windows that still depend on MannequinBackdrop).
+//
+// Keep this DEFINED for one build cycle after Phase 1 lands so the retirement
+// is reversible with a one-line revert. On explicit Phase 4 sign-off, comment
+// out the line below and delete the flag-gated code.
+// #define APPEARANCE_PREVIEW_LEGACY_FLATTEN
+
+// When defined, compiles the legacy HTML `ShowChoices()` preferences surface
+// as a peer to the TGUI preferences menu. This flag gates:
+//   - The fancy-chat-failure fallback verb path in /client/verb/Setup_Character
+//   - The per-account "ui_prefer_classic_html" opt-in toggle
+//   - The classic options / keybind browser verbs that currently ship to
+//     players who prefer the HTML UI
+// DO NOT DISABLE THIS FLAG. The TGUI menu's fallback guarantee depends on
+// the legacy path remaining compiled-in. Removal is a separate, explicit
+// deprecation effort outside the scope of the TGUI prefs replacement PR.
+#define PREFS_MENU_LEGACY_HTML
+
 // Comment this out if you are debugging problems that might be obscured by custom error handling in world/Error
 #ifdef DEBUG
 #define USE_CUSTOM_ERROR_HANDLER

@@ -63,6 +63,8 @@
 
 	/// Cached key for limb appearance - invalidated when limb state changes
 	var/limb_appearance_cache_key
+	/// Cached key for the limb's base render state, excluding per-call flags like dropped/hideaux.
+	var/tmp/limb_state_key
 	/// Cached base limb appearances (without organ/feature overlays)
 	var/list/cached_base_appearances
 
@@ -181,6 +183,8 @@
 
 /obj/item/bodypart/Destroy()
 	if(owner)
+		if(owner.taur_bodypart == src)
+			owner.taur_bodypart = null
 		owner.bodyparts -= src
 		owner = null
 	if(bandage)
@@ -510,6 +514,9 @@
 
 //we inform the bodypart of the changes that happened to the owner, or give it the informations from a source mob.
 /obj/item/bodypart/proc/update_limb(dropping_limb, mob/living/carbon/source)
+	if(isnull(limb_state_key))
+		rebuild_limb_state_key()
+	var/old_cache_state_key = limb_state_key
 	var/mob/living/carbon/C
 	if(source)
 		C = source
@@ -529,12 +536,18 @@
 		no_update = TRUE
 
 	if(no_update)
+		rebuild_limb_state_key()
+		if(old_cache_state_key != limb_state_key)
+			invalidate_limb_cache()
 		return
 
 	if(!animal_origin)
 		var/mob/living/carbon/human/H = C
 		should_draw_greyscale = FALSE
 		if(!H.dna || !H.dna.species)
+			rebuild_limb_state_key()
+			if(old_cache_state_key != limb_state_key)
+				invalidate_limb_cache()
 			return
 		var/datum/species/S = H.dna.species
 		species_id = S.limbs_id
@@ -576,7 +589,9 @@
 	if(dropping_limb)
 		no_update = TRUE //when attached, the limb won't be affected by the appearance changes of its mob owner.
 
-	invalidate_limb_cache()
+	rebuild_limb_state_key()
+	if(old_cache_state_key != limb_state_key)
+		invalidate_limb_cache()
 
 //to update the bodypart's icon when not attached to a mob
 /obj/item/bodypart/proc/update_icon_dropped()
@@ -591,7 +606,10 @@
 	add_overlay(standing)
 
 ///since organs aren't actually stored in the bodypart themselves while attached to a person, we have to query the owner for what we should have
-/obj/item/bodypart/proc/get_organs()
+/obj/item/bodypart/proc/get_organs(list/organs_by_zone = null)
+	if(islist(organs_by_zone))
+		return organs_by_zone[body_zone]
+
 	if(!owner)
 		return FALSE
 
@@ -602,29 +620,39 @@
 
 	return bodypart_organs
 
-/// Generates a cache key for this limb's base appearance
-/obj/item/bodypart/proc/generate_limb_cache_key(dropped, hideaux)
+/// Rebuilds the cached key for this limb's base appearance, excluding per-render flags.
+/obj/item/bodypart/proc/rebuild_limb_state_key()
 	var/list/key_parts = list(
 		body_zone,
 		body_gender,
-		dropped,
-		hideaux,
 		skeletonized,
 		animal_origin,
 		species_id,
 		use_digitigrade,
 		status,
 		should_draw_greyscale,
+		species_icon,
 		rotted,
 		brutestate,
 		burnstate,
 		dmg_overlay_type,
 		species_color,
 		mutation_color,
+		aux_zone,
+		aux_layer,
+		prosthetic_prefix,
+		static_icon,
 		skin_tone,
 		limb_material
 	)
-	return key_parts.Join("-")
+	limb_state_key = key_parts.Join("-")
+	return limb_state_key
+
+/// Generates a cache key for this limb's base appearance plus per-render flags.
+/obj/item/bodypart/proc/generate_limb_cache_key(dropped, hideaux)
+	if(isnull(limb_state_key))
+		rebuild_limb_state_key()
+	return "[limb_state_key]-[dropped]-[hideaux]"
 
 /// Invalidates the cached limb appearance
 /obj/item/bodypart/proc/invalidate_limb_cache()
@@ -632,7 +660,7 @@
 	cached_base_appearances = null
 
 //Gives you a proper icon appearance for the dismembered limb
-/obj/item/bodypart/proc/get_limb_icon(dropped, hideaux = FALSE)
+/obj/item/bodypart/proc/get_limb_icon(dropped, hideaux = FALSE, list/organs_by_zone = null)
 	icon_state = ""
 
 	. = list()
@@ -727,11 +755,11 @@
 	
 	// Organ overlays
 	if(!skeletonized && draw_organ_features)
-		for(var/obj/item/organ/organ as anything in get_organs())
+		for(var/obj/item/organ/organ as anything in get_organs(organs_by_zone))
 			if(organ.is_visible())
-				var/mutable_appearance/organ_appearance = organ.get_bodypart_overlay(src)
-				if(organ_appearance)
-					. += organ_appearance
+				var/organ_overlays = organ.get_bodypart_overlay(src)
+				if(organ_overlays)
+					. += organ_overlays
 
 	if(!skeletonized && draw_bodypart_features)
 		for(var/datum/bodypart_feature/feature as anything in bodypart_features)

@@ -8,7 +8,14 @@
 import { useEffect, useState } from 'react';
 import { useBackend } from 'tgui/backend';
 import { Window } from 'tgui/layouts';
-import { Box, Button, Dropdown, Section, Stack, Tabs } from 'tgui-core/components';
+import {
+  Box,
+  Button,
+  Dropdown,
+  Section,
+  Stack,
+  Tabs,
+} from 'tgui-core/components';
 
 type SlotData = {
   key: string;
@@ -108,7 +115,9 @@ export function IntimatePrefsMenu(props) {
     groupedSlots[0]?.key ?? 'genital',
   );
 
-  const activeGroupData = groupedSlots.find((group) => group.key === activeGroup);
+  const activeGroupData = groupedSlots.find(
+    (group) => group.key === activeGroup,
+  );
 
   useEffect(() => {
     if (!groupedSlots.length) {
@@ -131,8 +140,8 @@ export function IntimatePrefsMenu(props) {
           }
         >
           <Box mb={1} opacity={0.5} fontSize="11px" italic>
-            Genital plugs require vaginal anatomy. Silver items are
-            skipped for silver-weak races.
+            Genital plugs require vaginal anatomy. Silver items are skipped for
+            silver-weak races.
           </Box>
 
           <Tabs>
@@ -156,7 +165,9 @@ export function IntimatePrefsMenu(props) {
   );
 }
 
-function AccessoryGroupSection(props: { group: AccessoryGroupData | undefined }) {
+function AccessoryGroupSection(props: {
+  group: AccessoryGroupData | undefined;
+}) {
   const { act } = useBackend<BackendData>();
   const { group } = props;
   const slots = Array.isArray(group?.slots) ? group.slots : [];
@@ -206,4 +217,3 @@ function AccessoryGroupSection(props: { group: AccessoryGroupData | undefined })
     </Section>
   );
 }
-

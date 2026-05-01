@@ -79,12 +79,20 @@
 			MA.dir = EAST
 		if("w")
 			MA.dir = WEST
-	MA.pixel_x = text2num_safe(props["[dir_key]x"], 0)
-	MA.pixel_y = text2num_safe(props["[dir_key]y"], 0)
-	var/shrink = text2num_safe(props["[dir_key]shrink"], 1.0)
-	if(shrink <= 0)
+	var/pixel_offset_x = props["[dir_key]x"]
+	if(!isnum(pixel_offset_x))
+		pixel_offset_x = 0
+	var/pixel_offset_y = props["[dir_key]y"]
+	if(!isnum(pixel_offset_y))
+		pixel_offset_y = 0
+	MA.pixel_x = pixel_offset_x
+	MA.pixel_y = pixel_offset_y
+	var/shrink = props["[dir_key]shrink"]
+	if(!isnum(shrink) || shrink <= 0)
 		shrink = 1.0
-	var/turn_deg = text2num_safe(props["[dir_key]turn"], 0)
+	var/turn_deg = props["[dir_key]turn"]
+	if(!isnum(turn_deg))
+		turn_deg = 0
 	var/flipped = props["[dir_key]flip"] ? TRUE : FALSE
 	var/matrix/M = matrix()
 	if(shrink != 1.0)
@@ -97,14 +105,68 @@
 
 /// Returns the canonical dir key for a BYOND dir constant.
 /proc/custom_piercing_dir_to_key(dir)
-	switch(dir)
-		if(NORTH)
-			return "n"
-		if(EAST)
-			return "e"
-		if(WEST)
-			return "w"
-	return "s"
+	return appearance_preview_dir_to_key(dir)
+
+/**
+ * Builds hybrid-overlay guide layers for a whitelisted sticker datum.
+ *
+ * Arguments:
+ *   sticker        - /datum/piercing_sticker from GLOB.custom_piercing_stickers.
+ *   metal_color    - optional sanitized/unsanitized metal color.
+ *   gem_color      - optional sanitized/unsanitized gem color.
+ *   include_colors - when TRUE, attach sanitized color hints to the guide
+ *                    layers. Registry prototype metadata passes FALSE so the
+ *                    client can apply draft colors locally without accepting
+ *                    arbitrary icon states from TGUI.
+ *
+ * Returns a list of hybrid descriptor layer lists. The metal layer is required;
+ * if the source DMI lacks the metal state the result is empty. The gem layer is
+ * included only when the sticker says it supports gems and the DMI contains the
+ * server-resolved gem state.
+ */
+/proc/custom_piercing_build_sticker_hybrid_guide_layers(datum/piercing_sticker/sticker, metal_color = null, gem_color = null, include_colors = TRUE)
+	var/list/layers = list()
+	if(!istype(sticker))
+		return layers
+
+	var/metal_state = sticker.get_preview_manifest_metal_icon_state_key()
+	if(!metal_state || !icon_exists(CUSTOM_PIERCING_STICKER_ICON, metal_state))
+		return layers
+	var/list/metal_layer = list(
+		HYBRID_OFFSET_LAYER_KEY_ICON_STATE = metal_state,
+		HYBRID_OFFSET_LAYER_KEY_ROLE = HYBRID_OFFSET_LAYER_ROLE_METAL,
+	)
+	if(include_colors)
+		metal_layer[HYBRID_OFFSET_LAYER_KEY_COLOR] = sanitize_hexcolor(metal_color, 6, TRUE, CUSTOM_PIERCING_DEFAULT_METAL_COLOR)
+	layers += list(metal_layer)
+
+	var/gem_state = sticker.get_preview_manifest_gem_icon_state_key()
+	if(gem_state && icon_exists(CUSTOM_PIERCING_STICKER_ICON, gem_state))
+		var/list/gem_layer = list(
+			HYBRID_OFFSET_LAYER_KEY_ICON_STATE = gem_state,
+			HYBRID_OFFSET_LAYER_KEY_ROLE = HYBRID_OFFSET_LAYER_ROLE_GEM,
+		)
+		if(include_colors)
+			gem_layer[HYBRID_OFFSET_LAYER_KEY_COLOR] = sanitize_hexcolor(gem_color, 6, TRUE, CUSTOM_PIERCING_DEFAULT_GEM_COLOR)
+		layers += list(gem_layer)
+
+	return layers
+
+/**
+ * Builds hybrid-overlay guide layers from a stored custom piercing entry.
+ *
+ * The entry is re-sanitized before layer generation, which means forged or
+ * stale sidecar data must still pass through the registry whitelist before any
+ * icon_state can be emitted to TGUI.
+ */
+/proc/custom_piercing_build_entry_hybrid_guide_layers(list/entry)
+	var/list/cleaned = sanitize_custom_piercing_entry(entry)
+	if(!islist(cleaned))
+		return list()
+	var/datum/piercing_sticker/sticker = get_custom_piercing_sticker(cleaned["sticker"])
+	if(!sticker)
+		return list()
+	return custom_piercing_build_sticker_hybrid_guide_layers(sticker, cleaned["metal_color"], cleaned["gem_color"])
 
 /// Applies a slot-level per-direction prop block to every appearance in the list.
 /// Used for the normal-slot offset panel so all mask layers stay in lockstep.
@@ -125,6 +187,27 @@
 		return
 	for(var/mutable_appearance/A as anything in appearance_list)
 		apply_custom_piercing_appearance_props(A, props, dir_key)
+
+/**
+ * Returns TRUE when a preview dummy should omit one selected custom-piercing
+ * entry from its normal DM-rendered custom-piercing overlays.
+ *
+ * Live mobs leave `custom_piercing_preview_suppressed_target_key` null, so this
+ * helper is inert outside the appearance-preview dummy path. The target key is
+ * parsed through the same whitelist-aware `slot:index` contract used by hybrid
+ * guide descriptors, preventing arbitrary TGUI strings from hiding unrelated
+ * entries.
+ */
+/proc/custom_piercing_entry_is_preview_suppressed(mob/living/carbon/wearer, slot_key, entry_index)
+	if(!ishuman(wearer) || !istext(slot_key) || !isnum(entry_index))
+		return FALSE
+	if(entry_index != round(entry_index))
+		return FALSE
+	var/mob/living/carbon/human/H = wearer
+	var/list/target = custom_piercing_parse_hybrid_target_key(H.custom_piercing_preview_suppressed_target_key)
+	if(!islist(target))
+		return FALSE
+	return target["slot_key"] == slot_key && target["entry_index"] == round(entry_index)
 
 /// Builds the list of mutable appearances for all stickers the wearer has
 /// configured on the given slot. Returns an empty list unless the slot is
@@ -157,7 +240,12 @@
 		if(WEST)
 			dir_key = "w"
 
-	for(var/list/entry in entries)
+	for(var/i in 1 to entries.len)
+		if(custom_piercing_entry_is_preview_suppressed(wearer, slot_key, i))
+			continue
+		var/list/entry = entries[i]
+		if(!islist(entry))
+			continue
 		var/datum/piercing_sticker/sticker = get_custom_piercing_sticker(entry["sticker"])
 		if(!sticker)
 			continue
@@ -169,7 +257,7 @@
 		if(istext(entry_zone) && length(entry_zone))
 			if(!get_location_accessible(wearer, entry_zone))
 				continue
-		var/metal_state = "[sticker.id]_metal"
+		var/metal_state = sticker.get_preview_manifest_metal_icon_state_key()
 		// Skip entirely if the metal state is missing from the DMI — prevents
 		// an invisible-but-consuming appearance from being added.
 		if(!icon_exists(CUSTOM_PIERCING_STICKER_ICON, metal_state))
@@ -183,7 +271,7 @@
 		var/gem_state = null
 		var/gem_color = null
 		if(sticker.has_gem && entry["gem_color"])
-			gem_state = "[sticker.id]_gem"
+			gem_state = sticker.get_preview_manifest_gem_icon_state_key()
 			if(icon_exists(CUSTOM_PIERCING_STICKER_ICON, gem_state))
 				gem_color = entry["gem_color"]
 			else

@@ -39,12 +39,19 @@
 /datum/organ_dna/penis
 	var/penis_size = DEFAULT_PENIS_SIZE
 	var/functional = TRUE
+	/// Player toggle: when FALSE, the organ's authored sheath_type is
+	/// suppressed at imprint time and the flaccid/partial sprites render
+	/// without the sheath/slit covering. When TRUE, the subtype's initial
+	/// sheath_type (NONE/NORMAL/SLIT) is preserved.
+	var/sheathed = TRUE
 
 /datum/organ_dna/penis/imprint_organ(obj/item/organ/organ)
 	..()
 	var/obj/item/organ/penis/penis_organ = organ
 	penis_organ.penis_size = penis_size
 	penis_organ.functional = functional
+	if(!sheathed)
+		penis_organ.sheath_type = SHEATH_TYPE_NONE
 
 /datum/organ_dna/testicles
 	var/ball_size = DEFAULT_TESTICLES_SIZE

@@ -18,6 +18,7 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 	return FALSE
 
 /mob/living/carbon/human/dummy/proc/wipe_state()
+	remove_all_intimate_accessories(delete_removed = TRUE)
 	// Clean up chastity device (not in standard equipment slots)
 	if(chastity_device)
 		var/obj/item/chastity/device = chastity_device

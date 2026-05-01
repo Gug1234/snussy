@@ -9,7 +9,28 @@ import { useDebug } from './debug';
 import { LoadingScreen } from './interfaces/common/LoadingScreen';
 import { Window } from './layouts';
 
-const requireInterface = require.context('./interfaces');
+type RequireContext = {
+  (path: string): unknown;
+};
+
+type RspackRequire = {
+  context: (
+    directory: string,
+    useSubdirectories?: boolean,
+    regExp?: RegExp,
+  ) => RequireContext;
+};
+
+/**
+ * Runtime TGUI routing loads browser interface modules by name. Keep this
+ * context limited to routable frontend files so colocated tests and pure helper
+ * modules are not bundled into the production Rspack target.
+ */
+const requireInterface = (require as unknown as RspackRequire).context(
+  './interfaces',
+  true,
+  /^\.\/(?!.*\.(?:test|spec)\.).*\.(?:tsx|jsx|js)$/,
+);
 
 const routingError =
   (type: 'notFound' | 'missingExport', name: string) => () => {

@@ -332,6 +332,7 @@
 
 /obj/item/udder
 	name = "udder"
+	experimental_inhand = FALSE
 	var/in_use // so you can't spam milking sounds
 
 /obj/item/udder/Initialize(mapload)

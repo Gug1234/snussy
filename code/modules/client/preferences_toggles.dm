@@ -25,9 +25,16 @@
 	set name = "Game Preferences"
 	set category = "Options"
 	set desc = ""
-	if(prefs)
+	if(!prefs)
+		return
+	// Step 16: TGUI is the default entry point. Fall back to the classic
+	// HTML `ShowChoices()` path when fancy-chat failed this session or the
+	// player opted into classic HTML via the per-account toggle.
+	if(should_use_classic_prefs())
 		usr.client.prefs.current_tab = 1
 		usr.client.prefs.ShowChoices(usr, 4)
+		return
+	usr.client.prefs.open_appearance_preferences(usr)
 
 /client/verb/toggle_fullscreen()
 	set name = "ToggleFullscreen"

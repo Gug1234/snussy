@@ -128,6 +128,10 @@ celerybeat-schedule
 
 # virtualenv
 venv/
+/.venv/
+/.venv-1/
+/.venv-2/
+**node_modules**
 ENV/
 
 # IntelliJ IDEA / PyCharm (with plugin)
@@ -203,6 +207,20 @@ Temporary Items
 !/.vscode/launch.json
 tools/MapAtmosFixer/MapAtmosFixer/obj/*
 tools/MapAtmosFixer/MapAtmosFixer/bin/*
+/.codex/
+/.codex-tools/
+/.cursor/
+/.opencode/
+/.venv/
+memories/
+/.vscode/
+/.github/
+**awesome-codex-skills**
+**graphify**
+**profiler**
+**UnstandardnessTestForDM**
+**.gitignore**
+**AGENTS**
 
 #GitHub Atom
 .atom-build.json

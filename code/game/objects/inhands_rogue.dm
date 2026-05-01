@@ -43,7 +43,10 @@
 	if(!onmob || force_reupdate_inhand)
 		if(force_reupdate_inhand)
 			has_behind_state = null
-		onmob = fcopy_rsc(generateonmob(tag, prop, behind, mirrored))
+		var/icon/generated_onmob = generateonmob(tag, prop, behind, mirrored)
+		if(!generated_onmob)
+			return
+		onmob = fcopy_rsc(generated_onmob)
 		onmob_sprites["[tag][behind][mirrored][used_index]"] = onmob
 	return onmob
 
@@ -88,6 +91,10 @@ GLOBAL_LIST_EMPTY(icon_state_cache)
 	// isicon() is apparently quite expensive so short-circuit out early if we can.
 	if(!istext(checkstate) || isnull(checkicon) || !(isfile(checkicon) || isicon(checkicon)))
 		return FALSE
+	if(!is_dmi_icon_source(checkicon))
+		return FALSE
+	if(!islist(GLOB.icon_state_cache))
+		GLOB.icon_state_cache = list()
 	var/checkkey = "\ref[checkicon]"
 	var/list/check = GLOB.icon_state_cache[checkkey]
 	if(!check)
@@ -104,6 +111,9 @@ GLOBAL_LIST_EMPTY(icon_state_cache)
 		used_index = icon_state
 
 	var/list/used_prop = prop
+	var/base_icon = src.icon
+	if(!is_dmi_icon_source(base_icon))
+		return
 	var/UH = 64
 	var/UW = 64
 	var/used_mask = 'icons/roguetown/helpers/inhand_64.dmi'
@@ -113,14 +123,14 @@ GLOBAL_LIST_EMPTY(icon_state_cache)
 
 	if(behind)
 		if(isnull(has_behind_state))
-			has_behind_state = check_state_in_icon("[used_index]_behind", icon)
+			has_behind_state = check_state_in_icon("[used_index]_behind", base_icon)
 		if(has_behind_state)
-			blended = icon("icon"=icon, "icon_state"="[used_index]_behind")
+			blended = icon("icon"=base_icon, "icon_state"="[used_index]_behind")
 			skipoverlays = TRUE
 		else
-			blended = icon("icon"=icon, "icon_state"=used_index)
+			blended = icon("icon"=base_icon, "icon_state"=used_index)
 	else
-		blended = icon("icon"=icon, "icon_state"=used_index)
+		blended = icon("icon"=base_icon, "icon_state"=used_index)
 
 	if(!blended)
 		blended = getFlatIcon(src)
@@ -134,6 +144,8 @@ GLOBAL_LIST_EMPTY(icon_state_cache)
 	if(!skipoverlays)
 		for(var/V in overlays)
 			var/image/IM = V
+			if(!is_dmi_icon_source(IM.icon))
+				continue
 			var/icon/image_overlay = new(IM.icon, IM.icon_state)
 			if(IM.color)
 				image_overlay.Blend(IM.color, ICON_MULTIPLY)

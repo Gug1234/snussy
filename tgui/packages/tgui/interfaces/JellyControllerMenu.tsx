@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Box, Button, Dropdown, NoticeBox, Section, Stack, Tooltip } from 'tgui-core/components';
+import {
+  Box,
+  Button,
+  Dropdown,
+  NoticeBox,
+  Section,
+  Stack,
+  Tooltip,
+} from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -202,7 +210,8 @@ export const JellyControllerMenu = () => {
     );
   }
 
-  const escalationColor = ESCALATION_COLOR[data.bond_escalation_level] ?? '#aaaaaa';
+  const escalationColor =
+    ESCALATION_COLOR[data.bond_escalation_level] ?? '#aaaaaa';
 
   return (
     <Window width={480} height={560} title="Jelly Communion">
@@ -225,7 +234,8 @@ export const JellyControllerMenu = () => {
           </Stack.Item>
 
           {/* ── Cocoon controls (visible from any view mode) ── */}
-          {(!!data.controller_can_cocoon_command || !!data.controller_can_start_cocoon) && (
+          {(!!data.controller_can_cocoon_command ||
+            !!data.controller_can_start_cocoon) && (
             <Stack.Item>
               <Section title="Cocoon">
                 <CocoonControls />
@@ -297,10 +307,10 @@ const StatusBars = (props: { data: Data; escalationColor: string }) => {
       />
       {data.bond_escalation_level < (data.max_bond_escalation_level || 4) &&
         data.bond_progress_threshold > 0 && (
-        <Box mt={0.25} fontSize="0.75em" color="label">
-          Progress: {data.bond_progress} / {data.bond_progress_threshold}
-        </Box>
-      )}
+          <Box mt={0.25} fontSize="0.75em" color="label">
+            Progress: {data.bond_progress} / {data.bond_progress_threshold}
+          </Box>
+        )}
       {data.obsession_level > 0 && (
         <Box mt={0.25} fontSize="0.8em" color="average">
           Obsession level: {data.obsession_level}
@@ -323,7 +333,12 @@ const StatusBars = (props: { data: Data; escalationColor: string }) => {
             </Box>
           )}
           <Box inline color="label" ml={0.5}>
-            ({Math.round((data.controller_cocoon_tick_count || 0) * (data.controller_cocoon_tick_interval || 3))}s)
+            (
+            {Math.round(
+              (data.controller_cocoon_tick_count || 0) *
+                (data.controller_cocoon_tick_interval || 3),
+            )}
+            s)
           </Box>
         </Box>
       )}
@@ -350,7 +365,10 @@ const CommunionHeader = (props: { data: Data }) => {
       {!!data.controller_state_name && (
         <Box fontSize="0.8em" color="label" mb={0.4}>
           State:{' '}
-          <Box inline color={data.controller_state === 'suspended' ? 'average' : 'good'}>
+          <Box
+            inline
+            color={data.controller_state === 'suspended' ? 'average' : 'good'}
+          >
             {data.controller_state_name}
           </Box>
         </Box>
@@ -364,7 +382,7 @@ const CommunionHeader = (props: { data: Data }) => {
         <NoticeBox>
           {data.controller_direct_control_enabled
             ? 'The host has lowered the ward. My will flows freely through them.'
-            : 'The host\'s ward holds firm. I must petition before acting upon their flesh.'}
+            : "The host's ward holds firm. I must petition before acting upon their flesh."}
         </NoticeBox>
       )}
     </>
@@ -384,9 +402,11 @@ const ShellControls = () => {
 
   const repositionOptions = data.swap_slot_options ?? [];
   const defaultReposition = repositionOptions[0]?.name ?? '';
-  const [selectedReposition, setSelectedReposition] = useState(defaultReposition);
-  const activeReposition = repositionOptions.find((o) => o.name === selectedReposition)
-    ?? repositionOptions[0];
+  const [selectedReposition, setSelectedReposition] =
+    useState(defaultReposition);
+  const activeReposition =
+    repositionOptions.find((o) => o.name === selectedReposition) ??
+    repositionOptions[0];
 
   return (
     <Stack wrap mt={0.4}>
@@ -488,7 +508,9 @@ const ShellControls = () => {
           }
           onClick={() => act('controller_manifest')}
         >
-          {data.controller_direct_control_enabled ? 'Take Shape' : 'Request Shape'}
+          {data.controller_direct_control_enabled
+            ? 'Take Shape'
+            : 'Request Shape'}
         </Button>
       </Stack.Item>
 
@@ -496,7 +518,10 @@ const ShellControls = () => {
       <Stack.Item>
         <Button
           color="orange"
-          disabled={!data.controller_can_stimulate || !!data.controller_stimulate_cooldown}
+          disabled={
+            !data.controller_can_stimulate ||
+            !!data.controller_stimulate_cooldown
+          }
           tooltip={
             !data.controller_can_stimulate
               ? data.controller_emotion_needs_force
@@ -542,10 +567,13 @@ const ShellControls = () => {
                     : 'Repositioning is sealed while the bond wavers.'
                 }
                 onClick={() =>
-                  activeReposition && act('controller_reposition', { slot: activeReposition.slot })
+                  activeReposition &&
+                  act('controller_reposition', { slot: activeReposition.slot })
                 }
               >
-                {data.controller_direct_control_enabled ? 'Shift Body' : 'Request Shift'}
+                {data.controller_direct_control_enabled
+                  ? 'Shift Body'
+                  : 'Request Shift'}
               </Button>
             </Stack.Item>
           </Stack>
@@ -565,11 +593,13 @@ const ForceControls = () => {
 
   const forceEmoteKeys = Object.keys(data.controller_force_emote_options ?? {});
   const defaultForceEmote = forceEmoteKeys[0] ?? '';
-  const [selectedForceEmote, setSelectedForceEmote] = useState(defaultForceEmote);
+  const [selectedForceEmote, setSelectedForceEmote] =
+    useState(defaultForceEmote);
 
   const voicePresets = data.controller_wearer_voice_presets ?? [];
   const defaultVoicePreset = voicePresets[0] ?? '';
-  const [selectedVoicePreset, setSelectedVoicePreset] = useState(defaultVoicePreset);
+  const [selectedVoicePreset, setSelectedVoicePreset] =
+    useState(defaultVoicePreset);
   const activeVoicePreset = voicePresets.includes(selectedVoicePreset)
     ? selectedVoicePreset
     : defaultVoicePreset;
@@ -587,17 +617,19 @@ const ForceControls = () => {
       <Stack.Item>
         <Button
           color="red"
-          disabled={!data.controller_can_force || !!data.controller_force_cooldown}
+          disabled={
+            !data.controller_can_force || !!data.controller_force_cooldown
+          }
           tooltip={
             !data.controller_can_force
               ? data.controller_emotion_needs_force
-                ? 'I am too sated to puppet the host\'s voice. My hunger must grow first.'
+                ? "I am too sated to puppet the host's voice. My hunger must grow first."
                 : 'Forced speech is sealed \u2014 the host must yield this power.'
               : data.controller_force_cooldown
                 ? `My grip is still settling\u2026 ${data.controller_force_cooldown}s`
                 : data.controller_direct_control_enabled
-                  ? 'Force words from the host\'s mouth.'
-                  : 'Petition to force words from the host\'s mouth.'
+                  ? "Force words from the host's mouth."
+                  : "Petition to force words from the host's mouth."
           }
           onClick={() => act('controller_force_speech')}
         >
@@ -624,20 +656,24 @@ const ForceControls = () => {
             <Stack.Item>
               <Button
                 color="red"
-                disabled={!data.controller_can_force || !!data.controller_force_cooldown}
+                disabled={
+                  !data.controller_can_force || !!data.controller_force_cooldown
+                }
                 tooltip={
                   !data.controller_can_force
                     ? data.controller_emotion_needs_force
-                      ? 'I am too sated to puppet the host\'s body. My hunger must grow first.'
+                      ? "I am too sated to puppet the host's body. My hunger must grow first."
                       : 'Forced gestures are sealed \u2014 the host must yield this power.'
                     : data.controller_force_cooldown
                       ? `My grip is still settling\u2026 ${data.controller_force_cooldown}s`
                       : data.controller_direct_control_enabled
-                        ? 'Wring the chosen reaction from the host\'s body.'
+                        ? "Wring the chosen reaction from the host's body."
                         : 'Petition to wring the chosen reaction from the host.'
                 }
                 onClick={() =>
-                  act('controller_force_emote', { emote_label: selectedForceEmote })
+                  act('controller_force_emote', {
+                    emote_label: selectedForceEmote,
+                  })
                 }
               >
                 {data.controller_force_cooldown
@@ -666,7 +702,11 @@ const ForceControls = () => {
             <Stack.Item>
               <Button
                 color="red"
-                disabled={!data.controller_can_force || !activeVoicePreset || !!data.controller_force_cooldown}
+                disabled={
+                  !data.controller_can_force ||
+                  !activeVoicePreset ||
+                  !!data.controller_force_cooldown
+                }
                 tooltip={
                   !data.controller_can_force
                     ? data.controller_emotion_needs_force
@@ -679,7 +719,9 @@ const ForceControls = () => {
                         : 'Petition to force the host to utter the chosen preset.'
                 }
                 onClick={() =>
-                  act('controller_wearer_voice_preset', { preset_label: activeVoicePreset })
+                  act('controller_wearer_voice_preset', {
+                    preset_label: activeVoicePreset,
+                  })
                 }
               >
                 {data.controller_force_cooldown
@@ -708,7 +750,11 @@ const ForceControls = () => {
             <Stack.Item>
               <Button
                 color="red"
-                disabled={!data.controller_can_force || !activePosture || !!data.controller_force_cooldown}
+                disabled={
+                  !data.controller_can_force ||
+                  !activePosture ||
+                  !!data.controller_force_cooldown
+                }
                 tooltip={
                   !data.controller_can_force
                     ? data.controller_emotion_needs_force
@@ -721,7 +767,9 @@ const ForceControls = () => {
                         : 'Petition to force the host into the chosen posture.'
                 }
                 onClick={() =>
-                  act('controller_force_posture', { posture_label: activePosture })
+                  act('controller_force_posture', {
+                    posture_label: activePosture,
+                  })
                 }
               >
                 {data.controller_force_cooldown
@@ -776,9 +824,10 @@ const CocoonControls = () => {
     const nextStageTicks = data.controller_cocoon_next_stage_ticks || 0;
     const tickInterval = data.controller_cocoon_tick_interval || 3;
     const timeInCocoon = Math.round(tickCount * tickInterval);
-    const timeToNextStage = nextStageTicks > tickCount
-      ? Math.round((nextStageTicks - tickCount) * tickInterval)
-      : 0;
+    const timeToNextStage =
+      nextStageTicks > tickCount
+        ? Math.round((nextStageTicks - tickCount) * tickInterval)
+        : 0;
 
     return (
       <Stack vertical>
@@ -828,7 +877,10 @@ const CocoonControls = () => {
             <Stack.Item>
               <Button
                 color="red"
-                disabled={!data.controller_can_cocoon_tighten || data.controller_cocoon_stage >= 3}
+                disabled={
+                  !data.controller_can_cocoon_tighten ||
+                  data.controller_cocoon_stage >= 3
+                }
                 tooltip={
                   data.controller_cocoon_stage >= 3
                     ? 'The cocoon is already at its deepest stage.'
@@ -945,7 +997,9 @@ const ActivityLog = (props: { entries: ControllerActivityEntry[] }) => {
         </Box>
       }
     >
-      <Box style={{ maxHeight: expanded ? '200px' : '120px', overflowY: 'auto' }}>
+      <Box
+        style={{ maxHeight: expanded ? '200px' : '120px', overflowY: 'auto' }}
+      >
         {visible.map((entry, i) => (
           <Box
             key={i}
@@ -956,10 +1010,18 @@ const ActivityLog = (props: { entries: ControllerActivityEntry[] }) => {
             <Box inline color="label" mr={0.5}>
               [{entry.time}]
             </Box>
-            <Box inline color={ACTIVITY_ACTOR_COLOR[entry.actor] ?? '#aaaaaa'} bold mr={0.5}>
+            <Box
+              inline
+              color={ACTIVITY_ACTOR_COLOR[entry.actor] ?? '#aaaaaa'}
+              bold
+              mr={0.5}
+            >
               {entry.actor}
             </Box>
-            <Box inline color={ACTIVITY_SEVERITY_COLOR[entry.severity] ?? '#cccccc'}>
+            <Box
+              inline
+              color={ACTIVITY_SEVERITY_COLOR[entry.severity] ?? '#cccccc'}
+            >
               {entry.summary}
             </Box>
           </Box>
@@ -1001,12 +1063,10 @@ const Indicators = (props: { data: Data }) => {
         ◆ Permissions:{' '}
         <Box inline color={data.controller_speech_enabled ? 'good' : 'bad'}>
           speech {data.controller_speech_enabled ? 'on' : 'off'}
-        </Box>
-        {' '}
+        </Box>{' '}
         <Box inline color={data.controller_emote_enabled ? 'good' : 'bad'}>
           emotes {data.controller_emote_enabled ? 'on' : 'off'}
-        </Box>
-        {' '}
+        </Box>{' '}
         <Box inline color={data.controller_manifest_enabled ? 'good' : 'bad'}>
           manifest {data.controller_manifest_enabled ? 'on' : 'off'}
         </Box>
@@ -1016,7 +1076,10 @@ const Indicators = (props: { data: Data }) => {
         color={data.controller_direct_control_enabled ? 'bad' : 'good'}
         italic
       >
-        ◆ Approval wards: {data.controller_direct_control_enabled ? 'Lowered by host' : 'Host approval required'}
+        ◆ Approval wards:{' '}
+        {data.controller_direct_control_enabled
+          ? 'Lowered by host'
+          : 'Host approval required'}
       </Box>
     </Box>
   );

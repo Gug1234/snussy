@@ -712,7 +712,7 @@
 	return ..()
 
 // Forced global removal helper.
-/mob/living/carbon/human/proc/remove_all_intimate_accessories()
+/mob/living/carbon/human/proc/remove_all_intimate_accessories(delete_removed = FALSE)
 	if(!length(intimate_accessories))
 		return 0
 
@@ -722,7 +722,9 @@
 		if(!accessory)
 			continue
 		accessory.remove_intimate_accessory(src)
-		if(!QDELETED(accessory))
+		if(delete_removed)
+			qdel(accessory)
+		else if(!QDELETED(accessory))
 			accessory.forceMove(get_turf(src))
 		removed_count++
 

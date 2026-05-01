@@ -78,8 +78,8 @@ export function ChastityPrefsMenu() {
       <Window.Content scrollable>
         <Section title="Chastity Device">
           <Box mb={1} opacity={0.5} fontSize="11px" italic>
-            Enable a chastity device to equip at round start. The device type
-            is automatically selected based on your character{"'"}s genitals.
+            Enable a chastity device to equip at round start. The device type is
+            automatically selected based on your character{"'"}s genitals.
             Spiked devices require extreme ERP to be enabled.
           </Box>
 
@@ -230,9 +230,7 @@ export function ChastityPrefsMenu() {
                             icon="trash"
                             color="bad"
                             compact
-                            onClick={() =>
-                              act('remove_stash', { name: name })
-                            }
+                            onClick={() => act('remove_stash', { name: name })}
                           />
                         </Stack.Item>
                       </Stack>

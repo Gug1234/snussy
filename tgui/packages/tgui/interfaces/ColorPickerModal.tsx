@@ -51,11 +51,7 @@ type ColorPickerModalProps = Record<never, never>;
 
 export const ColorPickerModal: React.FC<ColorPickerModalProps> = () => {
   const { act, data } = useBackend<ColorPickerData>();
-  const {
-    timeout,
-    message,
-    autofocus,
-  } = data;
+  const { timeout, message, autofocus } = data;
   const defaultColor =
     typeof data.default_color === 'string' && data.default_color.length
       ? data.default_color

@@ -26,6 +26,14 @@
 		return "e_m"
 	return owner.gender == FEMALE ? "h_f" : "h_m"
 
+/// Returns the shared manifest category for intimate-accessory atlas entries.
+/datum/sprite_accessory/intimate_accessory/proc/get_preview_manifest_category()
+	return APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY
+
+/// Returns the canonical icon-state key used by the preview manifest.
+/datum/sprite_accessory/intimate_accessory/proc/get_preview_manifest_icon_state_key(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	return appearance_preview_manifest_icon_state_key(get_icon_state(organ, bodypart, owner))
+
 /datum/sprite_accessory/intimate_accessory/proc/get_breast_piercing_icon_state(mob/living/carbon/owner)
 	var/amount_tag = "pair"
 	var/breast_size = 0
@@ -171,12 +179,16 @@
 
 /datum/sprite_accessory/intimate_accessory/get_icon_state(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_breast))
-		return get_breast_piercing_icon_state(owner)
+		return appearance_preview_manifest_icon_state_key(get_breast_piercing_icon_state(owner))
 	if(istype(src, /datum/sprite_accessory/intimate_accessory/rear_plug))
-		return "[icon_state]_[get_body_suffix(owner)]"
+		return appearance_preview_manifest_icon_state_key("[icon_state]_[get_body_suffix(owner)]")
 	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_ear))
-		return get_ear_piercing_icon_state(owner)
-	return icon_state
+		return appearance_preview_manifest_icon_state_key(get_ear_piercing_icon_state(owner))
+	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_nose))
+		return appearance_preview_manifest_icon_state_key(get_nose_piercing_icon_state(owner))
+	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_belly))
+		return appearance_preview_manifest_icon_state_key(get_belly_piercing_icon_state(owner))
+	return appearance_preview_manifest_icon_state_key(icon_state)
 
 /datum/sprite_accessory/intimate_accessory/is_visible(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
 	if(!ishuman(owner))
@@ -202,6 +214,11 @@
 		return is_human_part_visible(owner, HIDEBOOB)
 	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_ear))
 		return TRUE // Earrings are always visible — not hidden by any clothing flag.
+	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_nose))
+		return TRUE // Nose piercings are always visible — not hidden by any clothing flag.
+	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_belly))
+		// Belly piercings hide under any shirt/jumpsuit that covers the torso.
+		return is_human_part_visible(owner, HIDEJUMPSUIT)
 	if(H.underwear)
 		return FALSE
 	return is_human_part_visible(owner, HIDECROTCH)
@@ -228,6 +245,25 @@
 		return "ear_pierce[cross_suffix]"
 	return "ear_pierce"
 
+// ── Nose piercing sprite accessory ────────────────────────────────────────
+// Nose piercings currently have no psydonic/zizite item subtypes; keep the
+// resolver shaped like the ear helper so adding them later is a one-liner.
+/datum/sprite_accessory/intimate_accessory/proc/get_nose_piercing_icon_state(mob/living/carbon/owner)
+	return "nose_pierce"
+
+// ── Belly piercing sprite accessory ───────────────────────────────────────
+/datum/sprite_accessory/intimate_accessory/proc/get_belly_piercing_icon_state(mob/living/carbon/owner)
+	var/cross_suffix = ""
+	if(ishuman(owner))
+		var/mob/living/carbon/human/H = owner
+		if(istype(H.intimate_belly_piercing, /obj/item/intimate_accessory/piercing/belly/psydonic))
+			cross_suffix = "_psy"
+		else if(istype(H.intimate_belly_piercing, /obj/item/intimate_accessory/piercing/belly/zizite))
+			cross_suffix = "_zizo"
+	if(cross_suffix && icon_exists(icon, "belly_pierce[cross_suffix]"))
+		return "belly_pierce[cross_suffix]"
+	return "belly_pierce"
+
 /datum/sprite_accessory/intimate_accessory/piercing_ear
 	name = "Ear Piercing"
 	icon_state = "ear_pierce"
@@ -242,6 +278,99 @@
 		appearance_list.Cut()
 	appearance_list += compose_custom_piercing_slot_appearances(owner, "ear")
 	apply_custom_piercing_slot_props(appearance_list, owner, "ear")
+
+/datum/sprite_accessory/intimate_accessory/piercing_nose
+	name = "Nose Piercing"
+	icon_state = "nose_pierce"
+	layer = BODY_FRONT_FRONT_LAYER
+	color_keys = 2
+	color_key_names = list("Metal", "Gem")
+	default_colors = list("#9BADB7", "#9BADB7")
+	intimate_type = /obj/item/intimate_accessory/piercing/nose
+
+/datum/sprite_accessory/intimate_accessory/piercing_nose/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	// Honour the player's per-slot suppression toggle. Custom stickers for
+	// the "nose" slot render through the post_render pipeline (see
+	// custom_piercings/_defines.dm) rather than being spliced into this
+	// appearance list, so there is no compose_custom_piercing_slot_appearances
+	// call here — only legacy-overlay suppression + shared prop application.
+	if(custom_piercing_slot_suppresses_legacy(owner, "nose"))
+		appearance_list.Cut()
+	apply_custom_piercing_slot_props(appearance_list, owner, "nose")
+
+/datum/sprite_accessory/intimate_accessory/piercing_nose/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
+	if(suffix)
+		overlay_icon_state += "_[suffix]"
+
+	var/metal_color = color_list[1]
+	if(!metal_color)
+		metal_color = "#FFFFFF"
+
+	var/gem_color = color_list[2]
+	if(!gem_color)
+		gem_color = metal_color
+
+	var/icon/result_icon = icon(icon, overlay_icon_state)
+	result_icon.Blend(metal_color, ICON_MULTIPLY)
+
+	if(icon_exists(icon, "[overlay_icon_state]_gem"))
+		var/icon/gem_mask_icon = icon(icon, "[overlay_icon_state]_gem")
+		gem_mask_icon.Blend(gem_color, ICON_MULTIPLY)
+		result_icon.Blend(gem_mask_icon, ICON_OVERLAY)
+
+	if(extra_state && icon_exists(icon, "[overlay_icon_state]_extra"))
+		var/icon/extra_icon = icon(icon, "[overlay_icon_state]_extra")
+		result_icon.Blend(extra_icon, ICON_OVERLAY)
+
+	result_icon.GetPixel(1, 1)
+	return result_icon
+
+/datum/sprite_accessory/intimate_accessory/piercing_belly
+	name = "Belly Piercing"
+	icon_state = "belly_pierce"
+	layer = BODY_FRONT_FRONT_LAYER
+	color_keys = 2
+	color_key_names = list("Metal", "Gem")
+	default_colors = list("#9BADB7", "#9BADB7")
+	intimate_type = /obj/item/intimate_accessory/piercing/belly
+
+/datum/sprite_accessory/intimate_accessory/piercing_belly/adjust_appearance_list(list/appearance_list, obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	// See piercing_nose for the rationale on skipping compose_custom_piercing_slot_appearances.
+	if(custom_piercing_slot_suppresses_legacy(owner, "belly"))
+		appearance_list.Cut()
+	apply_custom_piercing_slot_props(appearance_list, owner, "belly")
+
+/datum/sprite_accessory/intimate_accessory/piercing_belly/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
+	if(suffix)
+		overlay_icon_state += "_[suffix]"
+
+	var/metal_color = color_list[1]
+	if(!metal_color)
+		metal_color = "#FFFFFF"
+
+	var/gem_color = color_list[2]
+	if(!gem_color)
+		gem_color = metal_color
+
+	// psydonic/zizite variants are authored as fully-coloured standalone
+	// states (no _gem mask) — tint the whole overlay to the metal colour
+	// and skip the gem overlay step.
+	var/is_variant = findtext(overlay_icon_state, "_psy") || findtext(overlay_icon_state, "_zizo")
+
+	var/icon/result_icon = icon(icon, overlay_icon_state)
+	result_icon.Blend(metal_color, ICON_MULTIPLY)
+
+	if(!is_variant && icon_exists(icon, "[overlay_icon_state]_gem"))
+		var/icon/gem_mask_icon = icon(icon, "[overlay_icon_state]_gem")
+		gem_mask_icon.Blend(gem_color, ICON_MULTIPLY)
+		result_icon.Blend(gem_mask_icon, ICON_OVERLAY)
+
+	if(extra_state && icon_exists(icon, "[overlay_icon_state]_extra"))
+		var/icon/extra_icon = icon(icon, "[overlay_icon_state]_extra")
+		result_icon.Blend(extra_icon, ICON_OVERLAY)
+
+	result_icon.GetPixel(1, 1)
+	return result_icon
 
 /datum/sprite_accessory/intimate_accessory/piercing_ear/generate_icon_state(overlay_icon_state, color_list, passed_layer, suffix)
 	if(suffix)
@@ -542,6 +671,12 @@
 
 /datum/sprite_accessory/intimate_overlays/piercing_ear
 	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_ear
+
+/datum/sprite_accessory/intimate_overlays/piercing_nose
+	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_nose
+
+/datum/sprite_accessory/intimate_overlays/piercing_belly
+	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_belly
 
 /datum/sprite_accessory/intimate_overlays/piercing_genital
 	parent_type = /datum/sprite_accessory/intimate_accessory/piercing_genital

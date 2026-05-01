@@ -28,4 +28,10 @@
 		"aavnic.ttf" = 'interface/fonts/languages/aavnic.ttf',
 		"merar.ttf" = 'interface/fonts/languages/merar.ttf',
 		"abyssal.ttf" = 'interface/fonts/languages/abyssal.ttf',
+		// PreferencesMenu shell (Step 19) — leather frame + EB Garamond serif.
+		// Lives under tgui/packages/tgui/... but mapped here so the existing
+		// roguefonts asset auto-send delivers them on every TGUI init.
+		"frame_leather.png" = 'tgui/packages/tgui/assets/ratwoodhoodclassic/frame_leather.png',
+		"EBGaramond-VariableFont_wght.woff2" = 'tgui/packages/tgui/styles/fonts/EBGaramond-VariableFont_wght.woff2',
+		"EBGaramond-Italic-VariableFont_wght.woff2" = 'tgui/packages/tgui/styles/fonts/EBGaramond-Italic-VariableFont_wght.woff2',
 	)

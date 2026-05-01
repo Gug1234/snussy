@@ -32,11 +32,24 @@
 #define CUSTOM_PIERCING_OFFSET_MAX 64
 #define CUSTOM_PIERCING_OFFSET_MIN -64
 
-/// Per-direction field keys on a sticker entry's props list. Mirrors the taur
-/// genital prop schema so the same editor UI + offset math can be reused.
+/// Per-direction field keys on a sticker entry's props list. Mirrors the shared
+/// appearance-preview schema so the same editor UI + offset math can be reused.
 /// Full key is "[dir_key][field_key]" e.g. "sx", "nturn", "ehide".
-GLOBAL_LIST_INIT(custom_piercing_dir_keys, list("s", "n", "e", "w"))
-GLOBAL_LIST_INIT(custom_piercing_field_keys, list("x", "y", "turn", "flip", "above", "hide", "shrink"))
+GLOBAL_LIST_INIT(custom_piercing_dir_keys, list(
+	APPEARANCE_PREVIEW_DIR_KEY_S,
+	APPEARANCE_PREVIEW_DIR_KEY_N,
+	APPEARANCE_PREVIEW_DIR_KEY_E,
+	APPEARANCE_PREVIEW_DIR_KEY_W,
+))
+GLOBAL_LIST_INIT(custom_piercing_field_keys, list(
+	APPEARANCE_PREVIEW_PROP_X,
+	APPEARANCE_PREVIEW_PROP_Y,
+	APPEARANCE_PREVIEW_PROP_TURN,
+	APPEARANCE_PREVIEW_PROP_FLIP,
+	APPEARANCE_PREVIEW_PROP_ABOVE,
+	APPEARANCE_PREVIEW_PROP_HIDE,
+	APPEARANCE_PREVIEW_PROP_SHRINK,
+))
 
 /// Canonical list of wearer-side intimate slots the custom-piercing system
 /// knows about. The string keys are stable — they are persisted in sidecar
@@ -126,6 +139,33 @@ GLOBAL_LIST_INIT(custom_piercing_slot_labels, list(
 	"custom_upper" = "Upper Decoration",
 	"custom_lower" = "Lower Decoration",
 ))
+
+/// Shared manifest category assignment for each slot key.
+///
+/// Intimate-accessory slots stay in the intimate-accessory bucket, while the
+/// freeform slots are treated as sticker atlas content.
+GLOBAL_LIST_INIT(custom_piercing_slot_manifest_categories, list(
+	"ear" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"nose" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"tongue" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"breast" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"belly" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"genital" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"rear" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"pintle" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"chastity" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"insertable_genital" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"insertable_rear" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"custom_upper" = APPEARANCE_PREVIEW_CATEGORY_STICKER,
+	"custom_lower" = APPEARANCE_PREVIEW_CATEGORY_STICKER,
+))
+
+/// Returns the shared appearance-preview category for a slot key, or null if
+/// the slot is unknown to the frozen manifest contract.
+/proc/custom_piercing_slot_manifest_category(slot_key)
+	if(!istext(slot_key))
+		return null
+	return GLOB.custom_piercing_slot_manifest_categories[slot_key]
 
 /// Slots that are NOT tied to any equipped intimate accessory item — their
 /// stickers render unconditionally when the slot is enabled, regardless of

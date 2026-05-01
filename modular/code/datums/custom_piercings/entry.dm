@@ -38,17 +38,37 @@
 /// Mirrors default_taur_genital_props() semantics and is shared by both slot-
 /// level transforms and freeform sticker entries.
 /proc/default_custom_piercing_props()
-	var/list/props = list()
-	for(var/dir_key in GLOB.custom_piercing_dir_keys)
-		props["[dir_key]x"] = 0
-		props["[dir_key]y"] = 0
-		props["[dir_key]turn"] = 0
-		props["[dir_key]flip"] = 0
-		// Piercings render OVER the body by default, unlike most taur genitals.
-		props["[dir_key]above"] = 1
-		props["[dir_key]hide"] = 0
-		props["[dir_key]shrink"] = 1.0
-	return props
+	var/static/list/default_custom_piercing_props_template = list(
+		"sx" = 0,
+		"sy" = 0,
+		"sturn" = 0,
+		"sflip" = 0,
+		"sabove" = 1,
+		"shide" = 0,
+		"sshrink" = 1.0,
+		"nx" = 0,
+		"ny" = 0,
+		"nturn" = 0,
+		"nflip" = 0,
+		"nabove" = 1,
+		"nhide" = 0,
+		"nshrink" = 1.0,
+		"ex" = 0,
+		"ey" = 0,
+		"eturn" = 0,
+		"eflip" = 0,
+		"eabove" = 1,
+		"ehide" = 0,
+		"eshrink" = 1.0,
+		"wx" = 0,
+		"wy" = 0,
+		"wturn" = 0,
+		"wflip" = 0,
+		"wabove" = 1,
+		"whide" = 0,
+		"wshrink" = 1.0,
+	)
+	return default_custom_piercing_props_template.Copy()
 
 /// Slot-level directional transform block. Kept as an explicit alias so the
 /// rebuilt UI can talk about regular-slot offsets without entry terminology.
@@ -65,25 +85,42 @@
 	var/list/out = default_custom_piercing_props()
 	if(!islist(props))
 		return out
-	for(var/dir_key in GLOB.custom_piercing_dir_keys)
-		for(var/field_key in GLOB.custom_piercing_field_keys)
-			var/key = "[dir_key][field_key]"
-			if(!(key in props))
-				continue
-			var/raw = props[key]
-			switch(field_key)
-				if("x", "y")
-					out[key] = clamp(round(text2num_safe(raw, 0)), CUSTOM_PIERCING_OFFSET_MIN, CUSTOM_PIERCING_OFFSET_MAX)
-				if("turn")
-					var/t = round(text2num_safe(raw, 0))
-					// Normalize into [0, 359].
-					t = ((t % 360) + 360) % 360
-					out[key] = t
-				if("flip", "above", "hide")
-					out[key] = (raw ? 1 : 0)
-				if("shrink")
-					out[key] = clamp(text2num_safe(raw, 1.0), 0.1, 4.0)
+	_sanitize_custom_piercing_dir_props(out, props, APPEARANCE_PREVIEW_DIR_KEY_S)
+	_sanitize_custom_piercing_dir_props(out, props, APPEARANCE_PREVIEW_DIR_KEY_N)
+	_sanitize_custom_piercing_dir_props(out, props, APPEARANCE_PREVIEW_DIR_KEY_E)
+	_sanitize_custom_piercing_dir_props(out, props, APPEARANCE_PREVIEW_DIR_KEY_W)
 	return out
+
+/proc/_sanitize_custom_piercing_dir_props(list/out, list/props, dir_key)
+	var/key = "[dir_key]x"
+	if(key in props)
+		out[key] = clamp(round(text2num_safe(props[key], 0)), CUSTOM_PIERCING_OFFSET_MIN, CUSTOM_PIERCING_OFFSET_MAX)
+
+	key = "[dir_key]y"
+	if(key in props)
+		out[key] = clamp(round(text2num_safe(props[key], 0)), CUSTOM_PIERCING_OFFSET_MIN, CUSTOM_PIERCING_OFFSET_MAX)
+
+	key = "[dir_key]turn"
+	if(key in props)
+		var/t = round(text2num_safe(props[key], 0))
+		t = ((t % 360) + 360) % 360
+		out[key] = t
+
+	key = "[dir_key]flip"
+	if(key in props)
+		out[key] = props[key] ? 1 : 0
+
+	key = "[dir_key]above"
+	if(key in props)
+		out[key] = props[key] ? 1 : 0
+
+	key = "[dir_key]hide"
+	if(key in props)
+		out[key] = props[key] ? 1 : 0
+
+	key = "[dir_key]shrink"
+	if(key in props)
+		out[key] = clamp(text2num_safe(props[key], 1.0), 0.1, 4.0)
 
 /// Sanitizes a single custom piercing entry (associative list). Returns null
 /// if the entry is unsalvageable (e.g. unknown sticker id).

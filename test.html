@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>9-slice leather frame test</title>
+	<style>
+		body {
+			background: #1e2024;
+			color: #c8d4e0;
+			font-family: sans-serif;
+			padding: 24px;
+			display: flex;
+			flex-direction: column;
+			gap: 24px;
+		}
+		.panel {
+			border-style: solid;
+			border-color: transparent;
+			border-image-source: url(frame_leather144.png);
+			border-image-repeat: round;
+			image-rendering: pixelated; /* keep crisp pixel edges on upscale */
+		}
+
+		/* Native scale: 48-px border, 1:1 with source slice. Sharpest reading. */
+		.panel--native {
+			border-width: 48px;
+			border-image-slice: 48;
+			width: 480px;
+			height: 160px;
+		}
+
+		/* Downscaled: 24-px border, browser halves the slice. Good for menu density. */
+		.panel--half {
+			border-width: 24px;
+			border-image-slice: 48;
+			width: 480px;
+			height: 120px;
+		}
+
+		/* Extreme downscale: 16-px border, browser thirds the slice. Stress test. */
+		.panel--third {
+			border-width: 16px;
+			border-image-slice: 48;
+			width: 480px;
+			height: 80px;
+		}
+
+		/* Small panel to test how it reads at loadout-slot size. */
+		.panel--small {
+			border-width: 16px;
+			border-image-slice: 48;
+			width: 96px;
+			height: 96px;
+		}
+
+		/* Wide panel to test horizontal edge tileability. */
+		.panel--wide {
+			border-width: 24px;
+			border-image-slice: 48;
+			width: 1200px;
+			height: 80px;
+		}
+	</style>
+</head>
+<body>
+	<h3>Native (48-px border, 1:1)</h3>
+	<div class="panel panel--native"></div>
+
+	<h3>Half-scale (24-px border)</h3>
+	<div class="panel panel--half"></div>
+
+	<h3>Third-scale (16-px border) — watch for anti-alias mush</h3>
+	<div class="panel panel--third"></div>
+
+	<h3>Loadout-slot size (96×96)</h3>
+	<div class="panel panel--small"></div>
+
+	<h3>Wide banner — edge tileability stress test</h3>
+	<div class="panel panel--wide"></div>
+</body>
+</html>

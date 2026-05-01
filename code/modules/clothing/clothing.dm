@@ -361,6 +361,8 @@ BLIND     // can't see anything
 */
 
 /proc/generate_female_clothing(index,t_color,icon,type)
+	if(!is_dmi_icon_source(icon))
+		return
 	var/icon/female_clothing_icon	= icon("icon"=icon, "icon_state"=t_color)
 	var/icon/female_s				= icon("icon"='icons/mob/clothing/under/masking_helpers.dmi', "icon_state"="[(type == FEMALE_UNIFORM_FULL) ? "female_full" : "female_top"]")
 	female_clothing_icon.Blend(female_s, ICON_MULTIPLY)
@@ -369,6 +371,8 @@ BLIND     // can't see anything
 
 /proc/generate_dismembered_clothing(index, t_color, icon, sleeveindex, sleevetype)
 	testing("GDC [index]")
+	if(!is_dmi_icon_source(icon))
+		return
 	if(sleevetype)
 		var/icon/dismembered		= icon("icon"=icon, "icon_state"=t_color)
 		var/icon/r_mask				= icon("icon"='icons/roguetown/clothing/onmob/helpers/dismemberment.dmi', "icon_state"="r_[sleevetype]")

@@ -141,3 +141,7 @@
 			return TRUE
 
 	return FALSE
+
+/datum/chastity_lobby_menu/ui_close(mob/user)
+	user?.client?.prefs_resume_after_singleton()
+	return ..()

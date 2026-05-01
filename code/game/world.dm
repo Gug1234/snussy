@@ -39,6 +39,26 @@ GLOBAL_VAR(restart_counter)
 
 	log_world("World loaded at [time_stamp()]!")
 
+	// Remediation Step 6: headless build-time PNG materialization.
+	// When dreamdaemon is launched with `-params "appearance_preview_materialize=1..."`
+	// we short-circuit every other init path: no config, no admins, no Master.
+	// The materialize proc reads `iconforge_plan.json`, runs iconforge per job,
+	// writes PNGs + a status sidecar, and we call `del(world)` to terminate.
+	// Result is surfaced via the status file the JS runner reads after exit.
+	if(params[APPEARANCE_PREVIEW_MATERIALIZE_PARAM])
+		var/plan_dir = params[APPEARANCE_PREVIEW_MATERIALIZE_PLAN_DIR_PARAM]
+		var/output_dir = params[APPEARANCE_PREVIEW_MATERIALIZE_OUTPUT_DIR_PARAM]
+		// Fall back to the live bundle path if the caller omitted either flag;
+		// this mirrors the default the Juke target uses and keeps the proc
+		// usable for ad-hoc local materialization from the command line.
+		if(!istext(plan_dir) || !length(plan_dir))
+			plan_dir = "tgui/public/appearance_preview"
+		if(!istext(output_dir) || !length(output_dir))
+			output_dir = plan_dir
+		appearance_preview_materialize_run(plan_dir, output_dir)
+		del(world)
+		return
+
 	SetupExternalRSC()
 
 	GLOB.config_error_log = GLOB.world_manifest_log = GLOB.world_pda_log = GLOB.world_job_debug_log = GLOB.sql_error_log = GLOB.world_href_log = GLOB.world_runtime_log = GLOB.world_attack_log = GLOB.world_game_log = "data/logs/config_error.[GUID()].log" //temporary file used to record errors with loading config, moved to log directory once logging is set bl

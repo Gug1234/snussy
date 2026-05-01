@@ -617,6 +617,10 @@ will handle it, but:
 	if(!istype(AM))
 		return
 
+	var/turf/source_turf = get_turf(AM) // Use AM's turf, as its coords are the same as AM's and are lost if it is inside another atom.
+	if(!source_turf)
+		return null
+
 	//Find AM's matrix so we can use it's X/Y pixel shifts
 	var/matrix/M = matrix(AM.transform)
 
@@ -624,7 +628,11 @@ will handle it, but:
 	var/pixel_y_offset = AM.pixel_y + M.get_y_shift()
 
 	//Irregular objects
+	if(!is_dmi_icon_source(AM.icon))
+		return source_turf
 	var/icon/AMicon = icon(AM.icon, AM.icon_state)
+	if(!AMicon)
+		return source_turf
 	var/AMiconheight = AMicon.Height()
 	var/AMiconwidth = AMicon.Width()
 	if(AMiconheight != world.icon_size || AMiconwidth != world.icon_size)
@@ -636,14 +644,11 @@ will handle it, but:
 	var/rough_y = round(round(pixel_y_offset,world.icon_size)/world.icon_size)
 
 	//Find coordinates
-	var/turf/T = get_turf(AM) //use AM's turfs, as it's coords are the same as AM's AND AM's coords are lost if it is inside another atom
-	if(!T)
-		return null
-	var/final_x = T.x + rough_x
-	var/final_y = T.y + rough_y
+	var/final_x = source_turf.x + rough_x
+	var/final_y = source_turf.y + rough_y
 
 	if(final_x || final_y)
-		return locate(final_x, final_y, T.z)
+		return locate(final_x, final_y, source_turf.z)
 
 //Finds the distance between two atoms, in pixels
 //centered = FALSE counts from turf edge to edge
@@ -1227,9 +1232,20 @@ GLOBAL_REAL_VAR(list/stack_trace_storage)
 ///
 /// If you want a stack trace to be output when the given state/file doesn't exist, use
 /// `/proc/icon_exists_or_scream()`.
+/proc/is_dmi_icon_source(icon_source)
+	if(isnull(icon_source))
+		return FALSE
+	if(isicon(icon_source))
+		if(isfile(icon_source))
+			return findtext(LOWER_TEXT("[icon_source]"), ".dmi")
+		return TRUE
+	return findtext(LOWER_TEXT("[icon_source]"), ".dmi")
+
 /proc/icon_exists(file, state)
 	if(isnull(file) || isnull(state))
 		return FALSE //This is common enough that it shouldn't panic, imo.
+	if(!is_dmi_icon_source(file))
+		return FALSE
 
 	if(isnull(GLOB.icon_states_cache_lookup[file]))
 		compile_icon_states_cache(file)

@@ -1,6 +1,18 @@
+/// Minimum / maximum pixel offset for per-direction taur genital placement.
+/// Clamp is re-applied on every sanitize call (commit-time and savefile-load),
+/// so values outside this range cannot persist even if a client bypasses the
+/// editor.
+#define TAUR_GENITAL_OFFSET_MIN -64
+#define TAUR_GENITAL_OFFSET_MAX 64
+
 /// Canonical cardinal directions used by the taur genital props schema.
-/// Keep order stable — TGUI tabs iterate this list.
-GLOBAL_LIST_INIT(taur_genital_dir_keys, list("s", "n", "e", "w"))
+/// Keep order stable -- TGUI tabs iterate this list.
+GLOBAL_LIST_INIT(taur_genital_dir_keys, list(
+	APPEARANCE_PREVIEW_DIR_KEY_S,
+	APPEARANCE_PREVIEW_DIR_KEY_N,
+	APPEARANCE_PREVIEW_DIR_KEY_E,
+	APPEARANCE_PREVIEW_DIR_KEY_W,
+))
 /// Canonical per-part keys. Used by the editor and savefile migration.
 GLOBAL_LIST_INIT(taur_genital_part_keys, list("penis", "testicles", "vagina"))
 /// Per-direction field keys inside a taur-genital props list.
@@ -11,7 +23,148 @@ GLOBAL_LIST_INIT(taur_genital_part_keys, list("penis", "testicles", "vagina"))
 ///   above    : layer override — 0 = BODY_BEHIND, 1 = BODY_FRONT
 ///   hide     : omit the overlay entirely for this direction, 0 or 1
 ///   shrink   : scale factor, 0.1..4.0 (1.0 = native size)
-GLOBAL_LIST_INIT(taur_genital_field_keys, list("x", "y", "turn", "flip", "above", "hide", "shrink"))
+GLOBAL_LIST_INIT(taur_genital_field_keys, list(
+	APPEARANCE_PREVIEW_PROP_X,
+	APPEARANCE_PREVIEW_PROP_Y,
+	APPEARANCE_PREVIEW_PROP_TURN,
+	APPEARANCE_PREVIEW_PROP_FLIP,
+	APPEARANCE_PREVIEW_PROP_ABOVE,
+	APPEARANCE_PREVIEW_PROP_HIDE,
+	APPEARANCE_PREVIEW_PROP_SHRINK,
+))
+
+/// Taur genital props render through the shared intimate-accessory category.
+GLOBAL_LIST_INIT(taur_genital_manifest_categories, list(
+	"penis" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"testicles" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+	"vagina" = APPEARANCE_PREVIEW_CATEGORY_INTIMATE_ACCESSORY,
+))
+
+/// Returns the shared manifest category for a taur genital subtype.
+/proc/taur_genital_manifest_category(part)
+	if(!istext(part))
+		return null
+	return GLOB.taur_genital_manifest_categories[part]
+
+/// Returns the stable descriptor target key for a taur genital edit target.
+///
+/// Penis descriptors include the arousal state because the resolved guide
+/// sprite changes between flaccid, partial, and hard states. Testicles and
+/// vaginas are single-state in this editor and therefore keep the part name
+/// as their complete target key.
+/proc/taur_genital_hybrid_target_key(part, erect_state = null)
+	if(!(part in GLOB.taur_genital_part_keys))
+		return null
+	if(part != "penis")
+		return part
+	var/sanitized_erect_state = ERECT_STATE_NONE
+	if(isnum(erect_state))
+		sanitized_erect_state = clamp(round(erect_state), ERECT_STATE_NONE, ERECT_STATE_HARD)
+	return "penis:[sanitized_erect_state]"
+
+/// Extracts the taur genital part from a descriptor target key.
+///
+/// Current editor attach paths pass plain part ids (`penis`, `testicles`,
+/// `vagina`). Resolved guide descriptors may use `penis:<erect_state>` to
+/// disambiguate arousal-specific guide layers. Both shapes are accepted here.
+/proc/taur_genital_part_from_target_key(target_key)
+	if(!istext(target_key) || !length(target_key))
+		return null
+	var/part = splittext(target_key, ":")[1]
+	if(!(part in GLOB.taur_genital_part_keys))
+		return null
+	return part
+
+/// Extracts a penis arousal state from a descriptor target key.
+///
+/// Non-penis parts ignore arousal. Malformed or absent state data falls back
+/// to the caller-provided state so tab-level context can still request a guide
+/// with the currently active preview arousal.
+/proc/taur_genital_erect_state_from_target_key(target_key, fallback_state = ERECT_STATE_NONE)
+	var/sanitized_fallback = ERECT_STATE_NONE
+	if(isnum(fallback_state))
+		sanitized_fallback = clamp(round(fallback_state), ERECT_STATE_NONE, ERECT_STATE_HARD)
+	if(!istext(target_key))
+		return sanitized_fallback
+	var/colon_at = findtext(target_key, ":")
+	if(!colon_at)
+		return sanitized_fallback
+	var/raw_state = text2num(copytext(target_key, colon_at + 1))
+	if(isnull(raw_state))
+		return sanitized_fallback
+	return clamp(round(raw_state), ERECT_STATE_NONE, ERECT_STATE_HARD)
+
+/// Returns the authored layer suffix used by taur guide sprites for a dir.
+///
+/// Runtime taur generation swaps the source DMI but still uses normal
+/// sprite-accessory layer suffixes. The hybrid guide must resolve the same
+/// one-layer state that the old TS compositor guessed locally.
+/proc/taur_genital_guide_layer_suffix(part, dir_key)
+	dir_key = hybrid_offset_sanitize_direction_key(dir_key)
+	if(!dir_key)
+		return null
+	switch(part)
+		if("penis")
+			return dir_key == APPEARANCE_PREVIEW_DIR_KEY_N ? "BEHIND" : "FRONT"
+		if("testicles")
+			return dir_key == APPEARANCE_PREVIEW_DIR_KEY_N ? "BEHIND" : "ADJ"
+		if("vagina")
+			return "FRONT"
+	return null
+
+/// Resolves the server-owned manifest state for one taur guide layer.
+///
+/// This helper mirrors the real taur render path (`get_icon_state` followed by
+/// the generated layer suffix) and includes the authored BEHIND fallback map
+/// from the taur preview adapter. Keeping this in DM removes the TS-side DMI
+/// naming mirror that previously drifted from the manifest contract.
+/proc/taur_genital_resolve_guide_icon_state(part, shape, dir_key, erect_state = ERECT_STATE_NONE, size = null, sheath_type = SHEATH_TYPE_NONE, uses_size_sprites = TRUE)
+	if(!(part in GLOB.taur_genital_part_keys))
+		return null
+	var/sanitized_shape = appearance_preview_manifest_icon_state_key(shape)
+	if(!sanitized_shape)
+		return null
+	var/layer_suffix = taur_genital_guide_layer_suffix(part, dir_key)
+	if(!layer_suffix)
+		return null
+
+	switch(part)
+		if("penis")
+			var/sanitized_erect_state = ERECT_STATE_NONE
+			if(isnum(erect_state))
+				sanitized_erect_state = clamp(round(erect_state), ERECT_STATE_NONE, ERECT_STATE_HARD)
+			var/sanitized_sheath_type = isnum(sheath_type) ? round(sheath_type) : SHEATH_TYPE_NONE
+			if(layer_suffix == "FRONT" && sanitized_sheath_type != SHEATH_TYPE_NONE && sanitized_erect_state != ERECT_STATE_HARD)
+				var/arousal_bucket = sanitized_erect_state == ERECT_STATE_NONE ? 1 : 2
+				var/sheath_prefix = sanitized_sheath_type == SHEATH_TYPE_SLIT ? "slit" : "sheath"
+				return "[sheath_prefix]_[arousal_bucket]_FRONT_1"
+
+			var/erect_bucket = sanitized_erect_state == ERECT_STATE_HARD ? 2 : 1
+			if(layer_suffix == "BEHIND")
+				// The taur pintle DMI authors one size-invariant BEHIND tile
+				// per shape. Knotted is labelled `_3_BEHIND_1`; the rest use
+				// `_1_BEHIND_1`. This map must stay server-side so TGUI does
+				// not carry DMI naming exceptions.
+				var/list/behind_buckets = list("knotted" = 3)
+				erect_bucket = behind_buckets[sanitized_shape] || 1
+				return "[sanitized_shape]_[erect_bucket]_BEHIND_1"
+
+			if(uses_size_sprites)
+				var/sanitized_size = DEFAULT_PENIS_SIZE
+				if(isnum(size))
+					sanitized_size = clamp(round(size), MIN_PENIS_SIZE, 2)
+				return "[sanitized_shape]_[erect_bucket]_[sanitized_size]_FRONT_1"
+			return "[sanitized_shape]_[erect_bucket]_FRONT_1"
+
+		if("testicles")
+			var/sanitized_size = DEFAULT_TESTICLES_SIZE
+			if(isnum(size))
+				sanitized_size = clamp(round(size), MIN_TESTICLES_SIZE, MAX_TESTICLES_SIZE)
+			return "[sanitized_shape]_[sanitized_size]_[layer_suffix]"
+
+		if("vagina")
+			return "[sanitized_shape]_FRONT"
+	return null
 /// Penis-only arousal states. Order must stay stable for the editor tabs.
 GLOBAL_LIST_INIT(taur_genital_erect_state_keys, list(ERECT_STATE_NONE, ERECT_STATE_PARTIAL, ERECT_STATE_HARD))
 GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
@@ -99,13 +252,15 @@ GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
 /proc/get_taur_penis_props_for_state(mob/living/carbon/human/H, erect_state = ERECT_STATE_NONE)
 	if(!istype(H))
 		return null
-	H.taur_penis_props = sanitize_taur_genital_props(H.taur_penis_props, "penis")
-	H.taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(H.taur_penis_erect_state_props, H.taur_penis_props)
-	var/state_num = clamp(round(text2num_safe(erect_state, ERECT_STATE_NONE)), ERECT_STATE_NONE, ERECT_STATE_HARD)
-	var/list/props = H.taur_penis_erect_state_props["[state_num]"]
+	var/state_num = ERECT_STATE_NONE
+	if(isnum(erect_state))
+		state_num = clamp(round(erect_state), ERECT_STATE_NONE, ERECT_STATE_HARD)
+	var/list/props = islist(H.taur_penis_erect_state_props) ? H.taur_penis_erect_state_props["[state_num]"] : null
 	if(islist(props))
 		return props
-	return H.taur_penis_props
+	if(islist(H.taur_penis_props))
+		return H.taur_penis_props
+	return default_taur_genital_props("penis")
 
 /// Returns the default global-hide list (one entry per cardinal direction, all zero).
 /proc/default_taur_genital_global_hide()
@@ -133,14 +288,7 @@ GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
 
 /// Returns the canonical dir key ("n"/"s"/"e"/"w") for a BYOND dir constant.
 /proc/taur_dir_to_key(dir)
-	switch(dir)
-		if(NORTH)
-			return "n"
-		if(EAST)
-			return "e"
-		if(WEST)
-			return "w"
-	return "s"
+	return appearance_preview_dir_to_key(dir)
 
 /**
  * Applies per-genital-type pixel offsets, layering, rotation, mirroring, hiding, and
@@ -172,12 +320,12 @@ GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
 	var/dir_key = taur_dir_to_key(owner.dir)
 
 	// Global per-dir hide: wipe every taur genital overlay for this direction.
-	var/list/global_hide = sanitize_taur_genital_global_hide(H.taur_genital_global_hide)
-	if(global_hide[dir_key])
+	var/list/global_hide = H.taur_genital_global_hide
+	if(islist(global_hide) && global_hide[dir_key])
 		appearance_list.Cut()
 		return
 
-	// Pull the part's props list (lazily sanitized so legacy/null data still works).
+	// Pull normalized part props copied from preferences. Missing runtime data falls back to defaults.
 	var/list/props
 	switch(genital_type)
 		if("penis")
@@ -187,7 +335,8 @@ GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
 			props = H.taur_testicles_props
 		if("vagina")
 			props = H.taur_vagina_props
-	props = sanitize_taur_genital_props(props, genital_type)
+	if(!islist(props))
+		props = default_taur_genital_props(genital_type)
 
 	// Per-part per-dir hide.
 	if(props["[dir_key]hide"])
@@ -462,7 +611,7 @@ GLOBAL_LIST_INIT(taur_genital_erect_state_labels, list(
 	color_key_defaults = list(KEY_CHEST_COLOR, KEY_CHEST_COLOR)
 
 /datum/sprite_accessory/penis/flared_knotted
-	icon_state = "flared"
+	icon_state = "flaredknot"
 	name = "Flared, Knotted"
 	color_key_defaults = list(KEY_CHEST_COLOR, KEY_CHEST_COLOR)
 

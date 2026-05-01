@@ -52,6 +52,8 @@
 	// Instantiated at runtime for speed
 	var/tmp/icon/clip_mask
 	var/tmp/icon/clip_mask_legs
+	/// Shared cache of blended taur icon triplets by render state.
+	var/static/list/taur_icon_cache = list()
 
 /obj/item/bodypart/taur/New()
 	. = ..()
@@ -61,7 +63,7 @@
 	if(clip_mask_legs_state)
 		clip_mask_legs = icon(icon = (clip_mask_icon || icon), icon_state = clip_mask_legs_state)
 
-/obj/item/bodypart/taur/get_limb_icon(dropped, hideaux = FALSE)
+/obj/item/bodypart/taur/get_limb_icon(dropped, hideaux = FALSE, list/organs_by_zone = null)
 	// List of overlays
 	. = list()
 
@@ -69,18 +71,10 @@
 	if(dropped)
 		image_dir = SOUTH
 
-	// This section is based on Virgo's human rendering, there may be better ways to do this now
-	var/icon/tail_s = new/icon("icon" = icon, "icon_state" = taur_icon_state, "dir" = image_dir)
-	if(has_taur_color)
-		tail_s.Blend(taur_color, color_blend_mode)
-
-	var/icon/taur_m = new/icon("icon" = icon, "icon_state" = taur_markings_state, "dir" = image_dir)
-	if(has_taur_color)
-		taur_m.Blend(taur_markings, color_blend_mode)
-
-	var/icon/taur_t = new/icon("icon" = icon, "icon_state" = taur_tertiary_state, "dir" = image_dir)
-	if(has_taur_color)
-		taur_t.Blend(taur_tertiary, color_blend_mode)
+	var/list/cached_icons = get_cached_taur_icon_triplet(image_dir, dropped)
+	var/icon/tail_s = cached_icons["base"]
+	var/icon/taur_m = cached_icons["markings"]
+	var/icon/taur_t = cached_icons["tertiary"]
 
 	var/image/working = image(tail_s)
 	// because these can overlap other organs, we need to layer slightly higher
@@ -98,6 +92,51 @@
 	. += working
 	. += markings
 	. += tertiary
+
+/obj/item/bodypart/taur/proc/generate_taur_icon_cache_key(image_dir, dropped)
+	return md5("[type]|[icon]|[taur_icon_state]|[taur_markings_state]|[taur_tertiary_state]|[taur_color]|[taur_markings]|[taur_tertiary]|[color_blend_mode]|[image_dir]|[dropped ? 1 : 0]")
+
+/obj/item/bodypart/taur/proc/get_cached_taur_icon_triplet(image_dir, dropped)
+	var/cache_key = generate_taur_icon_cache_key(image_dir, dropped)
+	var/list/cached_icons = taur_icon_cache[cache_key]
+	if(cached_icons)
+		return cached_icons
+
+	var/icon/tail_s = new/icon("icon" = icon, "icon_state" = taur_icon_state, "dir" = image_dir)
+	if(has_taur_color)
+		tail_s.Blend(taur_color, color_blend_mode)
+
+	var/icon/taur_m = new/icon("icon" = icon, "icon_state" = taur_markings_state, "dir" = image_dir)
+	if(has_taur_color)
+		taur_m.Blend(taur_markings, color_blend_mode)
+
+	var/icon/taur_t = new/icon("icon" = icon, "icon_state" = taur_tertiary_state, "dir" = image_dir)
+	if(has_taur_color)
+		taur_t.Blend(taur_tertiary, color_blend_mode)
+
+	cached_icons = list(
+		"base" = tail_s,
+		"markings" = taur_m,
+		"tertiary" = taur_t,
+	)
+	taur_icon_cache[cache_key] = cached_icons
+	return cached_icons
+
+/// Returns the shared manifest category used for taur family atlas bundles.
+/obj/item/bodypart/taur/proc/get_preview_manifest_category()
+	return "taur_body"
+
+/// Returns the canonical family key for the current taur bodypart.
+/obj/item/bodypart/taur/proc/get_preview_manifest_family_key()
+	return appearance_preview_taur_family_key(taur_icon_state)
+
+/// Returns the canonical icon-state keys used by the taur manifest entries.
+/obj/item/bodypart/taur/proc/get_preview_manifest_icon_state_keys()
+	return list(
+		appearance_preview_manifest_icon_state_key(taur_icon_state),
+		appearance_preview_manifest_icon_state_key(taur_markings_state),
+		appearance_preview_manifest_icon_state_key(taur_tertiary_state),
+	)
 
 /*********************************/
 /* TAUR TYPES                   */

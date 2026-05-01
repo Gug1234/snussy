@@ -293,6 +293,12 @@ else
 	echo -e "if you want to run these checks install ripgrep with pcre2 support.${NC}"
 fi
 
+section "appearance preview flatten gate"
+part "getFlatIcon / icon2base64 outside APPEARANCE_PREVIEW_LEGACY_FLATTEN"
+if ! bash tools/ci/check_appearance_preview_gate.sh; then
+	st=1
+fi
+
 if [ $st = 0 ]; then
     echo
     echo -e "${GREEN}No errors found using $grep!${NC}"

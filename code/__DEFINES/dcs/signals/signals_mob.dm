@@ -107,12 +107,5 @@
 /// From /mob/living/proc/run_armor_check()
 #define COMSIG_LIVING_ARMOR_CHECKED "living_armor_checked"
 
-/// From /datum/species/proc/spec_attacked_by()
-#define COMSIG_SPECIES_ATTACKED_BY "species_attacked_by"
-
-/// From /mob/living/proc/run_armor_check()
-#define COMSIG_LIVING_ARMOR_CHECKED "living_armor_checked"
-
-
 /// From /mob/living/carbon/human/ZImpactDamage(): (turf/impact_turf, levels)
 #define COMSIG_HUMAN_Z_IMPACT_DAMAGE "human_z_impact_damage"

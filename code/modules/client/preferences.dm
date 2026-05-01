@@ -355,6 +355,36 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/patreon_say_color_enabled = FALSE
 	// END PATREON
 
+	// --- TGUI preferences menu (v39 additive) ---------------------------
+	// Per-character (serialized in save_character in a later step).
+	var/per_char_hardmode = FALSE
+	var/cursed_collar_opt = CURSED_COLLAR_OPT_NONE
+	var/cursed_collar_master_mode = CURSED_COLLAR_MASTER_SELF
+	var/cursed_collar_specified_name = ""
+	var/nickname_color = "#ffffff"
+	// Per-account (serialized in save_preferences in a later step).
+	var/ui_prefer_classic_html = FALSE
+	var/ui_lobby_button_classic = FALSE
+
+	// --- TGUI dirty ledger (Step 4) -------------------------------------
+	// Tracks which pref keys have uncommitted changes + the staged values
+	// behind them. Both lists are transient (not serialized) — they exist
+	// only while a TGUI prefs surface is open.
+	var/list/dirty_keys
+	var/list/pending_values
+	// TRUE while a PreferencesMenu TGUI surface is open for this datum.
+	// Used to gate background commits and re-open flows.
+	var/active_tgui_surface = FALSE
+	// Sliding-window deque of world.time entries for rate limiting
+	// set_pref/commit envelopes (§6 DoS mitigation). Populated lazily.
+	var/list/last_act_times
+	// --- TGUI stat matrix cache (Step 5) --------------------------------
+	// Memoized /list from build_stat_matrix(). Cleared via
+	// invalidate_stat_matrix() when a setter with invalidates_stat_matrix
+	// = TRUE is applied through the dispatch table.
+	var/list/stat_matrix_cached
+	var/stat_matrix_dirty = TRUE
+
 
 	var/datum/loadout_item/loadout
 	var/datum/loadout_item/loadout2
@@ -532,6 +562,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 
 /datum/preferences/proc/ShowChoices(mob/user, tabchoice)
 	if(!user || !user.client)
+		return
+	if(!can_open_preferences_menu(user))
 		return
 	if(slot_randomized)
 		load_character(default_slot) // Reloads the character slot. Prevents random features from overwriting the slot if saved.
@@ -864,6 +896,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<h2>General Settings</h2>"
 //			dat += "<b>UI Style:</b> <a href='?_src_=prefs;task=input;preference=ui'>[UI_style]</a><br>"
 			dat += "<b>tgui Monitors:</b> <a href='?_src_=prefs;preference=tgui_lock'>[(tgui_lock) ? "Primary" : "All"]</a><br>"
+			dat += "<b>Use classic HTML prefs menu:</b> <a href='?_src_=prefs;preference=ui_prefer_classic_html'>[(ui_prefer_classic_html) ? "Enabled" : "Disabled"]</a><br>"
+			dat += "<b>Use classic Setup Character button:</b> <a href='?_src_=prefs;preference=ui_lobby_button_classic'>[(ui_lobby_button_classic) ? "Enabled" : "Disabled"]</a><br>"
 //			dat += "<b>tgui Style:</b> <a href='?_src_=prefs;preference=tgui_fancy'>[(tgui_fancy) ? "Fancy" : "No Frills"]</a><br>"
 //			dat += "<b>Show Runechat Chat Bubbles:</b> <a href='?_src_=prefs;preference=chat_on_map'>[chat_on_map ? "Enabled" : "Disabled"]</a><br>"
 //			dat += "<b>Runechat message char limit:</b> <a href='?_src_=prefs;preference=max_chat_length;task=input'>[max_chat_length]</a><br>"
@@ -2935,6 +2969,10 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 					tgui_fancy = !tgui_fancy
 				if("tgui_lock")
 					tgui_lock = !tgui_lock
+				if("ui_prefer_classic_html")
+					ui_prefer_classic_html = !ui_prefer_classic_html
+				if("ui_lobby_button_classic")
+					ui_lobby_button_classic = !ui_lobby_button_classic
 				if("tgui_theme")
 					setTguiStyle()
 				if("winflash")
@@ -3248,7 +3286,7 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 	return FALSE
 
 
-/datum/preferences/proc/copy_to(mob/living/carbon/human/character, icon_updates = 1, roundstart_checks = TRUE, character_setup = FALSE, antagonist = FALSE, skip_normal_prefs = FALSE)
+/datum/preferences/proc/copy_to(mob/living/carbon/human/character, icon_updates = 1, roundstart_checks = TRUE, character_setup = FALSE, antagonist = FALSE, skip_normal_prefs = FALSE, skip_intimate_prefs = FALSE)
 	if(skip_normal_prefs)
 		// For gnolls spawning from a non-gnoll base slot, we must not apply any base-slot state.
 		// Set species to gnoll immediately so advclass check_requirements can read dna.species.type.
@@ -3436,18 +3474,27 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 	if(taur_type)
 		character.Taurize(taur_type, "#[taur_color]", "#[taur_markings]", "#[taur_tertiary]")
-		// Copy taur genital prefs to the mob so clientless mannequins can read them
+		ensure_sanitized_taur_genital_props()
+		// Copy normalized taur genital prefs to the mob so clientless mannequins can read them
 		character.use_taur_genital_sprites = use_taur_genital_sprites
-		character.taur_penis_props = taur_penis_props?.Copy()
-		character.taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(taur_penis_erect_state_props, taur_penis_props)
-		character.taur_testicles_props = taur_testicles_props?.Copy()
-		character.taur_vagina_props = taur_vagina_props?.Copy()
-		character.taur_genital_global_hide = taur_genital_global_hide?.Copy()
+		character.taur_penis_props = taur_penis_props.Copy()
+		character.taur_penis_erect_state_props = list()
+		for(var/erect_state in GLOB.taur_genital_erect_state_keys)
+			var/state_key = "[erect_state]"
+			var/list/state_entry = taur_penis_erect_state_props[state_key]
+			character.taur_penis_erect_state_props[state_key] = state_entry.Copy()
+		character.taur_testicles_props = taur_testicles_props.Copy()
+		character.taur_vagina_props = taur_vagina_props.Copy()
+		character.taur_genital_global_hide = taur_genital_global_hide.Copy()
 	else if(character_setup)
 		// This should only ever ~do~ anything for previews
 		character.ensure_not_taur()
 
-	character.custom_piercings = sanitize_custom_piercings(custom_piercings)
+	ensure_sanitized_custom_piercings()
+	character.custom_piercings = islist(custom_piercings) ? deep_copy_list_alt(custom_piercings) : null
+	character.custom_piercings_version = custom_piercings_version
+	character.custom_piercing_post_render_suppressed = FALSE
+	character.custom_piercing_preview_suppressed_target_key = null
 
 	if(icon_updates)
 		character.update_body()
@@ -3460,12 +3507,16 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 		apply_culinary_preferences(character)
 
 	// Apply intimate accessories from prefs (piercings, plugs, etc.)
-	if(intimate_enabled)
+	if(intimate_enabled && !skip_intimate_prefs)
 		apply_intimate_preferences(character)
 
 	// Apply chastity device from prefs (cages, belts, etc.)
 	if(chastenable && pref_chastity_enabled)
 		apply_chastity_preferences(character)
+
+	// Step 17: apply cursed-collar / cursed-chastity roundstart equip.
+	// Gated by cursed_enabled inside the proc; safe to call unconditionally.
+	apply_cursed_collar_preferences(character)
 
 	// Deliver any pending chastity keys from wearers who spawned before this character.
 	// This handles the latejoin case where the key stash target wasn't online yet.
@@ -3474,7 +3525,7 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 	// Attach the accessory-free character flavor component when the player has opted in.
 	// This must run after apply_intimate_preferences so accessory components register first
 	// (COMSIG_CARBON_SEX_ACTION_RECEIVED allows multiple listeners via COMPONENT_DUPE_ALLOWED).
-	if(intimate_reaction_enabled)
+	if(intimate_reaction_enabled && !skip_intimate_prefs)
 		apply_character_flavor_component(character)
 
 /datum/preferences/proc/get_default_name(name_id)

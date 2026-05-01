@@ -7,7 +7,12 @@
 //	where you would want the updater procs below to run
 
 //	This also works with decimals.
-#define SAVEFILE_VERSION_MAX	38
+//	Bumped from 38 -> 39 for the TGUI preferences menu replacement
+//	(additive migration only; per-char hardmode, cursed-collar opts,
+//	nickname color, per-account classic-HTML toggles). Migration
+//	branch lives in update_character() / update_preferences() and is
+//	filled in Step 2 of the TGUI prefs implementation plan.
+#define SAVEFILE_VERSION_MAX	39
 
 // Safely extract a type path from datums or type values; returns null if unset/invalid.
 /proc/preferences_typepath_or_null(value)
@@ -81,6 +86,14 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		patreon_say_color_enabled = FALSE
 	if(current_version < 38) // Add trick weapon Space keybinding to existing players
 		force_reset_keybindings_direct(TRUE)
+	if(current_version < 39)
+		// TGUI preferences menu additive migration. New per-account UI toggles
+		// default to FALSE on pre-v39 saves; the initial() values on the datum
+		// already supply the default, so this branch is a documentation anchor
+		// and a future hook for any one-time legacy-value read. No legacy
+		// client-level hardmode toggle existed to migrate.
+		ui_prefer_classic_html = FALSE
+		ui_lobby_button_classic = FALSE
 
 /datum/preferences/proc/update_character(current_version, savefile/S)
 	if(current_version < 19)
@@ -202,6 +215,17 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 						testing("Verminvolk  to Critterkin.")
 						species_name = "Critterkin"
 		_load_species(S, species_name)
+	if(current_version < 39)
+		// TGUI preferences menu additive migration (per-character slot).
+		// Pre-v39 slots have no persisted per-char hardmode, cursed-collar
+		// opts, or nickname color; initial() defaults on /datum/preferences
+		// supply the values. Per spec, the retired client-level hardmode
+		// toggle is NOT inherited into per_char_hardmode (freeze decision).
+		per_char_hardmode = FALSE
+		cursed_collar_opt = CURSED_COLLAR_OPT_NONE
+		cursed_collar_master_mode = CURSED_COLLAR_MASTER_SELF
+		cursed_collar_specified_name = ""
+		nickname_color = "#ffffff"
 /datum/preferences/proc/load_path(ckey,filename="preferences.sav")
 	if(!ckey)
 		return
@@ -316,6 +340,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["tip_delay"]			>> tip_delay
 	S["pda_style"]			>> pda_style
 	S["pda_color"]			>> pda_color
+	S["background_state"]	>> background_state
 
 	// Patreon-dependent settings
 	S["patreon_say_color"]			>> patreon_say_color
@@ -363,6 +388,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	be_special		= SANITIZE_LIST(be_special)
 	pda_style		= sanitize_inlist(pda_style, GLOB.pda_styles, initial(pda_style))
 	pda_color		= sanitize_hexcolor(pda_color, 6, 1, initial(pda_color))
+	background_state = sanitize_inlist(background_state, GLOB.appearance_preview_background_states, initial(background_state))
 	key_bindings 	= sanitize_islist(key_bindings, list())
 
 	//ROGUETOWN
@@ -472,6 +498,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["tip_delay"], tip_delay)
 	WRITE_FILE(S["pda_style"], pda_style)
 	WRITE_FILE(S["pda_color"], pda_color)
+	WRITE_FILE(S["background_state"], background_state)
 	WRITE_FILE(S["key_bindings"], key_bindings)
 	WRITE_FILE(S["runmode"], runmode)
 	WRITE_FILE(S["patreon_say_color"], patreon_say_color)
@@ -851,6 +878,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		return FALSE
 	S.cd = "/"
 	custom_piercings = null
+	taur_genital_props_dirty = TRUE
+	custom_piercings_dirty = TRUE
 	reset_intimate_accessory_preferences()
 	if(!slot)
 		slot = default_slot
@@ -1037,11 +1066,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	taur_color = sanitize_hexcolor(taur_color, 6, 0)
 	taur_markings = sanitize_hexcolor(taur_markings, 6, 0)
 	taur_tertiary = sanitize_hexcolor(taur_tertiary, 6, 0)
-	taur_penis_props = sanitize_taur_genital_props(taur_penis_props, "penis")
-	taur_penis_erect_state_props = sanitize_taur_penis_erect_state_props(taur_penis_erect_state_props, taur_penis_props)
-	taur_testicles_props = sanitize_taur_genital_props(taur_testicles_props, "testicles")
-	taur_vagina_props = sanitize_taur_genital_props(taur_vagina_props, "vagina")
-	taur_genital_global_hide = sanitize_taur_genital_global_hide(taur_genital_global_hide)
+	ensure_sanitized_taur_genital_props()
 	use_taur_genital_sprites = !!use_taur_genital_sprites
 
 	S["body_markings"] >> body_markings
@@ -1192,6 +1217,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	if(!isnull(raw_chastity_random_keys))
 		pref_chastity_random_keys = !!raw_chastity_random_keys
 
+	// Appearance preview: slot-switch reset (addendum F.1). Safe no-op
+	// when the preview view has not been allocated yet (cold path).
+	change_slot_reset_preview()
+
 	return TRUE
 
 /datum/preferences/proc/save_character()
@@ -1200,6 +1229,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	var/savefile/S = new /savefile(path)
 	if(!S)
 		return FALSE
+	ensure_sanitized_taur_genital_props()
+	ensure_sanitized_custom_piercings()
 	var/slot = sanitize_integer(default_slot, 1, max_save_slots, initial(default_slot))
 	default_slot = slot
 	S.cd = "/character[slot]"
@@ -1440,8 +1471,10 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	else if(fexists(ir_path))
 		fdel(ir_path)
 
-	// Custom piercing stickers — saved to sidecar JSON file.
-	save_custom_piercings(slot)
+	// Custom piercing stickers are intentionally not written from
+	// save_character(). The custom-piercing editor stages its sidecar payload
+	// before this proc runs and flushes it only after this main save succeeds,
+	// so the sidecar cannot advance ahead of the authoritative savefile.
 
 	// Chastity device prefs — per-character toggle system.
 	WRITE_FILE(S["pref_chastity_enabled"], pref_chastity_enabled)

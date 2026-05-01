@@ -66,6 +66,11 @@
 /datum/tgui_panel/proc/on_initialize_timed_out()
 	// Currently does nothing but sending a message to old chat.
 	SEND_TEXT(client, span_userdanger("Failed to load fancy chat, click <a href='byond://?src=[REF(src)];reload_tguipanel=1'>HERE</a> to attempt to reload it."))
+	// Step 16: notify the prefs subsystem so /client/verb/setup_character
+	// falls back to legacy HTML for the rest of this session. Signal + flag
+	// handling lives in modular/.../appearance_preview/prefs_fallback_trigger.dm.
+	if(client)
+		SEND_SIGNAL(client, COMSIG_CLIENT_FANCY_CHAT_FAILED)
 
 /**
  * private

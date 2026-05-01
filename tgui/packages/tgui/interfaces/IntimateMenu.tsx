@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Box, Button, DmIcon, Dropdown, LabeledList, NoticeBox, Section, Stack, Tooltip } from 'tgui-core/components';
+import {
+  Box,
+  Button,
+  DmIcon,
+  Dropdown,
+  LabeledList,
+  NoticeBox,
+  Section,
+  Stack,
+  Tooltip,
+} from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -300,10 +310,7 @@ const SlotCard = (props: { slot: SlotEntry }) => {
   // Empty slot — dim placeholder
   if (!slot.occupied) {
     return (
-      <Section
-        title={slot.slot_name}
-        style={{ opacity: 0.45 }}
-      >
+      <Section title={slot.slot_name} style={{ opacity: 0.45 }}>
         <Box italic color="label">
           Empty
         </Box>
@@ -403,9 +410,7 @@ const CustomPiercingEntryCard = (props: {
         <Stack.Item grow>
           <Box>
             <ColorSwatch color={entry.metal_color} />
-            {!!entry.gem_color && (
-              <ColorSwatch color={entry.gem_color} round />
-            )}
+            {!!entry.gem_color && <ColorSwatch color={entry.gem_color} round />}
             <Box inline bold>
               {displayName}
             </Box>
@@ -549,7 +554,9 @@ const MoodLog = (props: { entries: MoodLogEntry[] }) => {
       }
       style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
     >
-      <Box style={{ maxHeight: expanded ? '200px' : '120px', overflowY: 'auto' }}>
+      <Box
+        style={{ maxHeight: expanded ? '200px' : '120px', overflowY: 'auto' }}
+      >
         {visible.map((entry, i) => (
           <Box
             key={i}
@@ -560,7 +567,12 @@ const MoodLog = (props: { entries: MoodLogEntry[] }) => {
             <Box inline color="label" mr={0.5}>
               [{entry.time}]
             </Box>
-            <Box inline color={LOG_TYPE_COLOR[entry.type] ?? '#aaaaaa'} bold mr={0.5}>
+            <Box
+              inline
+              color={LOG_TYPE_COLOR[entry.type] ?? '#aaaaaa'}
+              bold
+              mr={0.5}
+            >
               {entry.type}
             </Box>
             <Box inline color="white">
@@ -603,7 +615,9 @@ const ACTIVITY_SEVERITY_COLOR: Record<string, string> = {
 };
 
 /** Collapsible activity log showing the shared controller relationship history. */
-const ControllerActivityLog = (props: { entries: ControllerActivityEntry[] }) => {
+const ControllerActivityLog = (props: {
+  entries: ControllerActivityEntry[];
+}) => {
   const [expanded, setExpanded] = useState(false);
   const { entries } = props;
   const visible = expanded ? entries : entries.slice(-5);
@@ -624,7 +638,9 @@ const ControllerActivityLog = (props: { entries: ControllerActivityEntry[] }) =>
       }
       style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
     >
-      <Box style={{ maxHeight: expanded ? '200px' : '120px', overflowY: 'auto' }}>
+      <Box
+        style={{ maxHeight: expanded ? '200px' : '120px', overflowY: 'auto' }}
+      >
         {visible.map((entry, i) => (
           <Box
             key={i}
@@ -635,10 +651,18 @@ const ControllerActivityLog = (props: { entries: ControllerActivityEntry[] }) =>
             <Box inline color="label" mr={0.5}>
               [{entry.time}]
             </Box>
-            <Box inline color={ACTIVITY_ACTOR_COLOR[entry.actor] ?? '#aaaaaa'} bold mr={0.5}>
+            <Box
+              inline
+              color={ACTIVITY_ACTOR_COLOR[entry.actor] ?? '#aaaaaa'}
+              bold
+              mr={0.5}
+            >
               {entry.actor}
             </Box>
-            <Box inline color={ACTIVITY_SEVERITY_COLOR[entry.severity] ?? '#cccccc'}>
+            <Box
+              inline
+              color={ACTIVITY_SEVERITY_COLOR[entry.severity] ?? '#cccccc'}
+            >
               {entry.summary}
             </Box>
           </Box>
@@ -714,19 +738,34 @@ const JellyIndicators = (props: { item: ItemData }) => {
           color={item.controller_direct_control_enabled ? 'bad' : 'good'}
           italic
         >
-          ◆ Approval wards: {item.controller_direct_control_enabled ? 'Lowered by host' : 'Host approval required'}
+          ◆ Approval wards:{' '}
+          {item.controller_direct_control_enabled
+            ? 'Lowered by host'
+            : 'Host approval required'}
         </Box>
       )}
       {!!item.has_bound_controller && (
         <Box fontSize="0.8em" color="label">
           Inhabitant permissions:
-          <Box inline ml={0.5} color={item.controller_speech_enabled ? 'good' : 'bad'}>
+          <Box
+            inline
+            ml={0.5}
+            color={item.controller_speech_enabled ? 'good' : 'bad'}
+          >
             speech {item.controller_speech_enabled ? 'on' : 'off'}
           </Box>
-          <Box inline ml={0.5} color={item.controller_emote_enabled ? 'good' : 'bad'}>
+          <Box
+            inline
+            ml={0.5}
+            color={item.controller_emote_enabled ? 'good' : 'bad'}
+          >
             emotes {item.controller_emote_enabled ? 'on' : 'off'}
           </Box>
-          <Box inline ml={0.5} color={item.controller_manifest_enabled ? 'good' : 'bad'}>
+          <Box
+            inline
+            ml={0.5}
+            color={item.controller_manifest_enabled ? 'good' : 'bad'}
+          >
             manifest {item.controller_manifest_enabled ? 'on' : 'off'}
           </Box>
         </Box>
@@ -780,7 +819,11 @@ const JellyControllerControls = (props: { item: ItemData }) => {
           <Stack.Item>
             <Button
               color={item.controller_speech_enabled ? 'average' : 'good'}
-              tooltip={item.controller_speech_enabled ? 'Seal the ooze against the inhabitant\'s voice.' : 'Unseal the ooze so the inhabitant may speak again.'}
+              tooltip={
+                item.controller_speech_enabled
+                  ? "Seal the ooze against the inhabitant's voice."
+                  : 'Unseal the ooze so the inhabitant may speak again.'
+              }
               onClick={() =>
                 act('jelly_toggle_controller_permission', {
                   ref: item.ref,
@@ -795,7 +838,11 @@ const JellyControllerControls = (props: { item: ItemData }) => {
           <Stack.Item>
             <Button
               color={item.controller_emote_enabled ? 'average' : 'good'}
-              tooltip={item.controller_emote_enabled ? 'Seal the ooze against the inhabitant\'s gestures.' : 'Unseal the ooze so the inhabitant may emote again.'}
+              tooltip={
+                item.controller_emote_enabled
+                  ? "Seal the ooze against the inhabitant's gestures."
+                  : 'Unseal the ooze so the inhabitant may emote again.'
+              }
               onClick={() =>
                 act('jelly_toggle_controller_permission', {
                   ref: item.ref,
@@ -814,7 +861,11 @@ const JellyControllerControls = (props: { item: ItemData }) => {
           <Stack.Item>
             <Button
               color={item.controller_manifest_enabled ? 'average' : 'good'}
-              tooltip={item.controller_manifest_enabled ? 'Forbid the inhabitant from taking shape outside the ooze.' : 'Allow the inhabitant to take shape outside the ooze again.'}
+              tooltip={
+                item.controller_manifest_enabled
+                  ? 'Forbid the inhabitant from taking shape outside the ooze.'
+                  : 'Allow the inhabitant to take shape outside the ooze again.'
+              }
               onClick={() =>
                 act('jelly_toggle_controller_permission', {
                   ref: item.ref,
@@ -823,7 +874,9 @@ const JellyControllerControls = (props: { item: ItemData }) => {
                 })
               }
             >
-              {item.controller_manifest_enabled ? 'Block Manifest' : 'Allow Manifest'}
+              {item.controller_manifest_enabled
+                ? 'Block Manifest'
+                : 'Allow Manifest'}
             </Button>
           </Stack.Item>
           <Stack.Item>
@@ -841,7 +894,9 @@ const JellyControllerControls = (props: { item: ItemData }) => {
                 })
               }
             >
-              {item.controller_direct_control_enabled ? 'Require Approval' : 'Allow Direct Control'}
+              {item.controller_direct_control_enabled
+                ? 'Require Approval'
+                : 'Allow Direct Control'}
             </Button>
           </Stack.Item>
           <Stack.Item>
@@ -849,7 +904,7 @@ const JellyControllerControls = (props: { item: ItemData }) => {
               color={item.controller_force_enabled ? 'bad' : 'good'}
               tooltip={
                 item.controller_force_enabled
-                  ? 'Revoke the inhabitant\'s power to puppet your voice and body.'
+                  ? "Revoke the inhabitant's power to puppet your voice and body."
                   : 'Yield to the ooze — let its inhabitant force words and gestures from your flesh.'
               }
               onClick={() =>
@@ -859,7 +914,9 @@ const JellyControllerControls = (props: { item: ItemData }) => {
                 })
               }
             >
-              {item.controller_force_enabled ? 'Block Forcing' : 'Allow Forcing'}
+              {item.controller_force_enabled
+                ? 'Block Forcing'
+                : 'Allow Forcing'}
             </Button>
           </Stack.Item>
           <Stack.Item>
@@ -892,9 +949,11 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
     : defaultPreset;
   const repositionOptions = item.swap_slot_options ?? [];
   const defaultReposition = repositionOptions[0]?.name ?? '';
-  const [selectedReposition, setSelectedReposition] = useState(defaultReposition);
-  const activeReposition = repositionOptions.find((option) => option.name === selectedReposition)
-    ?? repositionOptions[0];
+  const [selectedReposition, setSelectedReposition] =
+    useState(defaultReposition);
+  const activeReposition =
+    repositionOptions.find((option) => option.name === selectedReposition) ??
+    repositionOptions[0];
 
   return (
     <Stack.Item mt={1}>
@@ -914,7 +973,10 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
       {!!item.controller_state_name && (
         <Box fontSize="0.8em" color="label" mb={0.4}>
           State:{' '}
-          <Box inline color={item.controller_state === 'suspended' ? 'average' : 'good'}>
+          <Box
+            inline
+            color={item.controller_state === 'suspended' ? 'average' : 'good'}
+          >
             {item.controller_state_name}
           </Box>
         </Box>
@@ -928,7 +990,7 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
         <NoticeBox>
           {item.controller_direct_control_enabled
             ? 'The host has lowered the ward. The ooze answers your will without question.'
-            : 'The host\'s ward holds firm. You must petition before acting upon their flesh.'}
+            : "The host's ward holds firm. You must petition before acting upon their flesh."}
         </NoticeBox>
       )}
       <Stack wrap mt={0.4}>
@@ -961,7 +1023,9 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
                       ? 'The ooze writhes with resentment and refuses to carry words.'
                       : 'Speech is sealed while the bond wavers or the host forbids it.'
                 }
-                onClick={() => act('jelly_controller_whisper', { ref: item.ref })}
+                onClick={() =>
+                  act('jelly_controller_whisper', { ref: item.ref })
+                }
               >
                 Whisper
               </Button>
@@ -996,7 +1060,9 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
                   <Stack.Item>
                     <Button
                       color="blue"
-                      disabled={!item.controller_can_preset_action || !activePreset}
+                      disabled={
+                        !item.controller_can_preset_action || !activePreset
+                      }
                       tooltip={
                         item.controller_can_preset_action
                           ? 'Stir the ooze into a preset gesture.'
@@ -1028,15 +1094,22 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
                       : 'Petition the host to let you take shape.'
                     : 'Taking shape is sealed while the bond wavers or the host forbids it.'
                 }
-                onClick={() => act('jelly_controller_manifest', { ref: item.ref })}
+                onClick={() =>
+                  act('jelly_controller_manifest', { ref: item.ref })
+                }
               >
-                {item.controller_direct_control_enabled ? 'Take Shape' : 'Request Shape'}
+                {item.controller_direct_control_enabled
+                  ? 'Take Shape'
+                  : 'Request Shape'}
               </Button>
             </Stack.Item>
             <Stack.Item>
               <Button
                 color="orange"
-                disabled={!item.controller_can_stimulate || !!item.controller_stimulate_cooldown}
+                disabled={
+                  !item.controller_can_stimulate ||
+                  !!item.controller_stimulate_cooldown
+                }
                 tooltip={
                   !item.controller_can_stimulate
                     ? item.controller_emotion_needs_force
@@ -1048,7 +1121,9 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
                         ? 'Drive the ooze into a pulse of raw stimulation.'
                         : 'Petition the host to let the ooze stimulate them.'
                 }
-                onClick={() => act('jelly_controller_stimulate', { ref: item.ref })}
+                onClick={() =>
+                  act('jelly_controller_stimulate', { ref: item.ref })
+                }
               >
                 {item.controller_stimulate_cooldown
                   ? `Stimulate (${item.controller_stimulate_cooldown}s)`
@@ -1065,13 +1140,17 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
                       width="170px"
                       selected={activeReposition?.name || 'Target Slot'}
                       options={repositionOptions.map((option) => option.name)}
-                      onSelected={(label: string) => setSelectedReposition(label)}
+                      onSelected={(label: string) =>
+                        setSelectedReposition(label)
+                      }
                     />
                   </Stack.Item>
                   <Stack.Item>
                     <Button
                       color="blue"
-                      disabled={!item.controller_can_reposition || !activeReposition}
+                      disabled={
+                        !item.controller_can_reposition || !activeReposition
+                      }
                       tooltip={
                         item.controller_can_reposition
                           ? item.controller_direct_control_enabled
@@ -1080,13 +1159,16 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
                           : 'Repositioning is sealed while the bond wavers.'
                       }
                       onClick={() =>
-                        activeReposition && act('jelly_controller_reposition', {
+                        activeReposition &&
+                        act('jelly_controller_reposition', {
                           ref: item.ref,
                           slot: activeReposition.slot,
                         })
                       }
                     >
-                      {item.controller_direct_control_enabled ? 'Shift Ooze' : 'Request Shift'}
+                      {item.controller_direct_control_enabled
+                        ? 'Shift Ooze'
+                        : 'Request Shift'}
                     </Button>
                   </Stack.Item>
                 </Stack>
@@ -1096,16 +1178,16 @@ const JellyControllerPanel = (props: { item: ItemData }) => {
           </>
         )}
         {item.controller_view_mode === 'doppel' && (
-            <Stack.Item>
-              <Button
-                color="average"
-                disabled={!item.controller_can_return}
-                tooltip="Collapse the borrowed flesh and sink back into the ooze's core."
-                onClick={() => act('jelly_controller_return', { ref: item.ref })}
-              >
-                Return To Ooze
-              </Button>
-            </Stack.Item>
+          <Stack.Item>
+            <Button
+              color="average"
+              disabled={!item.controller_can_return}
+              tooltip="Collapse the borrowed flesh and sink back into the ooze's core."
+              onClick={() => act('jelly_controller_return', { ref: item.ref })}
+            >
+              Return To Ooze
+            </Button>
+          </Stack.Item>
         )}
         {/* ── Cocoon controls (visible from any view mode) ── */}
         <JellyCocoonControls item={item} />
@@ -1131,9 +1213,10 @@ const JellyCocoonControls = (props: { item: ItemData }) => {
     const nextStageTicks = item.controller_cocoon_next_stage_ticks || 0;
     const tickInterval = item.controller_cocoon_tick_interval || 3;
     const timeInCocoon = Math.round(tickCount * tickInterval);
-    const timeToNextStage = nextStageTicks > tickCount
-      ? Math.round((nextStageTicks - tickCount) * tickInterval)
-      : 0;
+    const timeToNextStage =
+      nextStageTicks > tickCount
+        ? Math.round((nextStageTicks - tickCount) * tickInterval)
+        : 0;
 
     return (
       <>
@@ -1182,7 +1265,10 @@ const JellyCocoonControls = (props: { item: ItemData }) => {
             <Stack.Item>
               <Button
                 color="red"
-                disabled={!item.controller_can_cocoon_tighten || item.controller_cocoon_stage >= 3}
+                disabled={
+                  !item.controller_can_cocoon_tighten ||
+                  item.controller_cocoon_stage >= 3
+                }
                 tooltip={
                   item.controller_cocoon_stage >= 3
                     ? 'The cocoon is already at its deepest stage.'
@@ -1190,7 +1276,9 @@ const JellyCocoonControls = (props: { item: ItemData }) => {
                       ? 'The ooze is not possessive enough to tighten its grip. Jealousy must grow first.'
                       : 'Will the cocoon tighter, skipping the wait and advancing it to the next stage immediately.'
                 }
-                onClick={() => act('jelly_controller_cocoon_tighten', { ref: item.ref })}
+                onClick={() =>
+                  act('jelly_controller_cocoon_tighten', { ref: item.ref })
+                }
               >
                 Tighten Cocoon
               </Button>
@@ -1199,7 +1287,9 @@ const JellyCocoonControls = (props: { item: ItemData }) => {
               <Button
                 color="orange"
                 tooltip="Command the cocoon to release the host."
-                onClick={() => act('jelly_controller_cocoon_release', { ref: item.ref })}
+                onClick={() =>
+                  act('jelly_controller_cocoon_release', { ref: item.ref })
+                }
               >
                 Release Host
               </Button>
@@ -1213,7 +1303,11 @@ const JellyCocoonControls = (props: { item: ItemData }) => {
                     ? 'The ooze is not possessive enough to command its tendrils. Jealousy must grow first.'
                     : 'Surge the tendrils through the cocoon, triggering a manual feed and flavor pulse.'
                 }
-                onClick={() => act('jelly_controller_cocoon_tendril_pulse', { ref: item.ref })}
+                onClick={() =>
+                  act('jelly_controller_cocoon_tendril_pulse', {
+                    ref: item.ref,
+                  })
+                }
               >
                 Tendril Pulse
               </Button>
@@ -1238,7 +1332,9 @@ const JellyCocoonControls = (props: { item: ItemData }) => {
           <Button
             color="average"
             tooltip="Command the ooze to wrap around and seal its host in a cocoon."
-            onClick={() => act('jelly_controller_start_cocoon', { ref: item.ref })}
+            onClick={() =>
+              act('jelly_controller_start_cocoon', { ref: item.ref })
+            }
           >
             Start Cocoon
           </Button>
@@ -1256,11 +1352,13 @@ const JellyForceControls = (props: { item: ItemData }) => {
 
   const forceEmoteKeys = Object.keys(item.controller_force_emote_options ?? {});
   const defaultForceEmote = forceEmoteKeys[0] ?? '';
-  const [selectedForceEmote, setSelectedForceEmote] = useState(defaultForceEmote);
+  const [selectedForceEmote, setSelectedForceEmote] =
+    useState(defaultForceEmote);
 
   const voicePresets = item.controller_wearer_voice_presets ?? [];
   const defaultVoicePreset = voicePresets[0] ?? '';
-  const [selectedVoicePreset, setSelectedVoicePreset] = useState(defaultVoicePreset);
+  const [selectedVoicePreset, setSelectedVoicePreset] =
+    useState(defaultVoicePreset);
   const activeVoicePreset = voicePresets.includes(selectedVoicePreset)
     ? selectedVoicePreset
     : defaultVoicePreset;
@@ -1281,15 +1379,19 @@ const JellyForceControls = (props: { item: ItemData }) => {
           tooltip={
             item.controller_can_force
               ? item.controller_direct_control_enabled
-                ? 'Force words from the host\'s mouth.'
-                : 'Petition to force words from the host\'s mouth.'
+                ? "Force words from the host's mouth."
+                : "Petition to force words from the host's mouth."
               : item.controller_emotion_needs_force
-                ? 'The ooze is too sated to puppet the host\'s voice. Its hunger must grow first.'
+                ? "The ooze is too sated to puppet the host's voice. Its hunger must grow first."
                 : 'Forced speech is sealed — the host must yield this power.'
           }
-          onClick={() => act('jelly_controller_force_speech', { ref: item.ref })}
+          onClick={() =>
+            act('jelly_controller_force_speech', { ref: item.ref })
+          }
         >
-          {item.controller_direct_control_enabled ? 'Force Speech' : 'Request Force Speech'}
+          {item.controller_direct_control_enabled
+            ? 'Force Speech'
+            : 'Request Force Speech'}
         </Button>
       </Stack.Item>
       {!!forceEmoteKeys.length && (
@@ -1310,10 +1412,10 @@ const JellyForceControls = (props: { item: ItemData }) => {
                 tooltip={
                   item.controller_can_force
                     ? item.controller_direct_control_enabled
-                      ? 'Wring the chosen reaction from the host\'s body.'
+                      ? "Wring the chosen reaction from the host's body."
                       : 'Petition to wring the chosen reaction from the host.'
                     : item.controller_emotion_needs_force
-                      ? 'The ooze is too sated to puppet the host\'s body. Its hunger must grow first.'
+                      ? "The ooze is too sated to puppet the host's body. Its hunger must grow first."
                       : 'Forced gestures are sealed — the host must yield this power.'
                 }
                 onClick={() =>
@@ -1323,7 +1425,9 @@ const JellyForceControls = (props: { item: ItemData }) => {
                   })
                 }
               >
-                {item.controller_direct_control_enabled ? 'Force Emote' : 'Request Force Emote'}
+                {item.controller_direct_control_enabled
+                  ? 'Force Emote'
+                  : 'Request Force Emote'}
               </Button>
             </Stack.Item>
           </Stack>
@@ -1360,7 +1464,9 @@ const JellyForceControls = (props: { item: ItemData }) => {
                   })
                 }
               >
-                {item.controller_direct_control_enabled ? 'Force Voice Preset' : 'Request Voice Preset'}
+                {item.controller_direct_control_enabled
+                  ? 'Force Voice Preset'
+                  : 'Request Voice Preset'}
               </Button>
             </Stack.Item>
           </Stack>
@@ -1397,7 +1503,9 @@ const JellyForceControls = (props: { item: ItemData }) => {
                   })
                 }
               >
-                {item.controller_direct_control_enabled ? 'Force Posture' : 'Request Force Posture'}
+                {item.controller_direct_control_enabled
+                  ? 'Force Posture'
+                  : 'Request Force Posture'}
               </Button>
             </Stack.Item>
           </Stack>
@@ -1430,7 +1538,10 @@ const JellyControllerRequests = (props: { item: ItemData }) => {
 
   return (
     <Stack.Item mt={1}>
-      <Section title="Pending Petitions" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+      <Section
+        title="Pending Petitions"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}
+      >
         <Stack vertical>
           {pendingRequests.map((request) => (
             <Stack.Item key={request.id}>
@@ -1503,7 +1614,10 @@ const JellyInvitations = (props: { item: ItemData }) => {
 
   return (
     <Stack.Item mt={1}>
-      <Section title="Beckonings" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+      <Section
+        title="Beckonings"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}
+      >
         {!!isWearer && !!item.can_invite_controller && (
           <Box mb={0.5}>
             <Button
@@ -1587,7 +1701,8 @@ const JellyInvitations = (props: { item: ItemData }) => {
 const JellyStatusBlock = (props: { item: ItemData }) => {
   const { act } = useBackend<Data>();
   const { item } = props;
-  const escalationColor = ESCALATION_COLOR[item.bond_escalation_level] ?? '#aaaaaa';
+  const escalationColor =
+    ESCALATION_COLOR[item.bond_escalation_level] ?? '#aaaaaa';
 
   return (
     <Stack.Item>
@@ -1651,10 +1766,10 @@ const JellyStatusBlock = (props: { item: ItemData }) => {
       />
       {item.bond_escalation_level < (item.max_bond_escalation_level || 4) &&
         item.bond_progress_threshold > 0 && (
-        <Box mt={0.25} fontSize="0.75em" color="label">
-          Progress: {item.bond_progress} / {item.bond_progress_threshold}
-        </Box>
-      )}
+          <Box mt={0.25} fontSize="0.75em" color="label">
+            Progress: {item.bond_progress} / {item.bond_progress_threshold}
+          </Box>
+        )}
       {item.obsession_level > 0 && (
         <Box mt={0.25} fontSize="0.8em" color="average">
           Obsession level: {item.obsession_level}
@@ -1669,50 +1784,53 @@ const JellyStatusBlock = (props: { item: ItemData }) => {
           </Box>
         </Box>
       )}
-      {!!item.is_cocooned && (() => {
-        const tickCount = item.cocoon_tick_count || 0;
-        const nextStageTicks = item.cocoon_next_stage_ticks || 0;
-        const tickInterval = item.cocoon_tick_interval || 3;
-        const timeInCocoon = Math.round(tickCount * tickInterval);
-        const timeToNextStage = nextStageTicks > tickCount
-          ? Math.round((nextStageTicks - tickCount) * tickInterval)
-          : 0;
-        const stageDesc = WEARER_COCOON_STAGE_DESCRIPTIONS[item.cocoon_stage];
-        return (
-          <Box mt={0.5}>
-            <Box color="bad" italic fontSize="0.85em">
-              ⚠ Cocooned
-              {item.cocoon_stage_name && item.cocoon_stage_name !== 'none' && (
-                <Box inline color="#ccaa44" ml={0.5}>
-                  — {item.cocoon_stage_name}
+      {!!item.is_cocooned &&
+        (() => {
+          const tickCount = item.cocoon_tick_count || 0;
+          const nextStageTicks = item.cocoon_next_stage_ticks || 0;
+          const tickInterval = item.cocoon_tick_interval || 3;
+          const timeInCocoon = Math.round(tickCount * tickInterval);
+          const timeToNextStage =
+            nextStageTicks > tickCount
+              ? Math.round((nextStageTicks - tickCount) * tickInterval)
+              : 0;
+          const stageDesc = WEARER_COCOON_STAGE_DESCRIPTIONS[item.cocoon_stage];
+          return (
+            <Box mt={0.5}>
+              <Box color="bad" italic fontSize="0.85em">
+                ⚠ Cocooned
+                {item.cocoon_stage_name &&
+                  item.cocoon_stage_name !== 'none' && (
+                    <Box inline color="#ccaa44" ml={0.5}>
+                      — {item.cocoon_stage_name}
+                    </Box>
+                  )}
+                <Box inline color="label" ml={0.5}>
+                  ({timeInCocoon}s)
+                </Box>
+              </Box>
+              {stageDesc && (
+                <Box color="label" fontSize="0.75em" mt={0.15} italic>
+                  {stageDesc}
                 </Box>
               )}
-              <Box inline color="label" ml={0.5}>
-                ({timeInCocoon}s)
-              </Box>
-            </Box>
-            {stageDesc && (
-              <Box color="label" fontSize="0.75em" mt={0.15} italic>
-                {stageDesc}
-              </Box>
-            )}
-            {nextStageTicks > 0 && (
+              {nextStageTicks > 0 && (
+                <Box fontSize="0.75em" color="label" mt={0.15}>
+                  Escalates in ~{timeToNextStage}s
+                </Box>
+              )}
+              {nextStageTicks === 0 && item.cocoon_stage >= 3 && (
+                <Box fontSize="0.75em" color="average" mt={0.15} italic>
+                  The cocoon has reached peak intensity.
+                </Box>
+              )}
               <Box fontSize="0.75em" color="label" mt={0.15}>
-                Escalates in ~{timeToNextStage}s
+                The cocoon feeds the ooze periodically, soothing its need.
+                Resist to break free, or surrender and let it run its course.
               </Box>
-            )}
-            {nextStageTicks === 0 && item.cocoon_stage >= 3 && (
-              <Box fontSize="0.75em" color="average" mt={0.15} italic>
-                The cocoon has reached peak intensity.
-              </Box>
-            )}
-            <Box fontSize="0.75em" color="label" mt={0.15}>
-              The cocoon feeds the ooze periodically, soothing its need.
-              Resist to break free, or surrender and let it run its course.
             </Box>
-          </Box>
-        );
-      })()}
+          );
+        })()}
     </Stack.Item>
   );
 };
@@ -1725,9 +1843,11 @@ const JellyPanel = (props: { item: ItemData }) => {
 
   return (
     <Box mt={1}>
-      <Section title="Ooze Controls" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+      <Section
+        title="Ooze Controls"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}
+      >
         <Stack vertical>
-
           {/* ── Strange-jelly identity & status ── */}
           {!!item.is_strange_jelly && <JellyStatusBlock item={item} />}
 
@@ -1747,7 +1867,10 @@ const JellyPanel = (props: { item: ItemData }) => {
                       color="transparent"
                       tooltip={`Shift the ooze to the ${opt.name} slot.`}
                       onClick={() =>
-                        act('jelly_swap_slot', { ref: item.ref, slot: opt.slot })
+                        act('jelly_swap_slot', {
+                          ref: item.ref,
+                          slot: opt.slot,
+                        })
                       }
                     >
                       → {opt.name}
@@ -1827,9 +1950,9 @@ const JellyPanel = (props: { item: ItemData }) => {
                         selected={TENDRIL_ACTION_LABELS[selectedTendrilAction]}
                         options={TENDRIL_ACTION_OPTIONS}
                         onSelected={(label: string) => {
-                          const match = Object.entries(TENDRIL_ACTION_LABELS).find(
-                            ([, value]) => value === label,
-                          );
+                          const match = Object.entries(
+                            TENDRIL_ACTION_LABELS,
+                          ).find(([, value]) => value === label);
                           setSelectedTendrilAction(match?.[0] ?? 'multi');
                         }}
                       />
@@ -1881,64 +2004,82 @@ const JellyPanel = (props: { item: ItemData }) => {
                         ? 'Deliberately antagonize the ooze, goading its jealousy and resentment.'
                         : 'The ooze is already agitated — wait before pushing further.'
                     }
-                    onClick={() =>
-                      act('jelly_provoke', { ref: item.ref })
-                    }
+                    onClick={() => act('jelly_provoke', { ref: item.ref })}
                   >
                     Provoke
                   </Button>
                 </Stack.Item>
               )}
               {/* Project Double — actual player-controlled slime mode */}
-              {!!item.is_strange_jelly && !!item.is_bonded_wearer && !!item.can_project_doppel && (
-                <Stack.Item>
-                  <Button
-                    color="average"
-                    tooltip="Project your awareness into the slime-born shape. Limited radius, no combat, and no burden-bearing."
-                    onClick={() => act('jelly_project_doppel', { ref: item.ref })}
-                  >
-                    Project Shape
-                  </Button>
-                </Stack.Item>
-              )}
-              {!!item.is_strange_jelly && !!item.can_review_controller_volunteers && (
-                <Stack.Item>
-                  <Stack align="center">
-                    {!!item.can_toggle_controller_applications && (
+              {!!item.is_strange_jelly &&
+                !!item.is_bonded_wearer &&
+                !!item.can_project_doppel && (
+                  <Stack.Item>
+                    <Button
+                      color="average"
+                      tooltip="Project your awareness into the slime-born shape. Limited radius, no combat, and no burden-bearing."
+                      onClick={() =>
+                        act('jelly_project_doppel', { ref: item.ref })
+                      }
+                    >
+                      Project Shape
+                    </Button>
+                  </Stack.Item>
+                )}
+              {!!item.is_strange_jelly &&
+                !!item.can_review_controller_volunteers && (
+                  <Stack.Item>
+                    <Stack align="center">
+                      {!!item.can_toggle_controller_applications && (
+                        <Stack.Item>
+                          <Button
+                            color={
+                              item.controller_applications_open
+                                ? 'good'
+                                : 'average'
+                            }
+                            tooltip={
+                              item.controller_applications_open
+                                ? 'Seal the ooze against new petitioners.'
+                                : 'Open the ooze to those who would answer its call.'
+                            }
+                            onClick={() =>
+                              act('jelly_toggle_controller_applications', {
+                                ref: item.ref,
+                                open: item.controller_applications_open ? 0 : 1,
+                              })
+                            }
+                          >
+                            {item.controller_applications_open
+                              ? 'Seal Petitions'
+                              : 'Open Petitions'}
+                          </Button>
+                        </Stack.Item>
+                      )}
                       <Stack.Item>
                         <Button
-                          color={item.controller_applications_open ? 'good' : 'average'}
-                          tooltip={item.controller_applications_open ? 'Seal the ooze against new petitioners.' : 'Open the ooze to those who would answer its call.'}
+                          color="blue"
+                          disabled={
+                            (item.pending_controller_application_count ?? 0) <=
+                            0
+                          }
+                          tooltip={
+                            (item.pending_controller_application_count ?? 0) > 0
+                              ? 'Review those who offer themselves to the ooze and accept one.'
+                              : 'No petitioners have come forward yet.'
+                          }
                           onClick={() =>
-                            act('jelly_toggle_controller_applications', {
-                              ref: item.ref,
-                              open: item.controller_applications_open ? 0 : 1,
-                            })
+                            act('jelly_review_volunteers', { ref: item.ref })
                           }
                         >
-                          {item.controller_applications_open ? 'Seal Petitions' : 'Open Petitions'}
+                          {(item.pending_controller_application_count ?? 0) > 0
+                            ? `Review Petitioners (${item.pending_controller_application_count})`
+                            : 'Review Petitioners'}
                         </Button>
                       </Stack.Item>
-                    )}
-                    <Stack.Item>
-                      <Button
-                        color="blue"
-                        disabled={(item.pending_controller_application_count ?? 0) <= 0}
-                        tooltip={
-                          (item.pending_controller_application_count ?? 0) > 0
-                            ? 'Review those who offer themselves to the ooze and accept one.'
-                            : 'No petitioners have come forward yet.'
-                        }
-                        onClick={() => act('jelly_review_volunteers', { ref: item.ref })}
-                      >
-                        {(item.pending_controller_application_count ?? 0) > 0
-                          ? `Review Petitioners (${item.pending_controller_application_count})`
-                          : 'Review Petitioners'}
-                      </Button>
-                    </Stack.Item>
-                  </Stack>
-                </Stack.Item>
-              )}
+                    </Stack>
+                  </Stack.Item>
+                )}
               <JellyControllerPanel item={item} />
               <JellyControllerControls item={item} />
               <JellyControllerRequests item={item} />
@@ -1950,11 +2091,12 @@ const JellyPanel = (props: { item: ItemData }) => {
           {!!item.is_strange_jelly && <JellyIndicators item={item} />}
 
           {/* ── Activity history ── */}
-          {!!item.is_strange_jelly && (item.controller_activity_log?.length ?? 0) > 0 && (
-            <Stack.Item mt={1}>
-              <ControllerActivityLog entries={item.controller_activity_log} />
-            </Stack.Item>
-          )}
+          {!!item.is_strange_jelly &&
+            (item.controller_activity_log?.length ?? 0) > 0 && (
+              <Stack.Item mt={1}>
+                <ControllerActivityLog entries={item.controller_activity_log} />
+              </Stack.Item>
+            )}
 
           {/* ── Mood log ── */}
           {!!item.is_strange_jelly && item.mood_log?.length > 0 && (
@@ -1962,7 +2104,6 @@ const JellyPanel = (props: { item: ItemData }) => {
               <MoodLog entries={item.mood_log} />
             </Stack.Item>
           )}
-
         </Stack>
       </Section>
     </Box>
@@ -1992,7 +2133,11 @@ const ItemCard = (props: { item: ItemData }) => {
             <Button
               color="bad"
               disabled={!item.can_remove}
-              tooltip={!item.can_remove ? 'Cannot access this accessory right now.' : undefined}
+              tooltip={
+                !item.can_remove
+                  ? 'Cannot access this accessory right now.'
+                  : undefined
+              }
               onClick={() => act('remove_accessory', { ref: item.ref })}
             >
               Remove
@@ -2025,7 +2170,8 @@ const ItemCard = (props: { item: ItemData }) => {
             <LabeledList.Item label="Beads">
               <Stack align="center" wrap>
                 <Stack.Item>
-                  {item.beads_inserted} / {item.max_beads} inserted ({BEAD_SET_LABEL[item.max_beads] ?? `${item.max_beads} beads`})
+                  {item.beads_inserted} / {item.max_beads} inserted (
+                  {BEAD_SET_LABEL[item.max_beads] ?? `${item.max_beads} beads`})
                 </Stack.Item>
                 <Stack.Item>
                   <Button
@@ -2076,4 +2222,3 @@ const ItemCard = (props: { item: ItemData }) => {
     </Stack>
   );
 };
-

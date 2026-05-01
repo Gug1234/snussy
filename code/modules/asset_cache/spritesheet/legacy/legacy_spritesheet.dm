@@ -309,6 +309,8 @@
 		stack_trace("Tried to insert nonexistent icon_state '[icon_state]' from [inserted_icon] into spritesheet [name] ([type])")
 		return
 #endif
+	if(!is_dmi_icon_source(inserted_icon))
+		return
 	inserted_icon = icon(inserted_icon, icon_state=icon_state, dir=dir, frame=frame, moving=moving)
 	if (!inserted_icon || !length(icon_states(inserted_icon)))  // that direction or state doesn't exist
 		return

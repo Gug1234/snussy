@@ -14,7 +14,15 @@
  */
 
 import { useState } from 'react';
-import { Box, Button, NoticeBox, NumberInput, Section, Stack, TextArea } from 'tgui-core/components';
+import {
+  Box,
+  Button,
+  NoticeBox,
+  NumberInput,
+  Section,
+  Stack,
+  TextArea,
+} from 'tgui-core/components';
 import type { BooleanLike } from 'tgui-core/react';
 
 import { useBackend } from '../backend';
@@ -76,29 +84,33 @@ type BackendData = {
 
 /** Static tooltip descriptions for each token. */
 const TOKEN_DESCS: Record<string, string> = {
-  '[USER]': 'Your character\'s name.',
-  '[TARGET]': 'The other participant\'s name.',
+  '[USER]': "Your character's name.",
+  '[TARGET]': "The other participant's name.",
   '[THEY]': 'Your pronoun (they/she/he).',
   '[THEM]': 'Your pronoun (them/her/him).',
   '[THEIR]': 'Your possessive (their/her/his).',
-  '[THEIR_CAP]': 'Capitalized possessive (Their/Her/His) â€” use at sentence starts.',
-  '[TTHEY]': 'Target\'s pronoun (they/she/he).',
-  '[TTHEM]': 'Target\'s pronoun (them/her/him).',
-  '[TTHEIR]': 'Target\'s possessive (their/her/his).',
+  '[THEIR_CAP]':
+    'Capitalized possessive (Their/Her/His) â€” use at sentence starts.',
+  '[TTHEY]': "Target's pronoun (they/she/he).",
+  '[TTHEM]': "Target's pronoun (them/her/him).",
+  '[TTHEIR]': "Target's possessive (their/her/his).",
   '[PENIS_TYPE]': 'Your penis noun (cock, shaft, member, etc.).',
   '[SHEATH]': 'Your sheath type (sheath, slit, foreskin, etc.).',
-  '[SIZEADJ]': 'Single-word penis size adjective (e.g. "massive", "modest", "pitiful").',
+  '[SIZEADJ]':
+    'Single-word penis size adjective (e.g. "massive", "modest", "pitiful").',
   '[COCKSIZE]': 'Full descriptive phrase for penis size.',
-  '[VAGADJ]': 'Single-word vagina type adjective (e.g. "smooth", "furred", "cloacal").',
+  '[VAGADJ]':
+    'Single-word vagina type adjective (e.g. "smooth", "furred", "cloacal").',
   '[VAGTYPE]': 'Full descriptive phrase for vagina type.',
-  '[CUPADJ]': 'Single-word breast size adjective (e.g. "heavy", "generous", "flat").',
+  '[CUPADJ]':
+    'Single-word breast size adjective (e.g. "heavy", "generous", "flat").',
   '[CUPSIZE]': 'Full descriptive phrase for breast size.',
   '[BREASTTYPE]': 'Full descriptive phrase for breast type.',
   '[TAUR]': 'Your taur body type name, if applicable.',
   '[GENITAL_DESC]': 'Full genital description string.',
   '[FORCE]': 'Force/intensity level of the current action.',
-  '[JELLY]': 'Your jelly\'s name (Eora Jelly bank only).',
-  '[PLUG]': 'Your plug\'s name (Plug bank only).',
+  '[JELLY]': "Your jelly's name (Eora Jelly bank only).",
+  '[PLUG]': "Your plug's name (Plug bank only).",
 };
 
 // â”€â”€ Preset chip row helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -152,7 +164,9 @@ function Sidebar() {
   const [selectedSpecies, setSelectedSpecies] = useState('');
   const [selectedStage, setSelectedStage] = useState('');
   const [selectedGenital, setSelectedGenital] = useState('');
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
   // Two-stage confirm state for destructive preset ops. Mirrors
   // SexFlavorEditor.applyAllConfirm — first click opens the confirm panel,
   // second click inside that panel fires the act.
@@ -164,7 +178,9 @@ function Sidebar() {
   const currentStageInfo = preset_stages?.find((s) => s.id === selectedStage);
   const needsGenital = !!currentStageInfo?.has_genital;
   const canLoadPreset =
-    !!selectedSpecies && !!selectedStage && (!needsGenital || !!selectedGenital);
+    !!selectedSpecies &&
+    !!selectedStage &&
+    (!needsGenital || !!selectedGenital);
 
   function toggleGroup(name: string) {
     setCollapsedGroups((prev) => {
@@ -178,7 +194,11 @@ function Sidebar() {
     });
   }
 
-  const activeOutline = { outline: '2px solid rgba(255,255,255,0.65)', outlineOffset: '-2px', fontWeight: 'bold' as const };
+  const activeOutline = {
+    outline: '2px solid rgba(255,255,255,0.65)',
+    outlineOffset: '-2px',
+    fontWeight: 'bold' as const,
+  };
 
   const flatCategoryButtons = visibleCategories.map((cat) => {
     const isActive = cat.key === selected_category;
@@ -227,7 +247,9 @@ function Sidebar() {
               borderRadius: '3px',
               fontWeight: 'bold',
               fontSize: '11px',
-              ...(hasActive ? { outline: '1px solid rgba(79,195,247,0.6)' } : {}),
+              ...(hasActive
+                ? { outline: '1px solid rgba(79,195,247,0.6)' }
+                : {}),
             }}
           >
             {group.name}
@@ -235,50 +257,58 @@ function Sidebar() {
               ({groupCount})
             </Box>
           </Button>
-          {!isCollapsed && group.cats.map((cat) => {
-            const isActive = cat.key === selected_category;
-            return (
-              <Button
-                key={cat.key}
-                fluid
-                selected={isActive}
-                tooltip={cat.desc}
-                tooltipPosition="right"
-                onClick={() => act('select_category', { category: cat.key })}
-                style={{
-                  marginLeft: '8px',
-                  fontSize: '11px',
-                  ...(isActive ? activeOutline : {}),
-                }}
-              >
-                {cat.label}
-                <Box inline ml={0.5} opacity={0.5} style={{ fontSize: '10px' }}>
-                  ({cat.count})
-                </Box>
-              </Button>
-            );
-          })}
+          {!isCollapsed &&
+            group.cats.map((cat) => {
+              const isActive = cat.key === selected_category;
+              return (
+                <Button
+                  key={cat.key}
+                  fluid
+                  selected={isActive}
+                  tooltip={cat.desc}
+                  tooltipPosition="right"
+                  onClick={() => act('select_category', { category: cat.key })}
+                  style={{
+                    marginLeft: '8px',
+                    fontSize: '11px',
+                    ...(isActive ? activeOutline : {}),
+                  }}
+                >
+                  {cat.label}
+                  <Box
+                    inline
+                    ml={0.5}
+                    opacity={0.5}
+                    style={{ fontSize: '10px' }}
+                  >
+                    ({cat.count})
+                  </Box>
+                </Button>
+              );
+            })}
         </Box>
       );
     });
   })();
 
-  const bankButtons = banks.filter((b) => b.available).map((b) => {
-    const isActive = b.id === selected_bank;
-    return (
-      <Button
-        key={b.id}
-        fluid
-        selected={isActive}
-        tooltip={b.desc}
-        tooltipPosition="right"
-        onClick={() => act('change_bank', { bank: b.id })}
-        style={isActive ? activeOutline : undefined}
-      >
-        {b.label}
-      </Button>
-    );
-  });
+  const bankButtons = banks
+    .filter((b) => b.available)
+    .map((b) => {
+      const isActive = b.id === selected_bank;
+      return (
+        <Button
+          key={b.id}
+          fluid
+          selected={isActive}
+          tooltip={b.desc}
+          tooltipPosition="right"
+          onClick={() => act('change_bank', { bank: b.id })}
+          style={isActive ? activeOutline : undefined}
+        >
+          {b.label}
+        </Button>
+      );
+    });
 
   return (
     <Stack.Item
@@ -304,19 +334,24 @@ function Sidebar() {
       {selected_bank === 'character' && preset_species && preset_stages && (
         <Section title="Load Preset">
           <Box fontSize="10px" opacity={0.6} mb={0.5}>
-            Populate categories with pre-written strings for a given species and arousal tier.
-            This will <b>replace all existing strings</b> in the affected categories (Movement,
-            Sex Received, and Anal Received where applicable).
+            Populate categories with pre-written strings for a given species and
+            arousal tier. This will <b>replace all existing strings</b> in the
+            affected categories (Movement, Sex Received, and Anal Received where
+            applicable).
           </Box>
 
-          <Box fontSize="10px" opacity={0.7} mb={0.25}>Species:</Box>
+          <Box fontSize="10px" opacity={0.7} mb={0.25}>
+            Species:
+          </Box>
           <PresetChipRow
             options={preset_species}
             selected={selectedSpecies}
             onSelect={setSelectedSpecies}
           />
 
-          <Box fontSize="10px" opacity={0.7} mb={0.25} mt={0.5}>Stage:</Box>
+          <Box fontSize="10px" opacity={0.7} mb={0.25} mt={0.5}>
+            Stage:
+          </Box>
           <PresetChipRow
             options={preset_stages}
             selected={selectedStage}
@@ -352,7 +387,15 @@ function Sidebar() {
             Load Preset
           </Button>
           {loadPresetConfirm && (
-            <Box mt={0.5} p={0.5} style={{ background: 'rgba(255,150,50,0.12)', borderRadius: '3px', border: '1px solid rgba(255,150,50,0.4)' }}>
+            <Box
+              mt={0.5}
+              p={0.5}
+              style={{
+                background: 'rgba(255,150,50,0.12)',
+                borderRadius: '3px',
+                border: '1px solid rgba(255,150,50,0.4)',
+              }}
+            >
               <Box fontSize="10px" color="bad" mb={0.5} bold>
                 This replaces all strings in Movement, Sex Received, and Anal
                 Received for the selected tier. Continue?
@@ -375,7 +418,10 @@ function Sidebar() {
                   </Button>
                 </Stack.Item>
                 <Stack.Item>
-                  <Button icon="times" onClick={() => setLoadPresetConfirm(false)}>
+                  <Button
+                    icon="times"
+                    onClick={() => setLoadPresetConfirm(false)}
+                  >
                     Cancel
                   </Button>
                 </Stack.Item>
@@ -395,7 +441,15 @@ function Sidebar() {
             {selectedGenital ? ` â€” ${selectedGenital}` : ''})
           </Button>
           {loadAllConfirm && (
-            <Box mt={0.5} p={0.5} style={{ background: 'rgba(255,80,80,0.12)', borderRadius: '3px', border: '1px solid rgba(255,80,80,0.4)' }}>
+            <Box
+              mt={0.5}
+              p={0.5}
+              style={{
+                background: 'rgba(255,80,80,0.12)',
+                borderRadius: '3px',
+                border: '1px solid rgba(255,80,80,0.4)',
+              }}
+            >
               <Box fontSize="10px" color="bad" mb={0.5} bold>
                 This overwrites EVERY tier in the character bank with preset
                 text, wiping all your custom strings. Continue?
@@ -425,11 +479,16 @@ function Sidebar() {
             </Box>
           )}
 
-          {!!preset_result && (preset_result_success ? (
-            <NoticeBox mt={1} success>{preset_result}</NoticeBox>
-          ) : (
-            <NoticeBox mt={1} danger>{preset_result}</NoticeBox>
-          ))}
+          {!!preset_result &&
+            (preset_result_success ? (
+              <NoticeBox mt={1} success>
+                {preset_result}
+              </NoticeBox>
+            ) : (
+              <NoticeBox mt={1} danger>
+                {preset_result}
+              </NoticeBox>
+            ))}
         </Section>
       )}
 
@@ -438,12 +497,13 @@ function Sidebar() {
           <b>Movement text</b> is shown only to <em>you</em> (the wearer).
         </Box>
         <Box fontSize="11px" opacity={0.8} mt={0.5}>
-          <b>Sex Received text</b> is shown only to <em>you</em> when another player performs a
-          sex action on you.
+          <b>Sex Received text</b> is shown only to <em>you</em> when another
+          player performs a sex action on you.
         </Box>
         <Box fontSize="10px" opacity={0.6} mt={0.5}>
-          Viewers must have <em>Intimate Reactions</em> and <em>Accessory-Free Flavor</em>
-          {' '}enabled in their ERP preferences to see any output.
+          Viewers must have <em>Intimate Reactions</em> and{' '}
+          <em>Accessory-Free Flavor</em> enabled in their ERP preferences to see
+          any output.
         </Box>
       </Section>
     </Stack.Item>
@@ -522,7 +582,11 @@ function DefaultStringsSection({
     <Section
       title="Default Strings"
       buttons={
-        <Button compact icon={show ? 'eye-slash' : 'eye'} onClick={onToggleShow}>
+        <Button
+          compact
+          icon={show ? 'eye-slash' : 'eye'}
+          onClick={onToggleShow}
+        >
           {show ? 'Hide' : 'Show'}
         </Button>
       }
@@ -530,9 +594,9 @@ function DefaultStringsSection({
       {show && (
         <>
           <Box fontSize="10px" opacity={0.6} mb={0.5}>
-            Built-in fallback strings. Click <b>+</b> to adopt one into your custom pool, or
-            the magnifier to preview it. If you have no custom strings, these are used
-            automatically.
+            Built-in fallback strings. Click <b>+</b> to adopt one into your
+            custom pool, or the magnifier to preview it. If you have no custom
+            strings, these are used automatically.
           </Box>
           {strings.map((str, idx) => (
             <DefaultStringRow
@@ -577,7 +641,9 @@ function InputButtons({
         >
           Update
         </Button>
-        <Button icon="times" onClick={onCancel}>Cancel</Button>
+        <Button icon="times" onClick={onCancel}>
+          Cancel
+        </Button>
         <Button
           icon="search"
           disabled={!inputText.trim()}
@@ -674,7 +740,9 @@ function InputSection({
       : `Write a flavor stringâ€¦ (max ${maxLength} chars)`;
 
   return (
-    <Section title={isEditing ? `Editing String #${editingIndex + 1}` : 'Add String'}>
+    <Section
+      title={isEditing ? `Editing String #${editingIndex + 1}` : 'Add String'}
+    >
       <Stack>
         <Stack.Item grow>
           <TextArea
@@ -719,7 +787,8 @@ function InputSection({
       {showTokens && <TokenRow tokens={tokens} onAppend={onAppendToken} />}
 
       <Box fontSize="10px" opacity={0.5} mt={0.5}>
-        Max {maxLength} characters per string Â· {maxStrings} strings per category.
+        Max {maxLength} characters per string Â· {maxStrings} strings per
+        category.
       </Box>
     </Section>
   );
@@ -743,7 +812,9 @@ function PreviewSection({
     >
       <Stack>
         <Stack.Item grow basis="50%">
-          <Box opacity={0.7} fontSize="10px" mb={0.25}>Raw template:</Box>
+          <Box opacity={0.7} fontSize="10px" mb={0.25}>
+            Raw template:
+          </Box>
           <Box
             p={0.5}
             italic
@@ -761,7 +832,9 @@ function PreviewSection({
         </Stack.Item>
         {resolvedPreview && (
           <Stack.Item grow basis="50%" ml={0.5}>
-            <Box opacity={0.7} fontSize="10px" mb={0.25}>Resolved:</Box>
+            <Box opacity={0.7} fontSize="10px" mb={0.25}>
+              Resolved:
+            </Box>
             <Box
               p={0.5}
               italic
@@ -837,7 +910,11 @@ function CustomStringRow({
       mb={0.5}
       style={
         isEditing
-          ? { background: 'rgba(79,195,247,0.15)', borderRadius: '3px', padding: '2px 4px' }
+          ? {
+              background: 'rgba(79,195,247,0.15)',
+              borderRadius: '3px',
+              padding: '2px 4px',
+            }
           : undefined
       }
     >
@@ -880,7 +957,9 @@ function CustomStringRow({
         />
       </Stack.Item>
       <Stack.Item>
-        <Box fontSize="10px" opacity={0.6}>%</Box>
+        <Box fontSize="10px" opacity={0.6}>
+          %
+        </Box>
       </Stack.Item>
       <Stack.Item>
         <Button
@@ -941,11 +1020,7 @@ function CustomStringsSection({
             >
               Confirm Clear
             </Button>
-            <Button
-              compact
-              icon="times"
-              onClick={() => setConfirmClear(false)}
-            >
+            <Button compact icon="times" onClick={() => setConfirmClear(false)}>
               Cancel
             </Button>
           </>
@@ -964,7 +1039,8 @@ function CustomStringsSection({
     >
       {strings.length === 0 ? (
         <Box opacity={0.5} italic fontSize="11px">
-          No custom strings for this category. Add one above, or adopt a default string.
+          No custom strings for this category. Add one above, or adopt a default
+          string.
         </Box>
       ) : (
         strings.map((str, idx) => (
@@ -1101,7 +1177,9 @@ function EditorPanel() {
             editingIndex={editingIndex}
             onStartEdit={startEditing}
             onPreview={handlePreview}
-            onWeight={(idx, weight) => act('set_weight', { index: idx + 1, weight })}
+            onWeight={(idx, weight) =>
+              act('set_weight', { index: idx + 1, weight })
+            }
             onRemove={(idx) => {
               if (editingIndex === idx) {
                 setEditingIndex(-1);
@@ -1126,9 +1204,9 @@ function ImportPanel({ onClose }: { onClose: () => void }) {
   return (
     <Section title="Import Data">
       <Box fontSize="11px" opacity={0.7} mb={1}>
-        Paste an exported data string below and click &quot;Import&quot; to replace your
-        current reaction text. <b>This overwrites existing data</b> â€” export first if you want
-        a backup.
+        Paste an exported data string below and click &quot;Import&quot; to
+        replace your current reaction text. <b>This overwrites existing data</b>{' '}
+        â€” export first if you want a backup.
       </Box>
       <Stack>
         <Stack.Item grow>
@@ -1169,7 +1247,9 @@ export function IntimateReactionEditor() {
     return (
       <Window title="Intimate Reaction Editor" width={960} height={760}>
         <Window.Content>
-          <NoticeBox danger>Session invalid. Close and reopen the editor.</NoticeBox>
+          <NoticeBox danger>
+            Session invalid. Close and reopen the editor.
+          </NoticeBox>
         </Window.Content>
       </Window>
     );

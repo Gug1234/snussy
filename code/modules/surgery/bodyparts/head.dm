@@ -203,9 +203,9 @@
 		I.pixel_y = px_y
 	add_overlay(standing)
 
-/obj/item/bodypart/head/get_limb_icon(dropped, hideaux = FALSE)
+/obj/item/bodypart/head/get_limb_icon(dropped, hideaux = FALSE, list/organs_by_zone = null)
 	cut_overlays()
-	. = ..()
+	. = ..(dropped, hideaux, organs_by_zone = organs_by_zone)
 	if(dropped) //certain overlays only appear when the limb is being detached from its owner.
 
 		if(status != BODYPART_ROBOTIC) //having a robotic head hides certain features.

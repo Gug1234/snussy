@@ -9,6 +9,9 @@
 	add_gradient_overlay(standing, natural_gradient, natural_color)
 	add_gradient_overlay(standing, hair_dye_gradient, hair_dye_color)
 
+/datum/bodypart_feature/hair/generate_bodypart_overlay_cache_extra_key()
+	return "[hair_color]|[natural_gradient]|[natural_color]|[hair_dye_gradient]|[hair_dye_color]"
+
 /datum/bodypart_feature/hair/proc/add_gradient_overlay(mutable_appearance/standing, gradient_type, gradient_color)
 	if(gradient_type == /datum/hair_gradient/none || isnull(gradient_type))
 		return

@@ -206,11 +206,18 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 /datum/species/proc/add_marking_sets_to_markings()
 	if(!body_marking_sets)
 		return
+	var/list/body_marking_set_lookup = GLOB.body_marking_sets_by_type
+	if(!islist(body_marking_set_lookup))
+		return
 	if(!body_markings)
 		body_markings = list()
 	var/datum/body_marking_set/bodyset
 	for(var/set_type in body_marking_sets)
-		bodyset = GLOB.body_marking_sets_by_type[set_type]
+		if(!(set_type in body_marking_set_lookup))
+			continue
+		bodyset = body_marking_set_lookup[set_type]
+		if(!bodyset)
+			continue
 		for(var/body_marking_type in bodyset.body_marking_list)
 			body_markings |= body_marking_type
 

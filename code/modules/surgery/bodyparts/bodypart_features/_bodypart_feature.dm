@@ -9,6 +9,10 @@
 	var/accessory_colors
 	/// Slot of the bodypart feature
 	var/feature_slot
+	/// Cached key for bodypart overlay generation.
+	var/tmp/bodypart_overlay_cache_key
+	/// Cached bodypart overlays for the current render state.
+	var/tmp/list/cached_bodypart_overlays
 
 /// Proc to customize the base icon of the organ.
 /datum/bodypart_feature/proc/bodypart_icon(mutable_appearance/standing)
@@ -18,17 +22,40 @@
 /datum/bodypart_feature/proc/bodypart_overlays(mutable_appearance/standing)
 	return
 
+/datum/bodypart_feature/proc/generate_bodypart_overlay_cache_extra_key()
+	return null
+
+/datum/bodypart_feature/proc/get_bodypart_overlay_cache_state_key()
+	return "[type]|[body_zone]|[feature_slot]|[accessory_type]|[bodypart_overlay_cache_value_key(accessory_colors)]|[generate_bodypart_overlay_cache_extra_key()]"
+
+/datum/bodypart_feature/proc/generate_bodypart_overlay_cache_key(obj/item/bodypart/bodypart)
+	var/bodypart_state = bodypart?.limb_state_key
+	var/visibility_key = bodypart?.owner ? bodypart.owner.generate_supplemental_overlay_visibility_key() : "no_owner"
+	if(bodypart && isnull(bodypart_state))
+		bodypart_state = bodypart.rebuild_limb_state_key()
+	return md5("[visibility_key]|[bodypart?.type]|[bodypart_state]|[get_bodypart_overlay_cache_state_key()]")
+
+/datum/bodypart_feature/proc/invalidate_bodypart_overlay_cache()
+	bodypart_overlay_cache_key = null
+	cached_bodypart_overlays = null
+
 /datum/bodypart_feature/proc/get_bodypart_overlay(obj/item/bodypart/bodypart)
 	if(!accessory_type)
 		return
+
+	var/new_cache_key = generate_bodypart_overlay_cache_key(bodypart)
+	if(bodypart_overlay_cache_key == new_cache_key && cached_bodypart_overlays)
+		return _list_copy(cached_bodypart_overlays)
 
 	var/datum/sprite_accessory/accessory = SPRITE_ACCESSORY(accessory_type)
 	var/list/appearances = accessory.get_appearance(null, bodypart, accessory_colors)
 	if(!appearances)
 		return
-	for(var/standing in appearances)
+	for(var/mutable_appearance/standing as anything in appearances)
 		bodypart_icon(standing)
 		bodypart_overlays(standing)
+	cached_bodypart_overlays = _list_copy(appearances)
+	bodypart_overlay_cache_key = new_cache_key
 	return appearances
 
 /// Sets an accessory type and optionally colors too.
@@ -40,6 +67,7 @@
 	else
 		accessory_colors = accessory.get_default_colors(color_key_source_list_from_carbon(owner))
 	accessory_colors = accessory.validate_color_keys_for_owner(owner, colors)
+	invalidate_bodypart_overlay_cache()
 
 /datum/bodypart_feature/proc/build_colors_for_accessory(list/source_key_list, mob/living/carbon/owner)
 	if(!accessory_type)
@@ -50,6 +78,7 @@
 		source_key_list = color_key_source_list_from_carbon(owner)
 	var/datum/sprite_accessory/accessory = SPRITE_ACCESSORY(accessory_type)
 	accessory_colors = accessory.get_default_colors(source_key_list)
+	invalidate_bodypart_overlay_cache()
 
 /obj/item/bodypart/proc/add_bodypart_feature(datum/bodypart_feature/feature)
 	if(feature.body_zone != body_zone)

@@ -51,9 +51,24 @@
 	var/mob/living/carbon/last_owner = null
 	/// Whether or not this organ should be regenerated at /datum/job/proc/equip() in _job.dm via /mob/living/carbon/proc/apply_organ_stuff()
 	var/should_regenerate = FALSE
+	/// Cached key for bodypart overlay generation.
+	var/tmp/bodypart_overlay_cache_key
+	/// Cached bodypart overlays for the current render state.
+	var/tmp/list/cached_bodypart_overlays
 
 	grid_width = 32
 	grid_height = 32
+
+/proc/bodypart_overlay_cache_value_key(value)
+	if(isnull(value))
+		return "null"
+	if(islist(value))
+		var/list/value_list = value
+		var/list/parts = list()
+		for(var/key in value_list)
+			parts += "[key]=[bodypart_overlay_cache_value_key(value_list[key])]"
+		return "{[parts.Join(";")]}"
+	return "[value]"
 
 /obj/item/organ/proc/Insert(mob/living/carbon/M, special = 0, drop_if_replaced = TRUE)
 	if(!iscarbon(M) || owner == M)
@@ -303,15 +318,20 @@
 	if(!bodypart_icon && !accessory_type)
 		return
 
+	var/new_cache_key = generate_bodypart_overlay_cache_key(bodypart)
+	if(bodypart_overlay_cache_key == new_cache_key && cached_bodypart_overlays)
+		return _list_copy(cached_bodypart_overlays)
+
+	var/list/rendered_appearances = list()
 	if(accessory_type)
 		var/datum/sprite_accessory/accessory = SPRITE_ACCESSORY(accessory_type)
 		var/list/appearances = accessory?.get_appearance(src, bodypart, accessory_colors)
 		if(!appearances)
 			return
-		for(var/standing in appearances)
+		for(var/mutable_appearance/standing as anything in appearances)
 			bodypart_icon(standing)
 			bodypart_overlays(standing)
-		return appearances
+		rendered_appearances = appearances
 	else
 		var/mutable_appearance/organ_overlay = mutable_appearance(bodypart_icon, bodypart_icon_state, layer = -bodypart_layer)
 		organ_overlay.color = color
@@ -323,7 +343,25 @@
 		*/
 
 		bodypart_overlays(organ_overlay)
-		return organ_overlay
+		rendered_appearances += organ_overlay
+
+	cached_bodypart_overlays = _list_copy(rendered_appearances)
+	bodypart_overlay_cache_key = new_cache_key
+	return rendered_appearances
+
+/obj/item/organ/proc/generate_bodypart_overlay_cache_key(obj/item/bodypart/bodypart)
+	var/bodypart_state = bodypart?.limb_state_key
+	var/visibility_key = owner ? owner.generate_supplemental_overlay_visibility_key() : "no_owner"
+	if(bodypart && isnull(bodypart_state))
+		bodypart_state = bodypart.rebuild_limb_state_key()
+	return md5("[visibility_key]|[bodypart?.type]|[bodypart_state]|[get_bodypart_overlay_cache_state_key()]")
+
+/obj/item/organ/proc/get_bodypart_overlay_cache_state_key()
+	return "[type]|[zone]|[slot]|[status]|[visible_organ ? 1 : 0]|[bodypart_icon]|[bodypart_icon_state]|[bodypart_layer]|[bodypart_emissive_blocker ? 1 : 0]|[color]|[accessory_type]|[bodypart_overlay_cache_value_key(accessory_colors)]"
+
+/obj/item/organ/proc/invalidate_bodypart_overlay_cache()
+	bodypart_overlay_cache_key = null
+	cached_bodypart_overlays = null
 
 /// Proc to customize the base icon of the organ.
 /obj/item/organ/proc/bodypart_icon(mutable_appearance/standing)
@@ -343,6 +381,7 @@
 		accessory_colors = colors
 	var/datum/sprite_accessory/accessory = SPRITE_ACCESSORY(accessory_type)
 	accessory_colors = accessory.validate_color_keys_for_owner(owner, colors)
+	invalidate_bodypart_overlay_cache()
 	update_accessory_colors()
 
 /obj/item/organ/proc/build_colors_for_accessory(list/source_key_list)
@@ -355,6 +394,7 @@
 	var/datum/sprite_accessory/accessory = SPRITE_ACCESSORY(accessory_type)
 	accessory_colors = accessory.get_default_colors(source_key_list)
 	accessory_colors = accessory.validate_color_keys_for_owner(owner, accessory_colors)
+	invalidate_bodypart_overlay_cache()
 	update_accessory_colors()
 
 /// Creates, imprints and returns an organ DNA datum.
@@ -371,6 +411,7 @@
 		organ_dna.accessory_colors = accessory_colors
 
 /obj/item/organ/proc/update_accessory_colors()
+	invalidate_bodypart_overlay_cache()
 	return
 
 //Looking for brains?

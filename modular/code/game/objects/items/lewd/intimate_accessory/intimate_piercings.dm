@@ -1389,7 +1389,7 @@
 	sellprice = 50
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Nose piercings — examine-only (no sprite overlay on mob).
+// Nose piercings — visible on mob via sprite accessory overlay.
 // ═══════════════════════════════════════════════════════════════════════════
 /obj/item/intimate_accessory/piercing/nose
 	name = "steel nose piercing"
@@ -1400,6 +1400,7 @@
 	item_gem_state = "nose_pierce_item_gem"
 	piercing_region_name = "nose"
 	intimate_slot = INTIMATE_SLOT_NOSE
+	sprite_acc = /datum/sprite_accessory/intimate_overlays/piercing_nose
 
 /obj/item/intimate_accessory/piercing/nose/Initialize()
 	. = ..()
@@ -1455,7 +1456,7 @@
 	sellprice = 150
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Belly button piercings — examine-only (no sprite overlay on mob).
+// Belly button piercings — visible on mob via sprite accessory overlay.
 // ═══════════════════════════════════════════════════════════════════════════
 /obj/item/intimate_accessory/piercing/belly
 	name = "steel belly button piercing"
@@ -1466,6 +1467,7 @@
 	item_gem_state = "belly_pierce_item_gem"
 	piercing_region_name = "belly button"
 	intimate_slot = INTIMATE_SLOT_BELLY
+	sprite_acc = /datum/sprite_accessory/intimate_overlays/piercing_belly
 
 /obj/item/intimate_accessory/piercing/belly/Initialize()
 	. = ..()

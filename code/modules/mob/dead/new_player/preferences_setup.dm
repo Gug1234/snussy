@@ -74,13 +74,13 @@
 
 	// Apply arousal preview state to the mannequin's penis organ so players can
 	// verify genital sprite alignment at different erection levels from the lobby.
+	// v2 editor note: the taur genital editor no longer mirrors its active arousal
+	// tab to the lobby mannequin live -- its preview is self-contained and the
+	// mannequin only reflects the baseline `preview_erect_state` set by the
+	// character-preview controls.
 	var/obj/item/organ/penis/preview_penis = mannequin.getorganslot(ORGAN_SLOT_PENIS)
 	if(preview_penis)
-		var/datum/taur_genital_offset_editor/taur_editor = parent?.taur_genital_editor_instance
-		if(taur_editor?.active_part == "penis")
-			preview_penis.erect_state = taur_editor.active_erect_state
-		else
-			preview_penis.erect_state = preview_erect_state
+		preview_penis.erect_state = preview_erect_state
 
 	mannequin.regenerate_clothes()
 	mannequin.update_body()
@@ -89,6 +89,10 @@
 	// (chastity devices, intimate accessories, etc.) are included in the snapshot.
 	mannequin.update_body_parts(redraw = TRUE)
 	mannequin.rebuild_obscured_flags()
+#ifdef APPEARANCE_PREVIEW_LEGACY_FLATTEN
+	// Legacy flatten path: builds 4× mutable_appearance snapshots by setDir-
+	// then-snapshot, and pushes them into show_character_previews. Retained
+	// behind the flag for one build cycle so a flag-revert restores it.
 	// Build per-direction snapshots so direction-dependent offsets (e.g. taur genital
 	// X-mirroring) are baked correctly for each cardinal facing.
 	var/list/dir_appearances = list()
@@ -99,6 +103,23 @@
 		dir_appearances["[D]"] = new /mutable_appearance(mannequin)
 	parent.show_character_previews(dir_appearances)
 	unset_busy_human_dummy(DUMMY_HUMAN_SLOT_PREFERENCES)
+#else
+	// Map_view observer path (Phase 1 default). We release the local
+	// mannequin immediately — the lobby HUD observes the prefs datum's
+	// character_preview_view.body instead (single-owner broadcast, F.2).
+	unset_busy_human_dummy(DUMMY_HUMAN_SLOT_PREFERENCES)
+	// Ensure the view exists and its dummy reflects the just-saved prefs.
+	// create_character_preview_view is idempotent and runs an initial
+	// update_body(), which emits COMSIG_PREFS_PREVIEW_UPDATED so any
+	// already-attached lobby HUD refreshes automatically.
+	var/atom/movable/screen/map_view/char_preview/view = character_preview_view
+	if(!view || QDELETED(view))
+		view = create_character_preview_view(parent)
+	else
+		view.update_body()
+	// Attach (or refresh) the passive 4-cardinal observer on the lobby HUD.
+	parent.show_character_previews_from_view(src)
+#endif
 
 
 /datum/preferences/proc/spec_check(mob/user)

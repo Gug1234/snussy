@@ -1082,3 +1082,7 @@
 #undef INTIMATE_EDITOR_JELLY_PATH
 #undef INTIMATE_EDITOR_PRESETS_PATH
 #undef INTIMATE_REACTION_BANK_IDS
+
+/datum/intimate_reaction_editor/ui_close(mob/user)
+	user?.client?.prefs_resume_after_singleton()
+	return ..()

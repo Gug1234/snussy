@@ -121,12 +121,16 @@ export default defineConfig({
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
     alias: {
+      '@common': path.resolve(dirname, './packages/tgui/common'),
       tgui: path.resolve(dirname, './packages/tgui'),
       'tgui-panel': path.resolve(dirname, './packages/tgui-panel'),
       'tgui-say': path.resolve(dirname, './packages/tgui-say'),
       'tgui-dev-server': path.resolve(dirname, './packages/tgui-dev-server'),
-      'roguefont/languages': path.resolve(dirname, "../interface/fonts/languages"),
-      'roguefont': path.resolve(dirname, "../interface/fonts"),
+      'roguefont/languages': path.resolve(
+        dirname,
+        '../interface/fonts/languages',
+      ),
+      roguefont: path.resolve(dirname, '../interface/fonts'),
     },
   },
   stats: createStats(true),

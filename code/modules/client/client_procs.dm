@@ -1066,6 +1066,15 @@ GLOBAL_LIST_EMPTY(external_rsc_urls)
 		if (CONFIG_GET(flag/asset_simple_preload))
 			addtimer(CALLBACK(SSassets.transport, TYPE_PROC_REF(/datum/asset_transport, send_assets_slow), src, SSassets.transport.preload), 5 SECONDS)
 
+		// Step 6: flush the prefs TGUI asset bundle once per login. Fast-outs
+		// when no category module has registered children yet. Piggybacks this
+		// spawn(10) so we inherit the existing deferred-send safety window.
+		queue_prefs_bundle_for(src)
+
+		// Step 16: arm the fancy-chat-fail listener so a panel init timeout
+		// flips /client.ui_html_fallback for the rest of this session.
+		register_fancy_chat_fallback_listener()
+
 		// #if (PRELOAD_RSC == 0)
 		// addtimer(CALLBACK(src, TYPE_PROC_REF(/client, preload_vox)), 1 MINUTES)
 		// #endif
@@ -1143,8 +1152,14 @@ GLOBAL_LIST_EMPTY(external_rsc_urls)
 		to_chat(src, announcement)
 
 /client/proc/show_character_previews(list/dir_appearances)
+#ifndef APPEARANCE_PREVIEW_LEGACY_FLATTEN
+	// Step 11: legacy flatten path retired behind the compile flag. The
+	// new lobby observer (`show_character_previews_from_view`) owns the
+	// 3x3 HUD attach. This stub keeps the symbol resolvable for any stray
+	// call site during the build-cycle soak; it is a no-op.
+	return
+#else
 	var/pos = 0
-	var/preview_scale = prefs?.get_lobby_preview_scale() || 1
 
 	var/atom/movable/screen/char_preview/background = LAZYACCESS(char_render_holders, "bg")
 	if(background)
@@ -1154,7 +1169,7 @@ GLOBAL_LIST_EMPTY(external_rsc_urls)
 	background = new()
 	LAZYSET(char_render_holders, "bg", background)
 	screen += background
-	background.screen_loc = "character_preview_map:0,0 to [4 * preview_scale - 1],[4 * preview_scale - 1]"
+	background.screen_loc = "character_preview_map:0,0 to 3,3"
 
 	// not cardinal anymore, makes taurs more clear
 	for(var/D in GLOB.cardinals)
@@ -1171,20 +1186,30 @@ GLOBAL_LIST_EMPTY(external_rsc_urls)
 		O.dir = D
 		switch(pos)
 			if(1)
-				O.screen_loc = "character_preview_map:[2 * preview_scale],[2 * preview_scale]"
+				O.screen_loc = "character_preview_map:2,2"
 			if(2)
-				O.screen_loc = "character_preview_map:[1 * preview_scale],[2 * preview_scale]"
+				O.screen_loc = "character_preview_map:1,2"
 			if(3)
-				O.screen_loc = "character_preview_map:[1 * preview_scale],[1 * preview_scale]"
+				O.screen_loc = "character_preview_map:1,1"
 			if(4)
-				O.screen_loc = "character_preview_map:[2 * preview_scale],[1 * preview_scale]"
+				O.screen_loc = "character_preview_map:2,1"
+#endif
 
 /client/proc/clear_character_previews()
+#ifndef APPEARANCE_PREVIEW_LEGACY_FLATTEN
+	// Step 11: new path uses `clear_character_previews_from_view()`,
+	// which unregisters the COMSIG_PREFS_PREVIEW_UPDATED signal before
+	// tearing down holders. We forward to it so `Topic("close")` still
+	// works end-to-end when the flag is undefined.
+	clear_character_previews_from_view()
+	return
+#else
 	for(var/atom/movable/screen/S in char_render_holders)
 //		var/atom/movable/screen/S = char_render_holders[index]
 		screen -= S
 		qdel(S)
 	char_render_holders = list()
+#endif
 
 /client/proc/fullscreen()
 	winset(src, "mainwindow", "statusbar=false")

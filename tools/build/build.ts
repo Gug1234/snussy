@@ -9,6 +9,9 @@
 import Bun from "bun";
 import fs from "node:fs";
 import Juke from "./juke/index.js";
+import { buildAppearancePreviews } from "./appearance_preview/build";
+import { materializeAppearancePreviews } from "./appearance_preview/materialize";
+import type { BuildResult } from "./appearance_preview/types";
 import { bun, bun_tgfont } from "./lib/bun";
 import { DreamDaemon, DreamMaker, NamedVersionFile } from "./lib/byond";
 import { downloadFile } from "./lib/download";
@@ -18,13 +21,23 @@ import { prependDefines } from "./lib/tgs";
 export const TGS_MODE = process.env.CBT_BUILD_MODE === "TGS";
 
 export const DME_NAME = "roguetown";
+const DYNAMIC_RSC_NAME = `${DME_NAME}.dyn.rsc`;
 
 Juke.chdir("../..", import.meta.url);
+
+function removeDynamicRsc(): void {
+  try {
+    fs.rmSync(DYNAMIC_RSC_NAME, { force: true });
+  } catch {
+    // Best-effort cleanup. A locked dynamic RSC means a DreamDaemon process is
+    // still using the build output and should be handled by the caller.
+  }
+}
 
 const dependencies: Record<string, any> = await Bun.file("dependencies.sh")
   .text()
   .then(formatDeps)
-  .catch((err) => {
+  .catch((err: unknown) => {
     Juke.logger.error(
       "Failed to read dependencies.sh, please ensure it exists and is formatted correctly.",
     );
@@ -109,6 +122,7 @@ export const DmTarget = new Juke.Target({
     return [`${DME_NAME}.dmb`, `${DME_NAME}.rsc`];
   },
   executes: async ({ get }) => {
+    removeDynamicRsc();
     await DreamMaker(`${DME_NAME}.dme`, {
       defines: ["CBT", ...get(DefineParameter)],
       warningsAsErrors: get(WarningParameter).includes("error"),
@@ -211,9 +225,105 @@ export const TguiTarget = new Juke.Target({
 });
 
 export const TguiEslintTarget = new Juke.Target({
-  parameters: [CiParameter],
-  dependsOn: [BunTarget],
-  executes: ({ get }) => bun("tgui:lint", !get(CiParameter) && "--fix"),
+	parameters: [CiParameter],
+	dependsOn: [BunTarget],
+	executes: ({ get }) => bun("tgui:lint", !get(CiParameter) && "--fix"),
+});
+
+export const AppearancePreviewAssetsTarget = new Juke.Target({
+	inputs: [
+		"modular*/code/datums/appearance_preview/**/*.dm",
+		"modular*/code/datums/custom_piercings/sticker_registry.dm",
+		"modular*/code/modules/mob/dead/**/body_markings/**/*.dm",
+		"modular*/code/modules/mob/dead/new_player/sprite_accessory/**/*.dm",
+		"modular*/code/modules/mob/living/carbon/human/species_types/**/*.dm",
+		"modular*/code/modules/surgery/bodyparts/taur.dm",
+		"code/modules/mob/dead/new_player/body_markings/**/*.dm",
+		"code/modules/mob/dead/new_player/sprite_accessory/**/*.dm",
+		"code/modules/mob/living/carbon/human/species_types/**/*.dm",
+		"code/modules/surgery/bodyparts/taur.dm",
+		"modular/icons/obj/lewd/intimate_overlays.dmi",
+		"modular/icons/obj/lewd/intimate_stickers.dmi",
+		"tools/build/appearance_preview/**/*.ts",
+		"tools/build/appearance_preview/config/adapters.json",
+		"tools/build/build.ts",
+	],
+	outputs: [
+		"tgui/public/appearance_preview/manifest.json",
+		"tgui/public/appearance_preview/iconforge_plan.json",
+	],
+	executes: async () => {
+		// Step 6: Invoke the RustG/iconforge-backed orchestrator in-process.
+		// No subprocess hop; `buildAppearancePreviews` never throws and always
+		// returns a `BuildResult`, so we translate failure -> Juke.ExitCode.
+		const result = await buildAppearancePreviews({
+			adapterConfig: "tools/build/appearance_preview/config/adapters.json",
+			publicRoot: "tgui/public/appearance_preview",
+			cacheDir: "tmp/appearance_preview_cache",
+			silent: true,
+		});
+		logAppearancePreviewSummary(result);
+		if (result.status !== "ok") {
+			if (result.error) {
+				Juke.logger.error(`Appearance preview build failed: ${result.error}`);
+			}
+			throw new Juke.ExitCode(1);
+		}
+	},
+});
+
+/**
+ * Remediation Step 6: headless materialize stage.
+ *
+ * Consumes `iconforge_plan.json` from the already-published appearance
+ * preview bundle and spawns `dreamdaemon` against a pre-built
+ * `roguetown.dmb` so RustG iconforge emits the sheet PNGs at build time
+ * rather than at world boot. The DM-side entry point lives in
+ * `code/controllers/subsystem/appearance_preview_materialize.dm`.
+ *
+ * Dependencies:
+ *   - `AppearancePreviewAssetsTarget` (plan + manifest must be published).
+ *   - `DmTarget` (the DMB the subprocess loads).
+ *
+ * Inputs/outputs are declared so Juke short-circuits the stage when the
+ * bundle + DMB are unchanged; the sheet PNG paths are derived from the
+ * plan by the DM-side proc at runtime and are covered transitively by the
+ * `manifest.json` + `iconforge_plan.json` input declaration.
+ *
+ * On failure, the stage throws `Juke.ExitCode(1)`; the previous live bundle
+ * (PNGs, manifest, plan) is unaffected because materialize writes PNGs in
+ * place — a failure leaves the bundle exactly as the assets target left it,
+ * which means the boot-time fallback flag can still recover a usable server.
+ */
+export const AppearancePreviewMaterializeTarget = new Juke.Target({
+	dependsOn: [AppearancePreviewAssetsTarget, DmTarget],
+	inputs: [
+		`${DME_NAME}.dmb`,
+		"tgui/public/appearance_preview/manifest.json",
+		"tgui/public/appearance_preview/iconforge_plan.json",
+	],
+	outputs: [
+		"tgui/public/appearance_preview/materialize_status.json",
+	],
+	executes: async () => {
+		const result = await materializeAppearancePreviews({
+			dmbPath: `${DME_NAME}.dmb`,
+			planDir: "tgui/public/appearance_preview",
+			outputDir: "tgui/public/appearance_preview",
+		});
+		if (!result.ok) {
+			Juke.logger.error(
+				`Appearance preview materialize failed at stage '${result.stage}': ${result.error}`,
+			);
+			if (result.diagnosticLog) {
+				Juke.logger.error(result.diagnosticLog);
+			}
+			throw new Juke.ExitCode(1);
+		}
+		Juke.logger.info(
+			`Appearance preview materialized ${result.sheetCount} sheet(s) in ${result.elapsedMs}ms`,
+		);
+	},
 });
 
 export const TguiPrettierTarget = new Juke.Target({
@@ -231,14 +341,50 @@ export const TguiTscTarget = new Juke.Target({
   executes: () => bun("tgui:tsc"),
 });
 
+export const TguiLintTarget = new Juke.Target({
+	dependsOn: [BunTarget, TguiPrettierTarget, TguiEslintTarget, TguiTscTarget],
+});
+
+type AppearancePreviewStageName = "scan" | "hash" | "pack" | "publish";
+
+const APPEARANCE_PREVIEW_STAGE_ORDER: AppearancePreviewStageName[] = [
+  "scan",
+  "hash",
+  "pack",
+  "publish",
+];
+
+function formatSeconds(seconds: number): string {
+  return `${seconds.toFixed(3)}s`;
+}
+
+function logAppearancePreviewSummary(result: BuildResult): void {
+  const { metrics } = result;
+  Juke.logger.info("Appearance preview build metrics:");
+  Juke.logger.info(`  status: ${result.status}`);
+  Juke.logger.info(`  backend: ${result.backend} (manifest v${result.manifestVersion})`);
+  Juke.logger.info(`  total: ${formatSeconds(metrics.totalSeconds)}`);
+  for (const stageName of APPEARANCE_PREVIEW_STAGE_ORDER) {
+    Juke.logger.info(
+      `  ${stageName}: ${formatSeconds(metrics.stageSeconds[stageName] ?? 0)}`,
+    );
+  }
+  Juke.logger.info(`  cache hits: ${metrics.cacheHits}`);
+  Juke.logger.info(`  cache misses: ${metrics.cacheMisses}`);
+  Juke.logger.info(
+    `  cache hit rate: ${(metrics.cacheHitRate * 100).toFixed(1)}%`,
+  );
+  Juke.logger.info(`  sheets: ${metrics.sheetCount}`);
+  Juke.logger.info(`  states: ${metrics.stateCount}`);
+  if (result.manifestPath) {
+    Juke.logger.info(`  manifest: ${result.manifestPath}`);
+  }
+}
+
 export const TguiTestTarget = new Juke.Target({
   parameters: [CiParameter],
   dependsOn: [BunTarget],
   executes: () => bun("tgui:test"),
-});
-
-export const TguiLintTarget = new Juke.Target({
-  dependsOn: [BunTarget, TguiPrettierTarget, TguiEslintTarget, TguiTscTarget],
 });
 
 export const TguiDevTarget = new Juke.Target({
@@ -265,7 +411,7 @@ export const LintTarget = new Juke.Target({
 });
 
 export const BuildTarget = new Juke.Target({
-  dependsOn: [TguiTarget, DmTarget],
+  dependsOn: [AppearancePreviewAssetsTarget, AppearancePreviewMaterializeTarget, TguiTarget, DmTarget],
 });
 
 export const ServerTarget = new Juke.Target({
@@ -277,6 +423,7 @@ export const ServerTarget = new Juke.Target({
       dmbFile: `${DME_NAME}.dmb`,
       namedDmVersion: get(DmVersionParameter),
     };
+    removeDynamicRsc();
     await DreamDaemon(options, port, "-trusted");
   },
 });
@@ -287,6 +434,7 @@ export const AllTarget = new Juke.Target({
 
 export const TguiCleanTarget = new Juke.Target({
   executes: async () => {
+    Juke.rm("tgui/public/appearance_preview", { recursive: true });
     Juke.rm("tgui/public/.tmp", { recursive: true });
     Juke.rm("tgui/public/*.map");
     Juke.rm("tgui/public/*.{chunk,bundle,hot-update}.*");

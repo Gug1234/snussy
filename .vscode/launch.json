@@ -1,6 +1,15 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
+		{
+			"type": "node-terminal",
+			"request": "launch",
+			"name": "DreamDaemon (unit tests, raw)",
+			"preLaunchTask": "Build All (unit tests)",
+			"command": "& 'C:\\Program Files (x86)\\BYOND\\bin\\dreamdaemon.exe' roguetown.dmb 0 -trusted -params \"test-run=1\"",
+			"cwd": "${workspaceFolder}"
+		},
 		{
 			"type": "byond",
 			"request": "launch",

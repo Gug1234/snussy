@@ -29,6 +29,26 @@ type Props = PropsWithChildren<{
   onZoom?: (zoom: number) => void;
 }>;
 
+type NanoMapBackendData = {
+  map_levels: number[];
+};
+
+type NanoMapBackendConfig = {
+  mapInfo: {
+    maxx: number;
+    maxy: number;
+  };
+  mapZLevel: number | string;
+};
+
+function useNanoMapBackend() {
+  const backend = useBackend<NanoMapBackendData>();
+  return {
+    ...backend,
+    config: backend.config as typeof backend.config & NanoMapBackendConfig,
+  };
+}
+
 type State = {
   offsetX: number;
   offsetY: number;
@@ -59,7 +79,7 @@ export class NanoMap extends Component<Props, State> {
   }
 
   getWxH = (zoom: number) => {
-    const { config } = useBackend();
+    const { config } = useNanoMapBackend();
     return [config.mapInfo.maxx * 2 * zoom, config.mapInfo.maxy * 2 * zoom];
   };
 
@@ -186,7 +206,7 @@ export class NanoMap extends Component<Props, State> {
   }
 
   render() {
-    const { config } = useBackend();
+    const { config } = useNanoMapBackend();
     const { dragging, offsetX, offsetY, zoom = 1 } = this.state;
     const { children } = this.props;
 
@@ -264,28 +284,24 @@ const NanoMapMarker = (props: NanoMapMarkerProps) => {
 
 NanoMap.Marker = NanoMapMarker;
 
-type Data = {
-  map_levels: number[];
-};
-
 type NanoMapZoomerProps = {
   zoom: number;
   onZoom: (e: Event, v: number) => void;
 };
 
 const NanoMapZoomer = (props: NanoMapZoomerProps) => {
-  const { act, config, data } = useBackend<Data>();
+  const { act, config, data } = useNanoMapBackend();
   return (
     <Box className="NanoMap__zoomer">
       <LabeledList>
         <LabeledList.Item label="Zoom">
           <Slider
-            tickWhileDragging
             minValue={1}
             maxValue={8}
             stepPixelSize={10}
             format={(v) => `${v}x`}
             value={props.zoom}
+            onDrag={(e, v) => props.onZoom(e, v)}
             onChange={(e, v) => props.onZoom(e, v)}
           />
         </LabeledList.Item>

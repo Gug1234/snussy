@@ -21,6 +21,7 @@
 @include meta.load-css('./themes/azure_lane.scss');
 @include meta.load-css('./themes/azure_purple.scss');
 @include meta.load-css('./themes/trey_liam.scss');
+@include meta.load-css('./themes/ratwood_prefs.scss');
 
 // Interfaces
 @include meta.load-css('./interfaces/AlertModal.scss');
@@ -43,6 +44,7 @@
 @include meta.load-css('./interfaces/Orbit.scss');
 @include meta.load-css('./interfaces/Paper.scss');
 @include meta.load-css('./interfaces/PreferencesMenu.scss');
+@include meta.load-css('./interfaces/PreferencesMenuShell.scss');
 @include meta.load-css('./interfaces/RequestManager.scss');
 @include meta.load-css('./interfaces/Roulette.scss');
 @include meta.load-css('./interfaces/Safe.scss');
@@ -62,13 +64,13 @@
 
 // NT Theme
 .Layout__content {
-	background-image: url('tgui-core/assets/bg-nanotrasen.svg');
-	background-size: 70% 70%;
-	background-position: center;
-	background-repeat: no-repeat;
+  background-image: url('tgui-core/assets/bg-nanotrasen.svg');
+  background-size: 70% 70%;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 // A default, in case someone uses the vp() function outside of a <Window>
 :root {
-	--scaling-amount: 1;
+  --scaling-amount: 1;
 }
