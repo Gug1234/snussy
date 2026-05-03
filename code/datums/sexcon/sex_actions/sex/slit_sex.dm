@@ -44,13 +44,14 @@
 	apply_silver_intimate_contact("genital", user, target)
 	apply_silver_intimate_contact("genital", target, user)
 
-	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU))
-		user.sexcon.try_pelvis_crush(target)
+	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
+		if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+			user.sexcon.try_pelvis_crush(target)
 
 	user.sexcon.perform_sex_action(user, 2, 0, TRUE)
 	if(user.sexcon.check_active_ejaculation())
 		user.visible_message(span_love("[user] cums into [target]'s slit!"))
-		user.sexcon.cum_into(splashed_user = target)
+		user.sexcon.cum_into(splashed_user = target, orifice = SEX_PART_SLIT_SHEATH)
 		user.virginity = FALSE
 		if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.getorganslot(ORGAN_SLOT_VAGINA))
 			user.try_impregnate(target)
@@ -96,13 +97,14 @@
 	apply_silver_intimate_contact("genital", user, target)
 	apply_silver_intimate_contact("genital", target, user)
 
-	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU))
-		user.sexcon.try_pelvis_crush(target)
+	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
+		if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+			user.sexcon.try_pelvis_crush(target)
 
 	user.sexcon.perform_sex_action(user, 2, 0, TRUE)
 	if(user.sexcon.check_active_ejaculation())
 		user.visible_message(span_love("[user] cums into [target]'s slit!"))
-		user.sexcon.cum_into(splashed_user = target)
+		user.sexcon.cum_into(splashed_user = target, orifice = SEX_PART_SLIT_SHEATH)
 		user.virginity = FALSE
 		if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.getorganslot(ORGAN_SLOT_VAGINA))
 			user.try_impregnate(target)

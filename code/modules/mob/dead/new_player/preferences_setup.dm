@@ -89,24 +89,7 @@
 	// (chastity devices, intimate accessories, etc.) are included in the snapshot.
 	mannequin.update_body_parts(redraw = TRUE)
 	mannequin.rebuild_obscured_flags()
-#ifdef APPEARANCE_PREVIEW_LEGACY_FLATTEN
-	// Legacy flatten path: builds 4× mutable_appearance snapshots by setDir-
-	// then-snapshot, and pushes them into show_character_previews. Retained
-	// behind the flag for one build cycle so a flag-revert restores it.
-	// Build per-direction snapshots so direction-dependent offsets (e.g. taur genital
-	// X-mirroring) are baked correctly for each cardinal facing.
-	var/list/dir_appearances = list()
-	for(var/D in GLOB.cardinals)
-		mannequin.setDir(D)
-		mannequin.update_body_parts(redraw = TRUE)
-		COMPILE_OVERLAYS(mannequin)
-		dir_appearances["[D]"] = new /mutable_appearance(mannequin)
-	parent.show_character_previews(dir_appearances)
-	unset_busy_human_dummy(DUMMY_HUMAN_SLOT_PREFERENCES)
-#else
-	// Map_view observer path (Phase 1 default). We release the local
-	// mannequin immediately — the lobby HUD observes the prefs datum's
-	// character_preview_view.body instead (single-owner broadcast, F.2).
+	parent.show_character_previews(new /mutable_appearance(mannequin))
 	unset_busy_human_dummy(DUMMY_HUMAN_SLOT_PREFERENCES)
 	// Ensure the view exists and its dummy reflects the just-saved prefs.
 	// create_character_preview_view is idempotent and runs an initial

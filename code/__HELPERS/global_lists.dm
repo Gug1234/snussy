@@ -31,7 +31,9 @@
 
 	GLOB.emote_list = init_emote_list()
 
-	GLOB.crafting_recipes = init_subtypes(/datum/crafting_recipe, GLOB.crafting_recipes)
+	init_subtypes(/datum/crafting_recipe, GLOB.crafting_recipes)
+	for(var/datum/crafting_recipe/R as anything in GLOB.crafting_recipes)
+		R.build_display_cache()
 
 	GLOB.alch_grind_recipes = init_subtypes(/datum/alch_grind_recipe, GLOB.alch_grind_recipes)
 
