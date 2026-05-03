@@ -110,7 +110,7 @@
 	. = ..()
 	animate(src, alpha = 0, time = duration, easing = EASE_IN)
 */
-/mob/proc/playsound_local(atom/turf_source, soundin, vol as num, vary, frequency, falloff, channel, pressure_affected = TRUE, sound/S, repeat, muffled)
+/mob/proc/playsound_local(atom/turf_source, soundin, vol as num, vary, frequency, falloff, channel, pressure_affected = TRUE, sound/S, repeat, muffled, ignore_master = FALSE)
 	if(!client || !can_hear())
 		return FALSE
 
@@ -137,12 +137,7 @@
 			falloff = FALLOFF_SOUNDS * 1.5
 		vol *= 0.75
 
-	var/vol2use = vol
-	if(client.prefs)
-		vol2use = vol * (client.prefs.mastervol * 0.01)
-	vol2use = min(vol2use, 100)
-
-	S.volume = vol2use
+	S.volume = min(vol, 100)
 
 	var/area/A = get_area(get_turf(src))
 	if(A)
@@ -203,6 +198,19 @@
 
 		S.falloff = (falloff ? falloff : FALLOFF_SOUNDS)
 
+	var/vol2use = S.volume
+	if(client.prefs)
+		if(!ignore_master)
+			vol2use *= (client.prefs.mastervol * 0.01)
+		if(channel == CHANNEL_JUKEBOX || (channel >= CHANNEL_INSTRUMENT_MIN && channel <= CHANNEL_INSTRUMENT_MAX) || istype(repeat, /datum/looping_sound/musloop) || istype(repeat, /datum/looping_sound/dmusloop) || istype(repeat, /datum/looping_sound/instrument))
+			vol2use *= (client.prefs.instrumentvol * 0.01)
+	vol2use = min(vol2use, 100)
+
+	if(vol2use <= 0)
+		return FALSE
+
+	S.volume = vol2use
+
 	if(repeat && istype(repeat, /datum/looping_sound))
 		var/datum/looping_sound/D = repeat
 		var/datum/weakref/our_ref = WEAKREF(src)
@@ -241,6 +249,7 @@
 			M.playsound_local(M, null, volume, vary, frequency, falloff, channel, pressure_affected, S)
 
 /mob/proc/stop_sound_channel(chan)
+	SHOULD_NOT_SLEEP(TRUE)
 	SEND_SOUND(src, sound(null, repeat = 0, wait = 0, channel = chan))
 
 /mob/proc/set_sound_channel_volume(channel, volume)
@@ -312,7 +321,43 @@
 	else
 		mute_sound_channel(chan)
 
+/mob/proc/update_instrument_sounds_volume(vol)
+	if(!client)
+		return
+
+	var/new_volume = clamp(round(vol), 0, 100)
+	var/list/loop_sounds = list()
+	for(var/datum/looping_sound/loop in client.played_loops)
+		if(!istype(loop, /datum/looping_sound/instrument))
+			continue
+		var/list/loop_data = client.played_loops[loop]
+		var/sound/loop_sound = loop_data?["SOUND"]
+		if(loop_sound)
+			loop_sounds[REF(loop_sound)] = TRUE
+
+	// Looping instrument songs must be recomputed from distance falloff first,
+	// then instrument slider, so use the standard loop updater.
+	client.update_sounds()
+
+	for(var/sound/S in client.SoundQuery())
+		if(loop_sounds[REF(S)])
+			continue
+		if(!findtext("[S.file]", "instruments/"))
+			continue
+
+		if(new_volume)
+			S.volume = new_volume
+			S.status |= SOUND_UPDATE
+			S.status &= ~SOUND_MUTE
+		else
+			S.status |= SOUND_MUTE | SOUND_UPDATE
+
+		SEND_SOUND(src, S)
+		S.status &= ~SOUND_UPDATE
+
 /mob/proc/update_channel_volume(chan, vol)
+	if(!client)
+		return
 	if(vol)
 		for(var/sound/S in client.SoundQuery())
 			if(S.channel == chan)
@@ -321,6 +366,8 @@
 				S.status |= SOUND_UPDATE
 				SEND_SOUND(src, S)
 				S.status &= ~SOUND_UPDATE
+	else
+		mute_sound_channel(chan)
 
 /client/proc/playtitlemusic()
 	set waitfor = FALSE
