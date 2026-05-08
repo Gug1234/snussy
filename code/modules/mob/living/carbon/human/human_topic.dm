@@ -23,6 +23,19 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 		mob_examine_panel.ui_interact(usr)
 		return
 
+	if(href_list["task"] == "view_intimate")
+		if(!ismob(usr))
+			return
+		if(!observer_privilege && !usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
+			return
+		if(usr.client?.prefs && !usr.client.prefs.intimate_enabled)
+			to_chat(usr, span_warning("I have intimate accessories disabled."))
+			return
+		if(client?.prefs && (!client.prefs.intimate_enabled || !client.prefs.show_intimate_examine) && usr != src)
+			return
+		open_intimate_menu_for(usr)
+		return
+
 	if(href_list["task"] == "show_custom_item_info")
 		if(!observer_privilege && !usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
 			return
@@ -228,7 +241,15 @@ GLOBAL_VAR_INIT(year_integer, text2num(year)) // = 2013???
 				C.put_in_hands(legwear_socks)
 			legwear_socks = null
 	if(href_list["chastitything"])
+		if(!observer_privilege && !usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
+			return
 		modular_handle_chastitything(usr)
+		return
+
+	if(href_list["chastitytoything"])
+		if(!observer_privilege && !usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
+			return
+		modular_handle_chastity_toy_removal(usr)
 		return
 
 	if(href_list["pockets"] && usr.canUseTopic(src, BE_CLOSE, NO_DEXTERITY)) //TODO: Make it match (or intergrate it into) strippanel so you get 'item cannot fit here' warnings if mob_can_equip fails

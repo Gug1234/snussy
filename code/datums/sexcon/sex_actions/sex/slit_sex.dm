@@ -41,6 +41,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] knot-fucks [target]'s slit."))
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
 		if(istype(user.rmb_intent, /datum/rmb_intent/strong))
@@ -92,6 +94,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] double-knots [target]'s slit."))
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
 		if(istype(user.rmb_intent, /datum/rmb_intent/strong))

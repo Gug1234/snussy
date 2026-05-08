@@ -27,6 +27,8 @@
 		user.sexcon.oralcourse_noise(target)
 	else
 		user.sexcon.make_sucking_noise()
+	apply_silver_intimate_contact("mouth", user, target)
+	apply_silver_intimate_contact("mouth", target, user)
 
 	user.sexcon.perform_sex_action(user, 1, 2, TRUE)
 	user.sexcon.handle_passive_ejaculation()

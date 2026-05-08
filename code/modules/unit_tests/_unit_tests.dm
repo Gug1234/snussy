@@ -86,6 +86,8 @@
 
 // BEGIN_INCLUDE
 #include "anchored_mobs.dm"
+#include "chunked_export.dm"
+#include "colorblind_hud_palette.dm"
 #include "component_tests.dm"
 #include "create_and_destroy.dm"
 #include "focus_only_tests.dm"
@@ -95,6 +97,11 @@
 #include "species_whitelists.dm"
 #include "subsystem_init.dm"
 #include "timer_sanity.dm"
+#include "preferences_erp_menu.dm"
+#include "cursed_collar_preferences.dm"
+#include "intimate_invisibility_toys.dm"
+#include "intimate_accessory_examine.dm"
+#include "tongue_piercing_oral_bank.dm"
 #include "unit_test.dm"
 // END_INCLUDE
 #ifdef REFERENCE_TRACKING_DEBUG //Don't try and parse this file if ref tracking isn't turned on. IE: don't parse ref tracking please mr linter

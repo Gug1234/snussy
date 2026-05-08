@@ -46,18 +46,18 @@
 		lines += ext_lines
 	return lines
 
-/mob/living/carbon/human/proc/get_examine_item_name_with_custom_link(mob/user, obj/item/I)
+/mob/living/carbon/human/proc/get_examine_item_name_with_custom_link(mob/user, obj/item/I, display_name_override = null)
 	if(!I)
 		return ""
-	var/display_name = I.get_examine_string(user)
+	var/display_name = display_name_override || I.get_examine_string(user)
 	if(!I.has_customized_identity() && !I.always_show_examine_link)
 		return display_name
 	return "<a href='?src=[REF(src)];task=show_custom_item_info;item_ref=[REF(I)]'>[display_name]</a>"
 
-/mob/living/carbon/human/proc/get_examine_item_name_with_hover(mob/user, obj/item/I)
+/mob/living/carbon/human/proc/get_examine_item_name_with_hover(mob/user, obj/item/I, display_name_override = null)
 	if(!I)
 		return ""
-	var/display_name = get_examine_item_name_with_custom_link(user, I)
+	var/display_name = get_examine_item_name_with_custom_link(user, I, display_name_override)
 	if(!I.show_examine_hover_tooltip())
 		return display_name
 	var/self_examine = (src == user)
@@ -1130,6 +1130,10 @@
 	for(var/line in lines)
 		. += span_info(line)
 
+	var/list/intimate_jewelry_lines = human_modular_intimate_jewelry_examine_lines(user, observer_privilege)
+	for(var/line in intimate_jewelry_lines)
+		. += span_info(line)
+
 	// for underwears that don't cover from the rear, genital descriptions are still shown
 	if(get_location_accessible(src, BODY_ZONE_PRECISE_GROIN) && src.underwear)
 		//separate these conditions to not throw an error when no underwear is worn at all
@@ -1324,4 +1328,3 @@
 			gang_text = span_userdanger ("Blortz Volves scum! Enemy!")
 
 	return gang_text
-

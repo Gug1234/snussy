@@ -225,6 +225,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["ooccolor"]			>> ooccolor
 	S["lastchangelog"]		>> lastchangelog
 	S["UI_style"]			>> UI_style
+	S["hud_colorblind_palette"] >> hud_colorblind_palette
 	S["hotkeys"]			>> hotkeys
 	S["chat_on_map"]		>> chat_on_map
 	S["showrolls"]			>> showrolls
@@ -263,6 +264,15 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["chastity_hardmode"]	>> chastity_hardmode
 	S["extreme_erp"]		>> extreme_erp
 	S["edging"]				>> edging
+	S["cursed_enabled"]		>> cursed_enabled
+	S["intimate_enabled"]			>> intimate_enabled
+	S["show_intimate_examine"]		>> show_intimate_examine
+	S["intimate_visual_widgets"]		>> intimate_visual_widgets
+	S["intimate_reaction_enabled"]		>> intimate_reaction_enabled
+	S["intimate_reaction_show_chastity"]	>> intimate_reaction_show_chastity
+	S["intimate_reaction_show_extreme"]	>> intimate_reaction_show_extreme
+	S["intimate_reaction_show_accessory_free"]	>> intimate_reaction_show_accessory_free
+	S["intimate_reaction_share_with_partner"]	>> intimate_reaction_share_with_partner
 	S["shake"]				>> shake
 	S["mastervol"]			>> mastervol
 	S["lastclass"]			>> lastclass
@@ -312,11 +322,22 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	ooccolor		= sanitize_ooccolor(sanitize_hexcolor(ooccolor, 6, 1, initial(ooccolor)))
 	lastchangelog	= sanitize_text(lastchangelog, initial(lastchangelog))
 	UI_style		= sanitize_inlist(UI_style, GLOB.available_ui_styles, GLOB.available_ui_styles[1])
+	if(!is_hud_colorblind_palette(hud_colorblind_palette))
+		hud_colorblind_palette = initial(hud_colorblind_palette)
 	hotkeys			= sanitize_integer(hotkeys, 0, 1, initial(hotkeys))
 	chat_on_map		= sanitize_integer(chat_on_map, 0, 1, initial(chat_on_map))
 	showrolls		= sanitize_integer(showrolls, 0, 1, initial(showrolls))
 	chatheadshot	= sanitize_integer(chatheadshot, 0, 1, initial(chatheadshot))
 	chastity_hardmode = sanitize_integer(chastity_hardmode, CHASTITY_HARDMODE_DISABLED, CHASTITY_HARDMODE_ENABLED, initial(chastity_hardmode))
+	cursed_enabled = sanitize_integer(cursed_enabled, 0, 1, initial(cursed_enabled))
+	intimate_enabled = sanitize_integer(intimate_enabled, 0, 1, initial(intimate_enabled))
+	show_intimate_examine = sanitize_integer(show_intimate_examine, 0, 1, initial(show_intimate_examine))
+	intimate_visual_widgets = sanitize_integer(intimate_visual_widgets, 0, 1, initial(intimate_visual_widgets))
+	intimate_reaction_enabled = sanitize_integer(intimate_reaction_enabled, 0, 1, initial(intimate_reaction_enabled))
+	intimate_reaction_show_chastity = sanitize_integer(intimate_reaction_show_chastity, 0, 1, initial(intimate_reaction_show_chastity))
+	intimate_reaction_show_extreme = sanitize_integer(intimate_reaction_show_extreme, 0, 1, initial(intimate_reaction_show_extreme))
+	intimate_reaction_show_accessory_free = sanitize_integer(intimate_reaction_show_accessory_free, 0, 1, initial(intimate_reaction_show_accessory_free))
+	intimate_reaction_share_with_partner = sanitize_integer(intimate_reaction_share_with_partner, 0, 1, initial(intimate_reaction_share_with_partner))
 	max_chat_length = sanitize_integer(max_chat_length, 1, CHAT_MESSAGE_MAX_LENGTH, initial(max_chat_length))
 	see_chat_non_mob	= sanitize_integer(see_chat_non_mob, 0, 1, initial(see_chat_non_mob))
 	tgui_fancy		= sanitize_integer(tgui_fancy, 0, 1, initial(tgui_fancy))
@@ -402,12 +423,22 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["chastity_hardmode"], chastity_hardmode)
 	WRITE_FILE(S["extreme_erp"], extreme_erp)
 	WRITE_FILE(S["edging"], edging)
+	WRITE_FILE(S["cursed_enabled"], cursed_enabled)
+	WRITE_FILE(S["intimate_enabled"], intimate_enabled)
+	WRITE_FILE(S["show_intimate_examine"], show_intimate_examine)
+	WRITE_FILE(S["intimate_visual_widgets"], intimate_visual_widgets)
+	WRITE_FILE(S["intimate_reaction_enabled"], intimate_reaction_enabled)
+	WRITE_FILE(S["intimate_reaction_show_chastity"], intimate_reaction_show_chastity)
+	WRITE_FILE(S["intimate_reaction_show_extreme"], intimate_reaction_show_extreme)
+	WRITE_FILE(S["intimate_reaction_show_accessory_free"], intimate_reaction_show_accessory_free)
+	WRITE_FILE(S["intimate_reaction_share_with_partner"], intimate_reaction_share_with_partner)
 	WRITE_FILE(S["shake"], shake)
 	WRITE_FILE(S["lastclass"], lastclass)
 	WRITE_FILE(S["mastervol"], mastervol)
 	WRITE_FILE(S["ooccolor"], ooccolor)
 	WRITE_FILE(S["lastchangelog"], lastchangelog)
 	WRITE_FILE(S["UI_style"], UI_style)
+	WRITE_FILE(S["hud_colorblind_palette"], hud_colorblind_palette)
 	WRITE_FILE(S["hotkeys"], hotkeys)
 	WRITE_FILE(S["chat_on_map"], chat_on_map)
 	WRITE_FILE(S["showrolls"], showrolls)
@@ -866,6 +897,28 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	_load_height(S)
 	_load_familiar_prefs(S)
 	_load_gnoll_prefs(S)
+	S["pref_intimate_genital_piercing"] >> pref_intimate_genital_piercing
+	S["pref_intimate_genital_insertable"] >> pref_intimate_genital_insertable
+	S["pref_intimate_rear_piercing"] >> pref_intimate_rear_piercing
+	S["pref_intimate_rear_insertable"] >> pref_intimate_rear_insertable
+	S["pref_intimate_breast_piercing"] >> pref_intimate_breast_piercing
+	S["pref_intimate_breast_insertable"] >> pref_intimate_breast_insertable
+	S["pref_intimate_mouth_piercing"] >> pref_intimate_mouth_piercing
+	S["pref_intimate_mouth_insertable"] >> pref_intimate_mouth_insertable
+	S["pref_intimate_ear_piercing"] >> pref_intimate_ear_piercing
+	S["pref_intimate_nose_piercing"] >> pref_intimate_nose_piercing
+	S["pref_intimate_belly_piercing"] >> pref_intimate_belly_piercing
+	S["pref_chastity_enabled"] >> pref_chastity_enabled
+	S["pref_chastity_flat"] >> pref_chastity_flat
+	S["pref_chastity_anal"] >> pref_chastity_anal
+	S["pref_chastity_spiked"] >> pref_chastity_spiked
+	S["pref_chastity_locked"] >> pref_chastity_locked
+	S["pref_chastity_spawn_key"] >> pref_chastity_spawn_key
+	S["pref_chastity_key_stashes"] >> pref_chastity_key_stashes
+	S["pref_chastity_random_keys"] >> pref_chastity_random_keys
+	S["pref_cursed_roundstart_device"] >> pref_cursed_roundstart_device
+	S["pref_cursed_master_name"] >> pref_cursed_master_name
+	S["pref_cursed_self_master"] >> pref_cursed_self_master
 
 	var/patron_typepath
 	S["selected_patron"]	>> patron_typepath
@@ -1022,6 +1075,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	S["customizer_entries"] >> customizer_entries
 	validate_customizer_entries()
+	sanitize_intimate_accessory_preferences()
+	_load_erp_sidecars(slot)
 
 	return TRUE
 
@@ -1222,8 +1277,31 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["gnoll_descriptor_voice"] , gnoll_prefs?.descriptor_voice)
 	WRITE_FILE(S["gnoll_descriptor_muzzle"] , gnoll_prefs?.descriptor_muzzle)
 	WRITE_FILE(S["gnoll_descriptor_expression"] , gnoll_prefs?.descriptor_expression)
+	WRITE_FILE(S["pref_intimate_genital_piercing"], pref_intimate_genital_piercing)
+	WRITE_FILE(S["pref_intimate_genital_insertable"], pref_intimate_genital_insertable)
+	WRITE_FILE(S["pref_intimate_rear_piercing"], pref_intimate_rear_piercing)
+	WRITE_FILE(S["pref_intimate_rear_insertable"], pref_intimate_rear_insertable)
+	WRITE_FILE(S["pref_intimate_breast_piercing"], pref_intimate_breast_piercing)
+	WRITE_FILE(S["pref_intimate_breast_insertable"], pref_intimate_breast_insertable)
+	WRITE_FILE(S["pref_intimate_mouth_piercing"], pref_intimate_mouth_piercing)
+	WRITE_FILE(S["pref_intimate_mouth_insertable"], pref_intimate_mouth_insertable)
+	WRITE_FILE(S["pref_intimate_ear_piercing"], pref_intimate_ear_piercing)
+	WRITE_FILE(S["pref_intimate_nose_piercing"], pref_intimate_nose_piercing)
+	WRITE_FILE(S["pref_intimate_belly_piercing"], pref_intimate_belly_piercing)
+	WRITE_FILE(S["pref_chastity_enabled"], pref_chastity_enabled)
+	WRITE_FILE(S["pref_chastity_flat"], pref_chastity_flat)
+	WRITE_FILE(S["pref_chastity_anal"], pref_chastity_anal)
+	WRITE_FILE(S["pref_chastity_spiked"], pref_chastity_spiked)
+	WRITE_FILE(S["pref_chastity_locked"], pref_chastity_locked)
+	WRITE_FILE(S["pref_chastity_spawn_key"], pref_chastity_spawn_key)
+	WRITE_FILE(S["pref_chastity_key_stashes"], pref_chastity_key_stashes)
+	WRITE_FILE(S["pref_chastity_random_keys"], pref_chastity_random_keys)
+	WRITE_FILE(S["pref_cursed_roundstart_device"], pref_cursed_roundstart_device)
+	WRITE_FILE(S["pref_cursed_master_name"], pref_cursed_master_name)
+	WRITE_FILE(S["pref_cursed_self_master"], pref_cursed_self_master)
 
-	return TRUE
+	S = null
+	return _save_erp_sidecars(slot)
 
 
 #undef SAVEFILE_VERSION_MAX

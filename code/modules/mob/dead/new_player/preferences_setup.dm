@@ -71,6 +71,10 @@
 		preview_subclass.equipme(mannequin, dummy = TRUE)
 
 	mannequin.regenerate_clothes()
+	src.apply_intimate_preferences(mannequin)
+	src.apply_cursed_collar_preferences(mannequin)
+	if(!src.uses_cursed_roundstart_chastity())
+		src.apply_chastity_preferences(mannequin)
 	mannequin.update_body()
 	mannequin.update_hair()
 	mannequin.rebuild_obscured_flags()

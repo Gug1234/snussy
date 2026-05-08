@@ -579,6 +579,7 @@
 /mob/living/update_sneak_invis(reset = FALSE) //Why isn't this in mob/living/living_movements.dm? Why, I'm glad you asked!
 	if(!reset && world.time < mob_timers[MT_INVISIBILITY]) // Check if the mob is affected by the invisibility spell
 		rogue_sneaking = TRUE
+		update_intimate_invisibility_props()
 		return
 
 	if (stat == DEAD) // we're dead, so be visible if sneaking, and end it there. needed because DeadLife calls this constantly on every dead mob that exists
@@ -586,6 +587,7 @@
 			animate(src, alpha = initial(alpha), time = 25)
 			spawn(25) regenerate_icons()
 			rogue_sneaking = FALSE
+			update_intimate_invisibility_props()
 		return
 
 	var/turf/T = get_turf(src)
@@ -618,6 +620,7 @@
 			animate(src, alpha = initial(alpha), time =	used_time) //sneak skill makes you reveal slower but not as drastic as disappearing speed
 			spawn(used_time) regenerate_icons()
 			rogue_sneaking = FALSE
+			update_intimate_invisibility_props()
 			return
 
 	else //not currently sneaking, check if we can sneak

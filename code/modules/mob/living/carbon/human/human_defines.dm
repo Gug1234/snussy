@@ -115,6 +115,12 @@
 
 	var/marriedto
 
+	/// Per-human cooldown buckets for modular intimate reaction hooks.
+	var/list/intimate_reaction_last_fired = list()
+
+	/// Last intimate reaction category emitted by modular reaction hooks.
+	var/intimate_reaction_last_category = null
+
 	var/has_stubble = TRUE
 
 	var/original_name = null

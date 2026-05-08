@@ -84,6 +84,7 @@
 	new /mob/living/simple_animal/hostile/rogue/xylixdouble(T, user, clone_icon, clone_duration)
 	animate(user, alpha = 0, time = 0 SECONDS, easing = EASE_IN)
 	user.mob_timers[MT_INVISIBILITY] = world.time + invis_time
+	user.update_intimate_invisibility_props()
 	addtimer(CALLBACK(user, TYPE_PROC_REF(/mob/living/carbon/human, update_sneak_invis), TRUE), invis_time)
 	addtimer(CALLBACK(user, TYPE_PROC_REF(/atom/movable, visible_message), span_warning("[user] fades back into view."), span_notice("You become visible again.")), invis_time)
 	return TRUE

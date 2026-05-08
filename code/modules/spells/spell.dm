@@ -478,6 +478,7 @@ GLOBAL_LIST_INIT(spells, typesof(/obj/effect/proc_holder/spell)) //needed for th
 	if(breaks_invisibility && user.mob_timers[MT_INVISIBILITY] > world.time)
 		user.mob_timers[MT_INVISIBILITY] = world.time
 		user.update_sneak_invis(reset = TRUE)
+		user.update_intimate_invisibility_props()
 	if(cast(targets, user = user))
 		invocation(user)
 		start_recharge()

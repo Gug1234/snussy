@@ -23,6 +23,7 @@ import { resumeRenderer, suspendRenderer } from './renderer';
 const logger = createLogger('backend');
 
 export let globalStore;
+let outgoingPayloadId = 0;
 
 export const setGlobalStore = (store) => {
   globalStore = store;
@@ -372,7 +373,7 @@ export const sendAct = (action: string, payload: object = {}) => {
   ).length;
   if (urlSize > 2048) {
     const chunks: string[] = stringifiedPayload.split(chunkSplitter);
-    const id = `${Date.now()}`;
+    const id = `${Date.now()}-${outgoingPayloadId++}`;
     globalStore?.dispatch(backendCreatePayloadQueue({ id, chunks }));
     Byond.sendMessage('oversizedPayloadRequest', {
       type: `act/${action}`,

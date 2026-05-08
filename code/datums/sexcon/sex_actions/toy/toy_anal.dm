@@ -9,6 +9,8 @@
 		return FALSE
 	if(!get_dildo_in_either_hand(user))
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, user))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/toy_anal/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -18,11 +20,13 @@
 		return FALSE
 	if(!get_dildo_in_either_hand(user))
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, user, TRUE))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/toy_anal/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/dildo/dildo = get_dildo_in_either_hand(user)
-	user.visible_message(span_warning("[user] starts shoves [dildo] in [user.p_their()] butt..."))
+	user.visible_message(span_warning("[user] shoves the [dildo] in [user.p_their()] butt..."))
 
 /datum/sex_action/toy_anal/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/obj/item/dildo/dildo = get_dildo_in_either_hand(user)

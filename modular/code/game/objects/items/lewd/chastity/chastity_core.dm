@@ -51,6 +51,7 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	var/chastity_cursed = FALSE // if the device works like a cursed collar
 	var/mob/living/carbon/human/chastity_victim = null // variable for anyone currently caged
 	var/datum/mind/chastity_master = null // varient of the collar master variable but for specifically cages
+	var/roundstart_self_master_binding = FALSE
 	/// Round-persistent counter for non-self ejaculation events received by the current cursed wearer.
 	var/received_cum_count = 0
 	var/obj/item/dildo/attached_toy = null // dildo mounted directly onto this chastity device

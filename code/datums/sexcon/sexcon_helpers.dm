@@ -150,7 +150,19 @@
 			volume_layer = 3
 	volume_layer *= speed // speed is always between 1-5 (SEX_SPEED_MIN-SEX_SPEED_MAX)
 	playsound(target, pick('sound/misc/mat/saliva (1).ogg','sound/misc/mat/saliva (2).ogg','sound/misc/mat/saliva (3).ogg'), volume_layer, TRUE, -2, ignore_walls = FALSE)
+	var/mob/living/carbon/human/acting_human = ishuman(user) ? user : null
+	var/mob/living/carbon/human/target_human = ishuman(target) ? target : null
+	var/mob/living/carbon/human/tongue_owner = null
+	var/obj/item/intimate_accessory/piercing/tongue/tongue_piercing = null
+	if(istype(acting_human?.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing/tongue))
+		tongue_owner = acting_human
+		tongue_piercing = acting_human.intimate_mouth_piercing
+	else if(istype(target_human?.intimate_mouth_piercing, /obj/item/intimate_accessory/piercing/tongue))
+		tongue_owner = target_human
+		tongue_piercing = target_human.intimate_mouth_piercing
 
+	tongue_piercing?.reaction_component?.try_handle_oralcourse_noise_flavor(tongue_owner, acting_human, src, force)
+				
 /datum/sex_controller/proc/chastitycourse_noise(mob/living/carbon/human/action_target) // for actions that involve moving a chastity device. Chance increases with force and speed.
 	modular_chastitycourse_noise(action_target)
 	return

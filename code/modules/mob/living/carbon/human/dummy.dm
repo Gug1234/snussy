@@ -18,6 +18,12 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 	return FALSE
 
 /mob/living/carbon/human/dummy/proc/wipe_state()
+	if(chastity_device)
+		var/obj/item/chastity/device = chastity_device
+		device.remove_chastity(src)
+		if(!QDELETED(device))
+			qdel(device)
+	remove_all_intimate_accessories(TRUE)
 	delete_equipment()
 	cut_overlays(TRUE)
 

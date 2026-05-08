@@ -67,6 +67,7 @@
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(handle_move))
 
 	owner.alpha = 10
+	owner.add_intimate_magic_invisibility_source(src)
 
 /datum/coven_power/obfuscate/cloak_of_shadows/deactivate()
 	. = ..()
@@ -74,6 +75,7 @@
 	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
 
 	owner.alpha = 255
+	owner.remove_intimate_magic_invisibility_source(src)
 
 /datum/coven_power/obfuscate/cloak_of_shadows/proc/handle_move(datum/source, atom/moving_thing, dir)
 	SIGNAL_HANDLER
@@ -102,6 +104,7 @@
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(handle_move))
 
 	owner.alpha = 10
+	owner.add_intimate_magic_invisibility_source(src)
 
 /datum/coven_power/obfuscate/unseen_presence/deactivate()
 	. = ..()
@@ -109,6 +112,7 @@
 	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
 
 	owner.alpha = 255
+	owner.remove_intimate_magic_invisibility_source(src)
 
 /datum/coven_power/obfuscate/unseen_presence/proc/handle_move(datum/source, atom/moving_thing, dir)
 	SIGNAL_HANDLER
@@ -138,6 +142,7 @@
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(handle_move))
 
 	owner.alpha = 10
+	owner.add_intimate_magic_invisibility_source(src)
 
 	// Memory wipe effect - make nearby people forget they saw you
 	for(var/mob/living/carbon/human/viewer in oviewers(7, owner))
@@ -151,6 +156,7 @@
 	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
 
 	owner.alpha = 255
+	owner.remove_intimate_magic_invisibility_source(src)
 
 /datum/coven_power/obfuscate/vanish_from_the_minds_eye/proc/handle_move(datum/source, atom/moving_thing, dir)
 	SIGNAL_HANDLER
@@ -186,6 +192,7 @@
 	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(handle_move))
 
 	owner.alpha = 10
+	owner.add_intimate_magic_invisibility_source(src)
 	cloaked_mobs = list(owner)
 
 	// Cloak nearby allies
@@ -193,6 +200,7 @@
 		if(target.client && target.stat < UNCONSCIOUS)
 			// Add faction/ally checks here as appropriate
 			target.alpha = 10
+			target.add_intimate_magic_invisibility_source(src)
 			cloaked_mobs += target
 			to_chat(target, span_notice("You feel a supernatural veil fall over you..."))
 			RegisterSignal(target, aggressive_signals, PROC_REF(on_ally_combat_signal), override = TRUE)
@@ -207,6 +215,7 @@
 	// Restore visibility to all cloaked mobs
 	for(var/mob/living/target in cloaked_mobs)
 		target.alpha = 255
+		target.remove_intimate_magic_invisibility_source(src)
 		UnregisterSignal(target, aggressive_signals)
 		if(target != owner)
 			to_chat(target, span_warning("The supernatural veil fades away..."))
@@ -230,6 +239,7 @@
 
 	// Remove this ally from the cloak
 	ally.alpha = 255
+	ally.remove_intimate_magic_invisibility_source(src)
 	UnregisterSignal(ally, aggressive_signals)
 	cloaked_mobs -= ally
 

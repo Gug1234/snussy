@@ -1,0 +1,124 @@
+// ── Modular sexcon constants ─────────────────────────────────────────────────
+// Defines shared between the sex flavor editor, intimate reaction editor,
+// and their corresponding preference storage/validation procs.
+// Placed in code\__DEFINES\roguetown\ so Dream Maker's alphabetical sorting
+// ensures they are included early, before any files that reference them.
+
+/// Maximum number of custom flavor strings allowed per action per phase.
+#define SEX_FLAVOR_MAX_STRINGS 10
+/// Maximum character length of any single custom flavor string.
+#define SEX_FLAVOR_MAX_LENGTH  280
+/// Ordered list of valid phase keys used by both the editor and the validator.
+#define SEX_FLAVOR_PHASES      list("on_start", "on_perform", "on_finish")
+/// Maximum number of custom sex action slots a player can define.
+#define MAX_CUSTOM_SEX_ACTIONS 5
+
+/// Shared chunked import/export envelope version for ERP preference payloads.
+#define ERP_EXPORT_CONTRACT_VERSION 1
+/// Default maximum text length per exported chunk before base64 wrapping.
+#define ERP_EXPORT_DEFAULT_CHUNK_SIZE 12000
+/// Hard cap for reassembled chunked import payloads.
+#define ERP_EXPORT_MAX_PAYLOAD_LENGTH 524288
+/// The pasted chunk-envelope text includes base64 JSON wrappers around payload chunks.
+#define ERP_EXPORT_MAX_IMPORT_TEXT_LENGTH (ERP_EXPORT_MAX_PAYLOAD_LENGTH * 2)
+/// Defensive cap for self-contained TGUI import transfers.
+#define ERP_EXPORT_MAX_IMPORT_TRANSFER_CHUNKS 1024
+
+/// Chunked export data kind for complete character-slot exports.
+#define ERP_EXPORT_KIND_CHARACTER_SLOT "character_slot"
+/// Chunked export data kind for the custom sex menu editor.
+#define ERP_EXPORT_KIND_SEX_MENU "sex_menu"
+/// Chunked export data kind for the intimate reaction editor.
+#define ERP_EXPORT_KIND_REACTIONS "intimate_reactions"
+
+/// Maximum number of custom intimate reaction strings allowed per category.
+#define INTIMATE_REACTION_MAX_STRINGS 10
+/// Maximum character length of any single custom intimate reaction string.
+#define INTIMATE_REACTION_MAX_LENGTH  750
+
+// ── Intimate Reaction Arousal Tiers ─────────────────────────────────────────
+// String constants identifying each arousal/state tier. Used as category key
+// prefixes in preference storage (e.g., "lusty_sex_received") and for runtime
+// tier routing in the character_flavor component.
+
+#define INTIMATE_TIER_NEUTRAL     "neutral"
+#define INTIMATE_TIER_LUSTY       "lusty"
+#define INTIMATE_TIER_BUILDING    "building"
+#define INTIMATE_TIER_OVERWHELMED "overwhelmed"
+#define INTIMATE_TIER_AFTERGLOW   "afterglow"
+#define INTIMATE_TIER_WITHDRAWAL  "withdrawal"
+#define INTIMATE_TIER_ROUGHUSE    "roughuse"
+#define INTIMATE_TIER_BROKEN      "broken"
+
+/// All tiers in display/priority order (highest → lowest).
+#define INTIMATE_TIER_LIST list( \
+	INTIMATE_TIER_BROKEN, \
+	INTIMATE_TIER_ROUGHUSE, \
+	INTIMATE_TIER_OVERWHELMED, \
+	INTIMATE_TIER_BUILDING, \
+	INTIMATE_TIER_LUSTY, \
+	INTIMATE_TIER_NEUTRAL, \
+	INTIMATE_TIER_AFTERGLOW, \
+	INTIMATE_TIER_WITHDRAWAL \
+)
+
+/// Fallback chains per tier — when the current tier has no strings, try these in order.
+/// Key = starting tier, Value = ordered list of fallback tiers to try.
+#define INTIMATE_TIER_FALLBACK list( \
+	INTIMATE_TIER_BROKEN      = list(INTIMATE_TIER_ROUGHUSE, INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_BUILDING, INTIMATE_TIER_LUSTY, INTIMATE_TIER_NEUTRAL), \
+	INTIMATE_TIER_ROUGHUSE    = list(INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_BUILDING, INTIMATE_TIER_LUSTY, INTIMATE_TIER_NEUTRAL), \
+	INTIMATE_TIER_OVERWHELMED = list(INTIMATE_TIER_BUILDING, INTIMATE_TIER_LUSTY, INTIMATE_TIER_NEUTRAL), \
+	INTIMATE_TIER_BUILDING    = list(INTIMATE_TIER_LUSTY, INTIMATE_TIER_NEUTRAL), \
+	INTIMATE_TIER_LUSTY       = list(INTIMATE_TIER_NEUTRAL), \
+	INTIMATE_TIER_NEUTRAL     = list(), \
+	INTIMATE_TIER_AFTERGLOW   = list(INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_BUILDING, INTIMATE_TIER_LUSTY, INTIMATE_TIER_NEUTRAL), \
+	INTIMATE_TIER_WITHDRAWAL  = list(INTIMATE_TIER_LUSTY, INTIMATE_TIER_NEUTRAL) \
+)
+
+// ── Intimate Reaction Contexts ──────────────────────────────────────────────
+// The type of action/event that triggered the reaction.
+
+#define INTIMATE_CONTEXT_MOVEMENT           "movement"
+#define INTIMATE_CONTEXT_SEX_RECEIVED       "sex_received"
+#define INTIMATE_CONTEXT_ANAL_SEX_RECEIVED  "anal_sex_received"
+
+// ── Arousal Thresholds for Tier Routing ─────────────────────────────────────
+// These mirror the existing sexcon arousal constants but are named specifically
+// for tier routing clarity. Adjust these to tune when tiers kick in.
+
+/// Arousal >= this → lusty tier (matches AROUSAL_HARD_ON_THRESHOLD).
+#define INTIMATE_AROUSAL_LUSTY       20
+/// Arousal >= this → building tier.
+#define INTIMATE_AROUSAL_BUILDING    40
+/// Arousal >= this → overwhelmed tier (matches ACTIVE_EJAC_THRESHOLD).
+#define INTIMATE_AROUSAL_OVERWHELMED 100
+
+/// Force >= this → roughuse tier overrides arousal-based tier.
+#define INTIMATE_FORCE_ROUGHUSE SEX_FORCE_HIGH
+
+/// Duration of the afterglow trait after ejaculation (60 seconds).
+#define INTIMATE_AFTERGLOW_DURATION (60 SECONDS)
+/// Duration of the withdrawal trait after high arousal drops below building threshold (45 seconds).
+#define INTIMATE_WITHDRAWAL_DURATION (45 SECONDS)
+/// Arousal must have been at or above this level to trigger withdrawal on drop.
+#define INTIMATE_WITHDRAWAL_AROUSAL_PEAK 80
+
+/// Trait source used by temporary intimate reaction mood states.
+#define TRAIT_SOURCE_INTIMATE_REACTION "intimate_reaction"
+/// Temporary post-climax tier marker used by character-flavor routing.
+#define TRAIT_INTIMATE_AFTERGLOW "intimate_afterglow"
+/// Temporary high-arousal-drop tier marker used by character-flavor routing.
+#define TRAIT_INTIMATE_WITHDRAWAL "intimate_withdrawal"
+
+// ── Intimate Visible Message Content Flags ─────────────────────────────────
+// Bitflags passed to get_intimate_excluded_mobs() so viewer pref filtering
+// can be resolved in a single hearers pass per visible_message call.
+
+/// Message relates to chastity devices (jingles, arousal, denial, pain).
+#define INTIMATE_CONTENT_CHASTITY (1<<0)
+/// Message contains extreme/spike/pain content.
+#define INTIMATE_CONTENT_EXTREME  (1<<1)
+
+/// Legacy flat category list — kept for backward compatibility with old saves.
+/// New code should use tier-prefixed keys (e.g., "neutral_movement").
+#define INTIMATE_REACTION_CATEGORIES  list("movement", "sex_received")

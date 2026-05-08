@@ -32,3 +32,13 @@
 	timer = 10 MINUTES
 	stressadd = -5
 	desc = "<span class='green'>Pain makes it better.</span>"
+
+/datum/stressevent/beriddleed_plug
+	timer = INFINITY
+	stressadd = -1
+	desc = "<span class='green'>The riddle-set plug sharpens my thoughts.</span>"
+
+/datum/stressevent/abyssor_blue_pearled_plug
+	timer = INFINITY
+	stressadd = -1
+	desc = "<span class='green'>Abyssor's pearl feels calmly familiar.</span>"

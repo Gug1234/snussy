@@ -7,10 +7,14 @@
 /datum/sex_action/rimming/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, target))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/rimming/can_perform(mob/living/user, mob/living/target)
 	if(user == target)
+		return FALSE
+	if(anal_blocked_by_rear_plug(user, target, TRUE))
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
@@ -30,6 +34,8 @@
 	if(!do_subtle)
 		user.sexcon.oralcourse_noise(user)
 		user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("mouth", user, target)
+	apply_silver_intimate_contact("rear", target, user)
 
 	user.sexcon.perform_sex_action(target, 2, 0, TRUE)
 	user.sexcon.consume_oral_drips(target)

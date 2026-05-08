@@ -1,3 +1,20 @@
+/// Handles strip-panel removal of an attached toy from a worn chastity device.
+/// The toy is mounted externally, so it can be detached regardless of lock state.
+/mob/living/carbon/human/proc/modular_handle_chastity_toy_removal(mob/user)
+	if(!user)
+		return TRUE
+	if(!chastity_device?.attached_toy)
+		return TRUE
+	if(!get_location_accessible(src, BODY_ZONE_PRECISE_GROIN, grabs = FALSE, skipundies = TRUE))
+		to_chat(user, span_warning("I can't reach that! Something is covering it."))
+		return TRUE
+	user.visible_message(span_warning("[user] starts removing the [chastity_device.attached_toy.name] from [src]'s [chastity_device.name]."), span_warning("I start removing the [chastity_device.attached_toy.name] from [src]'s [chastity_device.name]..."))
+	if(do_after(user, 30, needhand = 1, target = src))
+		if(!chastity_device?.attached_toy)
+			return TRUE
+		chastity_device.detach_toy(user)
+	return TRUE
+
 /mob/living/carbon/human/proc/modular_handle_chastitything(mob/user)
 	if(!user)
 		return TRUE
@@ -27,6 +44,13 @@
 	if(!user)
 		return TRUE
 
+	if(!get_location_accessible(src, BODY_ZONE_PRECISE_GROIN, skipundies = TRUE))
+		return TRUE
+
+	if(chastity_device?.attached_toy)
+		modular_handle_chastity_toy_removal(user)
+		return TRUE
+
 	if(chastity_device && chastity_device.locked)
 		var/has_hammer = FALSE
 		var/has_chisel = FALSE
@@ -47,7 +71,7 @@
 			src.visible_message(span_notice("[user] begins to take off [src]'s [chastity_device]..."))
 		if(do_after(user, 30, needhand = 1, target = src))
 			var/obj/item/chastity/device = chastity_device
-			if(device)
+			if(device && !device.locked)
 				device.remove_chastity(src)
 				if(!user.put_in_hands(device))
 					device.forceMove(get_turf(src))
@@ -66,6 +90,8 @@
 	var/chastity_row = "<tr><td><BR><B>Chastity:</B> <A href='?src=[REF(src)];chastitything=1'>"
 	chastity_row += chastity_action
 	chastity_row += "</A></td></tr>"
+	if(chastity_device?.attached_toy)
+		chastity_row += "<tr><td><B>Chastity Toy:</B> <A href='?src=[REF(src)];chastitytoything=1'>Remove</A></td></tr>"
 	return chastity_row
 
 /mob/living/carbon/human/proc/modular_chastity_attached_toy_overlay()
@@ -114,4 +140,29 @@
 	if(device)
 		device.remove_chastity(human_mob)
 		device.forceMove(get_turf(human_mob))
-		human_mob.visible_message(span_notice("the divine hand of Eora slipped [device] free from [human_mob]'s loins!"))
+		human_mob.visible_message(span_notice("The divine hand of Eora slips [device] free from [human_mob]'s loins!"))
+
+/**
+ * Called when the player disables cursed-collar content from the options menu.
+ * Strips any currently worn cursed collar and/or cursed chastity device.
+ */
+/client/proc/modular_handle_cursed_toggle_disable()
+	if(!ishuman(mob))
+		return
+	var/mob/living/carbon/human/human_mob = mob
+
+	// Strip cursed chastity device
+	var/obj/item/chastity/device = human_mob.chastity_device
+	if(device?.chastity_cursed)
+		device.cleanup_cursed_binding(human_mob)
+		device.remove_chastity(human_mob)
+		device.forceMove(get_turf(human_mob))
+		human_mob.visible_message(span_notice("The divine hand of Eora dissolves the cursed bindings from [human_mob]'s loins!"))
+
+	// Strip cursed collar
+	var/obj/item/clothing/neck/roguetown/cursed_collar/collar = human_mob.get_item_by_slot(SLOT_NECK)
+	if(istype(collar))
+		REMOVE_TRAIT(collar, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+		SEND_SIGNAL(human_mob, COMSIG_CARBON_LOSE_COLLAR)
+		human_mob.dropItemToGround(collar, force = TRUE)
+		human_mob.visible_message(span_notice("The divine hand of Eora shatters the cursed collar from [human_mob]'s neck!"))

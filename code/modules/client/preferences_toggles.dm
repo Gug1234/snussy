@@ -29,6 +29,13 @@
 		usr.client.prefs.current_tab = 1
 		usr.client.prefs.ShowChoices(usr, 4)
 
+/// Reopens the normal character preference surface after a singleton editor closes.
+/client/proc/prefs_resume_after_singleton()
+	if(!prefs || !mob)
+		return
+	prefs.current_tab = 1
+	prefs.ShowChoices(mob, 4)
+
 /client/verb/toggle_options_menu()
 	set name = "Toggles"
 	set category = "Options"
@@ -84,6 +91,15 @@
 		list("id" = "grain", "label" = "Grain Effect", "enabled" = !!owner.prefs.grain, "desc" = "Overlay a subtle film grain effect."),
 		list("id" = "tgui_multiline", "label" = "TGUI Multiline", "enabled" = !!owner.mob?.tgui_multiline, "desc" = "Use multiline TGUI input where supported."),
 	)
+	var/list/graphics_selects = list(
+		list(
+			"id" = "hud_colorblind_palette",
+			"label" = "HUD Colorblind Palette",
+			"value" = owner.prefs.hud_colorblind_palette,
+			"desc" = "Swap the Rogue HUD and heat HUD icons to a higher-contrast colorblind palette.",
+			"options" = hud_colorblind_palette_options(),
+		),
+	)
 
 	var/list/character_entries = list(
 		list("id" = "masked_examine", "label" = "Masked Examine", "enabled" = !!owner.prefs.masked_examine, "desc" = "Allow your character info to be seen while masked."),
@@ -124,13 +140,22 @@
 		list("id" = "erp_panel", "label" = "Enable ERP Panel Interactions", "enabled" = !!owner.prefs.sexable, "desc" = "Allow others to use ERP panel interactions on you."),
 		list("id" = "chastity", "label" = "Enable Chastity Content", "enabled" = !!owner.prefs.chastenable, "desc" = "Show and allow chastity-related content."),
 		list("id" = "permanent_binding", "label" = "Enable Permanent Binding", "enabled" = (owner.prefs.chastity_hardmode == CHASTITY_HARDMODE_ENABLED), "desc" = "Enable irreversible key-only chastity lock behavior."),
+		list("id" = "cursed_content", "label" = "Enable Cursed Collar Content", "enabled" = !!owner.prefs.cursed_enabled, "desc" = "Allow cursed collar and cursed chastity binding content."),
 		list("id" = "extreme_erp", "label" = "Enable Extreme ERP Content", "enabled" = !!owner.prefs.extreme_erp, "desc" = "Allow extreme ERP content categories."),
 		list("id" = "edging", "label" = "Enable Edging Content", "enabled" = !!owner.prefs.edging, "desc" = "Allow edging-related ERP content."),
+		list("id" = "intimate_accessories", "label" = "Enable Intimate Accessories", "enabled" = !!owner.prefs.intimate_enabled, "desc" = "Allow base intimate accessories such as piercings, plugs, beads, and rods."),
+		list("id" = "intimate_examine", "label" = "Show Intimate Accessory Examine Link", "enabled" = !!owner.prefs.show_intimate_examine, "desc" = "Allow other opted-in players to inspect worn intimate accessories."),
+		list("id" = "intimate_visual_widgets", "label" = "Show Intimate Accessory Widgets", "enabled" = !!owner.prefs.intimate_visual_widgets, "desc" = "Show visual helper widgets for worn intimate accessories where supported."),
+		list("id" = "intimate_reactions", "label" = "Enable Intimate Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_enabled, "desc" = "Use custom intimate reaction strings during supported ERP interactions."),
+		list("id" = "intimate_reaction_chastity", "label" = "Chastity Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_show_chastity, "desc" = "Allow custom reaction text for chastity-related events."),
+		list("id" = "intimate_reaction_extreme", "label" = "Extreme Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_show_extreme, "desc" = "Allow custom reaction text for extreme ERP contexts."),
+		list("id" = "intimate_reaction_accessory_free", "label" = "Accessory-Free Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_show_accessory_free, "desc" = "Allow custom reaction text even when no intimate accessory is equipped."),
+		list("id" = "intimate_reaction_share_partner", "label" = "Share Partner Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_share_with_partner, "desc" = "Allow partner-facing custom reaction text where supported."),
 	)
 
 	data["categories"] = list(
 		list("name" = "Character", "entries" = character_entries),
-		list("name" = "Graphics", "entries" = graphics_entries),
+		list("name" = "Graphics", "entries" = graphics_entries, "selects" = graphics_selects),
 		list("name" = "Visuals", "entries" = visual_entries),
 		list("name" = "Gameplay", "entries" = gameplay_entries),
 		list("name" = "Audio", "entries" = audio_entries),
@@ -208,14 +233,49 @@
 				owner.toggle_Chastity()
 			if("permanent_binding")
 				owner.toggle_Chastity_Hardmode()
+			if("cursed_content")
+				owner.toggle_cursed_content()
 			if("extreme_erp")
 				owner.toggle_extreme_ERP()
 			if("edging")
 				owner.toggle_edging()
+			if("intimate_accessories")
+				owner.toggle_intimate_accessories()
+			if("intimate_examine")
+				owner.toggle_intimate_examine()
+			if("intimate_visual_widgets")
+				owner.toggle_intimate_visual_widgets()
+			if("intimate_reactions")
+				owner.toggle_intimate_reactions()
+			if("intimate_reaction_chastity")
+				owner.toggle_intimate_reaction_chastity()
+			if("intimate_reaction_extreme")
+				owner.toggle_intimate_reaction_extreme()
+			if("intimate_reaction_accessory_free")
+				owner.toggle_intimate_reaction_accessory_free()
+			if("intimate_reaction_share_partner")
+				owner.toggle_intimate_reaction_share_partner()
+		SStgui.update_uis(src)
+		return TRUE
+
+	if(action == "select")
+		var/select_id = params["id"]
+		switch(select_id)
+			if("hud_colorblind_palette")
+				if(!owner.prefs.set_hud_colorblind_palette(params["value"]))
+					return FALSE
+				owner.prefs.save_preferences()
+				owner.refresh_colorblind_hud_palette()
 		SStgui.update_uis(src)
 		return TRUE
 
 	return FALSE
+
+/client/proc/open_cursed_collar_lobby_menu()
+	if(!prefs)
+		return
+	var/datum/cursed_collar_lobby_menu/menu = new(prefs)
+	menu.ui_interact(mob)
 
 /client/verb/toggle_fullscreen()
 	set name = "ToggleFullscreen"
@@ -411,6 +471,21 @@
 				call(src, "modular_handle_extreme_erp_toggle_disable")()
 			to_chat(src, "Extreme ERP content disabled in the ERP panel.")
 
+/client/proc/toggle_cursed_content()
+	set category = "Options"
+	set name = "Toggle Cursed Collar Content"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.cursed_enabled = !prefs.cursed_enabled
+	prefs.save_preferences()
+	if(prefs.cursed_enabled)
+		to_chat(src, "Cursed collar content enabled.")
+	else
+		if(hascall(src, "modular_handle_cursed_toggle_disable"))
+			call(src, "modular_handle_cursed_toggle_disable")()
+		to_chat(src, "Cursed collar content disabled.")
+
 /client/verb/toggle_edging() // Toggles edging content in the ERP panel, for psydonites who clearly can't ENDURE.
 	set category = "Options"
 	set name = "Toggle Edging Content"
@@ -422,6 +497,86 @@
 			to_chat(src, "You ENDVRE through orgasms.")
 		else
 			to_chat(src, "You will no longer ENDVRE through orgasms.")
+
+/client/proc/toggle_intimate_accessories()
+	set name = "Toggle Intimate Accessories"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_enabled = !prefs.intimate_enabled
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_enabled ? "Intimate accessories enabled." : "Intimate accessories disabled.")
+
+/client/proc/toggle_intimate_examine()
+	set name = "Toggle Intimate Accessory Examine"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.show_intimate_examine = !prefs.show_intimate_examine
+	prefs.save_preferences()
+	to_chat(src, prefs.show_intimate_examine ? "Intimate accessory examine links enabled." : "Intimate accessory examine links disabled.")
+
+/client/proc/toggle_intimate_visual_widgets()
+	set name = "Toggle Intimate Accessory Widgets"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_visual_widgets = !prefs.intimate_visual_widgets
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_visual_widgets ? "Intimate accessory widgets enabled." : "Intimate accessory widgets disabled.")
+
+/client/proc/toggle_intimate_reactions()
+	set name = "Toggle Intimate Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_enabled = !prefs.intimate_reaction_enabled
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_enabled ? "Intimate reaction text enabled." : "Intimate reaction text disabled.")
+
+/client/proc/toggle_intimate_reaction_chastity()
+	set name = "Toggle Chastity Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_show_chastity = !prefs.intimate_reaction_show_chastity
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_show_chastity ? "Chastity reaction text enabled." : "Chastity reaction text disabled.")
+
+/client/proc/toggle_intimate_reaction_extreme()
+	set name = "Toggle Extreme Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_show_extreme = !prefs.intimate_reaction_show_extreme
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_show_extreme ? "Extreme reaction text enabled." : "Extreme reaction text disabled.")
+
+/client/proc/toggle_intimate_reaction_accessory_free()
+	set name = "Toggle Accessory-Free Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_show_accessory_free = !prefs.intimate_reaction_show_accessory_free
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_show_accessory_free ? "Accessory-free reaction text enabled." : "Accessory-free reaction text disabled.")
+
+/client/proc/toggle_intimate_reaction_share_partner()
+	set name = "Toggle Partner Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_share_with_partner = !prefs.intimate_reaction_share_with_partner
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_share_with_partner ? "Partner reaction text sharing enabled." : "Partner reaction text sharing disabled.")
 
 /client/verb/toggle_compliance_notifs() // The messages need to be on-by-default while this is in its early stages.
 	set category = "Options"

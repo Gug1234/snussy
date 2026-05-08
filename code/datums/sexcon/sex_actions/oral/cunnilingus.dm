@@ -34,6 +34,8 @@
 	if(!do_subtle)
 		user.sexcon.oralcourse_noise(target)
 		user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("mouth", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	user.sexcon.perform_sex_action(target, 2, 3, TRUE)
 	user.sexcon.consume_oral_drips(target)

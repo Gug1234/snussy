@@ -443,7 +443,10 @@ class ChatRenderer {
             );
           } else {
             // Fallback: just render the inner content without the component wrapper
-            reactRoot.render(<span dangerouslySetInnerHTML={oldHtml} />, childNode);
+            reactRoot.render(
+              <span dangerouslySetInnerHTML={oldHtml} />,
+              childNode,
+            );
           }
         }
 

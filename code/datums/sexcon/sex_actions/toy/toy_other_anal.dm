@@ -9,6 +9,8 @@
 		return FALSE
 	if(!pegging && !get_dildo_in_either_hand(user) || pegging && !get_dildo_on_belt(user))
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, target))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/toy_other_anal/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -17,6 +19,8 @@
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
 	if(!pegging && !get_dildo_in_either_hand(user) || pegging && !get_dildo_on_belt(user))
+		return FALSE
+	if(anal_blocked_by_rear_plug(user, target, TRUE))
 		return FALSE
 	return TRUE
 

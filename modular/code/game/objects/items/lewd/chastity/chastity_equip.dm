@@ -60,6 +60,13 @@
 		return
 	user.visible_message(span_notice("[user] tries to put the [src] on [H]..."))
 	if(chastity_cursed)
+		// Cursed content pref gate — the wearer must have opted in.
+		if(H.client?.prefs && !H.client.prefs.cursed_enabled)
+			to_chat(user, span_warning("Eora intervenes. They have cursed content disabled."))
+			return
+		if(user?.client?.prefs && !user.client.prefs.cursed_enabled)
+			to_chat(user, span_warning("I have cursed content disabled."))
+			return
 		if(H == user)
 			to_chat(user, span_warning("I cannot fasten a cursed chastity device on myself."))
 			return
@@ -236,26 +243,27 @@
 				var/obj/item/organ/vagina_organ = H.getorganslot(ORGAN_SLOT_VAGINA)
 				var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
 				var/turf/drop_turf = get_turf(H)
+				var/list/excluded = get_extreme_content_excluded_mobs(H)
 
 				if(penis_organ)
 					// 20% sub-chance: the slipping edge catches and tears the organ free entirely.
 					// Requires the wearer to have extreme ERP content enabled; without it the slip
 					// still causes a CBT wound but stops short of full avulsion.
 					if(prob(20) && H.client?.prefs?.extreme_erp)
-						H.visible_message(span_userdanger("As the lock finally gives, [user]'s chisel catches [H.p_their()] trapped prick on the way out — the edge tears through flesh and root, ripping it free alongside the falling device."))
+						H.visible_message(span_userdanger("As the lock finally gives, [user]'s chisel catches [H.p_their()] trapped prick on the way out — the edge tears through flesh and root, ripping it free alongside the falling device."), ignored_mobs = excluded)
 						playsound(drop_turf, pick('modular/sound/masomoans/agony/CBTScreamMale1.ogg', 'modular/sound/masomoans/agony/CBTScreamMale2.ogg'), 85, FALSE, 2)
 						H.add_splatter_floor(drop_turf)
 						penis_organ.Remove(H)
 						penis_organ.forceMove(drop_turf)
 					else if(chest && !chest.has_wound(/datum/wound/cbt))
 						// Slip causes crushing/tearing internal groin injury but no avulsion.
-						H.visible_message(span_userdanger("As the lock gives, [user]'s chisel bites into [H.p_their()] stones — the sudden jolt of metal twisting through [H.p_their()] groin as the device drops free."))
+						H.visible_message(span_userdanger("As the lock gives, [user]'s chisel bites into [H.p_their()] stones — the sudden jolt of metal twisting through [H.p_their()] groin as the device drops free."), ignored_mobs = excluded)
 						playsound(drop_turf, pick('modular/sound/masomoans/agony/CBTScreamMale1.ogg', 'modular/sound/masomoans/agony/CBTScreamMale2.ogg'), 85, FALSE, 2)
 						H.add_splatter_floor(drop_turf)
 						chest.add_wound(/datum/wound/cbt)
 				else if(vagina_organ && chest && !chest.has_wound(/datum/wound/cbt))
 					// Slip rakes across exposed softer anatomy; no organ removal but severe tearing.
-					H.visible_message(span_userdanger("As the lock gives, the chisel catches [H.p_their()] exposed slit — the device's sudden release dragging the edge through tender flesh and leaving a ragged wound."))
+					H.visible_message(span_userdanger("As the lock gives, the chisel catches [H.p_their()] exposed slit — the device's sudden release dragging the edge through tender flesh and leaving a ragged wound."), ignored_mobs = excluded)
 					playsound(drop_turf, pick('modular/sound/masomoans/agony/CBTScreamFemale1.ogg', 'modular/sound/masomoans/agony/CBTScreamFemale2.ogg'), 85, FALSE, 2)
 					H.add_splatter_floor(drop_turf)
 					chest.add_wound(/datum/wound/cbt)

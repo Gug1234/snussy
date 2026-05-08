@@ -162,6 +162,15 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		return chastity.chastity_master
 	return null
 
+/datum/component/collar_master/proc/control_item_allows_self_master_binding(obj/item/control_item)
+	if(istype(control_item, /obj/item/clothing/neck/roguetown/cursed_collar))
+		var/obj/item/clothing/neck/roguetown/cursed_collar/collar = control_item
+		return collar.roundstart_self_master_binding
+	if(istype(control_item, /obj/item/chastity))
+		var/obj/item/chastity/chastity = control_item
+		return chastity.roundstart_self_master_binding
+	return FALSE
+
 // Sends the correct control gain signal for the pet's active control item.
 /datum/component/collar_master/proc/send_pet_gain_signal(mob/living/carbon/human/pet, obj/item/control_item)
 	if(!pet || !control_item)
@@ -237,7 +246,7 @@ GLOBAL_LIST_EMPTY(collar_masters)
 
 	// Prevent self-control
 	var/mob/master_mob = master.current
-	if(pet == master_mob)
+	if(pet == master_mob && !control_item_allows_self_master_binding(control_item))
 		var/item_name = get_control_item_name(control_item)
 		to_chat(pet, span_warning("The [item_name] refuses to bind."))
 		pet.dropItemToGround(control_item, force = TRUE)

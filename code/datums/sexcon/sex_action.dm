@@ -45,6 +45,29 @@
 /datum/sex_action/proc/is_finished(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	return FALSE
 
+/// Returns the display name for the action, optionally player-specific.
+/// Override in custom action slots to pull the name from player preferences.
+/datum/sex_action/proc/get_display_name(mob/living/carbon/human/user)
+	return name
+
+/datum/sex_action/proc/get_runtime_category(mob/living/carbon/human/user)
+	return category
+
+/datum/sex_action/proc/get_runtime_stamina_cost(mob/living/carbon/human/user)
+	return stamina_cost
+
+/datum/sex_action/proc/should_suppress_default(mob/living/carbon/human/user, phase)
+	return FALSE
+
+/datum/sex_action/proc/modular_on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	return
+
+/datum/sex_action/proc/modular_on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	return
+
+/datum/sex_action/proc/modular_on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	return
+
 /datum/sex_action/proc/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	return TRUE
 
@@ -54,48 +77,70 @@
 	intimate_check_flags = SEX_ACTION_INTIMATE_CHECK_NONE
 
 /datum/sex_action/chastityplay/proc/get_chastity_device_name(mob/living/carbon/human/owner)
-	var/modular_result = modular_get_chastity_device_name(owner)
-	if(!isnull(modular_result))
-		return modular_result
-
+	if(owner?.chastity_device)
+		return owner.chastity_device.name
 	return "chastity device"
 
 // Shared guard for actions that must be performed on someone else.
 /datum/sex_action/chastityplay/proc/requires_other_target(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/modular_result = modular_requires_other_target(user, target)
-	if(!isnull(modular_result))
-		return modular_result
-
-	return FALSE
+	return !!(user && target && user != target)
 
 // Centralized cage presence check to keep action-gating logic consistent.
 /datum/sex_action/chastityplay/proc/target_has_cage(mob/living/carbon/human/target)
-	var/modular_result = modular_target_has_cage(target)
-	if(!isnull(modular_result))
-		return modular_result
-
-	return FALSE
+	return !!target?.sexcon?.has_chastity_cage()
 
 // Matches any front chastity lockout (cage or belt) for actions that work on either.
 /datum/sex_action/chastityplay/proc/target_has_front_chastity(mob/living/carbon/human/target)
-	var/modular_result = modular_target_has_front_chastity(target)
-	if(!isnull(modular_result))
-		return modular_result
-
-	return FALSE
+	return !!target?.sexcon?.has_chastity_cage()
 
 // Standard groin reach check used across chastityplay actions.
 /datum/sex_action/chastityplay/proc/can_reach_target_groin(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/modular_result = modular_can_reach_target_groin(user, target)
-	if(!isnull(modular_result))
-		return modular_result
-
-	return FALSE
+	if(!user || !target)
+		return FALSE
+	return check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE)
 
 // Unified sound helper: supports single sound or list input with optional chance gating.
 /datum/sex_action/chastityplay/proc/play_chastity_impact_sound(mob/living/carbon/human/target, sound_to_play, volume = 40, chance = 100, vary = TRUE, frequency = -1)
-	var/modular_result = modular_play_chastity_impact_sound(target, sound_to_play, volume, chance, vary, frequency)
-	if(!isnull(modular_result))
-		return modular_result
+	if(!target || !sound_to_play)
+		return FALSE
+	if(chance < 100 && !prob(chance))
+		return FALSE
+	var/selected_sound = islist(sound_to_play) ? pick(sound_to_play) : sound_to_play
+	playsound(target, selected_sound, volume, vary, frequency, ignore_walls = FALSE)
+	return TRUE
 
-	return FALSE
+/datum/sex_action/proc/get_rear_plug(mob/living/carbon/human/owner)
+	if(!owner)
+		return null
+	var/obj/item/intimate_accessory/rear/plug/rear_plug = owner.intimate_rear_insertable
+	if(!istype(rear_plug))
+		return null
+	return rear_plug
+
+/datum/sex_action/proc/get_breast_piercing(mob/living/carbon/human/owner)
+	if(!owner)
+		return null
+	var/obj/item/intimate_accessory/piercing/breast/breast_piercing = owner.intimate_breast_piercing
+	if(!istype(breast_piercing))
+		return null
+	return breast_piercing
+
+/datum/sex_action/proc/anal_blocked_by_rear_plug(mob/living/carbon/human/user, mob/living/carbon/human/owner, display_message = FALSE)
+	if(!get_rear_plug(owner))
+		return FALSE
+	if(display_message && user && owner)
+		if(user == owner)
+			to_chat(user, span_warning("My butt plug blocks access to my ass."))
+		else
+			to_chat(user, span_warning("[owner]'s butt plug blocks access to [owner.p_their()] ass."))
+	return TRUE
+
+/datum/sex_action/proc/can_target_other_rear_plug(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	if(!user || !target || user == target)
+		return FALSE
+	return !!get_rear_plug(target)
+
+/datum/sex_action/proc/can_access_other_rear_plug(mob/living/carbon/human/user, mob/living/carbon/human/target)
+	if(!can_target_other_rear_plug(user, target))
+		return FALSE
+	return check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE)

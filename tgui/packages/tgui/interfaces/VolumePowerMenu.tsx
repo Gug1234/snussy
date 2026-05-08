@@ -50,14 +50,7 @@ const VolumeRow = ({ label, value, id, description }: VolumeRowProps) => {
 
 export const VolumePowerMenu = () => {
   const { data } = useBackend<Data>();
-  const {
-    master,
-    music,
-    instruments,
-    combat,
-    ambience,
-    lobby,
-  } = data;
+  const { master, music, instruments, combat, ambience, lobby } = data;
 
   const masterValue = master ?? 100;
   const musicValue = music ?? 100;

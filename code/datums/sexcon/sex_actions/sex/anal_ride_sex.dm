@@ -12,6 +12,8 @@
 		return FALSE
 	if(!target.getorganslot(ORGAN_SLOT_PENIS))
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, user))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/anal_ride_sex/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -22,6 +24,8 @@
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
 	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+		return FALSE
+	if(anal_blocked_by_rear_plug(user, user, TRUE))
 		return FALSE
 	return TRUE
 
@@ -36,6 +40,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] knot-rides [target]."))
 	user.sexcon.intercourse_noise(user)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
 		if(istype(user.rmb_intent, /datum/rmb_intent/strong))

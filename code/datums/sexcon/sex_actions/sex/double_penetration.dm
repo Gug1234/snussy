@@ -14,6 +14,8 @@
 	var/obj/item/organ/penis/penis = user.getorganslot(ORGAN_SLOT_PENIS)
 	if(!penis || penis.penis_type != PENIS_TYPE_TAPERED_DOUBLE && penis.penis_type != PENIS_TYPE_TAPERED_DOUBLE_KNOTTED)
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, target))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/double_penetration_sex/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -30,6 +32,8 @@
 		return FALSE
 	if(!user.sexcon.can_use_penis())
 		return FALSE
+	if(anal_blocked_by_rear_plug(user, target, TRUE))
+		return FALSE
 	return TRUE
 
 /datum/sex_action/double_penetration_sex/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
@@ -43,6 +47,8 @@
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] knot-fucks [target]'s holes together."))
 	user.sexcon.intercourse_noise(target, TRUE)
 	user.sexcon.do_thrust_animate(target)
+	apply_silver_intimate_contact("genital", user, target)
+	apply_silver_intimate_contact("genital", target, user)
 
 	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
 		if(istype(user.rmb_intent, /datum/rmb_intent/strong))

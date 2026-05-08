@@ -277,3 +277,20 @@
 		return FALSE
 
 	return chastity.record_nonself_ejaculation(source, receiver)
+
+// ── Global Extreme-Content Viewer Filter ────────────────────────────────────
+// Builds a list of nearby mobs whose client prefs say they should NOT see
+// extreme ERP visible_messages. Used by bead consequences, manticore pear,
+// spiked cage catastrophes, chisel removal, etc.
+//
+// source — the atom broadcasting the message (usually the victim mob).
+// Returns a list suitable for passing to visible_message(ignored_mobs = ...).
+
+/proc/get_extreme_content_excluded_mobs(atom/source)
+	var/list/excluded = list()
+	for(var/mob/M in get_hearers_in_view(DEFAULT_MESSAGE_RANGE, source))
+		if(M == source || !M.client?.prefs)
+			continue
+		if(!M.client.prefs.extreme_erp)
+			excluded += M
+	return excluded

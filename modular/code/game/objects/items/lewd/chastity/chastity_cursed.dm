@@ -59,6 +59,11 @@
 			CM.remove_pet(H)
 		else if(H in CM.my_pets)
 			CM.cleanup_pet(H)
+		else
+			// Defensive: wearer wasn't in either tracked list (unusual state),
+			// but still may have stale signal handlers from a prior add_pet.
+			// Explicitly unregister to avoid leaking handlers into later life.
+			CM.cleanup_pet_signals(H)
 
 	REMOVE_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
 	return TRUE
@@ -251,6 +256,11 @@
 	var/state_name = get_cursed_front_state_name(H)
 
 	to_chat(H, span_notice(replacetext(pick_chastity_string("chastity_cursed_messages.json", "chastity_front_shift"), "%STATE%", state_name)))
+	// Atmospheric wearer reaction on major front state transitions (sealed <-> any-open)
+	if(old_mode == 0 && cursed_front_mode > 0)
+		to_chat(H, span_notice(pick_chastity_string("chastity_mode_messages.json", "chastity_front_open")))
+	else if(old_mode > 0 && cursed_front_mode == 0)
+		to_chat(H, span_warning(pick_chastity_string("chastity_mode_messages.json", "chastity_front_close")))
 	log_cursed_chastity_command(H, CHASTITY_LOG_FRONT, "mode=[cursed_front_mode] state=[state_name]")
 	return TRUE
 
@@ -286,6 +296,11 @@
 	var/state_name = get_cursed_front_state_name(H)
 
 	to_chat(H, span_notice(replacetext(pick_chastity_string("chastity_cursed_messages.json", "chastity_front_shift"), "%STATE%", state_name)))
+	// Atmospheric wearer reaction on major front state transitions (sealed <-> any-open)
+	if(old_mode == 0 && cursed_front_mode > 0)
+		to_chat(H, span_notice(pick_chastity_string("chastity_mode_messages.json", "chastity_front_open")))
+	else if(old_mode > 0 && cursed_front_mode == 0)
+		to_chat(H, span_warning(pick_chastity_string("chastity_mode_messages.json", "chastity_front_close")))
 	log_cursed_chastity_command(H, CHASTITY_LOG_FRONT, "mode=[cursed_front_mode] state=[state_name] changed=TRUE")
 	return TRUE
 
@@ -297,6 +312,8 @@
 	apply_cursed_state(H)
 	playsound(H, cursed_anal_open ? 'sound/items/uncork.ogg' : 'sound/misc/mat/pop.ogg', 50, TRUE)
 	to_chat(H, cursed_anal_open ? span_notice(pick_chastity_string("chastity_cursed_messages.json", "chastity_anal_open")) : span_warning(pick_chastity_string("chastity_cursed_messages.json", "chastity_anal_closed")))
+	// Atmospheric wearer reaction to rear shield state change
+	to_chat(H, cursed_anal_open ? span_notice(pick_chastity_string("chastity_mode_messages.json", "chastity_rear_open")) : span_warning(pick_chastity_string("chastity_mode_messages.json", "chastity_rear_close")))
 	log_cursed_chastity_command(H, CHASTITY_LOG_ANAL, "open=[cursed_anal_open]")
 	return TRUE
 
@@ -312,6 +329,8 @@
 	apply_cursed_state(H)
 	playsound(H, cursed_anal_open ? 'sound/items/uncork.ogg' : 'sound/misc/mat/pop.ogg', 50, TRUE)
 	to_chat(H, cursed_anal_open ? span_notice(pick_chastity_string("chastity_cursed_messages.json", "chastity_anal_open")) : span_warning(pick_chastity_string("chastity_cursed_messages.json", "chastity_anal_closed")))
+	// Atmospheric wearer reaction to rear shield state change
+	to_chat(H, cursed_anal_open ? span_notice(pick_chastity_string("chastity_mode_messages.json", "chastity_rear_open")) : span_warning(pick_chastity_string("chastity_mode_messages.json", "chastity_rear_close")))
 	log_cursed_chastity_command(H, CHASTITY_LOG_ANAL, "open=[cursed_anal_open] changed=TRUE")
 	return TRUE
 

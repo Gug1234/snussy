@@ -376,6 +376,7 @@
 	user.visible_message(span_warning("[user.name] starts to fade into thin air!"), span_notice("You start to become invisible!"))
 	animate(user, alpha = 0, time = 1 SECONDS, easing = EASE_IN)
 	user.mob_timers[MT_INVISIBILITY] = world.time + 15 SECONDS
+	user.update_intimate_invisibility_props()
 	addtimer(CALLBACK(user, TYPE_PROC_REF(/mob/living, update_sneak_invis), TRUE), 15 SECONDS)
 	addtimer(CALLBACK(user, TYPE_PROC_REF(/atom/movable, visible_message), span_warning("[user.name] fades back into view."), span_notice("You become visible again.")), 15 SECONDS)
 	return TRUE
@@ -515,6 +516,7 @@
 		nearby_mob.mob_timers[MT_INVISIBILITY] = world.time + 5 SECONDS
 		// Apply invis and visual feedback
 		nearby_mob.update_sneak_invis()
+		nearby_mob.update_intimate_invisibility_props()
 
 		// Schedule end of duration
 		addtimer(CALLBACK(nearby_mob, TYPE_PROC_REF(/mob/living, update_sneak_invis), TRUE), 5 SECONDS)

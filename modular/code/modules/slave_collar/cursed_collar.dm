@@ -15,6 +15,7 @@
 	leashable = TRUE
 	var/mob/living/carbon/human/victim = null
 	var/datum/mind/collar_master = null
+	var/roundstart_self_master_binding = FALSE
 	var/silenced = FALSE
 	var/applying = FALSE
 	/// Round-persistent counter for non-self ejaculation events received by the current wearer.
@@ -50,6 +51,14 @@
 /obj/item/clothing/neck/roguetown/cursed_collar/attack(mob/living/carbon/human/C, mob/living/user)
 	if(!istype(C))
 		return ..()
+
+	// Cursed content pref gate — the target must have opted in.
+	if(C.client?.prefs && !C.client.prefs.cursed_enabled)
+		to_chat(user, span_warning("Eora intervenes. They have cursed content disabled."))
+		return
+	if(user?.client?.prefs && !user.client.prefs.cursed_enabled)
+		to_chat(user, span_warning("I have cursed content disabled."))
+		return
 
 	if(C.get_item_by_slot(SLOT_NECK))
 		to_chat(user, span_warning("[C] is already wearing something around their neck!"))
@@ -131,6 +140,12 @@
 
 /obj/item/clothing/neck/roguetown/cursed_collar/proc/handle_equip(mob/living/carbon/human/user)
 	if(istype(user, /mob/living/carbon/human/dummy))
+		return
+
+	// Cursed content pref gate — reject if the wearer has opted out.
+	if(user.client?.prefs && !user.client.prefs.cursed_enabled)
+		to_chat(user, span_warning("Eora intervenes. I have cursed content disabled."))
+		user.dropItemToGround(src, force = TRUE)
 		return
 
 	if(user?.mind && collar_master && user.mind == collar_master)
