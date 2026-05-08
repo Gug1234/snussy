@@ -37,6 +37,16 @@
  */
 /datum/preferences/var/list/custom_intimate_reactions = null
 
+/// Returns TRUE when an intimate reaction audience mode is recognized.
+/proc/is_valid_intimate_reaction_audience(audience)
+	return istext(audience) && (audience in INTIMATE_AUDIENCE_OPTIONS)
+
+/// Returns the sidecar key used for per-category audience metadata.
+/proc/get_intimate_reaction_audience_key(category)
+	if(!istext(category) || !length(category))
+		return null
+	return "[INTIMATE_REACTION_AUDIENCE_PREFIX][category]"
+
 /**
  * Validates and sanitizes custom_intimate_reactions after loading from the savefile.
  *
@@ -55,6 +65,14 @@
 	var/list/valid_cats = get_all_intimate_reaction_categories()
 	var/list/validated = list()
 	for(var/category in custom_intimate_reactions)
+		// Handle audience keys - "audience_<category>" is per-category visibility metadata.
+		if(copytext(category, 1, length(INTIMATE_REACTION_AUDIENCE_PREFIX) + 1) == INTIMATE_REACTION_AUDIENCE_PREFIX)
+			var/audience_base_cat = copytext(category, length(INTIMATE_REACTION_AUDIENCE_PREFIX) + 1)
+			if(audience_base_cat in valid_cats)
+				var/audience = custom_intimate_reactions[category]
+				if(is_valid_intimate_reaction_audience(audience))
+					validated[category] = audience
+			continue
 		// Handle weight keys — "weight_<category>" is a parallel list of numbers.
 		if(copytext(category, 1, 8) == "weight_")
 			var/base_cat = copytext(category, 8)
@@ -90,6 +108,39 @@
 			validated[category] = valid_strings
 
 	custom_intimate_reactions = validated.len ? validated : null
+
+/// Returns the configured audience for a category, falling back to default_audience.
+/datum/preferences/proc/get_intimate_reaction_audience(category, default_audience = INTIMATE_AUDIENCE_SELF)
+	if(!is_valid_intimate_reaction_audience(default_audience))
+		default_audience = INTIMATE_AUDIENCE_SELF
+	if(!istext(category) || !length(category))
+		return default_audience
+	if(!islist(custom_intimate_reactions))
+		return default_audience
+	var/audience_key = get_intimate_reaction_audience_key(category)
+	var/audience = custom_intimate_reactions[audience_key]
+	if(is_valid_intimate_reaction_audience(audience))
+		return audience
+	return default_audience
+
+/// Stores a per-category audience override. Passing the default removes the override.
+/datum/preferences/proc/set_intimate_reaction_audience(category, audience, default_audience = INTIMATE_AUDIENCE_SELF)
+	if(!istext(category) || !(category in get_all_intimate_reaction_categories()))
+		return FALSE
+	if(!is_valid_intimate_reaction_audience(audience))
+		return FALSE
+	if(!is_valid_intimate_reaction_audience(default_audience))
+		default_audience = INTIMATE_AUDIENCE_SELF
+	if(!islist(custom_intimate_reactions))
+		custom_intimate_reactions = list()
+	var/audience_key = get_intimate_reaction_audience_key(category)
+	if(audience == default_audience)
+		custom_intimate_reactions.Remove(audience_key)
+	else
+		custom_intimate_reactions[audience_key] = audience
+	if(!length(custom_intimate_reactions))
+		custom_intimate_reactions = null
+	return TRUE
 
 /**
  * Resolves anatomy-aware tokens in intimate reaction text strings.

@@ -27,6 +27,11 @@ import { useBackend } from '../backend';
 import { useDebouncedCallback } from '../common/useDebouncedCallback';
 import { Window } from '../layouts';
 import { ChunkedExportImportSection } from './common/ChunkedExportImportSection';
+import {
+  ErpPreviewOptionsButton,
+  type ErpPreviewProfileData,
+  resolveErpPreviewTokens,
+} from './common/ErpPreviewOptions';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,6 +136,8 @@ type BackendData = {
   presets: { key: string; label: string }[];
   /** Currently selected perspective: "performer", "target", or "observer". */
   selected_perspective: string;
+  /** Per-character local token profile for live previews. */
+  preview_tokens?: ErpPreviewProfileData;
   export_text?: string;
   export_chunk_count?: number;
   export_payload_bytes?: number;
@@ -254,71 +261,6 @@ const PLUG_OPTIONS: { value: number; label: string }[] = [
   { value: 5, label: 'Sounding Rod' },
 ];
 
-/**
- * Client-side token resolution for preview.
- *
- * **giving** = "How the performer reads it" — [USER] → "You", user pronouns →
- * second-person, target stays third-person.
- *
- * **receiving** = "How the target reads it" — [TARGET] → "You", target
- * pronouns → second-person, performer stays third-person.
- */
-function resolvePreviewTokens(
-  text: string,
-  perspective: 'giving' | 'receiving' = 'giving',
-): string {
-  const giving = perspective === 'giving';
-  return (
-    text
-      // Names — the "you" side swaps to second person
-      .replace(/\[USER\]/g, giving ? 'You' : 'Performer')
-      .replace(/\[TARGET\]/g, giving ? 'Target' : 'You')
-      // User pronouns
-      .replace(/\[THEY\]/g, giving ? 'you' : 'they')
-      .replace(/\[THEM\]/g, giving ? 'you' : 'them')
-      .replace(/\[THEIR\]/g, giving ? 'your' : 'their')
-      // Target pronouns
-      .replace(/\[TTHEY\]/g, giving ? 'they' : 'you')
-      .replace(/\[TTHEM\]/g, giving ? 'them' : 'you')
-      .replace(/\[TTHEIR\]/g, giving ? 'their' : 'your')
-      .replace(/\[FORCE\]/g, 'firmly')
-      // Anatomy tokens — illustrative placeholders, possessive flips with perspective
-      .replace(
-        /\[UCOCK\]/g,
-        giving ? 'your knotted cock' : 'their knotted cock',
-      )
-      .replace(/\[TCOCK\]/g, giving ? 'their barbed cock' : 'your barbed cock')
-      .replace(
-        /\[USHAFT\]/g,
-        giving ? 'your knotted shaft' : 'their knotted shaft',
-      )
-      .replace(
-        /\[TSHAFT\]/g,
-        giving ? 'their barbed shaft' : 'your barbed shaft',
-      )
-      .replace(/\[USIZE\]/g, giving ? 'your impressive' : 'their impressive')
-      .replace(/\[TSIZE\]/g, giving ? 'their modest' : 'your modest')
-      .replace(
-        /\[UVAG\]/g,
-        giving ? 'your delicate slit' : 'their delicate slit',
-      )
-      .replace(
-        /\[TVAG\]/g,
-        giving ? 'their glistening slit' : 'your glistening slit',
-      )
-      .replace(/\[UCUPSIZE\]/g, giving ? 'your plump' : 'their plump')
-      .replace(/\[TCUPSIZE\]/g, giving ? 'their ample' : 'your ample')
-      .replace(
-        /\[UBREASTTYPE\]/g,
-        giving ? 'your perky pair' : 'their perky pair',
-      )
-      .replace(
-        /\[TBREASTTYPE\]/g,
-        giving ? 'their heavy breasts' : 'your heavy breasts',
-      )
-  );
-}
-
 // ── Bitflag toggle helper ─────────────────────────────────────────────────────
 
 function toggleFlag(current: number, flag: number): number {
@@ -430,7 +372,7 @@ function CustomActionsTab() {
 // ── Custom Action Editor (inline card) ───────────────────────────────────────
 
 function CustomActionEditor({ action }: { action: CustomAction }) {
-  const { act } = useBackend<BackendData>();
+  const { act, data } = useBackend<BackendData>();
 
   // Local state for text fields to avoid spamming backend on every keystroke.
   const [name, setName] = useState(action.name);
@@ -1016,7 +958,11 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
                       color: PHASE_COLORS[previewPhase] ?? '#fff',
                     }}
                   >
-                    {resolvePreviewTokens(previewText, 'giving')}
+                    {resolveErpPreviewTokens(
+                      previewText,
+                      'sex-giving',
+                      data.preview_tokens,
+                    )}
                   </Box>
                 </Stack.Item>
                 <Stack.Item grow basis="50%" ml={0.5}>
@@ -1034,12 +980,19 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
                       color: PHASE_COLORS[previewPhase] ?? '#fff',
                     }}
                   >
-                    {resolvePreviewTokens(previewText, 'receiving')}
+                    {resolveErpPreviewTokens(
+                      previewText,
+                      'sex-receiving',
+                      data.preview_tokens,
+                    )}
                   </Box>
                 </Stack.Item>
               </Stack>
             </Stack.Item>
           )}
+          <Stack.Item>
+            <ErpPreviewOptionsButton profile={data.preview_tokens} act={act} />
+          </Stack.Item>
         </Stack>
       </Stack.Item>
     </Stack>
@@ -1850,9 +1803,10 @@ export function SexFlavorEditor() {
                                           '#ffffff',
                                       }}
                                     >
-                                      {resolvePreviewTokens(
+                                      {resolveErpPreviewTokens(
                                         inputText,
-                                        'giving',
+                                        'sex-giving',
+                                        data.preview_tokens,
                                       )}
                                     </Box>
                                   </Stack.Item>
@@ -1878,15 +1832,22 @@ export function SexFlavorEditor() {
                                           '#ffffff',
                                       }}
                                     >
-                                      {resolvePreviewTokens(
+                                      {resolveErpPreviewTokens(
                                         inputText,
-                                        'receiving',
+                                        'sex-receiving',
+                                        data.preview_tokens,
                                       )}
                                     </Box>
                                   </Stack.Item>
                                 </Stack>
                               </Stack.Item>
                             )}
+                            <Stack.Item>
+                              <ErpPreviewOptionsButton
+                                profile={data.preview_tokens}
+                                act={act}
+                              />
+                            </Stack.Item>
                           </Stack>
                         </Section>
                       </Stack.Item>

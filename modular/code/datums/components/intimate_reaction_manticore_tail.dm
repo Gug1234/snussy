@@ -75,14 +75,14 @@
 	var/string_key = "manticore_tail_idle"
 	if(sexcon.arousal > 50)
 		string_key = "manticore_tail_aroused"
-	var/message = pick_string_bank("manticore_tail_movement_messages.json", string_key, MANTICORE_TAIL_STRINGS_PATH)
+	var/message = pick_string_bank("manticore_tail_movement_messages.json", string_key, MANTICORE_TAIL_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
 	// Resolve [USER], [THEY], [THEM], [THEIR] etc. tokens
 	message = resolve_intimate_reaction_tokens(message, source)
 	last_movement_message_time = world.time
 	mark_reaction_fired(source, "movement")
-	to_chat(source, span_warning(message))
+	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE)
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message about the tail's sensations during sex.
@@ -102,14 +102,14 @@
 	if(!sexcon || !sexcon.modular_chastity_content_enabled_for(source))
 		return FALSE
 	var/string_key = get_receive_flavor_key(receiver_part, action, sexcon)
-	var/message = pick_string_bank("manticore_tail_receive_flavor.json", string_key, MANTICORE_TAIL_STRINGS_PATH)
+	var/message = pick_string_bank("manticore_tail_receive_flavor.json", string_key, MANTICORE_TAIL_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
 	// Resolve [USER], [TARGET] etc. tokens — acting_mob is the "target" from our perspective
 	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 	last_receive_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	to_chat(source, span_warning(message))
+	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob)
 	return TRUE
 
 /// Maps the receiver body part and action context to a JSON string key.

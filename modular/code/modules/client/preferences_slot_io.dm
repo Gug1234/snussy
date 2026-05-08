@@ -125,6 +125,8 @@
 	validate_custom_sex_actions()
 	custom_intimate_reactions = _read_json_sidecar(slot, "intimate_reactions")
 	validate_custom_intimate_reactions()
+	erp_preview_tokens = _read_json_sidecar(slot, "erp_preview_tokens")
+	validate_erp_preview_tokens()
 
 /// Saves ERP sidecars after save_character() has written the main slot data.
 /datum/preferences/proc/_save_erp_sidecars(slot)
@@ -133,6 +135,8 @@
 	if(!_commit_json_sidecar(slot, "sex_actions", custom_sex_actions))
 		return FALSE
 	if(!_commit_json_sidecar(slot, "intimate_reactions", custom_intimate_reactions))
+		return FALSE
+	if(!_commit_json_sidecar(slot, "erp_preview_tokens", erp_preview_tokens))
 		return FALSE
 	return TRUE
 

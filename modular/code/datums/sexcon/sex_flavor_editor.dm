@@ -257,6 +257,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	// Each entry includes `has_custom` (whether the player has written custom text
 	// for this action) and `can_use` (whether the character's anatomy supports it).
 	data["dirty"] = dirty
+	data["preview_tokens"] = prefs.get_erp_preview_tokens()
 	var/datum/erp_chunked_export_panel_state/transfer = get_transfer_state()
 	data["export_text"] = transfer.export_text
 	data["export_chunk_count"] = transfer.export_chunk_count
@@ -510,6 +511,24 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			if(!(persp in list("performer", "target", "observer")))
 				return FALSE
 			selected_perspective = persp
+			return TRUE
+
+		if("refresh_preview_tokens")
+			if(!prefs.refresh_erp_preview_tokens_from_preferences())
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("set_preview_target_preset")
+			if(!prefs.set_erp_preview_token("target_preset", params["preset"]))
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("set_preview_token")
+			if(!prefs.set_erp_preview_token(params["key"], params["value"]))
+				return FALSE
+			dirty = TRUE
 			return TRUE
 
 		if("apply_preset_all")

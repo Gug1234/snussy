@@ -179,18 +179,20 @@
 	if(!sexcon || !sexcon.modular_chastity_content_enabled_for(source))
 		return FALSE
 	var/string_key = get_movement_string_key(source)
-	var/message = pick_string_bank("piercing_movement_messages.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/message = pick_string_bank("piercing_movement_messages.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
+	message = resolve_intimate_reaction_tokens(message, source)
 	last_movement_message_time = world.time
 	mark_reaction_fired(source, "movement")
 	// Filter out viewers whose master intimate‐reaction toggle is off.
-	var/list/excluded = get_intimate_excluded_mobs(source)
 	// Jingle messages begin with "'s" and concatenate directly onto the name without a separating space.
+	var/formatted_message
 	if(copytext(message, 1, 3) == "'s")
-		source.visible_message(span_notice("[source][message]"), ignored_mobs = excluded)
+		formatted_message = span_notice("[source][message]")
 	else
-		source.visible_message(span_notice("[source] [message]"), ignored_mobs = excluded)
+		formatted_message = span_notice("[source] [message]")
+	emit_intimate_reaction_message(source, formatted_message, string_key, INTIMATE_AUDIENCE_VIEW, require_intimate_accessories = TRUE)
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message to the wearer.
@@ -210,12 +212,13 @@
 	if(!prob(10 + (applied_force * 5) + (applied_speed * 5)))
 		return FALSE
 	var/string_key = get_receive_flavor_key(source, receiver_part)
-	var/message = pick_string_bank("piercing_receive_flavor.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/message = pick_string_bank("piercing_receive_flavor.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
+	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 	last_receive_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	to_chat(source, span_warning(message))
+	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob)
 	return TRUE
 
 /// Visible tongue-piercing flavor emitted during oral-course sound ticks.
@@ -236,14 +239,13 @@
 	if(!prob(20))
 		return FALSE
 	var/string_key = get_oral_flavor_key(applied_force)
-	var/message = pick_string_bank("tongue_piercing_oral_messages.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/message = pick_string_bank("tongue_piercing_oral_messages.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
 	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 	last_oral_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	var/list/excluded = get_intimate_excluded_mobs(source)
-	source.visible_message(span_notice(message), ignored_mobs = excluded)
+	emit_intimate_reaction_message(source, span_notice(message), string_key, INTIMATE_AUDIENCE_VIEW, require_intimate_accessories = TRUE, partner = acting_mob)
 	return TRUE
 
 /**
@@ -342,12 +344,13 @@
 	var/json_file = "insertable_movement_messages.json"
 	if(istype(parent, /obj/item/intimate_accessory/genital/plug/sounding_rod))
 		json_file = "insertable_sounding_movement_messages.json"
-	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
+	message = resolve_intimate_reaction_tokens(message, source)
 	last_movement_message_time = world.time
 	mark_reaction_fired(source, "movement")
-	to_chat(source, span_warning(message))
+	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE)
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message to the wearer.
@@ -370,12 +373,13 @@
 	var/json_file = "insertable_receive_flavor.json"
 	if(istype(parent, /obj/item/intimate_accessory/genital/plug/sounding_rod))
 		json_file = "insertable_sounding_receive_flavor.json"
-	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH)
+	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
+	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 	last_receive_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	to_chat(source, span_warning(message))
+	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob)
 	return TRUE
 
 #undef INTIMATE_ACCESSORY_STRINGS_PATH

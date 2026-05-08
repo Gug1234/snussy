@@ -29,6 +29,11 @@ import { useBackend } from '../backend';
 import { useDebouncedCallback } from '../common/useDebouncedCallback';
 import { Window } from '../layouts';
 import { ChunkedExportImportSection } from './common/ChunkedExportImportSection';
+import {
+  ErpPreviewOptionsButton,
+  type ErpPreviewProfileData,
+} from './common/ErpPreviewOptions';
+import { resolveIntimateReactionPreviewTokens } from './IntimateReactionEditorUtils';
 
 // ______ Types ____________________________________________________________________________________________________________________________________________________________________________________________________________
 
@@ -36,6 +41,12 @@ type Bank = {
   id: string;
   label: string;
   available: boolean;
+  desc?: string;
+};
+
+type AudienceOption = {
+  id: string;
+  label: string;
   desc?: string;
 };
 
@@ -69,6 +80,9 @@ type BackendData = {
   dirty?: BooleanLike;
   banks: Bank[];
   categories: Category[];
+  audience_options?: AudienceOption[];
+  current_audience?: string;
+  current_audience_default?: string;
   current_strings: string[];
   current_weights: number[];
   default_strings: string[];
@@ -78,13 +92,13 @@ type BackendData = {
   preset_genitals?: PresetOption[];
   preset_result?: string;
   preset_result_success?: BooleanLike;
-  resolved_preview?: string;
   export_text?: string;
   export_chunk_count?: number;
   export_payload_bytes?: number;
   status_text?: string;
   status_kind?: 'success' | 'danger' | 'info';
   max_import_text_bytes?: number;
+  preview_tokens?: ErpPreviewProfileData;
 };
 
 // ______ Constants ________________________________________________________________________________________________________________________________________________________________________________________________
@@ -160,6 +174,9 @@ function Sidebar() {
     selected_category,
     banks,
     categories,
+    audience_options,
+    current_audience,
+    current_audience_default,
     preset_species,
     preset_stages,
     preset_genitals,
@@ -181,6 +198,13 @@ function Sidebar() {
 
   const visibleCategories = categories.filter((cat) => !cat.hidden);
   const hasGroups = visibleCategories.some((c) => c.group);
+  const currentBank = banks.find((bank) => bank.id === selected_bank);
+  const currentCategory = categories.find(
+    (cat) => cat.key === selected_category,
+  );
+  const currentAudienceOption = audience_options?.find(
+    (opt) => opt.id === current_audience,
+  );
   const currentStageInfo = preset_stages?.find((s) => s.id === selectedStage);
   const needsGenital = !!currentStageInfo?.has_genital;
   const canLoadPreset =
@@ -500,16 +524,48 @@ function Sidebar() {
 
       <Section title="Who Sees This?">
         <Box fontSize="11px" opacity={0.8}>
-          <b>Movement text</b> is shown only to <em>you</em> (the wearer).
+          <b>{currentBank?.label || 'Bank'}</b>
+          {currentCategory ? ` / ${currentCategory.label}` : ''}
         </Box>
+        {currentCategory?.desc && (
+          <Box fontSize="10px" opacity={0.65} mt={0.5}>
+            {currentCategory.desc}
+          </Box>
+        )}
+        {!!audience_options?.length && (
+          <Stack wrap mt={0.75}>
+            {audience_options.map((opt) => (
+              <Stack.Item key={opt.id} mr={0.25} mb={0.25}>
+                <Button
+                  compact
+                  selected={opt.id === current_audience}
+                  tooltip={opt.desc}
+                  tooltipPosition="right"
+                  onClick={() => act('set_audience', { audience: opt.id })}
+                >
+                  {opt.label}
+                </Button>
+              </Stack.Item>
+            ))}
+          </Stack>
+        )}
         <Box fontSize="11px" opacity={0.8} mt={0.5}>
-          <b>Sex Received text</b> is shown only to <em>you</em> when another
-          player performs a sex action on you.
+          Movement banks can be visible to bystanders when configured for it;
+          chastity jingles are the common example.
         </Box>
+        {currentAudienceOption && (
+          <Box fontSize="10px" opacity={0.6} mt={0.5}>
+            Current: <b>{currentAudienceOption.label}</b>
+            {current_audience === current_audience_default
+              ? ' (bank default)'
+              : ''}
+          </Box>
+        )}
         <Box fontSize="10px" opacity={0.6} mt={0.5}>
-          Viewers must have <em>Intimate Reactions</em> and{' '}
-          <em>Accessory-Free Flavor</em> enabled in their ERP preferences to see
-          any output.
+          Viewers still need the matching ERP filters:{' '}
+          <em>Intimate Reactions</em> plus <em>Accessory-Free Flavor</em> for
+          character banks, or the relevant accessory/chastity filters for item
+          banks.
         </Box>
       </Section>
     </Stack.Item>
@@ -723,6 +779,8 @@ function InputSection({
   onAddOrUpdate,
   onCancel,
   onPreview,
+  previewProfile,
+  act,
 }: {
   isEditing: boolean;
   editingIndex: number;
@@ -738,6 +796,8 @@ function InputSection({
   onAddOrUpdate: () => void;
   onCancel: () => void;
   onPreview: () => void;
+  previewProfile?: ErpPreviewProfileData;
+  act: (action: string, payload?: Record<string, string>) => void;
 }) {
   const placeholder = isEditing
     ? 'Edit this stringâ€¦'
@@ -796,20 +856,78 @@ function InputSection({
         Max {maxLength} characters per string Â· {maxStrings} strings per
         category.
       </Box>
+
+      <LivePreviewBoxes text={inputText} profile={previewProfile} />
+      <ErpPreviewOptionsButton profile={previewProfile} act={act} />
     </Section>
   );
 }
 
 // ______ Preview Section ______________________________________________________________________________________________________________________________________________________________________________
 
+function LivePreviewBoxes({
+  text,
+  profile,
+}: {
+  text: string;
+  profile?: ErpPreviewProfileData;
+}) {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return null;
+  }
+  return (
+    <Stack mt={0.75}>
+      <Stack.Item grow basis="50%">
+        <Box opacity={0.7} fontSize="10px" mb={0.25}>
+          Preview (Wearer):
+        </Box>
+        <Box
+          p={0.5}
+          italic
+          style={{
+            background: 'rgba(0,0,0,0.4)',
+            borderRadius: '3px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            fontSize: '12px',
+            color: '#ff88cc',
+            wordBreak: 'break-word',
+          }}
+        >
+          {resolveIntimateReactionPreviewTokens(trimmed, 'wearer', profile)}
+        </Box>
+      </Stack.Item>
+      <Stack.Item grow basis="50%" ml={0.5}>
+        <Box opacity={0.7} fontSize="10px" mb={0.25}>
+          Preview (Bystander):
+        </Box>
+        <Box
+          p={0.5}
+          italic
+          style={{
+            background: 'rgba(0,0,0,0.4)',
+            borderRadius: '3px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            fontSize: '12px',
+            color: '#d8d8d8',
+            wordBreak: 'break-word',
+          }}
+        >
+          {resolveIntimateReactionPreviewTokens(trimmed, 'bystander', profile)}
+        </Box>
+      </Stack.Item>
+    </Stack>
+  );
+}
+
 function PreviewSection({
   previewText,
-  resolvedPreview,
   onClose,
+  profile,
 }: {
   previewText: string;
-  resolvedPreview?: string;
   onClose: () => void;
+  profile?: ErpPreviewProfileData;
 }) {
   return (
     <Section
@@ -836,28 +954,8 @@ function PreviewSection({
             {previewText}
           </Box>
         </Stack.Item>
-        {resolvedPreview && (
-          <Stack.Item grow basis="50%" ml={0.5}>
-            <Box opacity={0.7} fontSize="10px" mb={0.25}>
-              Resolved:
-            </Box>
-            <Box
-              p={0.5}
-              italic
-              style={{
-                background: 'rgba(129,199,132,0.1)',
-                borderRadius: '3px',
-                border: '1px solid rgba(129,199,132,0.3)',
-                fontSize: '12px',
-                color: '#ff88cc',
-                wordBreak: 'break-word',
-              }}
-            >
-              {resolvedPreview}
-            </Box>
-          </Stack.Item>
-        )}
       </Stack>
+      <LivePreviewBoxes text={previewText} profile={profile} />
     </Section>
   );
 }
@@ -1078,7 +1176,7 @@ function EditorPanel() {
     current_weights = [],
     default_strings,
     tokens,
-    resolved_preview,
+    preview_tokens,
   } = data;
 
   const [inputText, setInputText] = useState('');
@@ -1122,7 +1220,6 @@ function EditorPanel() {
     const trimmed = text.trim();
     if (!trimmed) return;
     setPreviewText(trimmed);
-    act('preview_string', { text: trimmed });
   }
 
   function startEditing(idx: number, str: string) {
@@ -1162,6 +1259,8 @@ function EditorPanel() {
             onAddOrUpdate={handleAddOrUpdate}
             onCancel={cancelEdit}
             onPreview={() => handlePreview(inputText)}
+            previewProfile={preview_tokens}
+            act={act}
           />
         </Stack.Item>
 
@@ -1169,8 +1268,8 @@ function EditorPanel() {
           <Stack.Item>
             <PreviewSection
               previewText={previewText}
-              resolvedPreview={resolved_preview}
               onClose={() => setPreviewText('')}
+              profile={preview_tokens}
             />
           </Stack.Item>
         )}

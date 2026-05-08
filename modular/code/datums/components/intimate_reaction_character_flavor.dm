@@ -120,14 +120,7 @@
  * Returns TRUE if the viewer should see character flavor text from this component.
  */
 /datum/component/intimate_reaction/character_flavor/proc/viewer_can_see_flavor(mob/living/carbon/human/viewer)
-	if(!viewer?.client?.prefs)
-		return TRUE // NPCs / offline mobs default to visible
-	var/datum/preferences/P = viewer.client.prefs
-	if(!P.intimate_reaction_enabled)
-		return FALSE
-	if(!P.intimate_reaction_show_accessory_free)
-		return FALSE
-	return TRUE
+	return viewer_can_see_intimate_reaction(viewer, require_accessory_free = TRUE)
 
 /**
  * Picks a string from the player's custom pool for the given category,
@@ -140,34 +133,31 @@
  *   json_key  — key within the fallback JSON (unused)
  */
 /datum/component/intimate_reaction/character_flavor/proc/pick_flavor_string(category, json_file, json_key)
-	if(!custom_strings)
-		return null
+	if(custom_strings)
+		// Try the exact requested category first.
+		if(islist(custom_strings[category]) && length(custom_strings[category]))
+			return _weighted_pick(category)
 
-	// Try the exact requested category first.
-	if(islist(custom_strings[category]) && length(custom_strings[category]))
-		return _weighted_pick(category)
+		// Extract the tier and context from the category key (e.g., "overwhelmed" + "sex_received").
+		var/underscore_pos = findtext(category, "_")
+		if(underscore_pos)
+			var/tier = copytext(category, 1, underscore_pos)
+			var/context = copytext(category, underscore_pos + 1)
 
-	// Extract the tier and context from the category key (e.g., "overwhelmed" + "sex_received").
-	var/underscore_pos = findtext(category, "_")
-	if(!underscore_pos)
-		return null
-	var/tier = copytext(category, 1, underscore_pos)
-	var/context = copytext(category, underscore_pos + 1)
+			// Walk the fallback chain for this tier.
+			var/static/list/fallback_map = INTIMATE_TIER_FALLBACK
+			var/list/fallbacks = fallback_map[tier]
+			if(islist(fallbacks))
+				for(var/fallback_tier in fallbacks)
+					var/fallback_key = "[fallback_tier]_[context]"
+					if(islist(custom_strings[fallback_key]) && length(custom_strings[fallback_key]))
+						return _weighted_pick(fallback_key)
 
-	// Walk the fallback chain for this tier.
-	var/static/list/fallback_map = INTIMATE_TIER_FALLBACK
-	var/list/fallbacks = fallback_map[tier]
-	if(islist(fallbacks))
-		for(var/fallback_tier in fallbacks)
-			var/fallback_key = "[fallback_tier]_[context]"
-			if(islist(custom_strings[fallback_key]) && length(custom_strings[fallback_key]))
-				return _weighted_pick(fallback_key)
+			// Also check legacy bare keys as last resort (e.g., "movement", "sex_received").
+			if(islist(custom_strings[context]) && length(custom_strings[context]))
+				return _weighted_pick(context)
 
-	// Also check legacy bare keys as last resort (e.g., "movement", "sex_received").
-	if(islist(custom_strings[context]) && length(custom_strings[context]))
-		return _weighted_pick(context)
-
-	return null
+	return pick_string_bank(json_file, json_key, CHARACTER_FLAVOR_STRINGS_PATH)
 
 /**
  * Picks a random string from the given category, respecting per-string weights.
@@ -359,7 +349,7 @@
 
 	message = resolve_intimate_reaction_tokens(message, source)
 	last_movement_message_time = world.time
-	to_chat(source, span_notice(message))
+	emit_intimate_reaction_message(source, span_notice(message), category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE)
 	return TRUE
 
 // ── Sex Action Handler ───────────────────────────────────────────────────────
@@ -386,45 +376,25 @@
 
 	var/tier = get_intimate_tier(source, applied_force, pain_amt)
 	var/message
+	var/message_category
 	// Try anal-specific strings first when receiving anal.
 	if(receiver_part & SEX_PART_ANUS)
 		var/anal_category = "[tier]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]"
 		message = pick_flavor_string(anal_category, "character_sex_received_messages.json", "character_sex_received")
+		if(message)
+			message_category = anal_category
 	// Fall back to generic sex_received if no anal-specific string was found.
 	if(!message)
 		var/category = "[tier]_[INTIMATE_CONTEXT_SEX_RECEIVED]"
 		message = pick_flavor_string(category, "character_sex_received_messages.json", "character_sex_received")
+		if(message)
+			message_category = category
 	if(!message)
 		return FALSE
 
 	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 	last_sex_flavor_time = world.time
-	to_chat(source, span_notice(message))
-	// Share with partner if pref enabled.
-	try_share_with_partner(source, message, acting_mob)
+	emit_intimate_reaction_message(source, span_notice(message), message_category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE, partner = acting_mob)
 	return TRUE
-
-// ── Partner Sharing ──────────────────────────────────────────────────────────
-
-/**
- * Sends the wearer's intimate reaction text to their active sex partner.
- * Requires the wearer's intimate_reaction_share_with_partner pref to be TRUE,
- * and the partner's intimate_reaction_enabled + intimate_reaction_show_accessory_free prefs.
- *
- * Arguments:
- *   source     — the wearer mob
- *   message    — the already-resolved message string
- *   partner    — the mob performing the sex action on the wearer
- */
-/datum/component/intimate_reaction/character_flavor/proc/try_share_with_partner(mob/living/carbon/human/source, message, mob/living/carbon/human/partner)
-	if(!source?.client?.prefs)
-		return
-	if(!source.client.prefs.intimate_reaction_share_with_partner)
-		return
-	if(!partner || partner == source || !partner.client)
-		return
-	if(!viewer_can_see_flavor(partner))
-		return
-	to_chat(partner, span_notice(message))
 
 #undef CHARACTER_FLAVOR_STRINGS_PATH

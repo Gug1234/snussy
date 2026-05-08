@@ -61,8 +61,6 @@
 	var/preset_result
 	/// Whether the last preset result was a success (TRUE) or failure (FALSE).
 	var/preset_result_success = FALSE
-	/// The last resolved preview text (cleared when a new preview is requested).
-	var/resolved_preview_text
 	/// TRUE when in-memory data has changed since the last save.
 	var/dirty = FALSE
 	/// Session-local export/import panel state.
@@ -148,9 +146,9 @@
 		INTIMATE_TIER_BROKEN      = "Past the point of coherent reaction — extreme or repeated overstimulation.",
 	)
 	var/static/list/context_defs = list(
-		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around. Only you see these."),
-		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you. Only you see these."),
-		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you. Only you see these."),
+		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around; visibility follows this bank's audience setting."),
+		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you; visibility follows this bank's audience setting."),
+		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you; visibility follows this bank's audience setting."),
 	)
 	for(var/tier in tier_labels)
 		var/tier_label = tier_labels[tier]
@@ -285,6 +283,22 @@
 		return list()
 	return bank["categories"]
 
+/// Returns the runtime default audience for a category when no user override exists.
+/datum/intimate_reaction_editor/proc/get_default_audience_for_category(category)
+	if(!istext(category))
+		return INTIMATE_AUDIENCE_SELF
+	if(selected_bank == "character" || selected_bank == "insertable" || selected_bank == "manticore_tail")
+		return INTIMATE_AUDIENCE_SELF
+	if(selected_bank == "chastity")
+		if(findtext(category, "jingle_") || findtext(category, "_movement_"))
+			return INTIMATE_AUDIENCE_VIEW
+		return INTIMATE_AUDIENCE_SELF
+	if(selected_bank == "piercing")
+		if(findtext(category, "_receive"))
+			return INTIMATE_AUDIENCE_SELF
+		return INTIMATE_AUDIENCE_VIEW
+	return INTIMATE_AUDIENCE_SELF
+
 /**
  * Returns a flat list of all valid category keys across all banks.
  * Used for validation — accepts any category from any bank regardless of toggles.
@@ -337,6 +351,13 @@
 		"\[FORCE]", "\[PLUG]",
 	)
 
+	data["audience_options"] = list(
+		list("id" = INTIMATE_AUDIENCE_SELF, "label" = "Self", "desc" = "Only you see this reaction."),
+		list("id" = INTIMATE_AUDIENCE_PARTNER, "label" = "Partner", "desc" = "You and the active sex partner see this reaction. Movement has no partner and stays self-only."),
+		list("id" = INTIMATE_AUDIENCE_NEARBY, "label" = "Nearby", "desc" = "Shown in the immediate 3x3 around you."),
+		list("id" = INTIMATE_AUDIENCE_VIEW, "label" = "View", "desc" = "Shown to anyone in normal visible-message range."),
+	)
+
 	// Preset dropdown options (hardcoded, never change).
 	data["preset_species"] = list(
 		list("id" = "humanoid",  "label" = "Humanoid"),
@@ -382,6 +403,7 @@
 	data["selected_category"] = selected_category
 	data["selected_bank"]     = selected_bank
 	data["dirty"]             = dirty
+	data["preview_tokens"]    = prefs.get_erp_preview_tokens()
 	var/datum/erp_chunked_export_panel_state/transfer = get_transfer_state()
 	data["export_text"] = transfer.export_text
 	data["export_chunk_count"] = transfer.export_chunk_count
@@ -413,10 +435,13 @@
 		var/cat_key = cdef["key"]
 		var/list/cat_strings = all_reactions[cat_key]
 		var/count = islist(cat_strings) ? cat_strings.len : 0
+		var/default_audience = get_default_audience_for_category(cat_key)
 		var/list/cat_entry = list(
 			"key"   = cat_key,
 			"label" = cdef["label"],
 			"count" = count,
+			"default_audience" = default_audience,
+			"audience" = prefs.get_intimate_reaction_audience(cat_key, default_audience),
 		)
 		if(cdef["desc"])
 			cat_entry["desc"] = cdef["desc"]
@@ -442,6 +467,9 @@
 	while(current_weights.len < current_strings.len)
 		current_weights += 100
 	data["current_weights"] = current_weights
+	var/current_default_audience = get_default_audience_for_category(selected_category)
+	data["current_audience_default"] = current_default_audience
+	data["current_audience"] = prefs.get_intimate_reaction_audience(selected_category, current_default_audience)
 
 	// ── Default strings from JSON bank ────────────────────────────────
 	var/list/default_strings = list()
@@ -465,10 +493,6 @@
 		data["preset_result"] = preset_result
 		data["preset_result_success"] = preset_result_success
 		preset_result = null
-
-	// ── Resolved preview text ─────────────────────────────────────────
-	if(resolved_preview_text)
-		data["resolved_preview"] = resolved_preview_text
 
 	return data
 
@@ -548,6 +572,32 @@
 			if(!valid)
 				return FALSE
 			selected_category = cat
+			return TRUE
+
+		if("set_audience")
+			var/audience = params["audience"]
+			var/default_audience = get_default_audience_for_category(selected_category)
+			if(!prefs.set_intimate_reaction_audience(selected_category, audience, default_audience))
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("refresh_preview_tokens")
+			if(!prefs.refresh_erp_preview_tokens_from_preferences())
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("set_preview_target_preset")
+			if(!prefs.set_erp_preview_token("target_preset", params["preset"]))
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("set_preview_token")
+			if(!prefs.set_erp_preview_token(params["key"], params["value"]))
+				return FALSE
+			dirty = TRUE
 			return TRUE
 
 		if("add_string")
@@ -669,15 +719,6 @@
 			var/list/import_result = transfer.append_import_payload_chunk(params["chunk_index"], params["chunk_count"], params["chunk"])
 			if(import_result["complete"])
 				apply_import_payload_text(import_result["payload"], ui?.user || usr)
-			return TRUE
-
-		// Preview resolution ──────────────────────────────────────────
-		if("preview_string")
-			var/preview_text = params["text"]
-			if(!istext(preview_text) || !length(preview_text))
-				resolved_preview_text = null
-				return TRUE
-			resolved_preview_text = resolve_preview(preview_text)
 			return TRUE
 
 		// ── Weight adjustment ────────────────────────────────────────────
@@ -856,16 +897,6 @@
 
 	return FALSE
 
-/**
- * Resolves token placeholders in a preview string. Base version uses the
- * owner mob; the lobby subtype overrides to resolve from preferences.
- */
-/datum/intimate_reaction_editor/proc/resolve_preview(text)
-	if(istype(owner))
-		return resolve_intimate_reaction_tokens(text, owner)
-	return text
-
-
 // ── Lobby subtype ────────────────────────────────────────────────────────────
 /**
  * Lobby-side intimate reaction editor that operates purely on preference data.
@@ -901,117 +932,6 @@
 
 /datum/intimate_reaction_editor/lobby/ui_state(mob/user)
 	return GLOB.always_state
-
-/**
- * Lobby-side token resolution: pulls character data entirely from preferences
- * and customizer entries so the preview works without a spawned mob.
- */
-/datum/intimate_reaction_editor/lobby/resolve_preview(text)
-	if(!prefs)
-		return text
-
-	// --- Name ---
-	text = replacetext(text, "\[USER]", prefs.real_name || "Unknown")
-	text = replacetext(text, "\[TARGET]", "someone")
-
-	// --- Pronouns from prefs ---
-	var/p_they = "they"
-	var/p_them = "them"
-	var/p_their = "their"
-	switch(prefs.pronouns)
-		if(HE_HIM, HE_HIM_F)
-			p_they = "he"
-			p_them = "him"
-			p_their = "his"
-		if(SHE_HER, SHE_HER_M)
-			p_they = "she"
-			p_them = "her"
-			p_their = "her"
-		if(IT_ITS)
-			p_they = "it"
-			p_them = "it"
-			p_their = "its"
-
-	text = replacetext(text, "\[THEY]", p_they)
-	text = replacetext(text, "\[THEM]", p_them)
-	text = replacetext(text, "\[THEIR_CAP]", capitalize(p_their))
-	text = replacetext(text, "\[THEIR]", p_their)
-	text = replacetext(text, "\[TTHEY]", "they")
-	text = replacetext(text, "\[TTHEM]", "them")
-	text = replacetext(text, "\[TTHEIR]", "their")
-
-	// --- Penis data from customizer ---
-	var/penis_type_label = "none"
-	var/cocksize_label = "none"
-	var/sizeadj_label = "none"
-	var/sheath_label = "none"
-	var/datum/customizer_entry/organ/penis/pe = prefs.get_customizer_entry_of_type(/datum/customizer_entry/organ/penis)
-	if(pe && !pe.disabled && pe.customizer_choice_type)
-		var/datum/customizer_choice/organ/penis/choice = CUSTOMIZER_CHOICE(pe.customizer_choice_type)
-		if(choice)
-			var/organ_path = choice.organ_type
-			var/ptype = initial(organ_path:penis_type)
-			var/stype = initial(organ_path:sheath_type)
-			penis_type_label = get_penis_type_label(ptype)
-			cocksize_label = _penis_size_descriptor(pe.penis_size)
-			sizeadj_label = _penis_size_adjective(pe.penis_size)
-			switch(stype)
-				if(SHEATH_TYPE_NORMAL)
-					sheath_label = "sheath"
-				if(SHEATH_TYPE_SLIT)
-					sheath_label = "genital slit"
-	text = replacetext(text, "\[PENIS_TYPE]", penis_type_label)
-	text = replacetext(text, "\[COCKSIZE]", cocksize_label)
-	text = replacetext(text, "\[SIZEADJ]", sizeadj_label)
-	text = replacetext(text, "\[SHEATH]", sheath_label)
-
-	// --- Breast data from customizer ---
-	var/cup_label = "none"
-	var/cup_short_label = "none"
-	var/cupadj_label = "none"
-	var/breast_type_label = "none"
-	var/datum/customizer_entry/organ/breasts/be = prefs.get_customizer_entry_of_type(/datum/customizer_entry/organ/breasts)
-	if(be && !be.disabled)
-		cup_label = _breast_size_descriptor(be.breast_size)
-		cup_short_label = find_key_by_value(GLOB.named_breast_sizes, be.breast_size) || "unknown"
-		cupadj_label = _breast_size_adjective(be.breast_size)
-		breast_type_label = _breast_type_descriptor(be.accessory_type, be.breast_size)
-	text = replacetext(text, "\[CUPSIZE]", cup_label)
-	text = replacetext(text, "\[CUPADJ]", cupadj_label)
-	text = replacetext(text, "\[BREASTTYPE]", breast_type_label)
-
-	// --- Vagina data from customizer ---
-	var/vagtype_label = "none"
-	var/vagadj_label = "none"
-	var/datum/customizer_entry/organ/vagina/ve = prefs.get_customizer_entry_of_type(/datum/customizer_entry/organ/vagina)
-	if(ve && !ve.disabled)
-		vagtype_label = _vagina_type_descriptor(ve.accessory_type)
-		vagadj_label = _vagina_type_adjective(ve.accessory_type)
-	text = replacetext(text, "\[VAGTYPE]", vagtype_label)
-	text = replacetext(text, "\[VAGADJ]", vagadj_label)
-
-	// --- Taur ---
-	var/taur_label = "none"
-	if(prefs.taur_type)
-		taur_label = initial(prefs.taur_type:name)
-	text = replacetext(text, "\[TAUR]", taur_label)
-
-	// --- Genital descriptor ---
-	var/genital_desc = "smooth groin"
-	if(pe && !pe.disabled && be && !be.disabled)
-		genital_desc = "[penis_type_label] cock and [cup_short_label] chest"
-	else if(pe && !pe.disabled)
-		genital_desc = "[penis_type_label] cock"
-	else if(ve && !ve.disabled)
-		if(be && !be.disabled)
-			genital_desc = "slit and [cup_short_label] chest"
-		else
-			genital_desc = "slit"
-	else if(be && !be.disabled)
-		genital_desc = "[cup_short_label] chest"
-	text = replacetext(text, "\[GENITAL_DESC]", genital_desc)
-
-	return text
 
 #undef INTIMATE_EDITOR_STRINGS_PATH
 #undef INTIMATE_EDITOR_ACCESSORY_PATH

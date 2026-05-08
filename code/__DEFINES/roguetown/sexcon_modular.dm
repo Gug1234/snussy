@@ -35,6 +35,20 @@
 #define INTIMATE_REACTION_MAX_STRINGS 10
 /// Maximum character length of any single custom intimate reaction string.
 #define INTIMATE_REACTION_MAX_LENGTH  750
+/// Prefix for per-category intimate reaction audience metadata in custom_intimate_reactions.
+#define INTIMATE_REACTION_AUDIENCE_PREFIX "audience_"
+/// Intimate reaction output is only sent to the wearer.
+#define INTIMATE_AUDIENCE_SELF "self"
+/// Intimate reaction output is sent to the wearer and active sex partner when there is one.
+#define INTIMATE_AUDIENCE_PARTNER "partner"
+/// Intimate reaction output is shown in the immediate 3x3 around the wearer.
+#define INTIMATE_AUDIENCE_NEARBY "nearby"
+/// Intimate reaction output is shown to anyone in the normal visible-message range.
+#define INTIMATE_AUDIENCE_VIEW "view"
+/// Ordered list of valid intimate reaction audience modes.
+#define INTIMATE_AUDIENCE_OPTIONS list(INTIMATE_AUDIENCE_SELF, INTIMATE_AUDIENCE_PARTNER, INTIMATE_AUDIENCE_NEARBY, INTIMATE_AUDIENCE_VIEW)
+/// Vision range for INTIMATE_AUDIENCE_NEARBY.
+#define INTIMATE_AUDIENCE_NEARBY_RANGE 1
 
 // ── Intimate Reaction Arousal Tiers ─────────────────────────────────────────
 // String constants identifying each arousal/state tier. Used as category key

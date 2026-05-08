@@ -124,19 +124,28 @@
 ///
 /// content_flags — bitfield of INTIMATE_CONTENT_* flags describing the message.
 ///   The master toggle (intimate_reaction_enabled) is always checked.
-/datum/component/intimate_reaction/proc/get_intimate_excluded_mobs(mob/living/carbon/human/source, content_flags = 0)
+/datum/component/intimate_reaction/proc/viewer_can_see_intimate_reaction(mob/viewer, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE)
+	if(!viewer?.client?.prefs)
+		return TRUE
+	var/datum/preferences/P = viewer.client.prefs
+	if(!P.intimate_reaction_enabled)
+		return FALSE
+	if(require_accessory_free && !P.intimate_reaction_show_accessory_free)
+		return FALSE
+	if(require_intimate_accessories && !P.intimate_enabled)
+		return FALSE
+	if((content_flags & INTIMATE_CONTENT_CHASTITY) && (!P.chastenable || !P.intimate_reaction_show_chastity))
+		return FALSE
+	if((content_flags & INTIMATE_CONTENT_EXTREME) && (!P.extreme_erp || !P.intimate_reaction_show_extreme))
+		return FALSE
+	return TRUE
+
+/datum/component/intimate_reaction/proc/get_intimate_excluded_mobs(mob/living/carbon/human/source, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, vision_distance = DEFAULT_MESSAGE_RANGE)
 	var/list/excluded = list()
-	for(var/mob/M in get_hearers_in_view(DEFAULT_MESSAGE_RANGE, source))
-		if(M == source || !M.client?.prefs)
+	for(var/mob/M in get_hearers_in_view(vision_distance, source))
+		if(M == source)
 			continue
-		var/datum/preferences/P = M.client.prefs
-		if(!P.intimate_reaction_enabled)
-			excluded += M
-			continue
-		if((content_flags & INTIMATE_CONTENT_CHASTITY) && (!P.chastenable || !P.intimate_reaction_show_chastity))
-			excluded += M
-			continue
-		if((content_flags & INTIMATE_CONTENT_EXTREME) && (!P.extreme_erp || !P.intimate_reaction_show_extreme))
+		if(!viewer_can_see_intimate_reaction(M, content_flags, require_accessory_free, require_intimate_accessories))
 			excluded += M
 	return excluded
 
@@ -186,6 +195,56 @@
 	source.intimate_reaction_last_fired[category] = world.time
 	source.intimate_reaction_last_category = category
 
+/// Picks a custom player-authored reaction string for category, respecting per-string weights.
+/datum/component/intimate_reaction/proc/pick_custom_reaction_string(mob/living/carbon/human/source, category)
+	if(!source?.client?.prefs || !istext(category))
+		return null
+	var/list/custom_reactions = source.client.prefs.custom_intimate_reactions
+	if(!islist(custom_reactions) || !length(custom_reactions))
+		return null
+	var/list/strings = custom_reactions[category]
+	if(!islist(strings) || !length(strings))
+		return null
+	var/weight_key = "weight_[category]"
+	var/list/weights = custom_reactions[weight_key]
+	if(!islist(weights) || !length(weights))
+		return pick(strings)
+	var/list/eligible = list()
+	for(var/i in 1 to strings.len)
+		var/w = (i <= weights.len) ? weights[i] : 100
+		if(prob(w))
+			eligible += strings[i]
+	if(!eligible.len)
+		return pick(strings)
+	return pick(eligible)
+
+/// Returns the configured output audience for a category, falling back to default_audience.
+/datum/component/intimate_reaction/proc/get_intimate_reaction_audience(mob/living/carbon/human/source, category, default_audience = INTIMATE_AUDIENCE_SELF)
+	if(!is_valid_intimate_reaction_audience(default_audience))
+		default_audience = INTIMATE_AUDIENCE_SELF
+	if(!source?.client?.prefs)
+		return default_audience
+	return source.client.prefs.get_intimate_reaction_audience(category, default_audience)
+
+/// Emits a reaction according to the wearer's per-category audience setting.
+/datum/component/intimate_reaction/proc/emit_intimate_reaction_message(mob/living/carbon/human/source, message, category, default_audience = INTIMATE_AUDIENCE_SELF, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, mob/living/carbon/human/partner = null)
+	if(!source || !message)
+		return FALSE
+	var/audience = get_intimate_reaction_audience(source, category, default_audience)
+	switch(audience)
+		if(INTIMATE_AUDIENCE_PARTNER)
+			to_chat(source, message)
+			if(partner && partner != source && viewer_can_see_intimate_reaction(partner, content_flags, require_accessory_free, require_intimate_accessories))
+				to_chat(partner, message)
+			return TRUE
+		if(INTIMATE_AUDIENCE_NEARBY, INTIMATE_AUDIENCE_VIEW)
+			var/vision_distance = (audience == INTIMATE_AUDIENCE_NEARBY) ? INTIMATE_AUDIENCE_NEARBY_RANGE : DEFAULT_MESSAGE_RANGE
+			var/list/excluded = get_intimate_excluded_mobs(source, content_flags, require_accessory_free, require_intimate_accessories, vision_distance)
+			source.visible_message(message, message, vision_distance = vision_distance, ignored_mobs = excluded)
+			return TRUE
+	to_chat(source, message)
+	return TRUE
+
 /**
  * Picks a random string from an external JSON string bank.
  *
@@ -197,9 +256,12 @@
  *
  * Named pick_string_bank to avoid collision with the global pick_chastity_string() preprocessor macro.
  */
-/datum/component/intimate_reaction/proc/pick_string_bank(filename, string_key, strings_path = "modular/code/game/objects/items/lewd/chastity/strings")
+/datum/component/intimate_reaction/proc/pick_string_bank(filename, string_key, strings_path = "modular/code/game/objects/items/lewd/chastity/strings", mob/living/carbon/human/source = null)
 	if(!string_key)
 		return null
+	var/custom_string = pick_custom_reaction_string(source, string_key)
+	if(custom_string)
+		return custom_string
 	var/list/string_bank = strings(filename, string_key, strings_path)
 	if(!islist(string_bank) || !string_bank.len)
 		return null
@@ -591,12 +653,13 @@
 	if(!prob(10 + (applied_force * 5) + (applied_speed * 5)))
 		return FALSE
 
-	var/message = pick_string_bank("chastity_receive_flavor.json", string_key)
+	var/message = pick_string_bank("chastity_receive_flavor.json", string_key, source = source)
 	if(!message)
 		return FALSE
+	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
 
 	last_receive_flavor_time = world.time
-	to_chat(source, span_warning(message))
+	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, INTIMATE_CONTENT_CHASTITY, partner = acting_mob)
 	return TRUE
 
 /// Handles the arousal message.
@@ -748,29 +811,32 @@
 		return TRUE
 
 	var/string_key = get_movement_string_key(source)
-	var/message = pick_string_bank("chastity_movement_messages.json", string_key)
+	var/message = pick_string_bank("chastity_movement_messages.json", string_key, source = source)
 	if(!message)
 		return TRUE
+	message = resolve_intimate_reaction_tokens(message, source)
 
 	last_movement_message_time = world.time
 	mark_reaction_fired(source, "movement")
 	// When the wearer has show_intimate_examine disabled, suppress movement visible_messages.
-	if(source.client?.prefs && !source.client.prefs.show_intimate_examine)
+	var/audience = get_intimate_reaction_audience(source, string_key, INTIMATE_AUDIENCE_VIEW)
+	if((audience == INTIMATE_AUDIENCE_NEARBY || audience == INTIMATE_AUDIENCE_VIEW) && source.client?.prefs && !source.client.prefs.show_intimate_examine)
 		return TRUE
 	// Build the viewer exclude list. Movement-pain keys indicate spiked/extreme content.
 	var/content_flags = INTIMATE_CONTENT_CHASTITY
 	if(string_key == "chastity_movement_pain")
 		content_flags |= INTIMATE_CONTENT_EXTREME
-	var/list/excluded = get_intimate_excluded_mobs(source, content_flags)
 	// All jingle banks (visible and all covered variants) produce messages beginning with "'s",
 	// so they are concatenated directly onto the name without a separating space.
 	// Pain and struggle messages begin with a verb and need the leading space.
+	var/formatted_message
 	if(string_key == "chastity_movement_pain")
-		source.visible_message(span_warning("[source] [message]"), ignored_mobs = excluded)
+		formatted_message = span_warning("[source] [message]")
 	else if(copytext(string_key, 1, 17) == "chastity_jingle_")
-		source.visible_message(span_notice("[source][message]"), ignored_mobs = excluded)
+		formatted_message = span_notice("[source][message]")
 	else
-		source.visible_message(span_notice("[source] [message]"), ignored_mobs = excluded)
+		formatted_message = span_notice("[source] [message]")
+	emit_intimate_reaction_message(source, formatted_message, string_key, INTIMATE_AUDIENCE_VIEW, content_flags)
 	return TRUE
 
 /datum/component/intimate_reaction/chastity_receive_flavor/try_handle_wearer_sex_action_received(mob/living/carbon/human/source, mob/living/carbon/human/acting_mob, datum/sex_controller/acting_sexcon, datum/sex_action/action, receiver_part, giving, arousal_amt, pain_amt, applied_force, applied_speed)

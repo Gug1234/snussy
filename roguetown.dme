@@ -3044,6 +3044,7 @@
 #include "modular\code\modules\client\preferences_intimate.dm"
 #include "modular\code\modules\client\preferences_intimate_reactions.dm"
 #include "modular\code\modules\client\preferences_sex_flavors.dm"
+#include "modular\code\modules\client\preferences_erp_preview_tokens.dm"
 #include "modular\code\modules\client\preferences_slot_io.dm"
 #include "modular\code\modules\crafting\lewd\chastity_crafting.dm"
 #include "modular\code\modules\crafting\lewd\dildo_crafting.dm"

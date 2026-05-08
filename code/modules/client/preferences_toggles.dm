@@ -150,7 +150,6 @@
 		list("id" = "intimate_reaction_chastity", "label" = "Chastity Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_show_chastity, "desc" = "Allow custom reaction text for chastity-related events."),
 		list("id" = "intimate_reaction_extreme", "label" = "Extreme Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_show_extreme, "desc" = "Allow custom reaction text for extreme ERP contexts."),
 		list("id" = "intimate_reaction_accessory_free", "label" = "Accessory-Free Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_show_accessory_free, "desc" = "Allow custom reaction text even when no intimate accessory is equipped."),
-		list("id" = "intimate_reaction_share_partner", "label" = "Share Partner Reaction Text", "enabled" = !!owner.prefs.intimate_reaction_share_with_partner, "desc" = "Allow partner-facing custom reaction text where supported."),
 	)
 
 	data["categories"] = list(
@@ -253,8 +252,6 @@
 				owner.toggle_intimate_reaction_extreme()
 			if("intimate_reaction_accessory_free")
 				owner.toggle_intimate_reaction_accessory_free()
-			if("intimate_reaction_share_partner")
-				owner.toggle_intimate_reaction_share_partner()
 		SStgui.update_uis(src)
 		return TRUE
 
@@ -567,16 +564,6 @@
 	prefs.intimate_reaction_show_accessory_free = !prefs.intimate_reaction_show_accessory_free
 	prefs.save_preferences()
 	to_chat(src, prefs.intimate_reaction_show_accessory_free ? "Accessory-free reaction text enabled." : "Accessory-free reaction text disabled.")
-
-/client/proc/toggle_intimate_reaction_share_partner()
-	set name = "Toggle Partner Reaction Text"
-	set category = "Options"
-	set hidden = 1
-	if(!prefs)
-		return
-	prefs.intimate_reaction_share_with_partner = !prefs.intimate_reaction_share_with_partner
-	prefs.save_preferences()
-	to_chat(src, prefs.intimate_reaction_share_with_partner ? "Partner reaction text sharing enabled." : "Partner reaction text sharing disabled.")
 
 /client/verb/toggle_compliance_notifs() // The messages need to be on-by-default while this is in its early stages.
 	set category = "Options"

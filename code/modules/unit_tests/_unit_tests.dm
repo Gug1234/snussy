@@ -101,6 +101,8 @@
 #include "cursed_collar_preferences.dm"
 #include "intimate_invisibility_toys.dm"
 #include "intimate_accessory_examine.dm"
+#include "intimate_reaction_preferences.dm"
+#include "erp_preview_tokens.dm"
 #include "tongue_piercing_oral_bank.dm"
 #include "unit_test.dm"
 // END_INCLUDE
