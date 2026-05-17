@@ -79,6 +79,11 @@
 		branded = ", branded with <span style='font-size:125%;'>[span_boldwarning(penis.branded_writing)]</span>"
 	return "[used_name][branded]"
 
+/datum/mob_descriptor/penis/get_description_for_watcher(mob/living/described, mob/watcher)
+	var/base_description = get_description(described)
+	var/mob/living/carbon/human/H = described
+	return H.append_inline_intimate_piercing_descriptor(base_description, watcher, H.intimate_genital_piercing, BODY_ZONE_PRECISE_GROIN)
+
 /datum/mob_descriptor/testicles
 	name = "balls"
 	slot = MOB_DESCRIPTOR_SLOT_TESTICLES
@@ -172,6 +177,14 @@
 		branded = ", branded with <span style='font-size:125%;'>[span_boldwarning(vagina.branded_writing)]</span>"
 	return "a [vagina_type][arousal_modifier][branded]"
 
+/datum/mob_descriptor/vagina/get_description_for_watcher(mob/living/described, mob/watcher)
+	var/base_description = get_description(described)
+	var/mob/living/carbon/human/H = described
+	var/datum/mob_descriptor/penis/penis_descriptor = MOB_DESCRIPTOR(/datum/mob_descriptor/penis)
+	if(penis_descriptor.can_describe(H))
+		return base_description
+	return H.append_inline_intimate_piercing_descriptor(base_description, watcher, H.intimate_genital_piercing, BODY_ZONE_PRECISE_GROIN)
+
 /datum/mob_descriptor/breasts
 	name = "breasts"
 	slot = MOB_DESCRIPTOR_SLOT_BREASTS
@@ -228,3 +241,8 @@
 	if(breasts.breast_size == 0)
 		return "[adjective][branded]"
 	return "[adjective] pair of breasts[branded]"
+
+/datum/mob_descriptor/breasts/get_description_for_watcher(mob/living/described, mob/watcher)
+	var/base_description = get_description(described)
+	var/mob/living/carbon/human/H = described
+	return H.append_inline_intimate_piercing_descriptor(base_description, watcher, H.intimate_breast_piercing, BODY_ZONE_CHEST)

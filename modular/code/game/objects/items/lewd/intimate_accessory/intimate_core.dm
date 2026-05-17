@@ -1,4 +1,16 @@
 // Base item data and shared slot/access helpers.
+#define INTIMATE_PIERCING_DESCRIPTOR_MAX_LENGTH 48
+
+/proc/sanitize_intimate_piercing_descriptor(descriptor)
+	if(!istext(descriptor))
+		return null
+	var/clean_descriptor = lowertext(trim(strip_html_simple(sanitize_simple(html_decode(copytext(descriptor, 1, INTIMATE_PIERCING_DESCRIPTOR_MAX_LENGTH + 1))))))
+	if(!length(clean_descriptor))
+		return null
+	if(CHAT_FILTER_CHECK(clean_descriptor))
+		return null
+	return clean_descriptor
+
 /obj/item/intimate_accessory
 	name = "intimate accessory"
 	desc = "A personal accessory meant for intimate wear. If you're seeing this report it as a bug."
@@ -84,20 +96,34 @@
 	if(!examined)
 		return null
 	var/accessory_name = examined.get_examine_item_name_with_hover(user, src, get_intimate_examine_colored_name())
+	var/accessory_article = get_intimate_examine_article()
 	if(intimate_flags & INTIMATE_FLAG_PIERCING)
-		return "[examined]'s [part] [part_plural ? "are" : "is"] pierced through with [accessory_name]."
+		return "[examined.p_their(TRUE)] [part] [part_plural ? "are" : "is"] pierced through with [accessory_article] [accessory_name]."
 	if(istype(src, /obj/item/intimate_accessory/rear/plug/analbeads))
 		var/obj/item/intimate_accessory/rear/plug/analbeads/beads = src
-		return "[examined] is wearing a set of [accessory_name] stuffed [intimate_accessory_count_word(beads.beads_inserted)] beads deep."
-	return "[examined] has a [accessory_name] up [examined.p_their()] [part]."
+		return "[examined.p_they(TRUE)] [examined.p_are()] wearing a set of [accessory_name] stuffed [intimate_accessory_count_word(beads.beads_inserted)] beads deep."
+	return "[examined.p_they(TRUE)] [examined.p_have()] [accessory_article] [accessory_name] up [examined.p_their()] [part]."
+
+/obj/item/intimate_accessory/proc/get_intimate_examine_article()
+	var/static/list/vowel_sounds = list("a", "e", "i", "o", "u")
+	var/display_name = lowertext(trim(strip_html_simple(get_intimate_examine_plain_name())))
+	if(!length(display_name))
+		return "a"
+	var/first_char = copytext(display_name, 1, 2)
+	if(first_char in vowel_sounds)
+		return "an"
+	return "a"
+
+/obj/item/intimate_accessory/proc/get_intimate_examine_plain_name()
+	return name
 
 /obj/item/intimate_accessory/proc/get_intimate_examine_colored_name()
-	var/display_name = html_encode(name)
+	var/display_name = html_encode(get_intimate_examine_plain_name())
 	if(current_gem_descriptor && intimate_gem_color)
 		var/socket_descriptor = html_encode("[current_gem_descriptor]-set")
 		var/colored_name = color_intimate_examine_token(display_name, socket_descriptor, intimate_gem_color)
 		if(colored_name == display_name && has_socketed_insert())
-			var/list/name_parts = splittext(name, " ")
+			var/list/name_parts = splittext(get_intimate_examine_plain_name(), " ")
 			if(length(name_parts))
 				colored_name = color_intimate_examine_token(display_name, html_encode(name_parts[1]), intimate_gem_color)
 		display_name = colored_name
@@ -244,6 +270,25 @@
 		else
 			stack_trace("get_slot_var_name(): unhandled intimate slot '[get_effective_intimate_slot(slot_override)]' on [src]")
 			return is_piercing ? "intimate_mouth_piercing" : "intimate_mouth_insertable"
+
+/obj/item/intimate_accessory/proc/get_intimate_preference_slot_key(slot_override = null)
+	var/is_piercing = !!(intimate_flags & INTIMATE_FLAG_PIERCING)
+	switch(get_effective_intimate_slot(slot_override))
+		if(INTIMATE_SLOT_GENITAL)
+			return is_piercing ? "genital_piercing" : "genital_insertable"
+		if(INTIMATE_SLOT_REAR)
+			return is_piercing ? "rear_piercing" : "rear_insertable"
+		if(INTIMATE_SLOT_BREAST)
+			return is_piercing ? "breast_piercing" : "breast_insertable"
+		if(INTIMATE_SLOT_MOUTH)
+			return is_piercing ? "mouth_piercing" : "mouth_insertable"
+		if(INTIMATE_SLOT_EAR)
+			return "ear_piercing"
+		if(INTIMATE_SLOT_NOSE)
+			return "nose_piercing"
+		if(INTIMATE_SLOT_BELLY)
+			return "belly_piercing"
+	return null
 
 /obj/item/intimate_accessory/proc/get_worn_in_slot(mob/living/carbon/human/H, slot_override = null)
 	if(!H)

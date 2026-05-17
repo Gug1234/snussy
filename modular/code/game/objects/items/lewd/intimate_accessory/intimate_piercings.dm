@@ -19,6 +19,8 @@
 	/// Visual movement style for non-bell piercings. null = standard bars/studs/hoops.
 	/// Set to "psydonic" or "zizite" on cross-bearing variants to dispatch to specific visual string banks.
 	var/visual_movement_style = null
+	/// Player-facing noun used only in examine text, e.g. "jacob's ladder".
+	var/custom_piercing_descriptor = null
 	/// Direct reference to our reaction component, cached to avoid GetComponent() on a COMPONENT_DUPE_ALLOWED type.
 	/// Set during Initialize(); cleared on Destroy(). Each piercing item carries exactly one reaction instance.
 	var/datum/component/intimate_reaction/piercing/reaction_component = null
@@ -94,6 +96,21 @@
 /obj/item/intimate_accessory/piercing/proc/update_sellprice()
 	var/base_price = roundstart_equipped ? 0 : initial(sellprice)
 	sellprice = max(1, base_price + gem_value_bonus)
+
+/obj/item/intimate_accessory/piercing/proc/set_custom_piercing_descriptor(descriptor)
+	custom_piercing_descriptor = sanitize_intimate_piercing_descriptor(descriptor)
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/get_intimate_examine_plain_name()
+	if(!custom_piercing_descriptor)
+		return ..()
+	var/metal_descriptor = get_metal_descriptor()
+	var/display_name = "[metal_descriptor] [custom_piercing_descriptor]"
+	if(current_gem_descriptor)
+		display_name = "[current_gem_descriptor]-set [display_name]"
+	if(is_beriddled())
+		display_name = "beriddled [display_name]"
+	return display_name
 
 /obj/item/intimate_accessory/piercing/proc/get_voice_tint_color()
 	if(!has_socketed_insert())

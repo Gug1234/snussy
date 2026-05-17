@@ -2978,6 +2978,7 @@
 #include "modular\code\datums\sexcon\intimate_reaction_editor.dm"
 #include "modular\code\datums\sexcon\sex_action_overrides.dm"
 #include "modular\code\datums\sexcon\sex_flavor_editor.dm"
+#include "modular\code\datums\sexcon\sex_actions\manticore_tail.dm"
 #include "modular\code\datums\sexcon\sex_actions\chastityplay\cage_cunnilingus.dm"
 #include "modular\code\datums\sexcon\sex_actions\chastityplay\cage_dildo_vagina.dm"
 #include "modular\code\datums\sexcon\sex_actions\chastityplay\cage_grind_pussy_other.dm"

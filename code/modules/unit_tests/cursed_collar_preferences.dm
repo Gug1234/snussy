@@ -49,6 +49,13 @@
 	TEST_ASSERT_EQUAL(prefs.pref_cursed_master_name, "Alice North", "master name was not stored")
 
 	prefs.pref_cursed_self_master = TRUE
+	var/datum/cursed_collar_lobby_menu/menu = new(prefs)
+	TEST_ASSERT(menu.ui_act("set_master_name", list("master_name" = "Bob East"), null), "lobby menu should accept explicit master_name payloads")
+	TEST_ASSERT_EQUAL(prefs.pref_cursed_master_name, "Bob East", "lobby menu master name action should store typed external master names")
+	TEST_ASSERT(!prefs.pref_cursed_self_master, "setting an external master should clear self-master")
+	qdel(menu)
+
+	prefs.pref_cursed_self_master = TRUE
 	prefs.reset_intimate_accessory_preferences()
 	TEST_ASSERT_EQUAL(prefs.pref_cursed_roundstart_device, CURSED_ROUNDSTART_NONE, "reset should clear cursed device")
 	TEST_ASSERT_EQUAL(prefs.pref_cursed_master_name, "", "reset should clear cursed master name")

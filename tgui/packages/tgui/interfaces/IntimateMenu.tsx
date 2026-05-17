@@ -5,9 +5,12 @@
  * bead controls. Shelved decoration editors stay outside this surface.
  */
 
+import { useEffect, useState } from 'react';
+
 import {
   Box,
   Button,
+  Input,
   LabeledList,
   NoticeBox,
   Section,
@@ -30,6 +33,8 @@ type ItemData = {
   is_beriddled: boolean;
   is_silver: boolean;
   can_remove: boolean;
+  can_customize_descriptor: boolean;
+  custom_descriptor: string;
   is_beads: boolean;
   beads_inserted: number;
   max_beads: number;
@@ -152,6 +157,24 @@ const SlotCard = (props: { slot: SlotEntry }) => {
 const ItemCard = (props: { item: ItemData }) => {
   const { act } = useBackend<Data>();
   const { item } = props;
+  const savedDescriptor = item.custom_descriptor ?? '';
+  const [descriptorInput, setDescriptorInput] = useState(savedDescriptor);
+  const trimmedDescriptor = descriptorInput.trim();
+  const descriptorDirty = trimmedDescriptor !== savedDescriptor;
+
+  useEffect(() => {
+    setDescriptorInput(savedDescriptor);
+  }, [savedDescriptor, item.ref]);
+
+  const saveDescriptor = () => {
+    if (!descriptorDirty) {
+      return;
+    }
+    act('set_piercing_descriptor', {
+      ref: item.ref,
+      descriptor: trimmedDescriptor,
+    });
+  };
 
   return (
     <Stack vertical>
@@ -197,6 +220,45 @@ const ItemCard = (props: { item: ItemData }) => {
           <LabeledList.Item label="Properties">
             {buildTags(item)}
           </LabeledList.Item>
+
+          {!!item.can_customize_descriptor && (
+            <LabeledList.Item label="Descriptor">
+              <Stack align="center">
+                <Stack.Item grow>
+                  <Input
+                    fluid
+                    value={descriptorInput}
+                    placeholder="jacob's ladder, prince albert..."
+                    onChange={setDescriptorInput}
+                    onEnter={saveDescriptor}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    compact
+                    icon="save"
+                    disabled={!descriptorDirty}
+                    tooltip="Save descriptor"
+                    onClick={saveDescriptor}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    compact
+                    icon="undo"
+                    disabled={!savedDescriptor}
+                    tooltip="Use default descriptor"
+                    onClick={() =>
+                      act('set_piercing_descriptor', {
+                        ref: item.ref,
+                        descriptor: '',
+                      })
+                    }
+                  />
+                </Stack.Item>
+              </Stack>
+            </LabeledList.Item>
+          )}
 
           {!!item.is_beads && item.max_beads > 0 && (
             <LabeledList.Item label="Beads">

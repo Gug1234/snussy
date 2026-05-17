@@ -61,9 +61,13 @@
 			return TRUE
 
 		if("set_master_name")
-			var/master_name = params["name"]
+			var/master_name = params["master_name"]
+			if(isnull(master_name))
+				master_name = params["name"]
 			if(!prefs.set_cursed_roundstart_master_name(master_name))
 				return FALSE
+			if(length(prefs.pref_cursed_master_name))
+				prefs.pref_cursed_self_master = FALSE
 			prefs.save_character()
 			return TRUE
 

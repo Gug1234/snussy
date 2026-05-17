@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   Dropdown,
+  Input,
   Section,
   Stack,
   Tabs,
@@ -22,6 +23,8 @@ type SlotData = {
   label: string;
   current: string;
   options: string[];
+  can_customize_descriptor?: boolean;
+  descriptor?: string;
 };
 
 type AccessoryGroupKey = 'genital' | 'rear' | 'torso' | 'head' | 'other';
@@ -168,7 +171,6 @@ export function IntimatePrefsMenu(props) {
 function AccessoryGroupSection(props: {
   group: AccessoryGroupData | undefined;
 }) {
-  const { act } = useBackend<BackendData>();
   const { group } = props;
   const slots = Array.isArray(group?.slots) ? group.slots : [];
 
@@ -181,38 +183,107 @@ function AccessoryGroupSection(props: {
       <Stack vertical fill>
         {slots.map((slot) => (
           <Stack.Item key={slot.key}>
-            <Section
-              title={slot.label + ' Slot'}
-              buttons={
-                slot.current !== 'None' && (
-                  <Button
-                    icon="times"
-                    color="bad"
-                    compact
-                    tooltip="Clear this slot"
-                    onClick={() => act('clear', { slot: slot.key })}
-                  />
-                )
-              }
-            >
-              <Stack align="center">
-                <Stack.Item grow>
-                  <Dropdown
-                    width="100%"
-                    selected={slot.current}
-                    options={Array.isArray(slot.options) ? slot.options : []}
-                    onSelected={(val: string) =>
-                      act('select', {
-                        slot: slot.key,
-                        option: val,
-                      })
-                    }
-                  />
-                </Stack.Item>
-              </Stack>
-            </Section>
+            <AccessorySlotRow slot={slot} />
           </Stack.Item>
         ))}
+      </Stack>
+    </Section>
+  );
+}
+
+function AccessorySlotRow(props: { slot: SlotData }) {
+  const { act } = useBackend<BackendData>();
+  const { slot } = props;
+  const savedDescriptor = slot.descriptor ?? '';
+  const [descriptorInput, setDescriptorInput] = useState(savedDescriptor);
+  const trimmedDescriptor = descriptorInput.trim();
+  const descriptorDirty = trimmedDescriptor !== savedDescriptor;
+
+  useEffect(() => {
+    setDescriptorInput(savedDescriptor);
+  }, [savedDescriptor, slot.key]);
+
+  const saveDescriptor = () => {
+    if (!descriptorDirty) {
+      return;
+    }
+    act('set_descriptor', {
+      slot: slot.key,
+      descriptor: trimmedDescriptor,
+    });
+  };
+
+  return (
+    <Section
+      title={slot.label + ' Slot'}
+      buttons={
+        slot.current !== 'None' && (
+          <Button
+            icon="times"
+            color="bad"
+            compact
+            tooltip="Clear this slot"
+            onClick={() => act('clear', { slot: slot.key })}
+          />
+        )
+      }
+    >
+      <Stack vertical>
+        <Stack.Item>
+          <Dropdown
+            width="100%"
+            selected={slot.current}
+            options={Array.isArray(slot.options) ? slot.options : []}
+            onSelected={(val: string) =>
+              act('select', {
+                slot: slot.key,
+                option: val,
+              })
+            }
+          />
+        </Stack.Item>
+
+        {!!slot.can_customize_descriptor && (
+          <Stack.Item>
+            <Stack align="center">
+              <Stack.Item width="72px" color="label">
+                Descriptor
+              </Stack.Item>
+              <Stack.Item grow>
+                <Input
+                  fluid
+                  value={descriptorInput}
+                  placeholder="jacob's ladder, prince albert..."
+                  onChange={setDescriptorInput}
+                  onEnter={saveDescriptor}
+                />
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  compact
+                  icon="save"
+                  disabled={!descriptorDirty}
+                  tooltip="Save descriptor"
+                  onClick={saveDescriptor}
+                />
+              </Stack.Item>
+              <Stack.Item>
+                <Button
+                  compact
+                  icon="undo"
+                  disabled={!savedDescriptor}
+                  tooltip="Use default descriptor"
+                  onClick={() =>
+                    act('set_descriptor', {
+                      slot: slot.key,
+                      descriptor: '',
+                    })
+                  }
+                />
+              </Stack.Item>
+            </Stack>
+          </Stack.Item>
+        )}
       </Stack>
     </Section>
   );

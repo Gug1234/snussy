@@ -25,6 +25,13 @@
 /datum/preferences/var/pref_intimate_ear_piercing = null
 /datum/preferences/var/pref_intimate_nose_piercing = null
 /datum/preferences/var/pref_intimate_belly_piercing = null
+/datum/preferences/var/pref_intimate_genital_piercing_descriptor = null
+/datum/preferences/var/pref_intimate_rear_piercing_descriptor = null
+/datum/preferences/var/pref_intimate_breast_piercing_descriptor = null
+/datum/preferences/var/pref_intimate_mouth_piercing_descriptor = null
+/datum/preferences/var/pref_intimate_ear_piercing_descriptor = null
+/datum/preferences/var/pref_intimate_nose_piercing_descriptor = null
+/datum/preferences/var/pref_intimate_belly_piercing_descriptor = null
 
 /// Clears per-character intimate and chastity prefs before loading a slot.
 /datum/preferences/proc/reset_intimate_accessory_preferences()
@@ -39,6 +46,13 @@
 	pref_intimate_ear_piercing = initial(pref_intimate_ear_piercing)
 	pref_intimate_nose_piercing = initial(pref_intimate_nose_piercing)
 	pref_intimate_belly_piercing = initial(pref_intimate_belly_piercing)
+	pref_intimate_genital_piercing_descriptor = initial(pref_intimate_genital_piercing_descriptor)
+	pref_intimate_rear_piercing_descriptor = initial(pref_intimate_rear_piercing_descriptor)
+	pref_intimate_breast_piercing_descriptor = initial(pref_intimate_breast_piercing_descriptor)
+	pref_intimate_mouth_piercing_descriptor = initial(pref_intimate_mouth_piercing_descriptor)
+	pref_intimate_ear_piercing_descriptor = initial(pref_intimate_ear_piercing_descriptor)
+	pref_intimate_nose_piercing_descriptor = initial(pref_intimate_nose_piercing_descriptor)
+	pref_intimate_belly_piercing_descriptor = initial(pref_intimate_belly_piercing_descriptor)
 	pref_chastity_enabled = initial(pref_chastity_enabled)
 	pref_chastity_flat = initial(pref_chastity_flat)
 	pref_chastity_anal = initial(pref_chastity_anal)
@@ -333,6 +347,37 @@
 			return slot_def["pref"]
 	return null
 
+/datum/preferences/proc/get_intimate_piercing_descriptor_pref_var(slot_key)
+	switch(slot_key)
+		if("genital_piercing")
+			return "pref_intimate_genital_piercing_descriptor"
+		if("rear_piercing")
+			return "pref_intimate_rear_piercing_descriptor"
+		if("breast_piercing")
+			return "pref_intimate_breast_piercing_descriptor"
+		if("mouth_piercing")
+			return "pref_intimate_mouth_piercing_descriptor"
+		if("ear_piercing")
+			return "pref_intimate_ear_piercing_descriptor"
+		if("nose_piercing")
+			return "pref_intimate_nose_piercing_descriptor"
+		if("belly_piercing")
+			return "pref_intimate_belly_piercing_descriptor"
+	return null
+
+/datum/preferences/proc/get_intimate_piercing_descriptor(slot_key)
+	var/pref_var = get_intimate_piercing_descriptor_pref_var(slot_key)
+	if(!pref_var || !(pref_var in vars))
+		return null
+	return sanitize_intimate_piercing_descriptor(vars[pref_var])
+
+/datum/preferences/proc/set_intimate_piercing_descriptor(slot_key, descriptor)
+	var/pref_var = get_intimate_piercing_descriptor_pref_var(slot_key)
+	if(!pref_var || !(pref_var in vars))
+		return FALSE
+	vars[pref_var] = sanitize_intimate_piercing_descriptor(descriptor)
+	return TRUE
+
 /// Reads a selected typepath for a direct intimate accessory slot.
 /datum/preferences/proc/get_intimate_accessory_slot_typepath(slot_key)
 	var/pref_var = get_intimate_accessory_slot_pref_var(slot_key)
@@ -376,6 +421,10 @@
 		if(!set_intimate_accessory_slot_typepath(slot_key, typepath))
 			vars[pref_var] = null
 
+		var/descriptor_pref_var = get_intimate_piercing_descriptor_pref_var(slot_key)
+		if(descriptor_pref_var && (descriptor_pref_var in vars))
+			vars[descriptor_pref_var] = sanitize_intimate_piercing_descriptor(vars[descriptor_pref_var])
+
 	pref_chastity_enabled = sanitize_integer(pref_chastity_enabled, FALSE, TRUE, initial(pref_chastity_enabled))
 	pref_chastity_flat = sanitize_integer(pref_chastity_flat, FALSE, TRUE, initial(pref_chastity_flat))
 	pref_chastity_anal = sanitize_integer(pref_chastity_anal, FALSE, TRUE, initial(pref_chastity_anal))
@@ -409,6 +458,8 @@
 			"group" = slot_def["group"],
 			"current" = current,
 			"options" = option_names,
+			"can_customize_descriptor" = !!get_intimate_piercing_descriptor_pref_var(slot_def["key"]),
+			"descriptor" = get_intimate_piercing_descriptor(slot_def["key"]) || "",
 		))
 	return rows
 
@@ -424,17 +475,17 @@
 		return
 
 	var/list/slot_prefs = list(
-		list("slot" = INTIMATE_SLOT_GENITAL, "path" = pref_intimate_genital_piercing),
+		list("slot" = INTIMATE_SLOT_GENITAL, "path" = pref_intimate_genital_piercing, "descriptor" = pref_intimate_genital_piercing_descriptor),
 		list("slot" = INTIMATE_SLOT_GENITAL, "path" = pref_intimate_genital_insertable),
-		list("slot" = INTIMATE_SLOT_REAR, "path" = pref_intimate_rear_piercing),
+		list("slot" = INTIMATE_SLOT_REAR, "path" = pref_intimate_rear_piercing, "descriptor" = pref_intimate_rear_piercing_descriptor),
 		list("slot" = INTIMATE_SLOT_REAR, "path" = pref_intimate_rear_insertable),
-		list("slot" = INTIMATE_SLOT_BREAST, "path" = pref_intimate_breast_piercing),
+		list("slot" = INTIMATE_SLOT_BREAST, "path" = pref_intimate_breast_piercing, "descriptor" = pref_intimate_breast_piercing_descriptor),
 		list("slot" = INTIMATE_SLOT_BREAST, "path" = pref_intimate_breast_insertable),
-		list("slot" = INTIMATE_SLOT_MOUTH, "path" = pref_intimate_mouth_piercing),
+		list("slot" = INTIMATE_SLOT_MOUTH, "path" = pref_intimate_mouth_piercing, "descriptor" = pref_intimate_mouth_piercing_descriptor),
 		list("slot" = INTIMATE_SLOT_MOUTH, "path" = pref_intimate_mouth_insertable),
-		list("slot" = INTIMATE_SLOT_EAR, "path" = pref_intimate_ear_piercing),
-		list("slot" = INTIMATE_SLOT_NOSE, "path" = pref_intimate_nose_piercing),
-		list("slot" = INTIMATE_SLOT_BELLY, "path" = pref_intimate_belly_piercing),
+		list("slot" = INTIMATE_SLOT_EAR, "path" = pref_intimate_ear_piercing, "descriptor" = pref_intimate_ear_piercing_descriptor),
+		list("slot" = INTIMATE_SLOT_NOSE, "path" = pref_intimate_nose_piercing, "descriptor" = pref_intimate_nose_piercing_descriptor),
+		list("slot" = INTIMATE_SLOT_BELLY, "path" = pref_intimate_belly_piercing, "descriptor" = pref_intimate_belly_piercing_descriptor),
 	)
 
 	for(var/list/slot_pref as anything in slot_prefs)
@@ -452,6 +503,9 @@
 			continue
 
 		var/obj/item/intimate_accessory/accessory = new item_path(H)
+		if(istype(accessory, /obj/item/intimate_accessory/piercing))
+			var/obj/item/intimate_accessory/piercing/piercing = accessory
+			piercing.set_custom_piercing_descriptor(slot_pref["descriptor"])
 		var/slot = slot_pref["slot"]
 		if(!accessory.set_current_intimate_slot(slot))
 			qdel(accessory)

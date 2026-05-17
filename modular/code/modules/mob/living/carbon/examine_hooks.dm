@@ -49,13 +49,9 @@
 	var/viewer_intimate_ok = !user.client?.prefs || user.client.prefs.intimate_enabled
 	var/wearer_intimate_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
 	if(viewer_intimate_ok && wearer_intimate_ok && length(intimate_accessories))
-		add_visible_intimate_examine_accessory(lines, user, intimate_genital_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "genitals", TRUE)
 		add_visible_intimate_examine_accessory(lines, user, intimate_genital_insertable, BODY_ZONE_PRECISE_GROIN, observer_privilege, get_genital_insertable_examine_part(intimate_genital_insertable))
-		add_visible_intimate_examine_accessory(lines, user, intimate_rear_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "rear")
 		add_visible_intimate_examine_accessory(lines, user, intimate_rear_insertable, BODY_ZONE_PRECISE_GROIN, observer_privilege, "rear")
-		add_visible_intimate_examine_accessory(lines, user, intimate_breast_piercing, BODY_ZONE_CHEST, observer_privilege, "nipples", TRUE)
 		add_visible_intimate_examine_accessory(lines, user, intimate_breast_insertable, BODY_ZONE_CHEST, observer_privilege, "chest")
-		add_visible_intimate_examine_accessory(lines, user, intimate_mouth_piercing, BODY_ZONE_PRECISE_MOUTH, observer_privilege, "tongue")
 		add_visible_intimate_examine_accessory(lines, user, intimate_mouth_insertable, BODY_ZONE_PRECISE_MOUTH, observer_privilege, "mouth")
 
 	// Append an examine link to open the intimate accessories panel when:
@@ -68,16 +64,21 @@
 	return lines
 
 
-/mob/living/carbon/human/proc/human_modular_intimate_jewelry_examine_lines(mob/user, observer_privilege)
+/mob/living/carbon/human/proc/human_modular_intimate_piercing_examine_lines(mob/user, observer_privilege)
 	var/list/lines = list()
 	var/viewer_intimate_ok = !user.client?.prefs || user.client.prefs.intimate_enabled
 	var/wearer_intimate_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
 	if(!viewer_intimate_ok || !wearer_intimate_ok || !length(intimate_accessories))
 		return lines
+	add_visible_intimate_examine_accessory(lines, user, intimate_rear_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "rear", FALSE, FALSE)
+	add_visible_intimate_examine_accessory(lines, user, intimate_mouth_piercing, BODY_ZONE_PRECISE_MOUTH, observer_privilege, "tongue", FALSE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_ear_piercing, BODY_ZONE_PRECISE_EARS, observer_privilege, "ears", TRUE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_nose_piercing, BODY_ZONE_PRECISE_NOSE, observer_privilege, "nose", FALSE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_belly_piercing, BODY_ZONE_PRECISE_STOMACH, observer_privilege, "belly button", FALSE, FALSE)
 	return lines
+
+/mob/living/carbon/human/proc/human_modular_intimate_jewelry_examine_lines(mob/user, observer_privilege)
+	return human_modular_intimate_piercing_examine_lines(user, observer_privilege)
 
 
 /mob/living/carbon/human/proc/add_visible_intimate_examine_accessory(list/accessory_lines, mob/user, obj/item/intimate_accessory/accessory, body_zone, observer_privilege, part, part_plural = FALSE, explicit_span = TRUE)
@@ -92,6 +93,33 @@
 		accessory_lines += "<span style='color:#ff66cc'>[line]</span>"
 	else
 		accessory_lines += line
+
+/mob/living/carbon/human/proc/can_show_intimate_piercing_descriptor(mob/user, obj/item/intimate_accessory/accessory, body_zone)
+	if(!user)
+		return FALSE
+	if(!accessory || QDELETED(accessory))
+		return FALSE
+	if(!(accessory.intimate_flags & INTIMATE_FLAG_PIERCING))
+		return FALSE
+	var/viewer_intimate_ok = !user?.client?.prefs || user.client.prefs.intimate_enabled
+	var/wearer_intimate_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
+	if(!viewer_intimate_ok || !wearer_intimate_ok)
+		return FALSE
+	if(!isobserver(user) && !get_location_accessible(src, body_zone))
+		return FALSE
+	return TRUE
+
+/mob/living/carbon/human/proc/get_inline_intimate_piercing_descriptor(mob/user, obj/item/intimate_accessory/accessory, body_zone)
+	if(!can_show_intimate_piercing_descriptor(user, accessory, body_zone))
+		return null
+	var/accessory_name = get_examine_item_name_with_hover(user, accessory, accessory.get_intimate_examine_colored_name())
+	return "pierced through with [accessory.get_intimate_examine_article()] [accessory_name]"
+
+/mob/living/carbon/human/proc/append_inline_intimate_piercing_descriptor(base_description, mob/user, obj/item/intimate_accessory/accessory, body_zone)
+	var/piercing_descriptor = get_inline_intimate_piercing_descriptor(user, accessory, body_zone)
+	if(!piercing_descriptor)
+		return base_description
+	return "[base_description], [piercing_descriptor]"
 
 
 /mob/living/carbon/human/proc/get_genital_insertable_examine_part(obj/item/intimate_accessory/accessory)

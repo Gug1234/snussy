@@ -1123,15 +1123,15 @@
 
 	var/list/lines
 	if((get_face_name() != real_name) && !observer_privilege)
-		lines = build_cool_description_unknown(get_mob_descriptors_unknown(obscure_name, user), src)
+		lines = build_cool_description_unknown(get_mob_descriptors_unknown(obscure_name, user), src, user)
 	else
-		lines = build_cool_description(get_mob_descriptors(obscure_name, user), src)
+		lines = build_cool_description(get_mob_descriptors(obscure_name, user), src, user)
 
 	for(var/line in lines)
 		. += span_info(line)
 
-	var/list/intimate_jewelry_lines = human_modular_intimate_jewelry_examine_lines(user, observer_privilege)
-	for(var/line in intimate_jewelry_lines)
+	var/list/intimate_piercing_lines = human_modular_intimate_piercing_examine_lines(user, observer_privilege)
+	for(var/line in intimate_piercing_lines)
 		. += span_info(line)
 
 	// for underwears that don't cover from the rear, genital descriptions are still shown
@@ -1148,11 +1148,11 @@
 				descriptors += /datum/mob_descriptor/testicles
 			. += span_info("[t_his] underwear doesn't cover [t_him] from behind.")
 			//male genitalia line
-			var/malegen = build_coalesce_description(descriptors, src, list(MOB_DESCRIPTOR_SLOT_PENIS, MOB_DESCRIPTOR_SLOT_TESTICLES), "%THEY% %DESC1%, and %DESC2%.")
+			var/malegen = build_coalesce_description(descriptors, src, list(MOB_DESCRIPTOR_SLOT_PENIS, MOB_DESCRIPTOR_SLOT_TESTICLES), "%THEY% %DESC1%, and %DESC2%.", user)
 			if(malegen)
 				. += span_info(malegen)
 			//female genitalia line
-			var/femgen = build_coalesce_description(descriptors, src, list(MOB_DESCRIPTOR_SLOT_VAGINA), "%THEY% %DESC1%.")
+			var/femgen = build_coalesce_description(descriptors, src, list(MOB_DESCRIPTOR_SLOT_VAGINA), "%THEY% %DESC1%.", user)
 			if(femgen)
 				. += span_info(femgen)
 

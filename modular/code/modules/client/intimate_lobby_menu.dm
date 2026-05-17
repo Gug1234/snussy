@@ -62,6 +62,14 @@
 			prefs.update_preview_icon()
 			return TRUE
 
+		if("set_descriptor")
+			var/slot_key = params["slot"]
+			if(!prefs.set_intimate_piercing_descriptor(slot_key, params["descriptor"]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
 	return FALSE
 
 /datum/intimate_lobby_menu/ui_close(mob/user)

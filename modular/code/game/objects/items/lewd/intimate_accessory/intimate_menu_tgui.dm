@@ -95,11 +95,11 @@
 		entry["item"] = null
 		return entry
 
-	entry["item"] = _build_item_data(user, acc)
+	entry["item"] = _build_item_data(user, acc, is_self)
 	return entry
 
 /// Builds item detail data for a visible accessory.
-/datum/intimate_menu/proc/_build_item_data(mob/user, obj/item/intimate_accessory/acc)
+/datum/intimate_menu/proc/_build_item_data(mob/user, obj/item/intimate_accessory/acc, is_self)
 	var/list/data = list(
 		"ref" = REF(acc),
 		"name" = acc.name,
@@ -113,7 +113,14 @@
 		"is_beriddled" = acc.is_beriddled(),
 		"is_silver" = acc.is_silver,
 		"can_remove" = acc.passes_access_checks(wearer, user, null, TRUE),
+		"can_customize_descriptor" = FALSE,
+		"custom_descriptor" = "",
 	)
+
+	if(is_self && istype(acc, /obj/item/intimate_accessory/piercing))
+		var/obj/item/intimate_accessory/piercing/piercing = acc
+		data["can_customize_descriptor"] = TRUE
+		data["custom_descriptor"] = piercing.custom_piercing_descriptor || ""
 
 	var/obj/item/intimate_accessory/rear/plug/analbeads/beads = acc
 	if(istype(beads))
@@ -148,6 +155,8 @@
 	switch(action)
 		if("remove_accessory")
 			return _intimate_act_remove_accessory(usr, accessory)
+		if("set_piercing_descriptor")
+			return _intimate_act_set_piercing_descriptor(usr, accessory, params["descriptor"])
 		if("push_beads")
 			return _intimate_act_push_beads(usr, accessory)
 		if("pull_beads")
@@ -176,6 +185,19 @@
 	accessory.remove_intimate_accessory(wearer)
 	if(!QDELETED(accessory))
 		accessory.forceMove(get_turf(wearer))
+	return TRUE
+
+/datum/intimate_menu/proc/_intimate_act_set_piercing_descriptor(mob/user, obj/item/intimate_accessory/accessory, descriptor)
+	if(user != wearer)
+		return FALSE
+	if(!istype(accessory, /obj/item/intimate_accessory/piercing))
+		return FALSE
+	var/obj/item/intimate_accessory/piercing/piercing = accessory
+	piercing.set_custom_piercing_descriptor(descriptor)
+	var/slot_key = piercing.get_intimate_preference_slot_key()
+	if(slot_key && wearer.client?.prefs)
+		wearer.client.prefs.set_intimate_piercing_descriptor(slot_key, piercing.custom_piercing_descriptor)
+		wearer.client.prefs.save_character()
 	return TRUE
 
 /// Pushes one bead deeper.

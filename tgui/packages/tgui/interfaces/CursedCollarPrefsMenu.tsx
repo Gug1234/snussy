@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBackend } from 'tgui/backend';
 import { Window } from 'tgui/layouts';
 import {
@@ -32,20 +32,6 @@ const deviceIcons: Record<string, string> = {
   chastity: 'lock',
 };
 
-const getDeviceIcon = (device: string, selected: boolean) => {
-  if (!selected) {
-    return 'circle';
-  }
-  return deviceIcons[device] || 'check';
-};
-
-const getDeviceColor = (device: string, selected: boolean) => {
-  if (!selected) {
-    return 'default';
-  }
-  return device === 'none' ? 'bad' : 'good';
-};
-
 export function CursedCollarPrefsMenu() {
   const { act, data } = useBackend<BackendData>();
   const cursedEnabled = !!data.cursed_enabled;
@@ -59,8 +45,37 @@ export function CursedCollarPrefsMenu() {
   const characterName = data.character_name || 'this character';
   const [nameInput, setNameInput] = useState(masterName);
 
+  useEffect(() => {
+    setNameInput(masterName);
+  }, [masterName]);
+
   const needsMaster = selectedDevice !== 'none';
-  const missingMaster = needsMaster && !selfMaster && !nameInput.trim();
+  const savedMasterName = masterName.trim();
+  const trimmedNameInput = nameInput.trim();
+  const masterDirty =
+    needsMaster && !selfMaster && trimmedNameInput !== savedMasterName;
+  const missingMaster = needsMaster && !selfMaster && !savedMasterName;
+  const setMasterName = () => {
+    if (!selfMaster && trimmedNameInput) {
+      act('set_master_name', { master_name: trimmedNameInput });
+    }
+  };
+  const getDeviceLabel = (value: string, fallback: string) =>
+    deviceOptions.find((option) => option.value === value)?.label || fallback;
+  const deviceRows = [
+    {
+      label: getDeviceLabel('none', 'None'),
+      value: 'none',
+    },
+    {
+      label: getDeviceLabel('collar', 'Cursed Collar'),
+      value: 'collar',
+    },
+    {
+      label: getDeviceLabel('chastity', 'Cursed Chastity'),
+      value: 'chastity',
+    },
+  ];
 
   return (
     <Window>
@@ -80,27 +95,21 @@ export function CursedCollarPrefsMenu() {
           </Box>
 
           <LabeledList>
-            <LabeledList.Item label="Round-start Device">
-              <Stack align="center" wrap>
-                {deviceOptions.map((option) => {
-                  const selected = selectedDevice === option.value;
-                  return (
-                    <Stack.Item key={option.value}>
-                      <Button
-                        icon={getDeviceIcon(option.value, selected)}
-                        color={getDeviceColor(option.value, selected)}
-                        selected={selected}
-                        onClick={() =>
-                          act('set_device', { device: option.value })
-                        }
-                      >
-                        {option.label}
-                      </Button>
-                    </Stack.Item>
-                  );
-                })}
-              </Stack>
-            </LabeledList.Item>
+            {deviceRows.map((option) => {
+              const selected = selectedDevice === option.value;
+              return (
+                <LabeledList.Item key={option.value} label={option.label}>
+                  <Button
+                    icon={selected ? 'check' : deviceIcons[option.value]}
+                    color={selected ? 'good' : 'bad'}
+                    selected={selected}
+                    onClick={() => act('set_device', { device: option.value })}
+                  >
+                    {selected ? 'Selected' : 'Select'}
+                  </Button>
+                </LabeledList.Item>
+              );
+            })}
           </LabeledList>
 
           {!needsMaster && (
@@ -142,24 +151,39 @@ export function CursedCollarPrefsMenu() {
                       disabled={selfMaster}
                       placeholder="Character name..."
                       value={selfMaster ? characterName : nameInput}
+                      onEnter={setMasterName}
                       onChange={setNameInput}
                     />
                   </Stack.Item>
                   <Stack.Item>
                     <Button
                       icon="save"
-                      disabled={selfMaster}
-                      onClick={() =>
-                        act('set_master_name', { name: nameInput.trim() })
+                      disabled={
+                        selfMaster || !trimmedNameInput || !masterDirty
                       }
+                      onClick={setMasterName}
                     >
                       Set
                     </Button>
                   </Stack.Item>
                 </Stack>
               </LabeledList.Item>
+              <LabeledList.Item label="Saved Master">
+                {selfMaster ? (
+                  characterName
+                ) : savedMasterName ? (
+                  savedMasterName
+                ) : (
+                  <Box color="bad">None set</Box>
+                )}
+              </LabeledList.Item>
             </LabeledList>
 
+            {masterDirty && (
+              <Box mt={1} color="average">
+                Typed master name is not saved yet.
+              </Box>
+            )}
             {missingMaster && (
               <Box mt={1} color="bad">
                 Select self-master or set a master character name.

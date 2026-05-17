@@ -41,14 +41,17 @@
 		return FALSE
 	return TRUE
 
-/datum/mob_descriptor/proc/get_standalone_text(mob/living/described)
-	return "%THEY% [get_coalesce_text(described)]"
+/datum/mob_descriptor/proc/get_standalone_text(mob/living/described, mob/watcher = null)
+	return "%THEY% [get_coalesce_text(described, null, watcher)]"
 
-/datum/mob_descriptor/proc/get_coalesce_text(mob/living/described, list/used_verbage)
-	return "[should_add_verbage(described, used_verbage) ? "[get_verbage(described)] " : ""][get_pre_string(described)][get_description(described)][post_string]"
+/datum/mob_descriptor/proc/get_coalesce_text(mob/living/described, list/used_verbage, mob/watcher = null)
+	return "[should_add_verbage(described, used_verbage) ? "[get_verbage(described)] " : ""][get_pre_string(described)][get_description_for_watcher(described, watcher)][post_string]"
 
 /datum/mob_descriptor/proc/get_coalesce_text_nofluff(mob/living/described, list/used_verbage)
 	return "[get_description(described)]"
 
 /datum/mob_descriptor/proc/get_description(mob/living/described)
 	return describe
+
+/datum/mob_descriptor/proc/get_description_for_watcher(mob/living/described, mob/watcher = null)
+	return get_description(described)

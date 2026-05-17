@@ -908,6 +908,13 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["pref_intimate_ear_piercing"] >> pref_intimate_ear_piercing
 	S["pref_intimate_nose_piercing"] >> pref_intimate_nose_piercing
 	S["pref_intimate_belly_piercing"] >> pref_intimate_belly_piercing
+	S["pref_intimate_genital_piercing_descriptor"] >> pref_intimate_genital_piercing_descriptor
+	S["pref_intimate_rear_piercing_descriptor"] >> pref_intimate_rear_piercing_descriptor
+	S["pref_intimate_breast_piercing_descriptor"] >> pref_intimate_breast_piercing_descriptor
+	S["pref_intimate_mouth_piercing_descriptor"] >> pref_intimate_mouth_piercing_descriptor
+	S["pref_intimate_ear_piercing_descriptor"] >> pref_intimate_ear_piercing_descriptor
+	S["pref_intimate_nose_piercing_descriptor"] >> pref_intimate_nose_piercing_descriptor
+	S["pref_intimate_belly_piercing_descriptor"] >> pref_intimate_belly_piercing_descriptor
 	S["pref_chastity_enabled"] >> pref_chastity_enabled
 	S["pref_chastity_flat"] >> pref_chastity_flat
 	S["pref_chastity_anal"] >> pref_chastity_anal
@@ -1288,6 +1295,13 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["pref_intimate_ear_piercing"], pref_intimate_ear_piercing)
 	WRITE_FILE(S["pref_intimate_nose_piercing"], pref_intimate_nose_piercing)
 	WRITE_FILE(S["pref_intimate_belly_piercing"], pref_intimate_belly_piercing)
+	WRITE_FILE(S["pref_intimate_genital_piercing_descriptor"], pref_intimate_genital_piercing_descriptor)
+	WRITE_FILE(S["pref_intimate_rear_piercing_descriptor"], pref_intimate_rear_piercing_descriptor)
+	WRITE_FILE(S["pref_intimate_breast_piercing_descriptor"], pref_intimate_breast_piercing_descriptor)
+	WRITE_FILE(S["pref_intimate_mouth_piercing_descriptor"], pref_intimate_mouth_piercing_descriptor)
+	WRITE_FILE(S["pref_intimate_ear_piercing_descriptor"], pref_intimate_ear_piercing_descriptor)
+	WRITE_FILE(S["pref_intimate_nose_piercing_descriptor"], pref_intimate_nose_piercing_descriptor)
+	WRITE_FILE(S["pref_intimate_belly_piercing_descriptor"], pref_intimate_belly_piercing_descriptor)
 	WRITE_FILE(S["pref_chastity_enabled"], pref_chastity_enabled)
 	WRITE_FILE(S["pref_chastity_flat"], pref_chastity_flat)
 	WRITE_FILE(S["pref_chastity_anal"], pref_chastity_anal)
