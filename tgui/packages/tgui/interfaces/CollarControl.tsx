@@ -5,6 +5,7 @@ import {
   Input,
   LabeledList,
   NoticeBox,
+  NumberInput,
   Section,
   Stack,
   Table,
@@ -37,8 +38,22 @@ type PetEntry = {
     anal_open: boolean;
     spikes_on: boolean;
     is_flat: boolean;
+    is_gilded: boolean;
+    gilded_recipient: string;
+    gilded_recipient_label: string;
+    gilded_drain_amount: number;
+    gilded_total_drained: number;
+    gilded_next_shrink_threshold: number;
+    gilded_zero_fund_jingles: number;
+    gilded_limped: boolean;
   };
 };
+
+const gildedRecipientOptions = [
+  { label: 'Master', value: 'master' },
+  { label: 'Keep Treasury', value: 'treasury' },
+  { label: 'Bandit Hoardmaster', value: 'hoardmaster' },
+];
 
 type Data = {
   invalid?: boolean;
@@ -138,6 +153,7 @@ const getPetFlags = (pet: PetEntry) => {
       pet.arousal_forced && 'Aroused',
       pet.clothing_forbidden && 'Nudist',
       pet.forced_love && 'Love',
+      pet.chastity?.is_gilded && 'Gilded',
     ]
       .filter(Boolean)
       .join(', ') || 'None'
@@ -576,6 +592,11 @@ const CursedChastityControls = (props: {
   const currentSpikesOn = selectedCursedPet?.chastity.spikes_on ?? false;
   const currentFlat = selectedCursedPet?.chastity.is_flat ?? false;
   const currentFrontMode = selectedCursedPet?.chastity.front_mode ?? 0;
+  const currentGilded = selectedCursedPet?.chastity.is_gilded ?? false;
+  const currentGildedRecipient =
+    selectedCursedPet?.chastity.gilded_recipient ?? 'master';
+  const currentGildedDrain =
+    selectedCursedPet?.chastity.gilded_drain_amount ?? 1;
   const penisOpen = currentFrontMode === 1 || currentFrontMode === 3;
   const vaginaOpen = currentFrontMode === 2 || currentFrontMode === 3;
 
@@ -688,6 +709,103 @@ const CursedChastityControls = (props: {
           >
             {currentFlat ? 'FLAT FIT' : 'STANDARD FIT'}
           </Button>
+        </Stack.Item>
+      )}
+
+      {currentGilded && (
+        <Stack.Item>
+          <Box bold mb={1}>
+            Gilded
+          </Box>
+          <LabeledList>
+            <LabeledList.Item label="Drain">
+              <NumberInput
+                step={1}
+                minValue={0}
+                maxValue={50}
+                value={currentGildedDrain}
+                disabled={cursedActionDisabled}
+                onChange={(value: number) =>
+                  act('chastity_set_gilded_drain', { amount: value })
+                }
+              />
+            </LabeledList.Item>
+            <LabeledList.Item label="Recipient">
+              <Stack wrap>
+                {gildedRecipientOptions.map((option) => {
+                  const selected = currentGildedRecipient === option.value;
+                  return (
+                    <Stack.Item key={option.value}>
+                      <Button
+                        icon={selected ? 'check' : 'coins'}
+                        color={selected ? 'good' : 'bad'}
+                        selected={selected}
+                        disabled={cursedActionDisabled}
+                        tooltip={reasonForCursedAction}
+                        onClick={() =>
+                          act('chastity_set_gilded_recipient', {
+                            recipient: option.value,
+                          })
+                        }
+                      >
+                        {option.label}
+                      </Button>
+                    </Stack.Item>
+                  );
+                })}
+              </Stack>
+            </LabeledList.Item>
+            <LabeledList.Item label="Drained">
+              {selectedCursedPet?.chastity.gilded_total_drained ?? 0} /{' '}
+              {selectedCursedPet?.chastity.gilded_next_shrink_threshold ?? 0}
+            </LabeledList.Item>
+            <LabeledList.Item label="Empty jingles">
+              {selectedCursedPet?.chastity.gilded_zero_fund_jingles ?? 0}
+              {selectedCursedPet?.chastity.gilded_limped ? ' (limp)' : ''}
+            </LabeledList.Item>
+          </LabeledList>
+          <Stack mt={1} wrap>
+            <Stack.Item>
+              <Button
+                icon="compress"
+                disabled={cursedActionDisabled}
+                tooltip={reasonForCursedAction}
+                onClick={() => act('chastity_gilded_shrink')}
+              >
+                Shrink
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="bolt"
+                disabled={cursedActionDisabled}
+                tooltip={reasonForCursedAction}
+                onClick={() => act('chastity_gilded_pain')}
+              >
+                Pain
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="heart"
+                disabled={cursedActionDisabled}
+                tooltip={reasonForCursedAction}
+                onClick={() => act('chastity_gilded_arousal')}
+              >
+                Arousal
+              </Button>
+            </Stack.Item>
+            <Stack.Item>
+              <Button
+                icon="burst"
+                disabled={cursedActionDisabled}
+                tooltip={reasonForCursedAction}
+                onClick={() => act('chastity_gilded_climax')}
+              >
+                Climax
+              </Button>
+            </Stack.Item>
+          </Stack>
         </Stack.Item>
       )}
 

@@ -64,6 +64,7 @@
 	pref_cursed_roundstart_device = initial(pref_cursed_roundstart_device)
 	pref_cursed_master_name = initial(pref_cursed_master_name)
 	pref_cursed_self_master = initial(pref_cursed_self_master)
+	pref_gilded_chastity_recipient = initial(pref_gilded_chastity_recipient)
 
 /// Returns insertable options for the rear slot.
 /datum/preferences/proc/get_intimate_rear_insertable_options()
@@ -437,6 +438,8 @@
 		pref_cursed_roundstart_device = initial(pref_cursed_roundstart_device)
 	set_cursed_roundstart_master_name(istext(pref_cursed_master_name) ? pref_cursed_master_name : initial(pref_cursed_master_name))
 	pref_cursed_self_master = sanitize_integer(pref_cursed_self_master, FALSE, TRUE, initial(pref_cursed_self_master))
+	if(!set_gilded_chastity_recipient(pref_gilded_chastity_recipient))
+		pref_gilded_chastity_recipient = initial(pref_gilded_chastity_recipient)
 
 /// Builds lobby TGUI rows with option labels and the current selected label.
 /datum/preferences/proc/get_intimate_accessory_slot_rows()

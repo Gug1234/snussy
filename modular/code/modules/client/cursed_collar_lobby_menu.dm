@@ -36,11 +36,20 @@
 			"label" = label,
 			"value" = raw_options[label],
 		))
+	var/list/gilded_recipient_options = list()
+	var/list/raw_recipient_options = get_gilded_chastity_recipient_options()
+	for(var/label in raw_recipient_options)
+		gilded_recipient_options += list(list(
+			"label" = label,
+			"value" = raw_recipient_options[label],
+		))
 
 	data["cursed_enabled"] = prefs.cursed_enabled
 	data["chastenable"] = prefs.chastenable
 	data["device"] = prefs.pref_cursed_roundstart_device
 	data["device_options"] = device_options
+	data["gilded_recipient"] = prefs.pref_gilded_chastity_recipient
+	data["gilded_recipient_options"] = gilded_recipient_options
 	data["master_name"] = prefs.pref_cursed_master_name
 	data["self_master"] = prefs.pref_cursed_self_master
 	data["character_name"] = prefs.real_name
@@ -56,8 +65,16 @@
 			var/device = params["device"]
 			if(!prefs.set_cursed_roundstart_device(device))
 				return FALSE
+			if(device == CURSED_ROUNDSTART_GILDED_CHASTITY)
+				prefs.apply_gilded_self_master_recipient_default()
 			prefs.save_character()
 			prefs.update_preview_icon()
+			return TRUE
+
+		if("set_gilded_recipient")
+			if(!prefs.set_gilded_chastity_recipient(params["recipient"]))
+				return FALSE
+			prefs.save_character()
 			return TRUE
 
 		if("set_master_name")
@@ -73,6 +90,7 @@
 
 		if("toggle_self_master")
 			prefs.pref_cursed_self_master = !prefs.pref_cursed_self_master
+			prefs.apply_gilded_self_master_recipient_default()
 			prefs.save_character()
 			prefs.update_preview_icon()
 			return TRUE

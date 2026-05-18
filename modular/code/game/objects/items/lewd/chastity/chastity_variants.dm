@@ -142,3 +142,15 @@
 	cursed_anal_open = FALSE
 	cursed_spikes_on = FALSE
 	suffix = null
+
+/obj/item/chastity/cursed/gilded
+	name = "gilded chastity device"
+	desc = "A gilded cursed chastity frame linked to the wearer's Nervelock. Every jingle can draw mammon from the account it grips."
+	icon_state = "cage_belt"
+	item_state = "cage_belt"
+	mob_overlay_icon = "cage_belt"
+	sprite_acc = /datum/sprite_accessory/chastity/full
+	chastity_gilded = TRUE
+	gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
+	gilded_drain_amount = GILDED_CHASTITY_DEFAULT_DRAIN
+	gilded_next_shrink_threshold = GILDED_CHASTITY_SHRINK_DRAIN_STEP

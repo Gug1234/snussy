@@ -4,6 +4,18 @@
 #define CURSED_ROUNDSTART_NONE "none"
 #define CURSED_ROUNDSTART_COLLAR "collar"
 #define CURSED_ROUNDSTART_CHASTITY "chastity"
+#define CURSED_ROUNDSTART_GILDED_CHASTITY "gilded_chastity"
+
+#define GILDED_CHASTITY_RECIPIENT_MASTER "master"
+#define GILDED_CHASTITY_RECIPIENT_TREASURY "treasury"
+#define GILDED_CHASTITY_RECIPIENT_HOARDMASTER "hoardmaster"
+
+#define GILDED_CHASTITY_DEFAULT_DRAIN 1
+#define GILDED_CHASTITY_MIN_DRAIN 0
+#define GILDED_CHASTITY_MAX_DRAIN 50
+#define GILDED_CHASTITY_SHRINK_DRAIN_STEP 25
+#define GILDED_CHASTITY_ZERO_JINGLES_FOR_LIMP 3
+#define GILDED_CHASTITY_TRAIT_SOURCE "gilded_chastity"
 
 /// Root directory for all chastity flavor-text JSON banks.
 /// Used by pick_chastity_string() and anywhere a raw strings() call targets the chastity string dir.

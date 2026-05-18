@@ -21,6 +21,8 @@ type BackendData = {
   chastenable: boolean;
   device: string;
   device_options: DeviceOption[];
+  gilded_recipient: string;
+  gilded_recipient_options: DeviceOption[];
   master_name: string;
   self_master: boolean;
   character_name: string;
@@ -30,6 +32,7 @@ const deviceIcons: Record<string, string> = {
   none: 'times',
   collar: 'link',
   chastity: 'lock',
+  gilded_chastity: 'coins',
 };
 
 export function CursedCollarPrefsMenu() {
@@ -39,6 +42,10 @@ export function CursedCollarPrefsMenu() {
   const selectedDevice = data.device || 'none';
   const deviceOptions = Array.isArray(data.device_options)
     ? data.device_options
+    : [];
+  const gildedRecipient = data.gilded_recipient || 'master';
+  const gildedRecipientOptions = Array.isArray(data.gilded_recipient_options)
+    ? data.gilded_recipient_options
     : [];
   const selfMaster = !!data.self_master;
   const masterName = data.master_name || '';
@@ -60,22 +67,13 @@ export function CursedCollarPrefsMenu() {
       act('set_master_name', { master_name: trimmedNameInput });
     }
   };
-  const getDeviceLabel = (value: string, fallback: string) =>
-    deviceOptions.find((option) => option.value === value)?.label || fallback;
-  const deviceRows = [
-    {
-      label: getDeviceLabel('none', 'None'),
-      value: 'none',
-    },
-    {
-      label: getDeviceLabel('collar', 'Cursed Collar'),
-      value: 'collar',
-    },
-    {
-      label: getDeviceLabel('chastity', 'Cursed Chastity'),
-      value: 'chastity',
-    },
-  ];
+  const deviceRows = deviceOptions.length
+    ? deviceOptions
+    : [
+        { label: 'None', value: 'none' },
+        { label: 'Cursed Collar', value: 'collar' },
+        { label: 'Cursed Chastity', value: 'chastity' },
+      ];
 
   return (
     <Window>
@@ -100,7 +98,9 @@ export function CursedCollarPrefsMenu() {
               return (
                 <LabeledList.Item key={option.value} label={option.label}>
                   <Button
-                    icon={selected ? 'check' : deviceIcons[option.value]}
+                    icon={
+                      selected ? 'check' : deviceIcons[option.value] || 'lock'
+                    }
                     color={selected ? 'good' : 'bad'}
                     selected={selected}
                     onClick={() => act('set_device', { device: option.value })}
@@ -118,13 +118,41 @@ export function CursedCollarPrefsMenu() {
             </Box>
           )}
 
-          {selectedDevice === 'chastity' && !chastenable && (
-            <NoticeBox danger>
-              Enable chastity content in the options menu to spawn with cursed
-              chastity.
-            </NoticeBox>
-          )}
+          {(selectedDevice === 'chastity' ||
+            selectedDevice === 'gilded_chastity') &&
+            !chastenable && (
+              <NoticeBox danger>
+                Enable chastity content in the options menu to spawn with cursed
+                chastity.
+              </NoticeBox>
+            )}
         </Section>
+
+        {selectedDevice === 'gilded_chastity' && (
+          <Section title="Coin Destination">
+            <LabeledList>
+              {gildedRecipientOptions.map((option) => {
+                const selected = gildedRecipient === option.value;
+                return (
+                  <LabeledList.Item key={option.value} label={option.label}>
+                    <Button
+                      icon={selected ? 'check' : 'coins'}
+                      color={selected ? 'good' : 'bad'}
+                      selected={selected}
+                      onClick={() =>
+                        act('set_gilded_recipient', {
+                          recipient: option.value,
+                        })
+                      }
+                    >
+                      {selected ? 'Selected' : 'Select'}
+                    </Button>
+                  </LabeledList.Item>
+                );
+              })}
+            </LabeledList>
+          </Section>
+        )}
 
         {needsMaster && (
           <Section title="Master">
@@ -158,9 +186,7 @@ export function CursedCollarPrefsMenu() {
                   <Stack.Item>
                     <Button
                       icon="save"
-                      disabled={
-                        selfMaster || !trimmedNameInput || !masterDirty
-                      }
+                      disabled={selfMaster || !trimmedNameInput || !masterDirty}
                       onClick={setMasterName}
                     >
                       Set

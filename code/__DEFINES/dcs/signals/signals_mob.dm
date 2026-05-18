@@ -69,6 +69,12 @@
 	#define COLLAR_COMMAND_SET_CHASTITY_ANAL_OPEN "set_chastity_anal_open"
 	#define COLLAR_COMMAND_SET_CHASTITY_SPIKES "set_chastity_spikes"
 	#define COLLAR_COMMAND_SET_CHASTITY_FLAT "set_chastity_flat"
+	#define COLLAR_COMMAND_SET_GILDED_CHASTITY_RECIPIENT "set_gilded_chastity_recipient"
+	#define COLLAR_COMMAND_SET_GILDED_CHASTITY_DRAIN "set_gilded_chastity_drain"
+	#define COLLAR_COMMAND_GILDED_CHASTITY_SHRINK "gilded_chastity_shrink"
+	#define COLLAR_COMMAND_GILDED_CHASTITY_PAIN "gilded_chastity_pain"
+	#define COLLAR_COMMAND_GILDED_CHASTITY_AROUSAL "gilded_chastity_arousal"
+	#define COLLAR_COMMAND_GILDED_CHASTITY_CLIMAX "gilded_chastity_climax"
 
 /// Fired when a pet is released/cleaned up from collar control (mob/living/carbon/human/pet, datum/component/collar_master/controller)
 #define COMSIG_CARBON_COLLAR_RELEASED "carbon_collar_released"

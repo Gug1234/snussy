@@ -9,12 +9,30 @@
 /datum/preferences/var/pref_cursed_roundstart_device = CURSED_ROUNDSTART_NONE
 /datum/preferences/var/pref_cursed_master_name = ""
 /datum/preferences/var/pref_cursed_self_master = FALSE
+/datum/preferences/var/pref_gilded_chastity_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
+
+/proc/is_valid_gilded_chastity_recipient(recipient)
+	if(!istext(recipient))
+		return FALSE
+	return recipient in list(
+		GILDED_CHASTITY_RECIPIENT_MASTER,
+		GILDED_CHASTITY_RECIPIENT_TREASURY,
+		GILDED_CHASTITY_RECIPIENT_HOARDMASTER,
+	)
+
+/proc/get_gilded_chastity_recipient_options()
+	return list(
+		"Master" = GILDED_CHASTITY_RECIPIENT_MASTER,
+		"Keep Treasury" = GILDED_CHASTITY_RECIPIENT_TREASURY,
+		"Bandit Hoardmaster" = GILDED_CHASTITY_RECIPIENT_HOARDMASTER,
+	)
 
 /datum/preferences/proc/get_cursed_roundstart_device_options()
 	return list(
 		"None" = CURSED_ROUNDSTART_NONE,
 		"Cursed Collar" = CURSED_ROUNDSTART_COLLAR,
 		"Cursed Chastity" = CURSED_ROUNDSTART_CHASTITY,
+		"Gilded Chastity" = CURSED_ROUNDSTART_GILDED_CHASTITY,
 	)
 
 /datum/preferences/proc/is_valid_cursed_roundstart_device(device)
@@ -24,6 +42,7 @@
 		CURSED_ROUNDSTART_NONE,
 		CURSED_ROUNDSTART_COLLAR,
 		CURSED_ROUNDSTART_CHASTITY,
+		CURSED_ROUNDSTART_GILDED_CHASTITY,
 	)
 
 /datum/preferences/proc/set_cursed_roundstart_device(device)
@@ -41,11 +60,26 @@
 	pref_cursed_master_name = master_name
 	return TRUE
 
+/datum/preferences/proc/set_gilded_chastity_recipient(recipient)
+	if(!is_valid_gilded_chastity_recipient(recipient))
+		return FALSE
+	pref_gilded_chastity_recipient = recipient
+	apply_gilded_self_master_recipient_default()
+	return TRUE
+
+/datum/preferences/proc/apply_gilded_self_master_recipient_default()
+	if(!pref_cursed_self_master)
+		return FALSE
+	if(pref_gilded_chastity_recipient != GILDED_CHASTITY_RECIPIENT_MASTER)
+		return FALSE
+	pref_gilded_chastity_recipient = GILDED_CHASTITY_RECIPIENT_TREASURY
+	return TRUE
+
 /datum/preferences/proc/has_cursed_roundstart_device()
 	return pref_cursed_roundstart_device != CURSED_ROUNDSTART_NONE
 
 /datum/preferences/proc/uses_cursed_roundstart_chastity()
-	return pref_cursed_roundstart_device == CURSED_ROUNDSTART_CHASTITY
+	return pref_cursed_roundstart_device in list(CURSED_ROUNDSTART_CHASTITY, CURSED_ROUNDSTART_GILDED_CHASTITY)
 
 /datum/preferences/proc/find_cursed_roundstart_master_mind(mob/living/carbon/human/wearer)
 	if(pref_cursed_self_master)
@@ -95,6 +129,10 @@
 			if(!chastenable)
 				return FALSE
 			return apply_roundstart_cursed_chastity(wearer, master_mind, visual_only)
+		if(CURSED_ROUNDSTART_GILDED_CHASTITY)
+			if(!chastenable)
+				return FALSE
+			return apply_roundstart_cursed_chastity(wearer, master_mind, visual_only, /obj/item/chastity/cursed/gilded)
 	return FALSE
 
 /datum/preferences/proc/apply_roundstart_cursed_collar(mob/living/carbon/human/wearer, datum/mind/master_mind, visual_only = FALSE)
@@ -129,16 +167,20 @@
 	to_chat(wearer, span_userdanger("The cursed collar around your neck clicks shut."))
 	return TRUE
 
-/datum/preferences/proc/apply_roundstart_cursed_chastity(mob/living/carbon/human/wearer, datum/mind/master_mind, visual_only = FALSE)
+/datum/preferences/proc/apply_roundstart_cursed_chastity(mob/living/carbon/human/wearer, datum/mind/master_mind, visual_only = FALSE, device_type = /obj/item/chastity/cursed)
 	if(!wearer || wearer.chastity_device)
 		return FALSE
 	var/obj/item/clothing/neck/roguetown/cursed_collar/existing_collar = wearer.get_item_by_slot(SLOT_NECK)
 	if(istype(existing_collar))
 		return FALSE
 
-	var/obj/item/chastity/cursed/device = new(wearer)
+	var/obj/item/chastity/cursed/device = new device_type(wearer)
 	device.chastity_master = master_mind
 	device.roundstart_self_master_binding = !!(master_mind && wearer.mind == master_mind)
+	if(device.chastity_gilded)
+		device.gilded_recipient = pref_gilded_chastity_recipient
+		if(device.roundstart_self_master_binding && device.gilded_recipient == GILDED_CHASTITY_RECIPIENT_MASTER)
+			device.gilded_recipient = GILDED_CHASTITY_RECIPIENT_TREASURY
 	device.ensure_chastity_feature(wearer)
 	if(!device.attach_chastity_feature(wearer))
 		qdel(device)
@@ -160,5 +202,5 @@
 		return FALSE
 
 	ADD_TRAIT(device, TRAIT_NODROP, CURSED_ITEM_TRAIT)
-	to_chat(wearer, span_userdanger("The cursed chastity device seals itself around you."))
+	to_chat(wearer, span_userdanger("[device.chastity_gilded ? "The gilded chastity device" : "The cursed chastity device"] seals itself around you."))
 	return TRUE

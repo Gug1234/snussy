@@ -49,6 +49,13 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	var/lockable = TRUE // if the device can be traditionally locked with a key or lockpick, should be true for everything but cursed devices which are locked via the collar master menu
 	locked = FALSE
 	var/chastity_cursed = FALSE // if the device works like a cursed collar
+	var/chastity_gilded = FALSE // if the device drains the wearer's Nervelock on jingle triggers
+	var/gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
+	var/gilded_drain_amount = GILDED_CHASTITY_DEFAULT_DRAIN
+	var/gilded_total_drained = 0
+	var/gilded_next_shrink_threshold = GILDED_CHASTITY_SHRINK_DRAIN_STEP
+	var/gilded_zero_fund_jingles = 0
+	var/gilded_limped = FALSE
 	var/mob/living/carbon/human/chastity_victim = null // variable for anyone currently caged
 	var/datum/mind/chastity_master = null // varient of the collar master variable but for specifically cages
 	var/roundstart_self_master_binding = FALSE
@@ -163,6 +170,28 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	// Chastity bodypart visuals and belt-layer dildo overlay both need refreshes.
 	chastity_victim.update_body_parts(TRUE)
 	chastity_victim.update_inv_belt()
+
+/obj/item/chastity/proc/on_chastity_jingle_triggered(mob/living/carbon/human/wearer)
+	if(!chastity_gilded || !wearer)
+		return 0
+	var/drain_amount = clamp(round(gilded_drain_amount), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
+	if(drain_amount <= 0)
+		return 0
+	var/current_balance = max(0, SStreasury.bank_accounts[wearer] || 0)
+	if(SStreasury.bank_accounts[wearer] != current_balance)
+		SStreasury.bank_accounts[wearer] = current_balance
+	var/drained = min(drain_amount, current_balance)
+	if(drained <= 0)
+		apply_gilded_zero_fund_pressure(wearer)
+		return 0
+
+	SStreasury.bank_accounts[wearer] = current_balance - drained
+	gilded_total_drained += drained
+	gilded_zero_fund_jingles = 0
+	credit_gilded_recipient(wearer, drained)
+	log_cursed_chastity_command(wearer, CHASTITY_LOG_GILDED_DRAIN, "amount=[drained] recipient=[gilded_recipient] total=[gilded_total_drained]")
+	apply_gilded_drain_milestones(wearer)
+	return drained
 
 // Restricts caging to valid player-controlled humans and disallows transformed werewolves.
 /obj/item/chastity/proc/can_cage_target(mob/living/carbon/human/H, mob/user)

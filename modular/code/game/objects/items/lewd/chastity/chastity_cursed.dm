@@ -125,7 +125,14 @@
 
 	// Keep bodypart-feature rendering in sync with open/closed cursed states and flat/standard style.
 	var/new_sprite_acc
-	if(has_penis && has_vagina)
+	if(chastity_gilded)
+		if(has_penis && has_vagina)
+			new_sprite_acc = /datum/sprite_accessory/chastity/intersex
+		else if(has_penis)
+			new_sprite_acc = chastity_flat ? /datum/sprite_accessory/chastity/flat : /datum/sprite_accessory/chastity/cage
+		else
+			new_sprite_acc = /datum/sprite_accessory/chastity/full
+	else if(has_penis && has_vagina)
 		new_sprite_acc = is_open_front ? /datum/sprite_accessory/chastity/intersex : /datum/sprite_accessory/chastity/cursed_intersex
 	else if(has_penis)
 		if(chastity_flat)
@@ -173,6 +180,164 @@
 	if(!H)
 		return
 	log_chastity_command(H, chastity_master, log_type, details, chastity_master && chastity_master != H.mind)
+
+/obj/item/chastity/proc/get_gilded_recipient_label()
+	switch(gilded_recipient)
+		if(GILDED_CHASTITY_RECIPIENT_MASTER)
+			return "master"
+		if(GILDED_CHASTITY_RECIPIENT_TREASURY)
+			return "Keep Treasury"
+		if(GILDED_CHASTITY_RECIPIENT_HOARDMASTER)
+			return "Bandit Hoardmaster"
+	return "unknown"
+
+/obj/item/chastity/proc/set_gilded_recipient(mob/living/carbon/human/H, recipient)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!is_valid_gilded_chastity_recipient(recipient))
+		return FALSE
+	if(recipient == GILDED_CHASTITY_RECIPIENT_MASTER && chastity_master?.current == H)
+		recipient = GILDED_CHASTITY_RECIPIENT_TREASURY
+	gilded_recipient = recipient
+	to_chat(H, span_notice("The gilded device warms as its coinage link turns toward [get_gilded_recipient_label()]."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_RECIPIENT, "recipient=[gilded_recipient]")
+	return TRUE
+
+/obj/item/chastity/proc/set_gilded_drain_amount(mob/living/carbon/human/H, amount)
+	if(!chastity_gilded || !H)
+		return FALSE
+	gilded_drain_amount = clamp(round(text2num("[amount]")), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
+	to_chat(H, span_notice("The gilded device clicks to [gilded_drain_amount] mammon per jingle."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_DRAIN, "amount=[gilded_drain_amount]")
+	return TRUE
+
+/obj/item/chastity/proc/credit_gilded_master(mob/living/carbon/human/wearer, amount)
+	if(amount <= 0)
+		return FALSE
+	var/mob/living/carbon/human/master = chastity_master?.current
+	if(!istype(master))
+		return credit_gilded_treasury(wearer, amount, TRUE)
+	if(master == wearer)
+		return credit_gilded_treasury(wearer, amount, TRUE)
+	if(!(master in SStreasury.bank_accounts))
+		SStreasury.bank_accounts[master] = 0
+	SStreasury.bank_accounts[master] += amount
+	SStreasury.log_to_steward("+[amount] gilded chastity drain from [wearer?.real_name || "unknown"] to [master.real_name]")
+	return TRUE
+
+/obj/item/chastity/proc/credit_gilded_treasury(mob/living/carbon/human/wearer, amount, master_fallback = FALSE)
+	if(amount <= 0)
+		return FALSE
+	var/source = master_fallback ? "Gilded Chastity fallback from [wearer?.real_name || "unknown"]" : "Gilded Chastity from [wearer?.real_name || "unknown"]"
+	SStreasury.give_money_treasury(amount, source)
+	return TRUE
+
+/obj/item/chastity/proc/credit_gilded_hoardmaster(mob/living/carbon/human/wearer, amount)
+	if(amount <= 0)
+		return FALSE
+	if(SSmapping?.retainer)
+		SSmapping.retainer.bandit_contribute += amount
+	for(var/mob/player in GLOB.player_list)
+		if(!player.mind)
+			continue
+		var/datum/antagonist/bandit/bandit_player = player.mind.has_antag_datum(/datum/antagonist/bandit)
+		if(!bandit_player)
+			continue
+		bandit_player.favor += amount
+		bandit_player.totaldonated += amount
+		to_chat(player, "<font color='yellow'>A gilded chastity tithe from [wearer?.real_name || "someone"] reaches the Hoardmaster. You now have [bandit_player.favor] favor.</font>")
+	record_round_statistic(STATS_SHRINE_VALUE, amount)
+	SStreasury.log_to_steward("+[amount] gilded chastity drain from [wearer?.real_name || "unknown"] to the Bandit Hoardmaster")
+	return TRUE
+
+/obj/item/chastity/proc/credit_gilded_recipient(mob/living/carbon/human/wearer, amount)
+	switch(gilded_recipient)
+		if(GILDED_CHASTITY_RECIPIENT_MASTER)
+			return credit_gilded_master(wearer, amount)
+		if(GILDED_CHASTITY_RECIPIENT_TREASURY)
+			return credit_gilded_treasury(wearer, amount)
+		if(GILDED_CHASTITY_RECIPIENT_HOARDMASTER)
+			return credit_gilded_hoardmaster(wearer, amount)
+	return credit_gilded_master(wearer, amount)
+
+/obj/item/chastity/proc/apply_gilded_shrink(mob/living/carbon/human/H, silent = FALSE)
+	if(!chastity_gilded || !H)
+		return FALSE
+	var/obj/item/organ/penis/penis = H.getorganslot(ORGAN_SLOT_PENIS)
+	if(!penis)
+		return FALSE
+	if(penis.penis_size <= MIN_PENIS_SIZE)
+		if(!silent)
+			to_chat(H, span_warning("The gilded cage tightens, but there is nowhere left for it to take from you."))
+			log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_SHRINK, "changed=FALSE size=[penis.penis_size]")
+		return FALSE
+	penis.penis_size = max(MIN_PENIS_SIZE, penis.penis_size - 1)
+	H.update_body_parts(TRUE)
+	H.sexcon?.update_erect_state()
+	if(!silent)
+		H.visible_message(span_warning("[H]'s gilded chastity device constricts with a cruel metallic whine."), span_userdanger("The gilded cage constricts around me, stealing size with merciless pressure."))
+		playsound(H, 'sound/items/garrote.ogg', 50, TRUE)
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_SHRINK, "changed=TRUE size=[penis.penis_size]")
+	return TRUE
+
+/obj/item/chastity/proc/apply_gilded_drain_milestones(mob/living/carbon/human/H)
+	if(!chastity_gilded || !H)
+		return FALSE
+	var/handled = FALSE
+	while(gilded_total_drained >= gilded_next_shrink_threshold)
+		apply_gilded_shrink(H)
+		gilded_next_shrink_threshold += GILDED_CHASTITY_SHRINK_DRAIN_STEP
+		handled = TRUE
+	return handled
+
+/obj/item/chastity/proc/apply_gilded_zero_fund_pressure(mob/living/carbon/human/H)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!H.getorganslot(ORGAN_SLOT_PENIS))
+		return FALSE
+	gilded_zero_fund_jingles++
+	if(gilded_limped || gilded_zero_fund_jingles < GILDED_CHASTITY_ZERO_JINGLES_FOR_LIMP)
+		return FALSE
+	ADD_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
+	gilded_limped = TRUE
+	H.visible_message(span_warning("[H]'s gilded chastity device rings hollow and cinches shut."), span_userdanger("The gilded cage drinks from an empty Nervelock and leaves me permanently limp."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_SHRINK, "limpdick=TRUE")
+	return TRUE
+
+/obj/item/chastity/proc/apply_gilded_pain(mob/living/carbon/human/H)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!H.sexcon)
+		H.sexcon = new /datum/sex_controller(H)
+	H.sexcon.receive_sex_action(0, PAIN_MED_EFFECT, FALSE, SEX_FORCE_MID, SEX_SPEED_MID)
+	to_chat(H, span_userdanger("The gilded device twists into a precise burst of pain."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_PAIN)
+	return TRUE
+
+/obj/item/chastity/proc/apply_gilded_arousal(mob/living/carbon/human/H)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!H.sexcon)
+		H.sexcon = new /datum/sex_controller(H)
+	H.sexcon.adjust_arousal(20)
+	H.flash_fullscreen("love", /atom/movable/screen/fullscreen/love)
+	to_chat(H, span_love("The gilded device pulses heat through your nethers."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_AROUSAL)
+	return TRUE
+
+/obj/item/chastity/proc/force_gilded_climax(mob/living/carbon/human/H)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!H.sexcon)
+		H.sexcon = new /datum/sex_controller(H)
+	if(!H.sexcon.can_ejaculate())
+		to_chat(H, span_warning("The gilded device strains for a climax my body cannot provide."))
+		log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_CLIMAX, "changed=FALSE")
+		return FALSE
+	H.sexcon.set_arousal(ACTIVE_EJAC_THRESHOLD)
+	H.sexcon.ejaculate()
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_CLIMAX, "changed=TRUE")
+	return TRUE
 
 // Plays the most appropriate front-state transition sound for cursed devices.
 /obj/item/chastity/proc/play_cursed_front_mode_change_sound(mob/living/carbon/human/H, old_mode, new_mode)

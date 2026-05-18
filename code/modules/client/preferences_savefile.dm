@@ -926,6 +926,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["pref_cursed_roundstart_device"] >> pref_cursed_roundstart_device
 	S["pref_cursed_master_name"] >> pref_cursed_master_name
 	S["pref_cursed_self_master"] >> pref_cursed_self_master
+	S["pref_gilded_chastity_recipient"] >> pref_gilded_chastity_recipient
 
 	var/patron_typepath
 	S["selected_patron"]	>> patron_typepath
@@ -1313,6 +1314,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["pref_cursed_roundstart_device"], pref_cursed_roundstart_device)
 	WRITE_FILE(S["pref_cursed_master_name"], pref_cursed_master_name)
 	WRITE_FILE(S["pref_cursed_self_master"], pref_cursed_self_master)
+	WRITE_FILE(S["pref_gilded_chastity_recipient"], pref_gilded_chastity_recipient)
 
 	S = null
 	return _save_erp_sidecars(slot)
