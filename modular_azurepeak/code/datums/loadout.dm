@@ -67,6 +67,10 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	name = "Tarot Deck"
 	path = /obj/item/toy/cards/deck/tarot
 
+/datum/loadout_item/tarot_deck_majorarcana
+	name = "Tarot Deck (Major Arcana)"
+	path = /obj/item/toy/cards/deck/tarot/majorarcana
+
 /datum/loadout_item/custom_book
 	name = "Custom Book"
 	path = /obj/item/paper/scroll/custom
@@ -142,87 +146,92 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	path = /obj/item/storage/roguebag
 	triumph_cost = 2
 
+/datum/loadout_item/mallet
+	name = "Wooden Mallet"
+	path = /obj/item/rogueweapon/hammer/wood
+	triumph_cost = 3
+
 //ANCIENT TOOLS (Ancient Alloy)
 
 /datum/loadout_item/ancient_hammer
 	name = "Ancient Hammer"
-	path = /obj/item/rogueweapon/hammer/aalloy
+	path = /obj/item/rogueweapon/hammer/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_tongs
 	name = "Ancient Tongs"
-	path = /obj/item/rogueweapon/tongs/aalloy
+	path = /obj/item/rogueweapon/tongs/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_pick
 	name = "Ancient Pick"
-	path = /obj/item/rogueweapon/pick/aalloy
+	path = /obj/item/rogueweapon/pick/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_shovel
 	name = "Ancient Shovel"
-	path = /obj/item/rogueweapon/shovel/aalloy
+	path = /obj/item/rogueweapon/shovel/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_hoe
 	name = "Ancient Hoe"
-	path = /obj/item/rogueweapon/hoe/aalloy
+	path = /obj/item/rogueweapon/hoe/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_sickle
 	name = "Ancient Sickle"
-	path = /obj/item/rogueweapon/sickle/aalloy
+	path = /obj/item/rogueweapon/sickle/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_thresher
 	name = "Ancient Thresher"
-	path = /obj/item/rogueweapon/thresher/aalloy
+	path = /obj/item/rogueweapon/thresher/decrepit
 	triumph_cost = 3
 
 /datum/loadout_item/ancient_pitchfork
 	name = "Ancient Pitchfork"
-	path = /obj/item/rogueweapon/pitchfork/aalloy
+	path = /obj/item/rogueweapon/pitchfork/decrepit
 	triumph_cost = 3
 
 //COOKWARE
 /datum/loadout_item/ancient_pan
 	name = "Ancient Pan"
-	path = /obj/item/cooking/pan/aalloy
+	path = /obj/item/cooking/pan/decrepit
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_pot
 	name = "Ancient Pot"
-	path = /obj/item/reagent_containers/glass/bucket/pot/aalloy
+	path = /obj/item/reagent_containers/glass/bucket/pot/decrepit
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_platter
 	name = "Ancient Platter"
-	path = /obj/item/cooking/platter/aalloy
+	path = /obj/item/cooking/platter/decrepit
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_bowl
 	name = "Ancient Bowl"
-	path = /obj/item/reagent_containers/glass/bowl/aalloy
+	path = /obj/item/reagent_containers/glass/bowl/decrepit
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_mug
 	name = "Ancient Mug"
-	path = /obj/item/reagent_containers/glass/cup/aalloymug
+	path = /obj/item/reagent_containers/glass/cup/decrepitmug
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_goblet
 	name = "Ancient Goblet"
-	path = /obj/item/reagent_containers/glass/cup/aalloygob
+	path = /obj/item/reagent_containers/glass/cup/decrepitgob
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_spoon
 	name = "Ancient Spoon"
-	path = /obj/item/kitchen/spoon/aalloy
+	path = /obj/item/kitchen/spoon/decrepit
 	triumph_cost = 2
 
 /datum/loadout_item/ancient_fork
 	name = "Ancient Fork"
-	path = /obj/item/kitchen/fork/aalloy
+	path = /obj/item/kitchen/fork/decrepit
 	triumph_cost = 2
 
 //HATS
@@ -326,6 +335,10 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	name = "Salvia Crown"
 	path = /obj/item/flowercrown/salvia
 
+/datum/loadout_item/tri_grenzelhoft_hat_capless
+	name = "Capless Grenzelhoft Hat"
+	path = /obj/item/clothing/head/roguetown/caplessgrenzelhofthat
+	
 //CLOAKS
 /datum/loadout_item/tabard
 	name = "Tabard"
@@ -474,6 +487,10 @@ GLOBAL_LIST_EMPTY(loadout_items)
 /datum/loadout_item/sandals
 	name = "Sandals"
 	path = /obj/item/clothing/shoes/roguetown/sandals
+
+/datum/loadout_item/toga_sandals
+	name = "Fancy Sandals"
+	path = /obj/item/clothing/shoes/roguetown/sandals/toga_sandals
 
 /datum/loadout_item/shortboots
 	name = "Short Boots"
@@ -924,6 +941,8 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	name = "Rope Belt"
 	path = /obj/item/storage/belt/rogue/leather/rope
 
+// Religious Amulets.
+
 /datum/loadout_item/psicross
 	name = "Psydonian Cross"
 	path = /obj/item/clothing/neck/roguetown/psicross
@@ -974,7 +993,23 @@ GLOBAL_LIST_EMPTY(loadout_items)
 
 /datum/loadout_item/psicross/zizo
 	name = "Ancient Zcross"
-	path = /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy
+	path = /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient
+
+/datum/loadout_item/psicross/matthios
+	name = "Amulet of Matthios"
+	path = /obj/item/clothing/neck/roguetown/psicross/inhumen/matthios
+
+/datum/loadout_item/psicross/graggar
+	name = "Amulet of Graggar"
+	path = /obj/item/clothing/neck/roguetown/psicross/inhumen/graggar
+
+/datum/loadout_item/psicross/baotha
+	name = "Amulet of Baotha"
+	path = /obj/item/clothing/neck/roguetown/psicross/inhumen/baotha
+
+/datum/loadout_item/psicross/ten
+	name = "Amulet of Ten"
+	path = /obj/item/clothing/neck/roguetown/psicross/ten
 
 /datum/loadout_item/wedding_band
 	name = "silver wedding band"
@@ -1014,7 +1049,7 @@ GLOBAL_LIST_EMPTY(loadout_items)
 
 /datum/loadout_item/zcross_iron
 	name = "Zizo Cross"
-	path = /obj/item/clothing/neck/roguetown/zcross/iron
+	path = /obj/item/clothing/neck/roguetown/psicross/inhumen
 
 // NECKLACES & AMULETS
 /datum/loadout_item/skull_amulet
@@ -1262,7 +1297,7 @@ GLOBAL_LIST_EMPTY(loadout_items)
 
 /datum/loadout_item/ancient_axe
 	name = "Ancient Axe"
-	path = /obj/item/rogueweapon/stoneaxe/woodcut/aaxe
+	path = /obj/item/rogueweapon/stoneaxe/woodcut/steel/ancient
 	triumph_cost = 4
 
 // SWORDS
@@ -1274,12 +1309,12 @@ GLOBAL_LIST_EMPTY(loadout_items)
 
 /datum/loadout_item/ancient_gladius
 	name = "Ancient Gladius"
-	path = /obj/item/rogueweapon/sword/short/gladius/pagladius
+	path = /obj/item/rogueweapon/sword/short/gladius/ancient
 	triumph_cost = 4
 
 /datum/loadout_item/ancient_khopesh
 	name = "Ancient Khopesh"
-	path = /obj/item/rogueweapon/sword/sabre/palloy
+	path = /obj/item/rogueweapon/sword/sabre/ancient
 	triumph_cost = 4
 
 // DAGGERS & KNIVES
@@ -1292,7 +1327,7 @@ GLOBAL_LIST_EMPTY(loadout_items)
 // MACES & BLUNT
 /datum/loadout_item/ancient_mace
 	name = "Ancient Mace"
-	path = /obj/item/rogueweapon/mace/goden/steel/paalloy
+	path = /obj/item/rogueweapon/mace/goden/steel/ancient
 	triumph_cost = 4
 
 // POLEARMS & SPEARS
@@ -1310,18 +1345,18 @@ GLOBAL_LIST_EMPTY(loadout_items)
 
 /datum/loadout_item/ancient_spear
 	name = "Ancient Spear"
-	path = /obj/item/rogueweapon/spear/aalloy
+	path = /obj/item/rogueweapon/spear/ancient/decrepit
 	triumph_cost = 4
 
 // ARMOR & CLOTHING
 /datum/loadout_item/ancient_mask
 	name = "Ancient Mask"
-	path = /obj/item/clothing/mask/rogue/facemask/steel/paalloy
+	path = /obj/item/clothing/mask/rogue/facemask/ancient
 	triumph_cost = 4
 
 /datum/loadout_item/ancient_kilt
 	name = "Ancient Kilt"
-	path = /obj/item/clothing/under/roguetown/chainlegs/kilt/paalloy
+	path = /obj/item/clothing/under/roguetown/chainlegs/kilt/ancient
 	triumph_cost = 4
 
 //─────────────────────────────────────────────────────────────
@@ -2083,7 +2118,6 @@ GLOBAL_LIST_EMPTY(loadout_items)
 	name = "Chain Leash"
 	path = /obj/item/leash/chain
 
-
 /datum/loadout_item/magic_recipes
 	name = "Guide to Arcyne"
 	path = /obj/item/recipe_book/magic
@@ -2123,6 +2157,18 @@ GLOBAL_LIST_EMPTY(loadout_items)
 /datum/loadout_item/cooking_recipes
 	name = "Guide to Cooking"
 	path = /obj/item/recipe_book/cooking
+
+/datum/loadout_item/tenbibble
+	name = "The Verses and Acts of the Ten"
+	path = /obj/item/book/rogue/bibble
+
+/datum/loadout_item/psybibble
+	name = "Tome of Psydon"
+	path = /obj/item/book/rogue/bibble/psy
+
+/datum/loadout_item/zizobibble
+	name = "Lexicon of Her Truth"
+	path = /obj/item/book/rogue/bibble/zizo
 
 //COSMETICS (Perfumes & Lipsticks)
 

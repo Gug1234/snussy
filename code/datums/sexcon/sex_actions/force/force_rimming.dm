@@ -43,6 +43,10 @@
 	apply_silver_intimate_contact("rear", user, target)
 	apply_silver_intimate_contact("mouth", target, user)
 
+	if(HAS_TRAIT(user, TRAIT_DEATHBYSNUSNU) || (user.STASTR > 12))
+		if(istype(user.rmb_intent, /datum/rmb_intent/strong))
+			user.sexcon.try_jaw_crush(target)
+
 	user.sexcon.perform_sex_action(user, 2, 4, TRUE)
 	user.sexcon.handle_passive_ejaculation()
 

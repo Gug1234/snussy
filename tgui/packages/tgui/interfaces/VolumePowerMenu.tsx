@@ -5,7 +5,6 @@ import { NumberInput, Section, Stack } from 'tgui-core/components';
 type Data = {
   master: number;
   music: number;
-  instruments: number;
   combat: number;
   ambience: number;
   lobby: number;
@@ -50,17 +49,22 @@ const VolumeRow = ({ label, value, id, description }: VolumeRowProps) => {
 
 export const VolumePowerMenu = () => {
   const { data } = useBackend<Data>();
-  const { master, music, instruments, combat, ambience, lobby } = data;
+  const {
+    master,
+    music,
+    combat,
+    ambience,
+    lobby,
+  } = data;
 
   const masterValue = master ?? 100;
   const musicValue = music ?? 100;
-  const instrumentsValue = instruments ?? 100;
   const combatValue = combat ?? 50;
   const ambienceValue = ambience ?? 100;
   const lobbyValue = lobby ?? 100;
 
   return (
-    <Window width={470} height={450}>
+    <Window width={470} height={390}>
       <Window.Content>
         <Section title="Volume Levels" fill>
           <VolumeRow
@@ -74,12 +78,6 @@ export const VolumePowerMenu = () => {
             value={musicValue}
             id="music"
             description="Non-combat music and admin music."
-          />
-          <VolumeRow
-            label="Instruments"
-            value={instrumentsValue}
-            id="instruments"
-            description="Bard instruments and jukeboxes/boomboxes."
           />
           <VolumeRow
             label="Combat Music"

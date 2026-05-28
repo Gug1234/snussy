@@ -89,12 +89,6 @@
 			prefs.musicvol = vol
 			mob?.update_music_volume(CHANNEL_MUSIC, prefs.musicvol)
 			mob?.update_music_volume(CHANNEL_ADMIN, prefs.musicvol)
-		if("instruments")
-			prefs.instrumentvol = vol
-			mob?.update_instrument_sounds_volume(prefs.instrumentvol)
-			mob?.update_music_volume(CHANNEL_JUKEBOX, prefs.instrumentvol)
-			for(var/ichan = CHANNEL_INSTRUMENT_MIN to CHANNEL_INSTRUMENT_MAX)
-				mob?.update_music_volume(ichan, prefs.instrumentvol)
 		if("combat")
 			prefs.combatmusicvol = vol
 			if(mob?.cmode)
@@ -143,7 +137,6 @@
 
 	data["master"] = isnum(owner.prefs.mastervol) ? owner.prefs.mastervol : initial(owner.prefs.mastervol)
 	data["music"] = isnum(owner.prefs.musicvol) ? owner.prefs.musicvol : initial(owner.prefs.musicvol)
-	data["instruments"] = isnum(owner.prefs.instrumentvol) ? owner.prefs.instrumentvol : initial(owner.prefs.instrumentvol)
 	data["combat"] = isnum(owner.prefs.combatmusicvol) ? owner.prefs.combatmusicvol : initial(owner.prefs.combatmusicvol)
 	data["ambience"] = isnum(owner.prefs.ambiencevol) ? owner.prefs.ambiencevol : initial(owner.prefs.ambiencevol)
 	data["lobby"] = isnum(owner.prefs.lobbymusicvol) ? owner.prefs.lobbymusicvol : initial(owner.prefs.lobbymusicvol)
@@ -511,7 +504,7 @@
 		log_admin("[key_name(src)] played local URL music: [web_sound_input]")
 		message_admins("[key_name(src)] played local URL music: [web_sound_input]")
 		var/turf/source_turf = get_turf(src.mob)
-		for(var/mob/M in GLOB.player_list)
+		for(var/mob/M in GLOB.player_list + GLOB.dead_mob_list)
 			var/client/C = M.client
 			if(!C)
 				continue
@@ -535,7 +528,7 @@
 		return
 
 	if(!M)
-		M = input("Play to whom?", "Active Players") as null|anything in GLOB.player_list
+		M = input("Play to whom?", "Active Players") as null|anything in (GLOB.player_list + GLOB.dead_mob_list)
 
 	if(!M)
 		return

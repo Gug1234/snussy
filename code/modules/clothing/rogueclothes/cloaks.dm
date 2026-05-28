@@ -873,6 +873,7 @@
 	min_cold_protection_temperature = BODYTEMP_NORMAL_MIN
 	heat_protection = null
 	max_heat_protection_temperature = BODYTEMP_NORMAL_MAX
+	dropshrink = null
 
 /obj/item/clothing/cloak/apron/blacksmith
 	name = "leather apron"
@@ -1373,6 +1374,7 @@
 	min_cold_protection_temperature = 50
 	heat_protection = null
 	max_heat_protection_temperature = BODYTEMP_NORMAL_MAX
+	dropshrink = null
 
 /obj/item/clothing/cloak/wickercloak
 	name = "wicker cloak"
@@ -1405,6 +1407,7 @@
 	min_cold_protection_temperature = BODYTEMP_COLD_LEVEL_ONE_MAX
 	heat_protection = null
 	max_heat_protection_temperature = BODYTEMP_NORMAL_MAX
+	dropshrink = null
 
 /obj/item/clothing/cloak/lordcloak/ladycloak
 	name = "ladylike shortcloak"
@@ -1580,6 +1583,7 @@
 	icon_state = "bksash"
 	icon = 'icons/roguetown/clothing/special/blkknight.dmi'
 	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/blkknight.dmi'
+	dropshrink = null
 
 /obj/item/clothing/under/roguetown/platelegs/blk
 	name = "blacksteel legs"
@@ -1758,6 +1762,28 @@
 	desc = "A cloak meant to keep one's body warm in the cold of the mountains as well as the dampness of the vale."
 	icon_state = "snowcloak"
 	cold_protection = CHEST | GROIN | ARM_LEFT | ARM_RIGHT
+
+/// Dendor ritual reward variant of the forrester cloak — hallowed by the Treefather.
+/obj/item/clothing/cloak/forrestercloak/blessed
+	name = "blessed forrester cloak"
+	desc = "A forrester cloak hallowed by the Treefather's rite. Living wood fibres are woven through the cloth and it seems to breathe with the quiet life of the forest."
+	color = "#73c47a"
+
+/obj/item/clothing/cloak/forrestercloak/blessed/Initialize(mapload)
+	. = ..()
+	set_light(1, 1, 2, l_color = "#58C86A")
+	add_filter("druid_blessed_glow", 2, list("type" = "outline", "color" = "#58C86A", "alpha" = 95, "size" = 1))
+
+/obj/item/clothing/cloak/forrestercloak/blessed/pickup(mob/user)
+	. = ..()
+	if(!istype(user, /mob/living/carbon/human))
+		return
+	var/mob/living/carbon/human/H = user
+	if(H.patron?.type == /datum/patron/divine/dendor)
+		return
+	H.electrocute_act(30, src)
+	H.mob_timers["kneestinger"] = world.time
+	to_chat(H, span_warning("[name] rejects my grasp — only the Treefather's faithful may bear such a gift!"))
 
 /obj/item/clothing/cloak/poncho
 	name = "cloth poncho"
@@ -1943,6 +1969,7 @@
 	min_cold_protection_temperature = BODYTEMP_COLD_LEVEL_ONE_MAX
 	heat_protection = CHEST | ARM_RIGHT | ARM_LEFT
 	max_heat_protection_temperature = 600
+	dropshrink = null
 
 /obj/item/clothing/cloak/citywatch
 	name = "citywatch cape"
