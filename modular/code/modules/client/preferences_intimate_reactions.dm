@@ -363,7 +363,7 @@
 		if(8) // Heaping
 			return "heaping, like two sacks of grain straining at the seams"
 		if(9) // Obscene
-			return "obscene, each rivaling a pumpkin at harvest-end"
+			return "obscene, each rivaling a pumpkin"
 	return "unknown"
 
 /**
@@ -446,7 +446,7 @@
 	// Standard pair
 	switch(breast_size)
 		if(0)
-			return "a flat chest, barely distinguishable from a boy's"
+			return "a flat chest, a pathetically slim washboard"
 		if(1, 2)
 			return "a pair of [size_word] breasts, perky and unassuming"
 		if(3, 4)
