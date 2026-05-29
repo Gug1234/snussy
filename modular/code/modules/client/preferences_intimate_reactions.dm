@@ -477,9 +477,9 @@
 				"a smooth-lipped pussy, warm and slick to the touch")
 		if(/datum/sprite_accessory/vagina/hairy)
 			return pick(\
-				"a bush-framed cunt, dark curls matted with dew",\
-				"a wild, hairy mound hiding plump lips beneath coarse fur",\
-				"a thickly furred pussy, the scent of musk trapped in the tangle")
+				"a bush-framed cunt, dark curls matted with wet",\
+				"a wild, hairy mound hiding plump lips beneath coarse pubes",\
+				"a thickly bushy pussy, the scent of musk trapped in the tangle")
 		if(/datum/sprite_accessory/vagina/trimmed)
 			return pick(\
 				"a neatly trimmed slit, a thin strip of hair crowning plump lips",\
@@ -487,9 +487,9 @@
 				"a manicured pussy, pruned to a modest patch above soft folds")
 		if(/datum/sprite_accessory/vagina/spade)
 			return pick(\
-				"a spade-shaped cunt, its lips darkened and pointed like a devil's mark",\
-				"a demonic slit, flushed and hot, its spaded lips radiating unnatural warmth",\
-				"an infernal pussy shaped like a spade, drooling heat from its darkened folds")
+				"a spade-shaped cunt, its lips darkened, puffy, and slightly round",\
+				"an cookie-shaped slit, flushed and hot, its spaded lips radiating musky warmth",\
+				"an canine pussy shaped like a spade, drooling heat from its thickly puffed folds")
 		if(/datum/sprite_accessory/vagina/furred)
 			return pick(\
 				"a furred cunt, soft animal pelt framing plump, slick lips",\
@@ -497,13 +497,13 @@
 				"a fur-lined pussy, its animal warmth palpable even before contact")
 		if(/datum/sprite_accessory/vagina/gaping)
 			return pick(\
-				"a gaping cunt, well-used lips spread open in a permanent invitation",\
-				"a loose, cavernous pussy that barely closes, its pink insides freely exposed",\
+				"a loose cunt, well-used lips open in an well-worn gape",\
+				"a gaping, cavernous pussy that barely closes, its pink insides freely exposed",\
 				"a ruined slit, stretched and gaping, wetness freely drooling from the opening")
 		if(/datum/sprite_accessory/vagina/cloaca)
 			return pick(\
-				"a tight cloaca, a singular slit serving double duty between scaled thighs",\
-				"a reptilian vent, its opening deceptively narrow and slick with mucosal wet",\
+				"a tight cloaca, a singular slit serving double duty between pressed thighs",\
+				"an exotic vent, its opening deceptively narrow and slick with mucosal wet",\
 				"a cloacal opening, warm and pulsing, its muscular walls rippling on contact")
 	return "a nondescript slit"
 
