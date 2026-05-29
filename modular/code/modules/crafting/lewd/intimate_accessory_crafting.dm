@@ -213,4 +213,3 @@
 	craftdiff = 3
 
 /datum/anvil_recipe/intimate_rear_plug_analbeads
-

@@ -843,7 +843,7 @@
 /datum/sex_flavor_editor/lobby/ui_state(mob/user)
 	return GLOB.always_state
 
-/datum/sex_flavor_editor/ui_close(mob/user)
+/datum/sex_flavor_editor/lobby/ui_close(mob/user)
 	var/client/C = user?.client
 	if(C)
 		addtimer(CALLBACK(C, TYPE_PROC_REF(/client, prefs_resume_after_singleton)), 1)

@@ -643,7 +643,7 @@
 		return "#BB9696"
 	return "#9EA48E"
 
-/obj/item/intimate_accessory/piercing/tongue/proc/get_zizite_metal_name(obj/item/cross) 
+/obj/item/intimate_accessory/piercing/tongue/proc/get_zizite_metal_name(obj/item/cross)
 	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient))
 		return "avantyne"
 	return "darksteel"

@@ -6,9 +6,8 @@
  * It provides player-authored movement flavor and sex-action reaction text
  * that fires even when no intimate accessory is equipped.
  *
- * String sources (in priority order):
+ * String source:
  *   1. Player-defined custom strings from custom_intimate_reactions pref.
- *   2. Fallback JSON banks (character_movement_messages.json, etc.).
  *
  * All output strings are run through resolve_intimate_reaction_tokens() for
  * anatomy-aware placeholder expansion ([USER], [PENIS_TYPE], [CUPSIZE], etc.).
@@ -21,17 +20,16 @@
 
  */
 
-/// Root directory for character flavor fallback JSON banks.
-#define CHARACTER_FLAVOR_STRINGS_PATH "modular/code/datums/components/strings"
-
 /datum/component/intimate_reaction/character_flavor
 	dupe_mode = COMPONENT_DUPE_UNIQUE
 	movement_message_cooldown = 15 SECONDS
 	/// Cooldown for sex_received flavor channel, separate from movement.
 	var/last_sex_flavor_time = 0
 	var/sex_flavor_cooldown = 8 SECONDS
+	/// Preference datum that requested the component. Used during copy_to() before the mob owns its client.
+	var/datum/preferences/source_preferences = null
 	/// Cached reference to the wearer's custom_intimate_reactions list (from prefs).
-	/// Refreshed on bind; null means "use fallback JSON banks only".
+	/// Refreshed on bind; null means there is no character flavor to emit.
 	var/list/custom_strings = null
 	/// Timer ID for the afterglow expiry callback (TIMER_STOPPABLE). Null when inactive.
 	var/afterglow_timer_id = null
@@ -45,10 +43,11 @@
  * Accepts a mob/living/carbon/human parent instead of an item.
  * Immediately binds to the parent mob.
  */
-/datum/component/intimate_reaction/character_flavor/Initialize()
+/datum/component/intimate_reaction/character_flavor/Initialize(datum/preferences/source_prefs)
 	if(!ishuman(parent))
 		return COMPONENT_INCOMPATIBLE
 	// Skip the base Initialize which checks isitem(parent).
+	source_preferences = source_prefs
 	var/mob/living/carbon/human/H = parent
 	bind_to_wearer(H)
 
@@ -96,6 +95,7 @@
 /datum/component/intimate_reaction/character_flavor/Destroy(force, silent)
 	if(wearer)
 		unbind_from_wearer(wearer)
+	source_preferences = null
 	custom_strings = null
 	return ..()
 
@@ -109,9 +109,9 @@
  */
 /datum/component/intimate_reaction/character_flavor/proc/refresh_custom_strings()
 	custom_strings = null
-	if(!wearer?.client?.prefs)
+	var/datum/preferences/P = wearer?.client?.prefs || source_preferences
+	if(!P)
 		return
-	var/datum/preferences/P = wearer.client.prefs
 	if(islist(P.custom_intimate_reactions) && length(P.custom_intimate_reactions))
 		custom_strings = P.custom_intimate_reactions
 
@@ -125,14 +125,14 @@
 /**
  * Picks a string from the player's custom pool for the given category,
  * with tier-aware fallback. Tries the requested category first, then walks
- * the fallback chain until strings are found or exhausted.
+ * the custom-string fallback chain until strings are found or exhausted.
  *
  * Arguments:
  *   category  — tier-prefixed category key (e.g., "overwhelmed_sex_received")
- *   json_file — fallback JSON filename (unused — custom-only, kept for API compat)
- *   json_key  — key within the fallback JSON (unused)
+ *   json_file — unused, kept for old callsites.
+ *   json_key  — unused, kept for old callsites.
  */
-/datum/component/intimate_reaction/character_flavor/proc/pick_flavor_string(category, json_file, json_key)
+/datum/component/intimate_reaction/character_flavor/proc/pick_flavor_string(category, json_file = null, json_key = null)
 	if(custom_strings)
 		// Try the exact requested category first.
 		if(islist(custom_strings[category]) && length(custom_strings[category]))
@@ -157,7 +157,7 @@
 			if(islist(custom_strings[context]) && length(custom_strings[context]))
 				return _weighted_pick(context)
 
-	return pick_string_bank(json_file, json_key, CHARACTER_FLAVOR_STRINGS_PATH)
+	return null
 
 /**
  * Picks a random string from the given category, respecting per-string weights.
@@ -343,7 +343,7 @@
 
 	var/tier = get_intimate_tier(source)
 	var/category = "[tier]_[INTIMATE_CONTEXT_MOVEMENT]"
-	var/message = pick_flavor_string(category, "character_movement_messages.json", "character_movement")
+	var/message = pick_flavor_string(category)
 	if(!message)
 		return FALSE
 
@@ -380,13 +380,13 @@
 	// Try anal-specific strings first when receiving anal.
 	if(receiver_part & SEX_PART_ANUS)
 		var/anal_category = "[tier]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]"
-		message = pick_flavor_string(anal_category, "character_sex_received_messages.json", "character_sex_received")
+		message = pick_flavor_string(anal_category)
 		if(message)
 			message_category = anal_category
 	// Fall back to generic sex_received if no anal-specific string was found.
 	if(!message)
 		var/category = "[tier]_[INTIMATE_CONTEXT_SEX_RECEIVED]"
-		message = pick_flavor_string(category, "character_sex_received_messages.json", "character_sex_received")
+		message = pick_flavor_string(category)
 		if(message)
 			message_category = category
 	if(!message)
@@ -396,5 +396,3 @@
 	last_sex_flavor_time = world.time
 	emit_intimate_reaction_message(source, span_notice(message), message_category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE, partner = acting_mob)
 	return TRUE
-
-#undef CHARACTER_FLAVOR_STRINGS_PATH

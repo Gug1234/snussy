@@ -40,7 +40,7 @@
 	var/intimate_passive_insertable_effect = FALSE
 	var/list/supported_intimate_slots = null
 	var/current_intimate_slot = null
-	var/sprite_acc = /datum/sprite_accessory/intimate_overlays/piercing_genital 
+	var/sprite_acc = /datum/sprite_accessory/intimate_overlays/piercing_genital
 	var/intimate_invisibility_icon = 'modular/icons/obj/lewd/invistoys.dmi'
 	var/intimate_invisibility_icon_state = null
 	var/datum/bodypart_feature/intimate_accessory/intimate_feature
@@ -523,7 +523,7 @@
 	wearer = H
 	if(!(src in H.intimate_accessories))
 		H.intimate_accessories += src
-	do_silver_check(H) 
+	do_silver_check(H)
 	register_wearer_intimate_signal(H)
 	refresh_intimate_mood_effects(H)
 	notify_intimate_state_change(H, "attached")
@@ -567,7 +567,7 @@
 	if(src in H.intimate_accessories)
 		H.intimate_accessories -= src
 	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
-	if(chest && intimate_feature) 
+	if(chest && intimate_feature)
 		chest.remove_bodypart_feature(intimate_feature)
 	intimate_feature = null
 	wearer = null

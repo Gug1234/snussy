@@ -913,7 +913,7 @@ function CustomStringsSection({
       {strings.length === 0 ? (
         <Box opacity={0.5} italic fontSize="11px">
           No custom strings for this category. Add one above, or adopt a default
-          string.
+          string when this bank provides one.
         </Box>
       ) : (
         strings.map((str, idx) => (

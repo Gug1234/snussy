@@ -162,7 +162,7 @@
 		tongue_piercing = target_human.intimate_mouth_piercing
 
 	tongue_piercing?.reaction_component?.try_handle_oralcourse_noise_flavor(tongue_owner, acting_human, src, force)
-				
+
 /datum/sex_controller/proc/chastitycourse_noise(mob/living/carbon/human/action_target) // for actions that involve moving a chastity device. Chance increases with force and speed.
 	modular_chastitycourse_noise(action_target)
 	return
@@ -188,7 +188,7 @@
 		playsound(get_turf(action_target), pick('modular/sound/masomoans/masomoan1.ogg', 'modular/sound/masomoans/masomoan2.ogg', 'modular/sound/masomoans/masomoan3.ogg', 'modular/sound/masomoans/masomoan4.ogg', 'modular/sound/masomoans/masomoan5.ogg', 'modular/sound/masomoans/masomoan6.ogg'), 70, TRUE, 1)
 		return
 	action_target.emote("scream", forced = TRUE)
-	
+
 /mob/living/carbon/human/proc/try_impregnate(mob/living/carbon/human/wife)
 	var/obj/item/organ/testicles/testes = getorganslot(ORGAN_SLOT_TESTICLES)
 	if(!testes)

@@ -2,8 +2,8 @@
  * intimate_reaction_editor.dm — TGUI backend for the Intimate Reaction Text editor.
  *
  * Allows players to write per-character, per-category flavor strings for
- * movement descriptions, body exposure, and sex-action reactions. These
- * strings are displayed via the character_flavor component (see
+ * movement descriptions, body exposure, and sex-action reactions. Character
+ * bank strings are displayed via the character_flavor component (see
  * intimate_reaction_character_flavor.dm) even without intimate accessories.
  *
  * Data is stored in datum/preferences.custom_intimate_reactions (see
@@ -21,7 +21,7 @@
  *   "sex_received" — reaction text when receiving a sex action
  */
 
-/// Root directory for character flavor fallback JSON banks (mirrors the component define).
+/// Root directory for non-character reaction JSON banks.
 #define INTIMATE_EDITOR_STRINGS_PATH "modular/code/datums/components/strings"
 /// Root directory for piercing and insertable JSON banks.
 #define INTIMATE_EDITOR_ACCESSORY_PATH "modular/code/game/objects/items/lewd/intimate_accessory/strings"
@@ -52,7 +52,7 @@
 	/// The human who opened the editor.
 	var/mob/living/carbon/human/owner
 	/// Currently selected category key.
-	var/selected_category = "movement"
+	var/selected_category = "neutral_movement"
 	/// Currently selected string bank ID (one of INTIMATE_REACTION_BANK_IDS).
 	var/selected_bank = "character"
 	/// TRUE when in-memory data has changed since the last save.
@@ -92,6 +92,12 @@
 	if(!transfer_state)
 		transfer_state = new
 	return transfer_state
+
+/// Keeps the runtime accessory-free component in sync after in-round edits.
+/datum/intimate_reaction_editor/proc/sync_character_flavor_component()
+	var/datum/preferences/prefs = get_prefs()
+	if(owner && prefs)
+		prefs.apply_character_flavor_component(owner)
 
 /**
  * Returns the full string bank definitions for the editor.
@@ -140,9 +146,9 @@
 		INTIMATE_TIER_BROKEN      = "Past the point of coherent reaction — extreme or repeated overstimulation.",
 	)
 	var/static/list/context_defs = list(
-		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around; visibility follows this bank's audience setting.", "file" = "character_movement_messages.json", "json_key" = "character_movement"),
-		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you; visibility follows this bank's audience setting.", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received"),
-		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you; visibility follows this bank's audience setting.", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received"),
+		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around; visibility follows this bank's audience setting."),
+		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you; visibility follows this bank's audience setting."),
+		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you; visibility follows this bank's audience setting."),
 	)
 	for(var/tier in tier_labels)
 		var/tier_label = tier_labels[tier]
@@ -153,9 +159,6 @@
 				"key" = cat_key,
 				"label" = "[tier_label] — [ctx["label"]]",
 				"desc" = "[tier_desc] [ctx["desc"]]",
-				"file" = ctx["file"],
-				"json_key" = ctx["json_key"],
-				"path" = INTIMATE_EDITOR_STRINGS_PATH,
 			))
 
 	banks["character"] = list(
@@ -491,6 +494,7 @@
 	dirty = FALSE
 	transfer.clear_export()
 	transfer.set_status("Import successful: intimate reaction strings updated ([before_count] -> [after_count] categories).", "success")
+	sync_character_flavor_component()
 	var/mob/log_user = user
 	if(!log_user)
 		log_user = usr
@@ -575,6 +579,7 @@
 				return FALSE
 			cat_list += new_str
 			dirty = TRUE
+			sync_character_flavor_component()
 			return TRUE
 
 		if("remove_string")
@@ -600,6 +605,7 @@
 			if(!length(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = null
 			dirty = TRUE
+			sync_character_flavor_component()
 			return TRUE
 
 		if("update_string")
@@ -618,6 +624,7 @@
 				return FALSE
 			cat_list[idx] = new_str
 			dirty = TRUE
+			sync_character_flavor_component()
 			return TRUE
 
 		if("clear_category")
@@ -630,6 +637,7 @@
 			if(!length(prefs.custom_intimate_reactions))
 				prefs.custom_intimate_reactions = null
 			dirty = TRUE
+			sync_character_flavor_component()
 			log_game("INTIMATE_EDITOR: [key_name(usr)] cleared category=[selected_category] ([cleared_count] strings removed)")
 			return TRUE
 
@@ -752,7 +760,7 @@
 #undef INTIMATE_EDITOR_CHASTITY_PATH
 #undef INTIMATE_REACTION_BANK_IDS
 
-/datum/intimate_reaction_editor/ui_close(mob/user)
+/datum/intimate_reaction_editor/lobby/ui_close(mob/user)
 	var/client/C = user?.client
 	if(C)
 		addtimer(CALLBACK(C, TYPE_PROC_REF(/client, prefs_resume_after_singleton)), 1)

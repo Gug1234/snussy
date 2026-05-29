@@ -142,6 +142,33 @@
 		custom_intimate_reactions = null
 	return TRUE
 
+/// Returns TRUE when category is an accessory-free character flavor category.
+/datum/preferences/proc/is_character_flavor_reaction_category(category)
+	if(!istext(category) || !length(category))
+		return FALSE
+	if(category in list(INTIMATE_CONTEXT_MOVEMENT, INTIMATE_CONTEXT_SEX_RECEIVED, INTIMATE_CONTEXT_ANAL_SEX_RECEIVED))
+		return TRUE
+	for(var/tier in INTIMATE_TIER_LIST)
+		if(category == "[tier]_[INTIMATE_CONTEXT_MOVEMENT]")
+			return TRUE
+		if(category == "[tier]_[INTIMATE_CONTEXT_SEX_RECEIVED]")
+			return TRUE
+		if(category == "[tier]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]")
+			return TRUE
+	return FALSE
+
+/// Returns TRUE when this preference slot has player-authored accessory-free character flavor.
+/datum/preferences/proc/has_custom_character_flavor_reactions()
+	if(!islist(custom_intimate_reactions))
+		return FALSE
+	for(var/category in custom_intimate_reactions)
+		if(!is_character_flavor_reaction_category(category))
+			continue
+		var/list/strings = custom_intimate_reactions[category]
+		if(islist(strings) && length(strings))
+			return TRUE
+	return FALSE
+
 /**
  * Resolves anatomy-aware tokens in intimate reaction text strings.
  *
@@ -570,11 +597,12 @@
 	return "smooth"
 
 /**
- * Attaches the character_flavor component to the mob for accessory-free
- * movement and sex-action flavor text. Removes any existing instance first
- * to avoid duplicates on re-apply (e.g., body swap, preference reload).
+ * Syncs the character_flavor component for accessory-free movement and
+ * sex-action flavor text. Removes any existing instance first to avoid
+ * duplicates on re-apply (e.g., body swap, preference reload).
  *
- * Called from copy_to() when intimate_reaction_enabled is TRUE.
+ * The component only exists when the player has written character flavor
+ * strings. There is no built-in accessory-free fallback bank.
  */
 /datum/preferences/proc/apply_character_flavor_component(mob/living/carbon/human/H)
 	if(!istype(H))
@@ -583,4 +611,6 @@
 	var/datum/component/intimate_reaction/character_flavor/existing = H.GetComponent(/datum/component/intimate_reaction/character_flavor)
 	if(existing)
 		qdel(existing)
-	H.AddComponent(/datum/component/intimate_reaction/character_flavor)
+	if(!intimate_reaction_enabled || !has_custom_character_flavor_reactions())
+		return
+	H.AddComponent(/datum/component/intimate_reaction/character_flavor, src)

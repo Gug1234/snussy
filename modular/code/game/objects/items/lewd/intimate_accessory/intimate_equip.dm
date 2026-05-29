@@ -1,5 +1,5 @@
 // Self-equip intimate accessory.
-/obj/item/intimate_accessory/attack_self(mob/user) 
+/obj/item/intimate_accessory/attack_self(mob/user)
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user

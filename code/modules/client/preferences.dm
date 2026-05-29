@@ -3352,6 +3352,8 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 	if(culinary_preferences)
 		apply_culinary_preferences(character)
 
+	apply_character_flavor_component(character)
+
 /datum/preferences/proc/get_default_name(name_id)
 	switch(name_id)
 		if("human")
