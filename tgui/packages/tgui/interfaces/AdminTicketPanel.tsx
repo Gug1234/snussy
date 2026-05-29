@@ -47,12 +47,8 @@ type Data = {
 
 export const AdminTicketPanel = (props) => {
   const { act, data } = useBackend<Data>();
-  const {
-    active_tickets,
-    closed_tickets,
-    resolved_tickets,
-    selected_ticket,
-  } = data;
+  const { active_tickets, closed_tickets, resolved_tickets, selected_ticket } =
+    data;
 
   const [tabIndex, setTabIndex] = useState(0);
   const [inputText, setInputText] = useState('');
@@ -549,201 +545,181 @@ export const AdminTicketPanel = (props) => {
                       </Section>
                     </Stack.Item>
 
-                      {selected_ticket.is_admin && (
-                        <Stack.Item>
-                          <Section>
-                            <Stack>
-                              <Stack.Item grow>
-                                <textarea
-                                  ref={chatTextareaRef}
-                                  className="Input TextArea Input--fluid"
-                                  placeholder="Type your response... (Shift+Enter for newline)"
-                                  value={inputText}
-                                  rows={inputRows}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setInputText(val);
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = `${Math.min(e.target.scrollHeight, 144)}px`;
-                                    const lines = (val.match(/\n/g) || []).length + 1;
-                                    setInputRows(Math.min(Math.max(lines, 1), 6));
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                      e.preventDefault();
-                                      handleSend();
-                                    }
-                                  }}
-                                  disabled={!selected_ticket.can_send}
-                                  maxLength={1024}
-                                  style={{ resize: 'none', overflow: 'hidden' }}
-                                />
-                              </Stack.Item>
-                              <Stack.Item>
-                                <Button
-                                  icon="paper-plane"
-                                  color="good"
-                                  disabled={
-                                    !selected_ticket.can_send ||
-                                    !inputText.trim()
+                    {selected_ticket.is_admin && (
+                      <Stack.Item>
+                        <Section>
+                          <Stack>
+                            <Stack.Item grow>
+                              <textarea
+                                ref={chatTextareaRef}
+                                className="Input TextArea Input--fluid"
+                                placeholder="Type your response... (Shift+Enter for newline)"
+                                value={inputText}
+                                rows={inputRows}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setInputText(val);
+                                  e.target.style.height = 'auto';
+                                  e.target.style.height = `${Math.min(e.target.scrollHeight, 144)}px`;
+                                  const lines =
+                                    (val.match(/\n/g) || []).length + 1;
+                                  setInputRows(Math.min(Math.max(lines, 1), 6));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
                                   }
-                                  onClick={handleSend}
-                                >
-                                  Send
-                                </Button>
-                                <Button
-                                  icon="image"
-                                  color="blue"
-                                  tooltip="Embed an image URL into the ticket (https only)"
-                                  disabled={!selected_ticket.can_send}
-                                  selected={showEmbedInput === 'image'}
-                                  onClick={() =>
-                                    setShowEmbedInput(
-                                      showEmbedInput === 'image'
-                                        ? null
-                                        : 'image',
-                                    )
-                                  }
-                                >
-                                  Img
-                                </Button>
-                                <Button
-                                  icon="film"
-                                  color="purple"
-                                  tooltip="Embed a video URL into the ticket (https only)"
-                                  disabled={!selected_ticket.can_send}
-                                  selected={showEmbedInput === 'video'}
-                                  onClick={() =>
-                                    setShowEmbedInput(
-                                      showEmbedInput === 'video'
-                                        ? null
-                                        : 'video',
-                                    )
-                                  }
-                                >
-                                  Vid
-                                </Button>
-                              </Stack.Item>
-                            </Stack>
-                            {showEmbedInput && (
-                              <Box mt={0.5}>
-                                <Stack>
-                                  <Stack.Item grow>
-                                    <Input
-                                      fluid
-                                      placeholder={`Paste ${showEmbedInput} URL (must start with https://)...`}
-                                      value={embedUrl}
-                                      onChange={setEmbedUrl}
-                                      onEnter={handleEmbedSend}
-                                    />
-                                  </Stack.Item>
-                                  <Stack.Item>
-                                    <Button
-                                      color="good"
-                                      disabled={
-                                        !embedUrl
-                                          .trim()
-                                          .startsWith('https://')
-                                      }
-                                      onClick={handleEmbedSend}
-                                    >
-                                      Embed {showEmbedInput}
-                                    </Button>
-                                    <Button
-                                      onClick={() => {
-                                        setShowEmbedInput(null);
-                                        setEmbedUrl('');
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </Stack.Item>
-                                </Stack>
-                                <Box
-                                  mt={0.5}
-                                  p={0.75}
-                                  fontSize="0.85em"
-                                  color="label"
-                                  style={{
-                                    borderRadius: '4px',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    background: 'rgba(0,0,0,0.3)',
-                                  }}
-                                >
-                                  <Box bold color="white" mb={0.3}>
-                                    How to embed media
-                                  </Box>
-                                  <Box>
-                                    1. Find a{' '}
-                                    {showEmbedInput === 'image'
-                                      ? 'direct image link'
-                                      : 'direct video link'}{' '}
-                                    — right-click the{' '}
-                                    {showEmbedInput === 'image'
-                                      ? 'image'
-                                      : 'video'}{' '}
-                                    on a website and choose{' '}
-                                    <Box
-                                      as="span"
-                                      bold
-                                      color="white"
-                                    >
-                                      &quot;Copy image address&quot;
-                                    </Box>
-                                    .
-                                  </Box>
-                                  <Box mt={0.3}>
-                                    2. The URL must start with{' '}
-                                    <Box
-                                      as="span"
-                                      bold
-                                      color="good"
-                                    >
-                                      https://
-                                    </Box>{' '}
-                                    and end with the file extension (e.g.{' '}
-                                    {showEmbedInput === 'image'
-                                      ? '.png, .jpg, .gif, .webp'
-                                      : '.mp4, .webm, .ogg'}
-                                    ).
-                                  </Box>
-                                  <Box mt={0.3}>
-                                    3. Paste the URL above and click{' '}
-                                    <Box as="span" bold color="white">
-                                      Embed {showEmbedInput}
-                                    </Box>
-                                    . Both you and the player will see it.
-                                  </Box>
-                                  {showEmbedInput === 'image' && (
-                                    <Box mt={0.3} color="average">
-                                      Tip: Imgur, Discord CDN, or direct GitHub
-                                      raw links work well.
-                                    </Box>
-                                  )}
-                                  {showEmbedInput === 'video' && (
-                                    <Box mt={0.3} color="average">
-                                      Tip: YouTube/Twitch clips won&apos;t work
-                                      — use a direct .mp4 or .webm URL instead.
-                                    </Box>
-                                  )}
-                                </Box>
-                              </Box>
-                            )}
-                            {!selected_ticket.can_send && (
-                              <Box
-                                color="bad"
-                                mt={0.5}
-                                fontSize="0.9em"
+                                }}
+                                disabled={!selected_ticket.can_send}
+                                maxLength={1024}
+                                style={{ resize: 'none', overflow: 'hidden' }}
+                              />
+                            </Stack.Item>
+                            <Stack.Item>
+                              <Button
+                                icon="paper-plane"
+                                color="good"
+                                disabled={
+                                  !selected_ticket.can_send || !inputText.trim()
+                                }
+                                onClick={handleSend}
                               >
-                                This ticket is closed
+                                Send
+                              </Button>
+                              <Button
+                                icon="image"
+                                color="blue"
+                                tooltip="Embed an image URL into the ticket (https only)"
+                                disabled={!selected_ticket.can_send}
+                                selected={showEmbedInput === 'image'}
+                                onClick={() =>
+                                  setShowEmbedInput(
+                                    showEmbedInput === 'image' ? null : 'image',
+                                  )
+                                }
+                              >
+                                Img
+                              </Button>
+                              <Button
+                                icon="film"
+                                color="purple"
+                                tooltip="Embed a video URL into the ticket (https only)"
+                                disabled={!selected_ticket.can_send}
+                                selected={showEmbedInput === 'video'}
+                                onClick={() =>
+                                  setShowEmbedInput(
+                                    showEmbedInput === 'video' ? null : 'video',
+                                  )
+                                }
+                              >
+                                Vid
+                              </Button>
+                            </Stack.Item>
+                          </Stack>
+                          {showEmbedInput && (
+                            <Box mt={0.5}>
+                              <Stack>
+                                <Stack.Item grow>
+                                  <Input
+                                    fluid
+                                    placeholder={`Paste ${showEmbedInput} URL (must start with https://)...`}
+                                    value={embedUrl}
+                                    onChange={setEmbedUrl}
+                                    onEnter={handleEmbedSend}
+                                  />
+                                </Stack.Item>
+                                <Stack.Item>
+                                  <Button
+                                    color="good"
+                                    disabled={
+                                      !embedUrl.trim().startsWith('https://')
+                                    }
+                                    onClick={handleEmbedSend}
+                                  >
+                                    Embed {showEmbedInput}
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      setShowEmbedInput(null);
+                                      setEmbedUrl('');
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </Stack.Item>
+                              </Stack>
+                              <Box
+                                mt={0.5}
+                                p={0.75}
+                                fontSize="0.85em"
+                                color="label"
+                                style={{
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  background: 'rgba(0,0,0,0.3)',
+                                }}
+                              >
+                                <Box bold color="white" mb={0.3}>
+                                  How to embed media
+                                </Box>
+                                <Box>
+                                  1. Find a{' '}
+                                  {showEmbedInput === 'image'
+                                    ? 'direct image link'
+                                    : 'direct video link'}{' '}
+                                  — right-click the{' '}
+                                  {showEmbedInput === 'image'
+                                    ? 'image'
+                                    : 'video'}{' '}
+                                  on a website and choose{' '}
+                                  <Box as="span" bold color="white">
+                                    &quot;Copy image address&quot;
+                                  </Box>
+                                  .
+                                </Box>
+                                <Box mt={0.3}>
+                                  2. The URL must start with{' '}
+                                  <Box as="span" bold color="good">
+                                    https://
+                                  </Box>{' '}
+                                  and end with the file extension (e.g.{' '}
+                                  {showEmbedInput === 'image'
+                                    ? '.png, .jpg, .gif, .webp'
+                                    : '.mp4, .webm, .ogg'}
+                                  ).
+                                </Box>
+                                <Box mt={0.3}>
+                                  3. Paste the URL above and click{' '}
+                                  <Box as="span" bold color="white">
+                                    Embed {showEmbedInput}
+                                  </Box>
+                                  . Both you and the player will see it.
+                                </Box>
+                                {showEmbedInput === 'image' && (
+                                  <Box mt={0.3} color="average">
+                                    Tip: Imgur, Discord CDN, or direct GitHub
+                                    raw links work well.
+                                  </Box>
+                                )}
+                                {showEmbedInput === 'video' && (
+                                  <Box mt={0.3} color="average">
+                                    Tip: YouTube/Twitch clips won&apos;t work —
+                                    use a direct .mp4 or .webm URL instead.
+                                  </Box>
+                                )}
                               </Box>
-                            )}
-                          </Section>
-                        </Stack.Item>
-                      )}
-                    </>
-
-
+                            </Box>
+                          )}
+                          {!selected_ticket.can_send && (
+                            <Box color="bad" mt={0.5} fontSize="0.9em">
+                              This ticket is closed
+                            </Box>
+                          )}
+                        </Section>
+                      </Stack.Item>
+                    )}
+                  </>
                 </>
               ) : (
                 <Stack.Item grow>

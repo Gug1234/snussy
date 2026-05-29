@@ -27,8 +27,6 @@
 #define INTIMATE_EDITOR_ACCESSORY_PATH "modular/code/game/objects/items/lewd/intimate_accessory/strings"
 /// Root directory for chastity JSON banks.
 #define INTIMATE_EDITOR_CHASTITY_PATH "modular/code/game/objects/items/lewd/chastity/strings"
-/// Root directory for preset template JSON files.
-#define INTIMATE_EDITOR_PRESETS_PATH "modular/code/datums/sexcon/strings"
 
 /// Valid string bank IDs.
 #define INTIMATE_REACTION_BANK_IDS list("character", "piercing", "insertable", "chastity", "manticore_tail")
@@ -57,10 +55,6 @@
 	var/selected_category = "movement"
 	/// Currently selected string bank ID (one of INTIMATE_REACTION_BANK_IDS).
 	var/selected_bank = "character"
-	/// Feedback message from the last preset load attempt (cleared on next ui_data).
-	var/preset_result
-	/// Whether the last preset result was a success (TRUE) or failure (FALSE).
-	var/preset_result_success = FALSE
 	/// TRUE when in-memory data has changed since the last save.
 	var/dirty = FALSE
 	/// Session-local export/import panel state.
@@ -146,9 +140,9 @@
 		INTIMATE_TIER_BROKEN      = "Past the point of coherent reaction — extreme or repeated overstimulation.",
 	)
 	var/static/list/context_defs = list(
-		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around; visibility follows this bank's audience setting."),
-		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you; visibility follows this bank's audience setting."),
-		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you; visibility follows this bank's audience setting."),
+		list("suffix" = INTIMATE_CONTEXT_MOVEMENT, "label" = "Movement", "desc" = "Fires passively as you walk around; visibility follows this bank's audience setting.", "file" = "character_movement_messages.json", "json_key" = "character_movement"),
+		list("suffix" = INTIMATE_CONTEXT_SEX_RECEIVED, "label" = "Sex Received", "desc" = "Fires when someone performs a sex action on you; visibility follows this bank's audience setting.", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received"),
+		list("suffix" = INTIMATE_CONTEXT_ANAL_SEX_RECEIVED, "label" = "Anal Received", "desc" = "Fires when someone performs an anal action on you; visibility follows this bank's audience setting.", "file" = "character_sex_received_messages.json", "json_key" = "character_sex_received"),
 	)
 	for(var/tier in tier_labels)
 		var/tier_label = tier_labels[tier]
@@ -159,9 +153,9 @@
 				"key" = cat_key,
 				"label" = "[tier_label] — [ctx["label"]]",
 				"desc" = "[tier_desc] [ctx["desc"]]",
-				"file" = "intimate_reaction_presets.json",
-				"json_key" = cat_key,
-				"path" = INTIMATE_EDITOR_PRESETS_PATH,
+				"file" = ctx["file"],
+				"json_key" = ctx["json_key"],
+				"path" = INTIMATE_EDITOR_STRINGS_PATH,
 			))
 
 	banks["character"] = list(
@@ -358,34 +352,6 @@
 		list("id" = INTIMATE_AUDIENCE_VIEW, "label" = "View", "desc" = "Shown to anyone in normal visible-message range."),
 	)
 
-	// Preset dropdown options (hardcoded, never change).
-	data["preset_species"] = list(
-		list("id" = "humanoid",  "label" = "Humanoid"),
-		list("id" = "tauric",    "label" = "Tauric"),
-		list("id" = "lamia",     "label" = "Lamia"),
-		list("id" = "anthro",    "label" = "Anthro"),
-		list("id" = "moth",      "label" = "Moth"),
-		list("id" = "lizard",    "label" = "Lizard"),
-		list("id" = "insectoid", "label" = "Insectoid"),
-		list("id" = "avian",     "label" = "Avian"),
-		list("id" = "aquatic",   "label" = "Aquatic"),
-		list("id" = "demonic",   "label" = "Demonic"),
-	)
-	data["preset_stages"] = list(
-		list("id" = INTIMATE_TIER_NEUTRAL,     "label" = "Neutral",     "has_genital" = FALSE, "desc" = "Default state — no arousal. Fires during normal movement and non-sexual touch."),
-		list("id" = INTIMATE_TIER_LUSTY,       "label" = "Lusty",       "has_genital" = TRUE,  "desc" = "Low-to-moderate arousal. Fires when lust is present but hasn't peaked."),
-		list("id" = INTIMATE_TIER_BUILDING,    "label" = "Building",    "has_genital" = TRUE,  "desc" = "High arousal, actively building toward climax."),
-		list("id" = INTIMATE_TIER_OVERWHELMED, "label" = "Overwhelmed", "has_genital" = TRUE,  "desc" = "At or near climax. Peak arousal and orgasm."),
-		list("id" = INTIMATE_TIER_AFTERGLOW,   "label" = "Afterglow",   "has_genital" = TRUE,  "desc" = "Post-climax cooldown. Lust is dropping after orgasm."),
-		list("id" = INTIMATE_TIER_WITHDRAWAL,  "label" = "Withdrawal",  "has_genital" = TRUE,  "desc" = "Frustrated arousal that was denied or interrupted — aroused with no outlet."),
-		list("id" = INTIMATE_TIER_ROUGHUSE,    "label" = "Rough-Use",   "has_genital" = TRUE,  "desc" = "Being used roughly or forcefully during aggressive sex."),
-		list("id" = INTIMATE_TIER_BROKEN,      "label" = "Broken",      "has_genital" = FALSE, "desc" = "Past the point of coherent reaction — extreme or repeated overstimulation."),
-	)
-	data["preset_genitals"] = list(
-		list("id" = "penis",  "label" = "Penis"),
-		list("id" = "vagina", "label" = "Vagina"),
-	)
-
 	return data
 
 /datum/intimate_reaction_editor/ui_data(mob/user)
@@ -487,12 +453,6 @@
 					default_strings = loaded
 			break
 	data["default_strings"] = default_strings
-
-	// ── Preset result feedback ────────────────────────────────────────
-	if(preset_result)
-		data["preset_result"] = preset_result
-		data["preset_result_success"] = preset_result_success
-		preset_result = null
 
 	return data
 
@@ -743,152 +703,6 @@
 			dirty = TRUE
 			return TRUE
 
-		// ── Preset loading ──────────────────────────────────────────────
-		if("load_preset")
-			if(selected_bank != "character")
-				return FALSE
-			var/species = params["species"]
-			var/stage = params["stage"]
-			var/genital = params["genital"]
-			if(!istext(species) || !istext(stage))
-				return FALSE
-			// Validate species against known list.
-			var/static/list/valid_species = list("humanoid", "tauric", "lamia", "anthro", "moth", "lizard", "insectoid", "avian", "aquatic", "demonic")
-			if(!(species in valid_species))
-				return FALSE
-			// Validate stage against known tiers.
-			var/static/list/valid_stages = INTIMATE_TIER_LIST
-			if(!(stage in valid_stages))
-				return FALSE
-			// Stages with genital split require a genital selection.
-			var/static/list/genital_stages = list(INTIMATE_TIER_LUSTY, INTIMATE_TIER_BUILDING, INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_AFTERGLOW, INTIMATE_TIER_WITHDRAWAL, INTIMATE_TIER_ROUGHUSE)
-			var/has_genital = (stage in genital_stages)
-			// Build the preset ID for JSON lookup.
-			var/preset_id
-			if(has_genital)
-				if(!istext(genital) || !(genital in list("penis", "vagina")))
-					return FALSE
-				preset_id = "[species]_[stage]_[genital]"
-			else
-				preset_id = "[species]_[stage]"
-			// Load from the presets JSON.
-			var/move_key = "[preset_id]_movement"
-			var/sex_key = "[preset_id]_sex_received"
-			load_strings_file("intimate_reaction_presets.json", INTIMATE_EDITOR_PRESETS_PATH)
-			var/list/file_data = GLOB.string_cache?["intimate_reaction_presets.json"]
-			var/list/move_strings = islist(file_data) ? file_data[move_key] : null
-			var/list/sex_strings = islist(file_data) ? file_data[sex_key] : null
-			if(!islist(move_strings) && !islist(sex_strings))
-				to_chat(usr, span_warning("Preset not found: [preset_id]"))
-				return FALSE
-			// Build anal preset key — "anal" sits between stage and genital in JSON keys.
-			var/anal_preset_id
-			if(has_genital)
-				anal_preset_id = "[species]_[stage]_anal_[genital]"
-			else
-				anal_preset_id = "[species]_[stage]_anal"
-			var/anal_key = "[anal_preset_id]_sex_received"
-			var/list/anal_strings = islist(file_data) ? file_data[anal_key] : null
-			// Initialize reactions list if needed.
-			if(!islist(prefs.custom_intimate_reactions))
-				prefs.custom_intimate_reactions = list()
-			// Store into tier-specific category keys.
-			var/move_cat = "[stage]_[INTIMATE_CONTEXT_MOVEMENT]"
-			var/sex_cat = "[stage]_[INTIMATE_CONTEXT_SEX_RECEIVED]"
-			var/anal_cat = "[stage]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]"
-			var/list/loaded_cats = list()
-			if(islist(move_strings) && length(move_strings))
-				prefs.custom_intimate_reactions[move_cat] = move_strings.Copy()
-				loaded_cats += "Movement ([length(move_strings)])"
-			if(islist(sex_strings) && length(sex_strings))
-				prefs.custom_intimate_reactions[sex_cat] = sex_strings.Copy()
-				loaded_cats += "Sex Received ([length(sex_strings)])"
-			if(islist(anal_strings) && length(anal_strings))
-				prefs.custom_intimate_reactions[anal_cat] = anal_strings.Copy()
-				loaded_cats += "Anal Received ([length(anal_strings)])"
-			dirty = TRUE
-			// Navigate to the first affected category so the user sees the result.
-			selected_category = move_cat
-			// Set feedback for the TGUI.
-			var/summary = "Loaded [jointext(loaded_cats, ", ")] for [capitalize(stage)]."
-			preset_result = summary
-			preset_result_success = TRUE
-			to_chat(usr, span_notice(summary))
-			log_game("INTIMATE_EDITOR: [key_name(usr)] loaded preset species=[species] stage=[stage] genital=[genital || "none"] ([length(loaded_cats)] categories replaced)")
-			return TRUE
-
-		// ── Load ALL presets for a species ───────────────────────────────
-		if("load_all_presets")
-			if(selected_bank != "character")
-				return FALSE
-			var/species = params["species"]
-			if(!istext(species))
-				return FALSE
-			var/static/list/valid_species_all = list("humanoid", "tauric", "lamia", "anthro", "moth", "lizard", "insectoid", "avian", "aquatic", "demonic")
-			if(!(species in valid_species_all))
-				return FALSE
-
-			load_strings_file("intimate_reaction_presets.json", INTIMATE_EDITOR_PRESETS_PATH)
-			var/list/file_data = GLOB.string_cache?["intimate_reaction_presets.json"]
-			if(!islist(file_data))
-				preset_result = "Could not load preset data."
-				preset_result_success = FALSE
-				return FALSE
-
-			// Determine genital type: prefer explicit param, fall back to auto-detect.
-			var/genital_type = "penis"
-			var/explicit_genital = params["genital"]
-			if(istext(explicit_genital) && (explicit_genital in list("penis", "vagina")))
-				genital_type = explicit_genital
-			else if(istype(owner))
-				var/has_penis = !!owner.getorganslot(ORGAN_SLOT_PENIS)
-				var/has_vagina = !!owner.getorganslot(ORGAN_SLOT_VAGINA)
-				if(has_vagina && !has_penis)
-					genital_type = "vagina"
-			var/genital_label = genital_type == "penis" ? "penis" : "vagina"
-
-			if(!islist(prefs.custom_intimate_reactions))
-				prefs.custom_intimate_reactions = list()
-
-			var/total_cats = 0
-			var/static/list/all_stages = INTIMATE_TIER_LIST
-			var/static/list/genital_stages_all = list(INTIMATE_TIER_LUSTY, INTIMATE_TIER_BUILDING, INTIMATE_TIER_OVERWHELMED, INTIMATE_TIER_AFTERGLOW, INTIMATE_TIER_WITHDRAWAL, INTIMATE_TIER_ROUGHUSE)
-
-			for(var/stage in all_stages)
-				var/has_genital = (stage in genital_stages_all)
-				var/preset_id = has_genital ? "[species]_[stage]_[genital_type]" : "[species]_[stage]"
-				// Movement
-				var/move_key = "[preset_id]_movement"
-				var/list/move_strings = file_data[move_key]
-				if(islist(move_strings) && length(move_strings))
-					var/move_cat = "[stage]_[INTIMATE_CONTEXT_MOVEMENT]"
-					prefs.custom_intimate_reactions[move_cat] = move_strings.Copy()
-					total_cats++
-				// Sex received
-				var/sex_key = "[preset_id]_sex_received"
-				var/list/sex_strings = file_data[sex_key]
-				if(islist(sex_strings) && length(sex_strings))
-					var/sex_cat = "[stage]_[INTIMATE_CONTEXT_SEX_RECEIVED]"
-					prefs.custom_intimate_reactions[sex_cat] = sex_strings.Copy()
-					total_cats++
-				// Anal received
-				var/anal_preset_id = has_genital ? "[species]_[stage]_anal_[genital_type]" : "[species]_[stage]_anal"
-				var/anal_key = "[anal_preset_id]_sex_received"
-				var/list/anal_strings = file_data[anal_key]
-				if(islist(anal_strings) && length(anal_strings))
-					var/anal_cat = "[stage]_[INTIMATE_CONTEXT_ANAL_SEX_RECEIVED]"
-					prefs.custom_intimate_reactions[anal_cat] = anal_strings.Copy()
-					total_cats++
-
-			dirty = TRUE
-			selected_category = "[INTIMATE_TIER_NEUTRAL]_[INTIMATE_CONTEXT_MOVEMENT]"
-			var/summary = "Applied all [capitalize(species)] presets ([total_cats] categories, [genital_label] variant)."
-			preset_result = summary
-			preset_result_success = TRUE
-			to_chat(usr, span_notice(summary))
-			log_game("INTIMATE_EDITOR: [key_name(usr)] applied all presets species=[species] genital=[genital_type] ([total_cats] categories replaced)")
-			return TRUE
-
 		if("save")
 			if(dirty)
 				prefs.save_character()
@@ -936,7 +750,6 @@
 #undef INTIMATE_EDITOR_STRINGS_PATH
 #undef INTIMATE_EDITOR_ACCESSORY_PATH
 #undef INTIMATE_EDITOR_CHASTITY_PATH
-#undef INTIMATE_EDITOR_PRESETS_PATH
 #undef INTIMATE_REACTION_BANK_IDS
 
 /datum/intimate_reaction_editor/ui_close(mob/user)

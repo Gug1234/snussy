@@ -25,6 +25,20 @@ type BackendData = {
   max_import_text_bytes: number;
 };
 
+function renderStatusNotice(
+  statusKind: BackendData['status_kind'],
+  statusText: string,
+) {
+  switch (statusKind) {
+    case 'success':
+      return <NoticeBox success>{statusText}</NoticeBox>;
+    case 'danger':
+      return <NoticeBox danger>{statusText}</NoticeBox>;
+    default:
+      return <NoticeBox info>{statusText}</NoticeBox>;
+  }
+}
+
 export function CharacterSlotIOMenu() {
   const { act, data } = useBackend<BackendData>();
   const exportRef = useRef<HTMLTextAreaElement>(null);
@@ -81,13 +95,7 @@ export function CharacterSlotIOMenu() {
         <Stack vertical>
           {!!data.status_text && (
             <Stack.Item>
-              <NoticeBox
-                success={data.status_kind === 'success'}
-                danger={data.status_kind === 'danger'}
-                info={data.status_kind === 'info'}
-              >
-                {data.status_text}
-              </NoticeBox>
+              {renderStatusNotice(data.status_kind, data.status_text)}
             </Stack.Item>
           )}
 

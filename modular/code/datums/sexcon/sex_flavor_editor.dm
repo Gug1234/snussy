@@ -14,75 +14,6 @@
  *   [TTHEY]  [TTHEM]   [TTHEIR]        [FORCE]
  */
 
-/// Global cache for all sex action flavor text presets (loaded from JSON).
-/// Structure: list("humanoid" = list(action_path = list(phase = text)), "tauric" = ..., ...)
-GLOBAL_LIST(sex_action_preset_texts)
-
-/// Ordered list of preset keys for display in the UI.
-GLOBAL_LIST_INIT(sex_action_preset_keys, list(
-	"humanoid", "anthro", "tauric", "lamia", "drider",
-	"harpy", "moth", "lizard", "kobold",
-	"tiefling", "half_orc", "goblin", "dwarf", "elf",
-	"revenant", "construct"
-))
-
-/// Human-readable labels for each preset key.
-GLOBAL_LIST_INIT(sex_action_preset_labels, list(
-	"humanoid"  = "Humanoid",
-	"anthro"    = "Anthro",
-	"tauric"    = "Tauric",
-	"lamia"     = "Lamia",
-	"drider"    = "Drider / Arachnid",
-	"harpy"     = "Harpy",
-	"moth"      = "Moth",
-	"lizard"    = "Lizard",
-	"kobold"    = "Kobold",
-	"tiefling"  = "Tiefling",
-	"half_orc"  = "Half-Orc",
-	"goblin"    = "Goblin",
-	"dwarf"     = "Dwarf",
-	"elf"       = "Elf",
-	"revenant"  = "Revenant / Dullahan",
-	"construct" = "Metal Construct"
-))
-
-/// Lazily loads and returns all sex action preset text banks from JSON.
-/proc/get_sex_action_presets()
-	if(!GLOB.sex_action_preset_texts)
-		var/json_path = "modular/code/datums/sexcon/strings/sex_action_defaults.json"
-		if(fexists(json_path))
-			GLOB.sex_action_preset_texts = json_load(json_path)
-		if(!islist(GLOB.sex_action_preset_texts))
-			GLOB.sex_action_preset_texts = list()
-	return GLOB.sex_action_preset_texts
-
-/// Returns the default text for a given action path, preset, perspective, and phase.
-/// Falls back to humanoid if the selected preset doesn't define that action.
-/// @param preset_key  The race preset key (e.g. "humanoid", "anthro").
-/// @param action_path The action type path string.
-/// @param perspective "performer" or "target".
-/// @param phase       "on_start", "on_perform", or "on_finish".
-/proc/get_preset_action_text(preset_key, action_path, perspective, phase)
-	var/list/all_presets = get_sex_action_presets()
-	// Try the selected preset first.
-	var/list/preset_data = all_presets[preset_key]
-	if(islist(preset_data))
-		var/list/action_data = preset_data[action_path]
-		if(islist(action_data))
-			var/list/persp_data = action_data[perspective]
-			if(islist(persp_data) && persp_data[phase])
-				return persp_data[phase]
-	// Fallback to humanoid.
-	if(preset_key != "humanoid")
-		var/list/humanoid = all_presets["humanoid"]
-		if(islist(humanoid))
-			var/list/action_data = humanoid[action_path]
-			if(islist(action_data))
-				var/list/persp_data = action_data[perspective]
-				if(islist(persp_data))
-					return persp_data[phase]
-	return null
-
 /// IC verb available to any chastenable player. Opens their own flavor editor.
 /mob/living/carbon/human/verb/open_sex_flavor_editor()
 	set name = "Edit Sex Flavor Text"
@@ -109,8 +40,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	var/show_all_actions = FALSE
 	/// Currently selected custom action slot for editing (1-5), or 0 for none.
 	var/selected_custom_slot = 0
-	/// Currently selected flavor text preset (race/species bank).
-	var/selected_preset = "humanoid"
 	/// Currently selected perspective: "performer", "target", or "observer".
 	var/selected_perspective = "performer"
 	/// TRUE when in-memory data has changed since the last save.
@@ -198,12 +127,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 	data["max_length"]         = SEX_FLAVOR_MAX_LENGTH
 	data["phases"]             = list("on_start", "on_perform", "on_finish")
 	data["max_custom_actions"] = MAX_CUSTOM_SEX_ACTIONS
-
-	// Preset selector options (race/species banks).
-	var/list/preset_list = list()
-	for(var/key in GLOB.sex_action_preset_keys)
-		preset_list += list(list("key" = key, "label" = GLOB.sex_action_preset_labels[key]))
-	data["presets"] = preset_list
 
 	// Custom action templates — preset archetypes for creating new custom actions.
 	data["custom_templates"] = list(
@@ -355,27 +278,7 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 					suppress_defaults[phase] = !!suppress_data[phase]
 	data["suppress_defaults"] = suppress_defaults
 
-	// ── Preset selector + perspective data ──────────────────────────────────
-	data["selected_preset"] = selected_preset
 	data["selected_perspective"] = selected_perspective
-
-	// ── Default text from JSON bank for the selected action + preset + perspective ─
-	// Use empty strings instead of null so json_encode always includes the keys.
-	// This prevents the frontend's shallow merge from preserving stale values
-	// when switching between presets (BYOND removes null-valued keys from lists).
-	data["default_on_start"]   = ""
-	data["default_on_perform"] = ""
-	data["default_on_finish"]  = ""
-	if(selected_action_path)
-		var/start_text = get_preset_action_text(selected_preset, selected_action_path, selected_perspective, "on_start")
-		var/perform_text = get_preset_action_text(selected_preset, selected_action_path, selected_perspective, "on_perform")
-		var/finish_text = get_preset_action_text(selected_preset, selected_action_path, selected_perspective, "on_finish")
-		if(start_text)
-			data["default_on_start"] = start_text
-		if(perform_text)
-			data["default_on_perform"] = perform_text
-		if(finish_text)
-			data["default_on_finish"] = finish_text
 
 	// ── Custom Actions tab data ──────────────────────────────────────────────
 	// Current custom actions list.
@@ -499,13 +402,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			selected_phase = phase
 			return TRUE
 
-		if("select_preset")
-			var/key = params["key"]
-			if(!istext(key) || !(key in GLOB.sex_action_preset_keys))
-				return FALSE
-			selected_preset = key
-			return TRUE
-
 		if("select_perspective")
 			var/persp = params["perspective"]
 			if(!(persp in list("performer", "target", "observer")))
@@ -529,46 +425,6 @@ GLOBAL_LIST_INIT(sex_action_preset_labels, list(
 			if(!prefs.set_erp_preview_token(params["key"], params["value"]))
 				return FALSE
 			dirty = TRUE
-			return TRUE
-
-		if("apply_preset_all")
-			// Apply the selected preset's text to ALL registered sex actions at once.
-			// This overwrites every action's custom_sex_flavors entry with the preset text.
-			var/preset_key = params["key"]
-			if(!istext(preset_key) || !(preset_key in GLOB.sex_action_preset_keys))
-				return FALSE
-			var/list/all_presets = get_sex_action_presets()
-			var/list/preset_data = all_presets[preset_key]
-			if(!islist(preset_data))
-				// Fallback to humanoid if preset has no data at all.
-				preset_data = all_presets["humanoid"]
-			if(!islist(preset_data))
-				to_chat(usr, span_warning("No preset data found for '[preset_key]'."))
-				return FALSE
-			// Build fresh custom_sex_flavors from the preset.
-			var/list/new_flavors = list()
-			for(var/path in GLOB.sex_actions)
-				var/datum/sex_action/A = GLOB.sex_actions[path]
-				if(!A || A.category == SEX_CATEGORY_NULL)
-					continue
-				var/path_text = "[path]"
-				var/list/action_entry = list()
-				var/has_any = FALSE
-				// Iterate over all perspective+phase combinations.
-				for(var/persp in list("performer", "target", "observer"))
-					for(var/phase in list("on_start", "on_perform", "on_finish"))
-						var/text = get_preset_action_text(preset_key, path_text, persp, phase)
-						if(text)
-							var/persp_phase_key = "[persp]_[phase]"
-							action_entry[persp_phase_key] = list(text)
-							action_entry["weight_[persp_phase_key]"] = list(100)
-							has_any = TRUE
-				if(has_any)
-					new_flavors[path_text] = action_entry
-			prefs.custom_sex_flavors = new_flavors
-			dirty = TRUE
-			log_game("SEX_FLAVOR_EDITOR: [key_name(usr)] applied preset '[preset_key]' to all actions ([new_flavors.len] actions replaced)")
-			to_chat(usr, span_notice("Applied '[GLOB.sex_action_preset_labels[preset_key]]' preset to all actions."))
 			return TRUE
 
 		if("add_string")

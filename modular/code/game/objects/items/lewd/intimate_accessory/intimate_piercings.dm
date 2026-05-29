@@ -594,7 +594,7 @@
 	return ..()
 
 /obj/item/intimate_accessory/piercing/tongue/attackby(obj/item/I, mob/living/user, params)
-	if(istype(I, /obj/item/clothing/neck/roguetown/psicross) || istype(I, /obj/item/clothing/neck/roguetown/zcross/iron))
+	if(istype(I, /obj/item/clothing/neck/roguetown/psicross) || istype(I, /obj/item/clothing/neck/roguetown/psicross/inhumen))
 		return try_socket_cross(I, user)
 	return ..()
 
@@ -624,14 +624,14 @@
 	if(!I)
 		return FALSE
 
-	return istype(I, /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy) \
-		|| istype(I, /obj/item/clothing/neck/roguetown/zcross/iron)
+	return istype(I, /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient) \
+		|| istype(I, /obj/item/clothing/neck/roguetown/psicross/inhumen)
 
 /obj/item/intimate_accessory/piercing/tongue/proc/get_zizite_socket_descriptor(obj/item/cross)
 	if(!cross)
 		return "zcross"
 
-	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy))
+	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient))
 		return "ancient zcross"
 	return "iron zcross"
 
@@ -639,12 +639,12 @@
 	if(!cross)
 		return "#9EA48E"
 
-	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy))
+	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient))
 		return "#BB9696"
 	return "#9EA48E"
 
 /obj/item/intimate_accessory/piercing/tongue/proc/get_zizite_metal_name(obj/item/cross) 
-	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy))
+	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient))
 		return "avantyne"
 	return "darksteel"
 
@@ -702,7 +702,7 @@
 		return FALSE
 
 	return istype(I, /obj/item/clothing/neck/roguetown/psicross) \
-		|| istype(I, /obj/item/clothing/neck/roguetown/psicross/aalloy) \
+		|| istype(I, /obj/item/clothing/neck/roguetown/psicross/decrepit) \
 		|| istype(I, /obj/item/clothing/neck/roguetown/psicross/silver) \
 		|| istype(I, /obj/item/clothing/neck/roguetown/psicross/g)
 
@@ -714,7 +714,7 @@
 		return "silver psycross"
 	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/g))
 		return "golden psycross"
-	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/aalloy))
+	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/decrepit))
 		return "ancient psycross"
 	return "stone psycross"
 
@@ -726,7 +726,7 @@
 		return "#C6D5E1"
 	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/g))
 		return "#C4B651"
-	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/aalloy))
+	if(istype(cross, /obj/item/clothing/neck/roguetown/psicross/decrepit))
 		return "#BB9696"
 	return "#9BADB7"
 

@@ -127,7 +127,7 @@
 	var/list/existing = islist(erp_preview_tokens) ? erp_preview_tokens.Copy() : get_default_erp_preview_tokens()
 	var/list/profile = get_default_erp_preview_tokens()
 	for(var/key in profile)
-		if(copytext(key, 1, 8) == "target_" || key in list("force", "plug"))
+		if(copytext(key, 1, 8) == "target_" || (key in list("force", "plug")))
 			if(existing[key])
 				profile[key] = existing[key]
 	profile["user_name"] = real_name || profile["user_name"]

@@ -124,16 +124,6 @@ type BackendData = {
   max_custom_actions: number;
   /** Currently selected custom action slot for editing. */
   selected_custom_slot: number;
-  /** Default vanilla text for the selected action's on_start phase. */
-  default_on_start: string | null;
-  /** Default vanilla text for the selected action's on_perform phase. */
-  default_on_perform: string | null;
-  /** Default vanilla text for the selected action's on_finish phase. */
-  default_on_finish: string | null;
-  /** Currently selected flavor text preset key. */
-  selected_preset: string;
-  /** Available flavor text presets (race/species banks). */
-  presets: { key: string; label: string }[];
   /** Currently selected perspective: "performer", "target", or "observer". */
   selected_perspective: string;
   /** Per-character local token profile for live previews. */
@@ -1036,10 +1026,6 @@ export function SexFlavorEditor() {
   const [showTransfer, setShowTransfer] = useState(false);
   /** Index (0-based) of the custom string being edited, or -1 for "add new" mode. */
   const [editingIndex, setEditingIndex] = useState(-1);
-  /** Key for the "Apply to All" confirmation dialog, or null when not showing. */
-  const [applyAllConfirm, setApplyAllConfirm] = useState<string | null>(null);
-  /** Selected preset key for the global apply dropdown. */
-  const [globalPresetKey, setGlobalPresetKey] = useState<string>('humanoid');
   /** Which category sections are expanded in the action list. */
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(),
@@ -1222,74 +1208,6 @@ export function SexFlavorEditor() {
                     paddingRight: '6px',
                   }}
                 >
-                  {/* ── Apply Preset to All ── */}
-                  <Section title="Apply Preset to All">
-                    <Box fontSize="10px" opacity={0.6} mb={0.5}>
-                      Select a preset and apply it to every action at once.
-                    </Box>
-                    <Box mb={0.5}>
-                      <select
-                        value={globalPresetKey}
-                        onChange={(e) => setGlobalPresetKey(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '4px',
-                          background: 'rgba(0,0,0,0.5)',
-                          color: '#ddd',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '3px',
-                          fontSize: '11px',
-                        }}
-                      >
-                        {(data.presets || []).map((p) => (
-                          <option key={p.key} value={p.key}>
-                            {p.label}
-                          </option>
-                        ))}
-                      </select>
-                    </Box>
-                    {applyAllConfirm ? (
-                      <Box>
-                        <Box fontSize="10px" color="bad" mb={0.5} bold>
-                          This will overwrite ALL custom text for every action.
-                          Continue?
-                        </Box>
-                        <Stack>
-                          <Stack.Item>
-                            <Button
-                              icon="check"
-                              color="bad"
-                              onClick={() => {
-                                act('apply_preset_all', {
-                                  key: applyAllConfirm,
-                                });
-                                setApplyAllConfirm(null);
-                              }}
-                            >
-                              Confirm
-                            </Button>
-                          </Stack.Item>
-                          <Stack.Item>
-                            <Button
-                              icon="times"
-                              onClick={() => setApplyAllConfirm(null)}
-                            >
-                              Cancel
-                            </Button>
-                          </Stack.Item>
-                        </Stack>
-                      </Box>
-                    ) : (
-                      <Button
-                        fluid
-                        icon="paint-roller"
-                        color="caution"
-                        onClick={() => setApplyAllConfirm(globalPresetKey)}
-                      >
-                        Apply to All Actions
-                      </Button>
-                    )}
-                  </Section>
                   {/* Search filter */}
                   <Box mb={0.5}>
                     <Input
@@ -1497,11 +1415,9 @@ export function SexFlavorEditor() {
                         </Section>
                       </Stack.Item>
 
-                      {/* ── Perspective selector + Preset selector + default text display ── */}
+                      {/* ── Perspective selector ── */}
                       <Stack.Item>
-                        <Section
-                          title={`Default Text — ${PHASE_LABELS[selected_phase] ?? selected_phase}`}
-                        >
+                        <Section title="Perspective">
                           {/* Perspective toggle */}
                           <Box mb={0.5}>
                             <Box fontSize="10px" opacity={0.6} mb={0.25}>
@@ -1570,91 +1486,6 @@ export function SexFlavorEditor() {
                               </Stack.Item>
                             </Stack>
                           </Box>
-                          {/* Preset selector row */}
-                          <Box mb={0.5}>
-                            <Box fontSize="10px" opacity={0.6} mb={0.25}>
-                              Preset:
-                            </Box>
-                            <Stack wrap>
-                              {(data.presets || []).map((p) => (
-                                <Stack.Item key={p.key} mr={0.25} mb={0.25}>
-                                  <Button
-                                    compact
-                                    selected={data.selected_preset === p.key}
-                                    onClick={() =>
-                                      act('select_preset', { key: p.key })
-                                    }
-                                  >
-                                    {p.label}
-                                  </Button>
-                                </Stack.Item>
-                              ))}
-                            </Stack>
-                          </Box>
-                          {/* Default text display */}
-                          {(() => {
-                            const defaultTextMap: Record<
-                              string,
-                              string | null
-                            > = {
-                              on_start: data.default_on_start,
-                              on_perform: data.default_on_perform,
-                              on_finish: data.default_on_finish,
-                            };
-                            const defaultText =
-                              defaultTextMap[selected_phase] ?? null;
-                            if (!defaultText) {
-                              return (
-                                <Box opacity={0.4} italic fontSize="11px">
-                                  No default text for this action/phase in the
-                                  selected preset.
-                                </Box>
-                              );
-                            }
-                            return (
-                              <>
-                                <Box
-                                  p={0.5}
-                                  mb={0.5}
-                                  italic
-                                  style={{
-                                    background: 'rgba(0,0,0,0.35)',
-                                    borderRadius: '3px',
-                                    border: '1px solid rgba(255,255,255,0.08)',
-                                    fontSize: '12px',
-                                    color:
-                                      PHASE_COLORS[selected_phase] ?? '#fff',
-                                  }}
-                                >
-                                  {defaultText}
-                                </Box>
-                                <Stack>
-                                  <Stack.Item>
-                                    <Button
-                                      compact
-                                      icon="copy"
-                                      tooltip="Copy this preset text into the input field for editing"
-                                      onClick={() => setInputText(defaultText)}
-                                    >
-                                      Use as Template
-                                    </Button>
-                                  </Stack.Item>
-                                  <Stack.Item>
-                                    <Box
-                                      inline
-                                      opacity={0.5}
-                                      fontSize="10px"
-                                      ml={1}
-                                      mt={0.5}
-                                    >
-                                      Pick a race preset above, then copy its
-                                      text to customise.
-                                    </Box>
-                                  </Stack.Item>
-                                </Stack>
-                              </>
-                            );
-                          })()}
                         </Section>
                       </Stack.Item>
 

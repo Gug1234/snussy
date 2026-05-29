@@ -8,7 +8,7 @@
  *
  * Layout:
  *   Top bar     â€” save / export / import.
- *   Left panel  â€” bank selector, category list, preset loader, visibility info.
+ *   Left panel  â€” bank selector, category list, visibility info.
  *   Right panel â€” default strings, input row, dual preview, token reference,
  *                 custom strings list.
  */
@@ -59,18 +59,6 @@ type Category = {
   desc?: string;
 };
 
-type PresetOption = {
-  id: string;
-  label: string;
-};
-
-type PresetStage = {
-  id: string;
-  label: string;
-  has_genital: BooleanLike;
-  desc?: string;
-};
-
 type BackendData = {
   invalid?: boolean;
   selected_category: string;
@@ -87,11 +75,6 @@ type BackendData = {
   current_weights: number[];
   default_strings: string[];
   tokens: string[];
-  preset_species?: PresetOption[];
-  preset_stages?: PresetStage[];
-  preset_genitals?: PresetOption[];
-  preset_result?: string;
-  preset_result_success?: BooleanLike;
   export_text?: string;
   export_chunk_count?: number;
   export_payload_bytes?: number;
@@ -133,39 +116,7 @@ const TOKEN_DESCS: Record<string, string> = {
   '[PLUG]': "Your plug's name (Plug bank only).",
 };
 
-// ______ Preset chip row helper _________________________________________________________________________________________________________________________________________________________
-
-type ChipOption = { id: string; label: string; desc?: string };
-
-function PresetChipRow({
-  options,
-  selected,
-  onSelect,
-}: {
-  options: ChipOption[];
-  selected: string;
-  onSelect: (id: string) => void;
-}) {
-  return (
-    <Stack wrap>
-      {options.map((opt) => (
-        <Stack.Item key={opt.id} mr={0.25} mb={0.25}>
-          <Button
-            compact
-            selected={opt.id === selected}
-            tooltip={opt.desc}
-            tooltipPosition="right"
-            onClick={() => onSelect(opt.id)}
-          >
-            {opt.label}
-          </Button>
-        </Stack.Item>
-      ))}
-    </Stack>
-  );
-}
-
-// ______ Sidebar (banks + categories + presets + info) ____________________________________________________________________________________
+// ______ Sidebar (banks + categories + info) ____________________________________________________________________________________
 
 function Sidebar() {
   const { act, data } = useBackend<BackendData>();
@@ -177,25 +128,11 @@ function Sidebar() {
     audience_options,
     current_audience,
     current_audience_default,
-    preset_species,
-    preset_stages,
-    preset_genitals,
-    preset_result,
-    preset_result_success,
   } = data;
 
-  const [selectedSpecies, setSelectedSpecies] = useState('');
-  const [selectedStage, setSelectedStage] = useState('');
-  const [selectedGenital, setSelectedGenital] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
     new Set(),
   );
-  // Two-stage confirm state for destructive preset ops. Mirrors
-  // SexFlavorEditor.applyAllConfirm — first click opens the confirm panel,
-  // second click inside that panel fires the act.
-  const [loadPresetConfirm, setLoadPresetConfirm] = useState(false);
-  const [loadAllConfirm, setLoadAllConfirm] = useState(false);
-
   const visibleCategories = categories.filter((cat) => !cat.hidden);
   const hasGroups = visibleCategories.some((c) => c.group);
   const currentBank = banks.find((bank) => bank.id === selected_bank);
@@ -205,13 +142,6 @@ function Sidebar() {
   const currentAudienceOption = audience_options?.find(
     (opt) => opt.id === current_audience,
   );
-  const currentStageInfo = preset_stages?.find((s) => s.id === selectedStage);
-  const needsGenital = !!currentStageInfo?.has_genital;
-  const canLoadPreset =
-    !!selectedSpecies &&
-    !!selectedStage &&
-    (!needsGenital || !!selectedGenital);
-
   function toggleGroup(name: string) {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
@@ -360,167 +290,6 @@ function Sidebar() {
       <Section title="Categories">
         {hasGroups ? groupedCategoryBlocks : flatCategoryButtons}
       </Section>
-
-      {selected_bank === 'character' && preset_species && preset_stages && (
-        <Section title="Load Preset">
-          <Box fontSize="10px" opacity={0.6} mb={0.5}>
-            Populate categories with pre-written strings for a given species and
-            arousal tier. This will <b>replace all existing strings</b> in the
-            affected categories (Movement, Sex Received, and Anal Received where
-            applicable).
-          </Box>
-
-          <Box fontSize="10px" opacity={0.7} mb={0.25}>
-            Species:
-          </Box>
-          <PresetChipRow
-            options={preset_species}
-            selected={selectedSpecies}
-            onSelect={setSelectedSpecies}
-          />
-
-          <Box fontSize="10px" opacity={0.7} mb={0.25} mt={0.5}>
-            Stage:
-          </Box>
-          <PresetChipRow
-            options={preset_stages}
-            selected={selectedStage}
-            onSelect={setSelectedStage}
-          />
-
-          {preset_genitals && (
-            <>
-              <Box fontSize="10px" opacity={0.7} mb={0.25} mt={0.5}>
-                Genital:
-                {!needsGenital && selectedStage && (
-                  <Box inline ml={0.5} italic opacity={0.6}>
-                    (not needed for this stage)
-                  </Box>
-                )}
-              </Box>
-              <PresetChipRow
-                options={preset_genitals}
-                selected={selectedGenital}
-                onSelect={setSelectedGenital}
-              />
-            </>
-          )}
-
-          <Button
-            fluid
-            icon="download"
-            color="good"
-            disabled={!canLoadPreset}
-            mt={0.5}
-            onClick={() => setLoadPresetConfirm(true)}
-          >
-            Load Preset
-          </Button>
-          {loadPresetConfirm && (
-            <Box
-              mt={0.5}
-              p={0.5}
-              style={{
-                background: 'rgba(255,150,50,0.12)',
-                borderRadius: '3px',
-                border: '1px solid rgba(255,150,50,0.4)',
-              }}
-            >
-              <Box fontSize="10px" color="bad" mb={0.5} bold>
-                This replaces all strings in Movement, Sex Received, and Anal
-                Received for the selected tier. Continue?
-              </Box>
-              <Stack>
-                <Stack.Item>
-                  <Button
-                    icon="check"
-                    color="bad"
-                    onClick={() => {
-                      act('load_preset', {
-                        species: selectedSpecies,
-                        stage: selectedStage,
-                        genital: needsGenital ? selectedGenital : null,
-                      });
-                      setLoadPresetConfirm(false);
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </Stack.Item>
-                <Stack.Item>
-                  <Button
-                    icon="times"
-                    onClick={() => setLoadPresetConfirm(false)}
-                  >
-                    Cancel
-                  </Button>
-                </Stack.Item>
-              </Stack>
-            </Box>
-          )}
-          <Button
-            fluid
-            icon="download"
-            color="average"
-            disabled={!selectedSpecies || !selectedGenital}
-            tooltip="Load ALL tiers for this species using the selected genital variant (replaces all character bank strings)"
-            mt={0.5}
-            onClick={() => setLoadAllConfirm(true)}
-          >
-            Apply All ({selectedSpecies || 'â€¦'}
-            {selectedGenital ? ` â€” ${selectedGenital}` : ''})
-          </Button>
-          {loadAllConfirm && (
-            <Box
-              mt={0.5}
-              p={0.5}
-              style={{
-                background: 'rgba(255,80,80,0.12)',
-                borderRadius: '3px',
-                border: '1px solid rgba(255,80,80,0.4)',
-              }}
-            >
-              <Box fontSize="10px" color="bad" mb={0.5} bold>
-                This overwrites EVERY tier in the character bank with preset
-                text, wiping all your custom strings. Continue?
-              </Box>
-              <Stack>
-                <Stack.Item>
-                  <Button
-                    icon="check"
-                    color="bad"
-                    onClick={() => {
-                      act('load_all_presets', {
-                        species: selectedSpecies,
-                        genital: selectedGenital,
-                      });
-                      setLoadAllConfirm(false);
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </Stack.Item>
-                <Stack.Item>
-                  <Button icon="times" onClick={() => setLoadAllConfirm(false)}>
-                    Cancel
-                  </Button>
-                </Stack.Item>
-              </Stack>
-            </Box>
-          )}
-
-          {!!preset_result &&
-            (preset_result_success ? (
-              <NoticeBox mt={1} success>
-                {preset_result}
-              </NoticeBox>
-            ) : (
-              <NoticeBox mt={1} danger>
-                {preset_result}
-              </NoticeBox>
-            ))}
-        </Section>
-      )}
 
       <Section title="Who Sees This?">
         <Box fontSize="11px" opacity={0.8}>

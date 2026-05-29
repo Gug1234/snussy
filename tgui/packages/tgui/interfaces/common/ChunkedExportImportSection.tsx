@@ -28,6 +28,17 @@ type ChunkedExportImportSectionProps = {
   overwriteLabel: string;
 };
 
+function renderStatusNotice(statusKind: StatusKind, statusText: string) {
+  switch (statusKind) {
+    case 'success':
+      return <NoticeBox success>{statusText}</NoticeBox>;
+    case 'danger':
+      return <NoticeBox danger>{statusText}</NoticeBox>;
+    default:
+      return <NoticeBox info>{statusText}</NoticeBox>;
+  }
+}
+
 export function ChunkedExportImportSection(
   props: ChunkedExportImportSectionProps,
 ) {
@@ -96,15 +107,7 @@ export function ChunkedExportImportSection(
   return (
     <Stack vertical>
       {!!statusText && (
-        <Stack.Item>
-          <NoticeBox
-            success={statusKind === 'success'}
-            danger={statusKind === 'danger'}
-            info={statusKind === 'info'}
-          >
-            {statusText}
-          </NoticeBox>
-        </Stack.Item>
+        <Stack.Item>{renderStatusNotice(statusKind, statusText)}</Stack.Item>
       )}
 
       <Stack.Item>
@@ -141,16 +144,18 @@ export function ChunkedExportImportSection(
           <Box mb={1} opacity={0.65} fontSize="11px">
             {exportDescription}
           </Box>
-          <LabeledList mb={1}>
-            <LabeledList.Item label="Payload">
-              {exportPayloadBytes
-                ? `${exportPayloadBytes} bytes`
-                : 'Not generated'}
-            </LabeledList.Item>
-            <LabeledList.Item label="Chunks">
-              {exportChunkCount || 'None'}
-            </LabeledList.Item>
-          </LabeledList>
+          <Box mb={1}>
+            <LabeledList>
+              <LabeledList.Item label="Payload">
+                {exportPayloadBytes
+                  ? `${exportPayloadBytes} bytes`
+                  : 'Not generated'}
+              </LabeledList.Item>
+              <LabeledList.Item label="Chunks">
+                {exportChunkCount || 'None'}
+              </LabeledList.Item>
+            </LabeledList>
+          </Box>
           <textarea
             ref={exportRef}
             aria-label={exportAriaLabel}

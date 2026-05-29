@@ -13,7 +13,7 @@
 
 	var/obj/item/intimate_accessory/piercing/tongue/zizite/zizite = allocate(/obj/item/intimate_accessory/piercing/tongue/zizite)
 	TEST_ASSERT_EQUAL(zizite.reaction_component.get_oral_flavor_key(SEX_FORCE_LOW), "tongue_piercing_oral_zizite_gentle", "Plain zizite tongue piercing should use the zizite oral bank.")
-	zizite.socketed_item_type = /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy
+	zizite.socketed_item_type = /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient
 	TEST_ASSERT_EQUAL(zizite.reaction_component.get_oral_flavor_key(SEX_FORCE_HIGH), "tongue_piercing_oral_zizite_ancient_rough", "Ancient zizite tongue piercing should use the ancient zizite oral bank.")
 
 	var/message = silver.reaction_component.pick_string_bank("tongue_piercing_oral_messages.json", "tongue_piercing_oral_silver_gentle", "modular/code/game/objects/items/lewd/intimate_accessory/strings")

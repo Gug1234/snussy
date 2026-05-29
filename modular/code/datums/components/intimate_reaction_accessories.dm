@@ -154,7 +154,7 @@
 
 	if(istype(tongue_piercing, /obj/item/intimate_accessory/piercing/tongue/zizite))
 		var/obj/item/intimate_accessory/piercing/tongue/zizite/zizite = tongue_piercing
-		if(ispath(zizite.socketed_item_type, /obj/item/clothing/neck/roguetown/psicross/inhumen/aalloy))
+		if(ispath(zizite.socketed_item_type, /obj/item/clothing/neck/roguetown/psicross/inhumen/ancient))
 			return "tongue_piercing_oral_zizite_ancient_[force_suffix]"
 		return "tongue_piercing_oral_zizite_[force_suffix]"
 
