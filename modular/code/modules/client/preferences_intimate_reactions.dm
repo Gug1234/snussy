@@ -382,11 +382,11 @@
 			return pick(\
 				"pitiful, barely a thumb's worth of meat",\
 				"pathetically small, more nub than cock",\
-				"laughably undersized, hardly worth gripping")
+				"laughably undersized, ornamental")
 		if(2) // Average
 			return pick(\
 				"unremarkable, a serviceable handful",\
-				"middling, nothing to boast about at the tavern",\
+				"middling, a fine enough member",\
 				"average, the sort that does the job without fanfare")
 		if(3) // Large
 			return pick(\
