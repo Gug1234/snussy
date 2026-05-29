@@ -332,8 +332,7 @@
 	return "cock"
 
 /**
- * Maps a numeric breast_size (0–9) to a descriptive, fantasy-appropriate phrase
- * comparing the size to common objects one might find in a medieval/fantasy setting.
+ * Maps a numeric breast_size (0–9) to a descriptor
  * Designed to read naturally as both a standalone noun-phrase ("[CUPSIZE] breasts")
  * and as an adjective in compound descriptors ("[CUPSIZE] chest").
  *
@@ -367,9 +366,9 @@
 	return "unknown"
 
 /**
- * Maps a numeric penis_size (1–3) to a visceral, fantasy-appropriate descriptor.
+ * Maps a numeric penis_size (1–3) to a descriptor.
  * Small sizes are disparaged with shaming language; large sizes are described
- * with lurid, hefty reverence. Reads naturally in phrases like "[COCKSIZE] cock".
+ * with lurid, hefty reverence.
  *
  * Arguments:
  *   size — the integer penis_size value from the organ (1 = Small, 2 = Average, 3 = Large).
@@ -381,8 +380,8 @@
 		if(1) // Small
 			return pick(\
 				"pitiful, barely a thumb's worth of meat",\
-				"pathetically small, more nub than cock",\
-				"laughably undersized, ornamental")
+				"pathetically small, more clit than cock",\
+				"laughably undersized, a bobbing ornament")
 		if(2) // Average
 			return pick(\
 				"unremarkable, a serviceable handful",\
@@ -390,7 +389,7 @@
 				"average, the sort that does the job without fanfare")
 		if(3) // Large
 			return pick(\
-				"fat and heavy, the kind that makes thighs tremble on sight",\
+				"fat and heavy, the kind that might cause rips",\
 				"brutishly thick, a gut-churning slab of cock",\
 				"monstrous, veined and weighty enough to slap bruises into skin")
 	return "unremarkable"
@@ -460,8 +459,7 @@
 	return "a pair of [size_word] breasts"
 
 /**
- * Maps a vagina sprite accessory type path to a visceral, fantasy-flavored descriptor.
- * Each type gets language that conveys its visual and tactile character.
+ * Maps a vagina sprite accessory type path to a descriptor.
  *
  * Arguments:
  *   accessory_type — the vagina organ's accessory_type path.
