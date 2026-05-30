@@ -9,7 +9,7 @@
 // Gem-only types use the same base attackby but reject special cross sockets.
 
 // ════════════════════════════════════════════════════════════════════════════
-// GLASS BEADS — Unsocketable, shatters on z-fall applying grievous gash
+// GLASS BEADS — VERY EVIL BEADS!!!!!!
 // ════════════════════════════════════════════════════════════════════════════
 
 /obj/item/intimate_accessory/rear/plug/analbeads/glass
@@ -43,13 +43,13 @@
 	overlay.color = null
 	add_overlay(overlay)
 	update_icon()
-
 /// Glass ripcord — violent ripcord shatters them inside.
 /obj/item/intimate_accessory/rear/plug/analbeads/glass/get_ripcord_message(mob/user, mob/living/carbon/human/target, violent = FALSE)
 	var/who = (user == target) ? "[user]" : "[target]"
 	if(violent)
 		return "[user] grabs the pull ring and rips the glass beads out of [who] with a savage yank — one of them doesn't make it out intact. There's a muffled crack from inside [who], followed by a scream."
 	return "[user] carefully draws the glass beads from [who] one by one, each fragile sphere emerging slick and unbroken."
+
 
 /obj/item/intimate_accessory/rear/plug/analbeads/glass/on_ripcord(mob/user, mob/living/carbon/human/target, violent = FALSE)
 	if(!target?.sexcon)
