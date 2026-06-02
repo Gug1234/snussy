@@ -16,7 +16,7 @@
  * Schema envelope (schema = 1):
  *   {
  *     "schema":           1,
- *     "savefile_version": <int, = SLOT_IO_SAVEFILE_VERSION_MAX at export time>,
+ *     "savefile_version": <int, = SAVEFILE_VERSION_MAX at export time>,
  *     "exported_at":      "YYYY-MM-DD hh:mm:ss",
  *     "source_ckey":      "<exporter ckey, optional>",
  *     "character_text":   "<ExportText output for /character[slot]>",
@@ -45,12 +45,6 @@
 /// (NOT when new fields are added inside `character_text` — those are
 /// covered by the savefile_version migration system instead).
 #define SLOT_IO_SCHEMA_VERSION 1
-
-/// Mirrors the savefile migration bounds in preferences_savefile.dm. That
-/// file intentionally undefines its local macros after the savefile procs, so
-/// the slot import/export helper keeps its own copy for envelope validation.
-#define SLOT_IO_SAVEFILE_VERSION_MAX 37
-#define SLOT_IO_SAVEFILE_VERSION_MIN 18
 
 /// Returns the directory that stores sidecar JSON files next to this savefile.
 /datum/preferences/proc/_sidecar_dir()
@@ -171,7 +165,7 @@
 
 	var/list/envelope = list(
 		"schema"           = SLOT_IO_SCHEMA_VERSION,
-		"savefile_version" = SLOT_IO_SAVEFILE_VERSION_MAX,
+		"savefile_version" = SAVEFILE_VERSION_MAX,
 		"exported_at"      = time2text(world.realtime, "YYYY-MM-DD hh:mm:ss"),
 		"source_ckey"      = (parent?.ckey ? parent.ckey : null),
 		"character_text"   = character_text,
@@ -249,7 +243,7 @@
  *
  * On success the target slot has been overwritten, load_character() has
  * been called (migrations + sanitize applied), and save_character() has
- * re-persisted the slot at SLOT_IO_SAVEFILE_VERSION_MAX.
+ * re-persisted the slot at SAVEFILE_VERSION_MAX.
  *
  * On failure the original slot contents are restored via an in-memory
  * ExportText backup taken before any writes.
@@ -274,10 +268,10 @@
 	var/savefile_version = envelope["savefile_version"]
 	if(!isnum(savefile_version))
 		return list("ok" = FALSE, "message" = "Missing savefile_version in payload.")
-	if(savefile_version > SLOT_IO_SAVEFILE_VERSION_MAX)
-		return list("ok" = FALSE, "message" = "Export is from a newer build (savefile v[savefile_version] > v[SLOT_IO_SAVEFILE_VERSION_MAX]). Upgrade the server before importing.")
-	if(savefile_version < SLOT_IO_SAVEFILE_VERSION_MIN)
-		return list("ok" = FALSE, "message" = "Export is too old (savefile v[savefile_version] < v[SLOT_IO_SAVEFILE_VERSION_MIN]). No migration path.")
+	if(savefile_version > SAVEFILE_VERSION_MAX)
+		return list("ok" = FALSE, "message" = "Export is from a newer build (savefile v[savefile_version] > v[SAVEFILE_VERSION_MAX]). Upgrade the server before importing.")
+	if(savefile_version < SAVEFILE_VERSION_MIN)
+		return list("ok" = FALSE, "message" = "Export is too old (savefile v[savefile_version] < v[SAVEFILE_VERSION_MIN]). No migration path.")
 
 	var/character_text = envelope["character_text"]
 	if(!istext(character_text) || !length(character_text))
@@ -340,7 +334,7 @@
 		_restore_slot_from_backup(target_slot, backup_text, sidecar_backup)
 		return list("ok" = FALSE, "message" = "load_character() failed after import — original slot restored.")
 
-	// Re-save so the on-disk version tag is bumped to SLOT_IO_SAVEFILE_VERSION_MAX
+	// Re-save so the on-disk version tag is bumped to SAVEFILE_VERSION_MAX
 	// and any field adjustments made by sanitize are persisted.
 	if(!save_character())
 		return list("ok" = FALSE, "message" = "Import loaded into memory but save_character() failed — slot state may be inconsistent.")
@@ -604,8 +598,6 @@
 #undef SLOT_IO_MAX_IMPORT_TEXT_BYTES
 #undef SLOT_IO_MAX_IMPORT_TRANSFER_CHUNKS
 #undef SLOT_IO_SCHEMA_VERSION
-#undef SLOT_IO_SAVEFILE_VERSION_MAX
-#undef SLOT_IO_SAVEFILE_VERSION_MIN
 
 /// Hidden utility verbs. Both open the same self-contained slot transfer panel.
 /client/verb/export_character_slot()

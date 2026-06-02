@@ -86,6 +86,8 @@
 
 // BEGIN_INCLUDE
 #include "anchored_mobs.dm"
+#include "character_slot_io.dm"
+#include "chastity_sounding_action.dm"
 #include "chunked_export.dm"
 #include "colorblind_hud_palette.dm"
 #include "component_tests.dm"

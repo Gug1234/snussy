@@ -538,6 +538,9 @@
 	if(!prefs)
 		return
 	prefs.intimate_reaction_enabled = !prefs.intimate_reaction_enabled
+	var/mob/living/carbon/human/H = mob
+	if(istype(H))
+		prefs.apply_character_flavor_component(H)
 	prefs.save_preferences()
 	to_chat(src, prefs.intimate_reaction_enabled ? "Intimate reaction text enabled." : "Intimate reaction text disabled.")
 

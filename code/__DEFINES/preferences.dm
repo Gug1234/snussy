@@ -1,3 +1,11 @@
+// This is the lowest supported version; anything below this is completely obsolete
+// and the relevant savefile directory will be wiped.
+#define SAVEFILE_VERSION_MIN	18
+
+// This is the current preference/character savefile version. Only raise it
+// when changing the meaning, format, name, or layout of existing saved values.
+#define SAVEFILE_VERSION_MAX	38
+
 #define MINIMUM_FLAVOR_TEXT		0
 #define MINIMUM_OOC_NOTES 		0
 

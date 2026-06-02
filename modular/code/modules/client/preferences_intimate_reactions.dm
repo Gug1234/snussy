@@ -47,6 +47,12 @@
 		return null
 	return "[INTIMATE_REACTION_AUDIENCE_PREFIX][category]"
 
+/// Returns the sidecar key used for per-category enabled/disabled metadata.
+/proc/get_intimate_reaction_disabled_key(category)
+	if(!istext(category) || !length(category))
+		return null
+	return "[INTIMATE_REACTION_DISABLED_PREFIX][category]"
+
 /**
  * Validates and sanitizes custom_intimate_reactions after loading from the savefile.
  *
@@ -73,7 +79,14 @@
 				if(is_valid_intimate_reaction_audience(audience))
 					validated[category] = audience
 			continue
-		// Handle weight keys — "weight_<category>" is a parallel list of numbers.
+		// Handle disabled keys - "disabled_<category>" is sparse per-category off metadata.
+		if(copytext(category, 1, length(INTIMATE_REACTION_DISABLED_PREFIX) + 1) == INTIMATE_REACTION_DISABLED_PREFIX)
+			var/disabled_base_cat = copytext(category, length(INTIMATE_REACTION_DISABLED_PREFIX) + 1)
+			if(disabled_base_cat in valid_cats)
+				if(custom_intimate_reactions[category])
+					validated[category] = TRUE
+			continue
+		// Handle weight keys - "weight_<category>" is a parallel list of numbers.
 		if(copytext(category, 1, 8) == "weight_")
 			var/base_cat = copytext(category, 8)
 			if(base_cat in valid_cats)
@@ -108,6 +121,46 @@
 			validated[category] = valid_strings
 
 	custom_intimate_reactions = validated.len ? validated : null
+
+/// Returns TRUE when a category is allowed to emit for this preference slot.
+/datum/preferences/proc/intimate_reaction_category_enabled(category)
+	if(!istext(category) || !(category in get_all_intimate_reaction_categories()))
+		return TRUE
+	if(!islist(custom_intimate_reactions))
+		return TRUE
+	var/disabled_key = get_intimate_reaction_disabled_key(category)
+	return !custom_intimate_reactions[disabled_key]
+
+/// Stores a per-category enabled toggle. Disabled state is stored sparsely.
+/datum/preferences/proc/set_intimate_reaction_category_enabled(category, enabled)
+	if(!istext(category) || !(category in get_all_intimate_reaction_categories()))
+		return FALSE
+	if(!islist(custom_intimate_reactions))
+		custom_intimate_reactions = list()
+	var/disabled_key = get_intimate_reaction_disabled_key(category)
+	if(enabled)
+		custom_intimate_reactions.Remove(disabled_key)
+	else
+		custom_intimate_reactions[disabled_key] = TRUE
+	if(!length(custom_intimate_reactions))
+		custom_intimate_reactions = null
+	return TRUE
+
+/// Returns TRUE when this preference slot permits a source to emit a reaction.
+/datum/preferences/proc/can_emit_intimate_reaction_category(category, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE)
+	if(!intimate_reaction_enabled)
+		return FALSE
+	if(!intimate_reaction_category_enabled(category))
+		return FALSE
+	if(require_accessory_free && !intimate_reaction_show_accessory_free)
+		return FALSE
+	if(require_intimate_accessories && !intimate_enabled)
+		return FALSE
+	if((content_flags & INTIMATE_CONTENT_CHASTITY) && (!chastenable || !intimate_reaction_show_chastity))
+		return FALSE
+	if((content_flags & INTIMATE_CONTENT_EXTREME) && (!extreme_erp || !intimate_reaction_show_extreme))
+		return FALSE
+	return TRUE
 
 /// Returns the configured audience for a category, falling back to default_audience.
 /datum/preferences/proc/get_intimate_reaction_audience(category, default_audience = INTIMATE_AUDIENCE_SELF)

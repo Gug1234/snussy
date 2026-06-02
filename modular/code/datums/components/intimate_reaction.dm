@@ -120,32 +120,27 @@
 
 /// Builds a list of nearby mobs whose client prefs say they should NOT see
 /// intimate reaction visible_messages. The wearer (source) is never added;
-/// their own visibility is handled by the existing show_intimate_examine gate.
+/// source-side emission is checked by source_can_emit_intimate_reaction().
 ///
 /// content_flags — bitfield of INTIMATE_CONTENT_* flags describing the message.
 ///   The master toggle (intimate_reaction_enabled) is always checked.
-/datum/component/intimate_reaction/proc/viewer_can_see_intimate_reaction(mob/viewer, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE)
+/datum/component/intimate_reaction/proc/viewer_can_see_intimate_reaction(mob/viewer, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, category = null)
 	if(!viewer?.client?.prefs)
 		return TRUE
 	var/datum/preferences/P = viewer.client.prefs
-	if(!P.intimate_reaction_enabled)
-		return FALSE
-	if(require_accessory_free && !P.intimate_reaction_show_accessory_free)
-		return FALSE
-	if(require_intimate_accessories && !P.intimate_enabled)
-		return FALSE
-	if((content_flags & INTIMATE_CONTENT_CHASTITY) && (!P.chastenable || !P.intimate_reaction_show_chastity))
-		return FALSE
-	if((content_flags & INTIMATE_CONTENT_EXTREME) && (!P.extreme_erp || !P.intimate_reaction_show_extreme))
-		return FALSE
-	return TRUE
+	return P.can_emit_intimate_reaction_category(category, content_flags, require_accessory_free, require_intimate_accessories)
 
-/datum/component/intimate_reaction/proc/get_intimate_excluded_mobs(mob/living/carbon/human/source, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, vision_distance = DEFAULT_MESSAGE_RANGE)
+/datum/component/intimate_reaction/proc/source_can_emit_intimate_reaction(mob/living/carbon/human/source, category, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE)
+	if(!source?.client?.prefs)
+		return TRUE
+	return source.client.prefs.can_emit_intimate_reaction_category(category, content_flags, require_accessory_free, require_intimate_accessories)
+
+/datum/component/intimate_reaction/proc/get_intimate_excluded_mobs(mob/living/carbon/human/source, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, vision_distance = DEFAULT_MESSAGE_RANGE, category = null)
 	var/list/excluded = list()
 	for(var/mob/M in get_hearers_in_view(vision_distance, source))
 		if(M == source)
 			continue
-		if(!viewer_can_see_intimate_reaction(M, content_flags, require_accessory_free, require_intimate_accessories))
+		if(!viewer_can_see_intimate_reaction(M, content_flags, require_accessory_free, require_intimate_accessories, category))
 			excluded += M
 	return excluded
 
@@ -230,16 +225,18 @@
 /datum/component/intimate_reaction/proc/emit_intimate_reaction_message(mob/living/carbon/human/source, message, category, default_audience = INTIMATE_AUDIENCE_SELF, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, mob/living/carbon/human/partner = null)
 	if(!source || !message)
 		return FALSE
+	if(!source_can_emit_intimate_reaction(source, category, content_flags, require_accessory_free, require_intimate_accessories))
+		return FALSE
 	var/audience = get_intimate_reaction_audience(source, category, default_audience)
 	switch(audience)
 		if(INTIMATE_AUDIENCE_PARTNER)
 			to_chat(source, message)
-			if(partner && partner != source && viewer_can_see_intimate_reaction(partner, content_flags, require_accessory_free, require_intimate_accessories))
+			if(partner && partner != source && viewer_can_see_intimate_reaction(partner, content_flags, require_accessory_free, require_intimate_accessories, category))
 				to_chat(partner, message)
 			return TRUE
 		if(INTIMATE_AUDIENCE_NEARBY, INTIMATE_AUDIENCE_VIEW)
 			var/vision_distance = (audience == INTIMATE_AUDIENCE_NEARBY) ? INTIMATE_AUDIENCE_NEARBY_RANGE : DEFAULT_MESSAGE_RANGE
-			var/list/excluded = get_intimate_excluded_mobs(source, content_flags, require_accessory_free, require_intimate_accessories, vision_distance)
+			var/list/excluded = get_intimate_excluded_mobs(source, content_flags, require_accessory_free, require_intimate_accessories, vision_distance, category)
 			source.visible_message(message, message, vision_distance = vision_distance, ignored_mobs = excluded)
 			return TRUE
 	to_chat(source, message)
@@ -679,6 +676,8 @@
 	var/string_key = get_arousal_key(source)
 	if(!string_key)
 		return FALSE
+	if(!source_can_emit_intimate_reaction(source, string_key, INTIMATE_CONTENT_CHASTITY))
+		return FALSE
 	var/message_chance = get_arousal_message_chance(source, arousal_amt, applied_force, applied_speed)
 	if(message_chance <= 0 || !prob(message_chance))
 		return FALSE
@@ -701,6 +700,14 @@
 		return FALSE
 
 	var/string_key = get_pain_key(source, pain_amt)
+	if(!string_key)
+		return FALSE
+	var/is_spiked = HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED)
+	var/content_flags = INTIMATE_CONTENT_CHASTITY
+	if(is_spiked)
+		content_flags |= INTIMATE_CONTENT_EXTREME
+	if(!source_can_emit_intimate_reaction(source, string_key, content_flags))
+		return FALSE
 	var/message = pick_string_bank("chastity_pain_messages.json", string_key)
 	if(!message)
 		return FALSE
@@ -711,7 +718,6 @@
 	// - Standard (span_boldwarning): horror and pain — visible messages show distress.
 	// - Non-spiked (span_warning): mundane chafing/pinching — visible messages show discomfort, not horror.
 	// Routing in get_pain_key() already assigns the correct bank, so we just need to pick the right span.
-	var/is_spiked = HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED)
 	var/devout_spiked = is_spiked && is_devout_chastity_wearer(source)
 	var/masochist_spiked = is_spiked && !devout_spiked && wearer_sexcon.is_masochist_in_spiked_chastity()
 	if(devout_spiked)
@@ -728,10 +734,7 @@
 	var/show_reactions = !source.client?.prefs || source.client.prefs.show_intimate_examine
 
 	// Build the viewer exclude list once for all branches below.
-	var/content_flags = INTIMATE_CONTENT_CHASTITY
-	if(is_spiked)
-		content_flags |= INTIMATE_CONTENT_EXTREME
-	var/list/excluded = show_reactions ? get_intimate_excluded_mobs(source, content_flags) : null
+	var/list/excluded = show_reactions ? get_intimate_excluded_mobs(source, content_flags, FALSE, FALSE, DEFAULT_MESSAGE_RANGE, string_key) : null
 
 	if(pain_amt >= PAIN_HIGH_EFFECT)
 		if(is_spiked)

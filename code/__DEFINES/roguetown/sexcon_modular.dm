@@ -37,6 +37,8 @@
 #define INTIMATE_REACTION_MAX_LENGTH  750
 /// Prefix for per-category intimate reaction audience metadata in custom_intimate_reactions.
 #define INTIMATE_REACTION_AUDIENCE_PREFIX "audience_"
+/// Prefix for per-category intimate reaction disabled metadata in custom_intimate_reactions.
+#define INTIMATE_REACTION_DISABLED_PREFIX "disabled_"
 /// Intimate reaction output is only sent to the wearer.
 #define INTIMATE_AUDIENCE_SELF "self"
 /// Intimate reaction output is sent to the wearer and active sex partner when there is one.

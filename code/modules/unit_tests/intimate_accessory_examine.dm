@@ -15,10 +15,32 @@
 	TEST_ASSERT(findtext(colored_plug_name, "<font color='#b4142c'>rontz-set</font>"), "socket descriptor should be colored in intimate examine names")
 	TEST_ASSERT(findtext(colored_plug_name, "<font color='#8c4734'>copper</font>"), "material descriptor should be colored in intimate examine names")
 
+	var/obj/item/intimate_accessory/genital/plug/gold/vaginal_plug = allocate(/obj/item/intimate_accessory/genital/plug/gold)
+	TEST_ASSERT(vaginal_plug.socket_item_by_type(/obj/item/roguegem/ruby, "rontz", "#B4142C", 0), "genital plug should accept a socketed gem")
+	var/colored_vaginal_plug_name = vaginal_plug.get_intimate_examine_colored_name()
+	TEST_ASSERT(findtext(colored_vaginal_plug_name, "<font color='#b4142c'>rontz-set</font>"), "genital plug examine text should include socket descriptors")
+	TEST_ASSERT(findtext(colored_vaginal_plug_name, "<font color='#c4b651'>gold</font>"), "genital plug examine text should include material descriptors")
+
+	var/obj/item/intimate_accessory/genital/plug/sounding_rod/gold/sounding_rod = allocate(/obj/item/intimate_accessory/genital/plug/sounding_rod/gold)
+	TEST_ASSERT(sounding_rod.socket_item_by_type(/obj/item/roguegem/ruby, "rontz", "#B4142C", 0), "sounding rod should accept a socketed gem")
+	var/colored_sounding_rod_name = sounding_rod.get_intimate_examine_colored_name()
+	TEST_ASSERT(findtext(colored_sounding_rod_name, "<font color='#b4142c'>rontz-set</font>"), "sounding rod examine text should include socket descriptors")
+	TEST_ASSERT(findtext(colored_sounding_rod_name, "<font color='#c4b651'>gold</font>"), "sounding rod examine text should include material descriptors")
+
 	var/mob/living/carbon/human/consistent/human = allocate(/mob/living/carbon/human/consistent)
 	human.name = "Josh Killerfang"
 	human.real_name = "Josh Killerfang"
 	human.gender = MALE
+
+	var/obj/item/intimate_accessory/piercing/ear/psydonic/psydonic_earring = allocate(/obj/item/intimate_accessory/piercing/ear/psydonic)
+	var/obj/item/roguegem/ruby/ear_ruby = allocate(/obj/item/roguegem/ruby)
+	psydonic_earring.attackby(ear_ruby, human, null)
+	TEST_ASSERT(!psydonic_earring.has_socketed_insert(), "fixed psycross earrings should reject additional socketed gems")
+
+	var/obj/item/intimate_accessory/piercing/belly/zizite/zizite_belly = allocate(/obj/item/intimate_accessory/piercing/belly/zizite)
+	var/obj/item/roguegem/ruby/belly_ruby = allocate(/obj/item/roguegem/ruby)
+	zizite_belly.attackby(belly_ruby, human, null)
+	TEST_ASSERT(!zizite_belly.has_socketed_insert(), "fixed zcross belly piercings should reject additional socketed gems")
 
 	var/obj/item/intimate_accessory/rear/plug/analbeads/copper/beads = allocate(/obj/item/intimate_accessory/rear/plug/analbeads/copper)
 	beads.socketed_item_type = /obj/item/roguegem/ruby

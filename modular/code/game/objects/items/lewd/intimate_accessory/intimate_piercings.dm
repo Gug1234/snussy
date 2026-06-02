@@ -97,6 +97,14 @@
 	var/base_price = roundstart_equipped ? 0 : initial(sellprice)
 	sellprice = max(1, base_price + gem_value_bonus)
 
+/obj/item/intimate_accessory/piercing/proc/handle_fixed_socket_attackby(obj/item/I, mob/living/user, socket_name)
+	if(istype(I, /obj/item/rogueweapon/hammer) || istype(I, /obj/item/rogueweapon/chisel) || istype(I, /obj/item/clothing/neck/roguetown/psicross))
+		return try_extract_socketed_item(user)
+	if(istype(I, /obj/item/roguegem) || istype(I, /obj/item/riddleofsteel))
+		to_chat(user, span_warning("The [socket_name] fills the socket; there is no room for [I]."))
+		return TRUE
+	return FALSE
+
 /obj/item/intimate_accessory/piercing/proc/set_custom_piercing_descriptor(descriptor)
 	custom_piercing_descriptor = sanitize_intimate_piercing_descriptor(descriptor)
 	return TRUE
@@ -1355,6 +1363,11 @@
 		to_chat(user, span_warning("The psycross is fixed in place and cannot be removed."))
 	return TRUE
 
+/obj/item/intimate_accessory/piercing/ear/psydonic/attackby(obj/item/I, mob/living/user, params)
+	if(handle_fixed_socket_attackby(I, user, "psycross"))
+		return TRUE
+	return ..()
+
 /obj/item/intimate_accessory/piercing/ear/psydonic/silver_cross
 	intimate_metal_name = "silver"
 	intimate_metal_color = "#C6D5E1"
@@ -1398,6 +1411,11 @@
 	if(user)
 		to_chat(user, span_warning("The zcross is fixed in place and cannot be removed."))
 	return TRUE
+
+/obj/item/intimate_accessory/piercing/ear/zizite/attackby(obj/item/I, mob/living/user, params)
+	if(handle_fixed_socket_attackby(I, user, "zcross"))
+		return TRUE
+	return ..()
 
 /obj/item/intimate_accessory/piercing/ear/zizite/ancient_cross
 	intimate_metal_name = "ancient"
@@ -1565,6 +1583,11 @@
 		to_chat(user, span_warning("The psycross is fixed in place and cannot be removed."))
 	return TRUE
 
+/obj/item/intimate_accessory/piercing/belly/psydonic/attackby(obj/item/I, mob/living/user, params)
+	if(handle_fixed_socket_attackby(I, user, "psycross"))
+		return TRUE
+	return ..()
+
 /obj/item/intimate_accessory/piercing/belly/psydonic/silver_cross
 	intimate_metal_name = "silver"
 	intimate_metal_color = "#C6D5E1"
@@ -1608,6 +1631,11 @@
 	if(user)
 		to_chat(user, span_warning("The zcross is fixed in place and cannot be removed."))
 	return TRUE
+
+/obj/item/intimate_accessory/piercing/belly/zizite/attackby(obj/item/I, mob/living/user, params)
+	if(handle_fixed_socket_attackby(I, user, "zcross"))
+		return TRUE
+	return ..()
 
 /obj/item/intimate_accessory/piercing/belly/zizite/ancient_cross
 	intimate_metal_name = "ancient"

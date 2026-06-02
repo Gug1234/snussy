@@ -57,6 +57,7 @@ type Category = {
   hidden?: boolean;
   group?: string;
   desc?: string;
+  enabled?: BooleanLike;
 };
 
 type BackendData = {
@@ -71,6 +72,7 @@ type BackendData = {
   audience_options?: AudienceOption[];
   current_audience?: string;
   current_audience_default?: string;
+  current_category_enabled?: BooleanLike;
   current_strings: string[];
   current_weights: number[];
   default_strings: string[];
@@ -128,6 +130,7 @@ function Sidebar() {
     audience_options,
     current_audience,
     current_audience_default,
+    current_category_enabled,
   } = data;
 
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
@@ -142,6 +145,7 @@ function Sidebar() {
   const currentAudienceOption = audience_options?.find(
     (opt) => opt.id === current_audience,
   );
+  const categoryEnabled = !!current_category_enabled;
   function toggleGroup(name: string) {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
@@ -162,6 +166,7 @@ function Sidebar() {
 
   const flatCategoryButtons = visibleCategories.map((cat) => {
     const isActive = cat.key === selected_category;
+    const catEnabled = cat.enabled !== false && cat.enabled !== 0;
     return (
       <Button
         key={cat.key}
@@ -170,9 +175,17 @@ function Sidebar() {
         tooltip={cat.desc}
         tooltipPosition="right"
         onClick={() => act('select_category', { category: cat.key })}
-        style={isActive ? activeOutline : undefined}
+        style={{
+          opacity: catEnabled ? 1 : 0.55,
+          ...(isActive ? activeOutline : {}),
+        }}
       >
         {cat.label}
+        {!catEnabled && (
+          <Box inline ml={0.5} opacity={0.75} style={{ fontSize: '10px' }}>
+            off
+          </Box>
+        )}
         <Box inline ml={0.5} opacity={0.5} style={{ fontSize: '10px' }}>
           ({cat.count})
         </Box>
@@ -220,6 +233,7 @@ function Sidebar() {
           {!isCollapsed &&
             group.cats.map((cat) => {
               const isActive = cat.key === selected_category;
+              const catEnabled = cat.enabled !== false && cat.enabled !== 0;
               return (
                 <Button
                   key={cat.key}
@@ -231,10 +245,21 @@ function Sidebar() {
                   style={{
                     marginLeft: '8px',
                     fontSize: '11px',
+                    opacity: catEnabled ? 1 : 0.55,
                     ...(isActive ? activeOutline : {}),
                   }}
                 >
                   {cat.label}
+                  {!catEnabled && (
+                    <Box
+                      inline
+                      ml={0.5}
+                      opacity={0.75}
+                      style={{ fontSize: '10px' }}
+                    >
+                      off
+                    </Box>
+                  )}
                   <Box
                     inline
                     ml={0.5}
@@ -318,6 +343,16 @@ function Sidebar() {
             ))}
           </Stack>
         )}
+        <Box mt={0.75}>
+          <Button.Checkbox
+            checked={categoryEnabled}
+            onClick={() =>
+              act('set_category_enabled', { enabled: !categoryEnabled })
+            }
+          >
+            Category enabled
+          </Button.Checkbox>
+        </Box>
         <Box fontSize="11px" opacity={0.8} mt={0.5}>
           Movement banks can be visible to bystanders when configured for it;
           chastity jingles are the common example.

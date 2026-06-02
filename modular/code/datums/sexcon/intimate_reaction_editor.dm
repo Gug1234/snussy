@@ -234,6 +234,32 @@
 			list("key" = "chastity_jingle_light_armor", "label" = "Jingle (Lt. Armor)", "desc" = "The device jingles under light armor.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_light_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_jingle_medium_armor", "label" = "Jingle (Med. Armor)", "desc" = "The device jingles under medium armor.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_medium_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_jingle_heavy_armor", "label" = "Jingle (Hvy. Armor)", "desc" = "The device jingles under heavy armor.", "file" = "chastity_movement_messages.json", "json_key" = "chastity_jingle_heavy_armor", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_denial", "label" = "Arousal Denial", "desc" = "Frustration from arousal while caged.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_denial", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_frustration", "label" = "Arousal Frustration", "desc" = "Rising frustration from arousal while caged.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_frustration", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_teasing", "label" = "Arousal Teasing", "desc" = "Teasing arousal while caged.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_teasing", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_edge", "label" = "Arousal Edge", "desc" = "Edging frustration while caged.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_edge", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_vagina", "label" = "Arousal Vagina", "desc" = "Arousal while wearing a chastity belt.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_vagina", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_insert_vagina_retention", "label" = "Arousal Retention", "desc" = "Arousal while a chastity belt traps retained fluid.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_insert_vagina_retention", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_devout", "label" = "Arousal Devout", "desc" = "Arousal while devoutly wearing chastity.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_intersex", "label" = "Arousal Intersex", "desc" = "Arousal while wearing both cage and belt.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_intersex", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_arousal_large_cock", "label" = "Arousal Large Cock", "desc" = "Arousal while tightly caged.", "file" = "chastity_arousal_messages.json", "json_key" = "chastity_arousal_large_cock", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_high_masochist", "label" = "Pain High (Masochist)", "desc" = "Severe spiked chastity pain with masochist framing.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_high_masochist", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_high", "label" = "Pain High", "desc" = "Severe spiked chastity pain.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_high", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_medium_masochist", "label" = "Pain Med. (Masochist)", "desc" = "Moderate spiked chastity pain with masochist framing.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_medium_masochist", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_medium", "label" = "Pain Med.", "desc" = "Moderate spiked chastity pain.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_medium", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_low", "label" = "Pain Low", "desc" = "Minor spiked chastity pain.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_low", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_low_masochist", "label" = "Pain Low (Masochist)", "desc" = "Minor spiked chastity pain with masochist framing.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_low_masochist", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_spikes_vagina", "label" = "Pain Spikes (Vagina)", "desc" = "Internal chastity belt spike pain.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_spikes_vagina", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_spikes_vagina_masochist", "label" = "Pain Spikes (Vag. Masochist)", "desc" = "Internal belt spike pain with masochist framing.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_spikes_vagina_masochist", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_spikes_intersex", "label" = "Pain Spikes (Intersex)", "desc" = "Dual cage and belt spike pain.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_spikes_intersex", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_spikes_devout", "label" = "Pain Spikes (Devout)", "desc" = "Spiked chastity pain with devout framing.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_spikes_devout", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_pain_spikes_intersex_masochist", "label" = "Pain Spikes (Int. Masochist)", "desc" = "Dual spike pain with masochist framing.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_pain_spikes_intersex_masochist", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_nonspiked_high", "label" = "Nonspiked Pain High", "desc" = "Severe discomfort from a non-spiked cage.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_nonspiked_high", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_nonspiked_medium", "label" = "Nonspiked Pain Med.", "desc" = "Moderate discomfort from a non-spiked cage.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_nonspiked_medium", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_nonspiked_low", "label" = "Nonspiked Pain Low", "desc" = "Minor discomfort from a non-spiked cage.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_nonspiked_low", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_nonspiked_belt_high", "label" = "Belt Pain High", "desc" = "Severe discomfort from a non-spiked chastity belt.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_nonspiked_belt_high", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_nonspiked_belt_medium", "label" = "Belt Pain Med.", "desc" = "Moderate discomfort from a non-spiked chastity belt.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_nonspiked_belt_medium", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
+			list("key" = "chastity_nonspiked_belt_low", "label" = "Belt Pain Low", "desc" = "Minor discomfort from a non-spiked chastity belt.", "file" = "chastity_pain_messages.json", "json_key" = "chastity_nonspiked_belt_low", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_cock_anal_receive", "label" = "Cock Anal", "desc" = "Anal sex while caged (cock).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_cock_general_receive", "label" = "Cock General", "desc" = "General sex while caged (cock).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_cock_general_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
 			list("key" = "chastity_vagina_anal_receive", "label" = "Vagina Anal", "desc" = "Anal sex while belted (vagina).", "file" = "chastity_receive_flavor.json", "json_key" = "chastity_vagina_anal_receive", "path" = INTIMATE_EDITOR_CHASTITY_PATH),
@@ -411,6 +437,7 @@
 			"count" = count,
 			"default_audience" = default_audience,
 			"audience" = prefs.get_intimate_reaction_audience(cat_key, default_audience),
+			"enabled" = prefs.intimate_reaction_category_enabled(cat_key),
 		)
 		if(cdef["desc"])
 			cat_entry["desc"] = cdef["desc"]
@@ -439,6 +466,7 @@
 	var/current_default_audience = get_default_audience_for_category(selected_category)
 	data["current_audience_default"] = current_default_audience
 	data["current_audience"] = prefs.get_intimate_reaction_audience(selected_category, current_default_audience)
+	data["current_category_enabled"] = prefs.intimate_reaction_category_enabled(selected_category)
 
 	// ── Default strings from JSON bank ────────────────────────────────
 	var/list/default_strings = list()
@@ -542,6 +570,12 @@
 			var/audience = params["audience"]
 			var/default_audience = get_default_audience_for_category(selected_category)
 			if(!prefs.set_intimate_reaction_audience(selected_category, audience, default_audience))
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("set_category_enabled")
+			if(!prefs.set_intimate_reaction_category_enabled(selected_category, !!params["enabled"]))
 				return FALSE
 			dirty = TRUE
 			return TRUE

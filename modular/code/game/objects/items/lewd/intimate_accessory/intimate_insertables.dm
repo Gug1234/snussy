@@ -14,12 +14,26 @@
 	sprite_acc = null
 	sellprice = 10
 	var/passive_arousal_amount = 0.2
+	var/genital_insertable_noun = "vaginal plug"
 
 /obj/item/intimate_accessory/genital/plug/Initialize()
 	. = ..()
+	update_dynamic_name()
 	update_item_visuals()
 	// Attach the insertable reaction component for passive shift messages and sex-action flavor text.
 	AddComponent(/datum/component/intimate_reaction/insertable)
+
+/obj/item/intimate_accessory/genital/plug/proc/get_metal_descriptor()
+	if(!intimate_metal_name)
+		return "metal"
+	return lowertext(intimate_metal_name)
+
+/obj/item/intimate_accessory/genital/plug/proc/update_dynamic_name()
+	var/metal_descriptor = get_metal_descriptor()
+	if(current_gem_descriptor)
+		name = "[current_gem_descriptor]-set [metal_descriptor] [genital_insertable_noun]"
+	else
+		name = "[metal_descriptor] [genital_insertable_noun]"
 
 /obj/item/intimate_accessory/genital/plug/proc/update_item_visuals()
 	cut_overlays()
@@ -67,6 +81,7 @@
 	return ..()
 
 /obj/item/intimate_accessory/genital/plug/on_socket_state_changed(reason = "")
+	update_dynamic_name()
 	update_item_visuals()
 	return ..()
 
@@ -132,6 +147,7 @@
 /obj/item/intimate_accessory/genital/plug/sounding_rod
 	name = "steel sounding rod"
 	desc = "A thin, smooth steel rod with a gentle curve and a jewel cap. Designed for urethral insertion — a deeply intimate, deeply invasive form of stimulation that borders on the clinical."
+	genital_insertable_noun = "sounding rod"
 
 	icon_state = "sounding_plug_item_1"
 	item_state = "sounding_plug_item_1"

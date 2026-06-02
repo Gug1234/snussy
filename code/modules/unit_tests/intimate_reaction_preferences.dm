@@ -6,6 +6,10 @@
 		"audience_neutral_movement" = INTIMATE_AUDIENCE_NEARBY,
 		"audience_neutral_sex_received" = "invalid",
 		"audience_not_a_real_category" = INTIMATE_AUDIENCE_VIEW,
+		"disabled_chastity_jingle_cloth" = TRUE,
+		"disabled_chastity_arousal_denial" = TRUE,
+		"disabled_chastity_pain_high" = TRUE,
+		"disabled_not_a_real_category" = TRUE,
 	)
 
 	prefs.validate_custom_intimate_reactions()
@@ -13,8 +17,28 @@
 	TEST_ASSERT_EQUAL(prefs.custom_intimate_reactions["audience_neutral_movement"], INTIMATE_AUDIENCE_NEARBY, "valid audience metadata should survive preference validation")
 	TEST_ASSERT_NULL(prefs.custom_intimate_reactions["audience_neutral_sex_received"], "invalid audience values should be removed")
 	TEST_ASSERT_NULL(prefs.custom_intimate_reactions["audience_not_a_real_category"], "audience metadata for unknown categories should be removed")
+	TEST_ASSERT_EQUAL(prefs.custom_intimate_reactions["disabled_chastity_jingle_cloth"], TRUE, "valid disabled category metadata should survive preference validation")
+	TEST_ASSERT_EQUAL(prefs.custom_intimate_reactions["disabled_chastity_arousal_denial"], TRUE, "valid arousal disabled metadata should survive preference validation")
+	TEST_ASSERT_EQUAL(prefs.custom_intimate_reactions["disabled_chastity_pain_high"], TRUE, "valid pain disabled metadata should survive preference validation")
+	TEST_ASSERT_NULL(prefs.custom_intimate_reactions["disabled_not_a_real_category"], "disabled metadata for unknown categories should be removed")
 	TEST_ASSERT_EQUAL(prefs.get_intimate_reaction_audience("neutral_movement", INTIMATE_AUDIENCE_SELF), INTIMATE_AUDIENCE_NEARBY, "stored audience should override the default")
 	TEST_ASSERT_EQUAL(prefs.get_intimate_reaction_audience("neutral_sex_received", INTIMATE_AUDIENCE_SELF), INTIMATE_AUDIENCE_SELF, "missing audience metadata should return the caller's default")
+	TEST_ASSERT(!prefs.intimate_reaction_category_enabled("chastity_jingle_cloth"), "disabled category metadata should suppress that category")
+	TEST_ASSERT(!prefs.intimate_reaction_category_enabled("chastity_arousal_denial"), "disabled arousal category metadata should suppress that category")
+	TEST_ASSERT(!prefs.intimate_reaction_category_enabled("chastity_pain_high"), "disabled pain category metadata should suppress that category")
+	TEST_ASSERT(prefs.intimate_reaction_category_enabled("chastity_jingle_emotes"), "categories without disabled metadata should stay enabled")
+	TEST_ASSERT(!prefs.can_emit_intimate_reaction_category("chastity_jingle_cloth", INTIMATE_CONTENT_CHASTITY), "disabled category should not emit")
+	TEST_ASSERT(!prefs.can_emit_intimate_reaction_category("chastity_arousal_denial", INTIMATE_CONTENT_CHASTITY), "disabled arousal bank should not emit")
+	TEST_ASSERT(!prefs.can_emit_intimate_reaction_category("chastity_pain_high", INTIMATE_CONTENT_CHASTITY | INTIMATE_CONTENT_EXTREME), "disabled pain bank should not emit")
+	TEST_ASSERT(prefs.set_intimate_reaction_category_enabled("chastity_jingle_cloth", TRUE), "valid category should accept enabled toggle")
+	TEST_ASSERT(prefs.intimate_reaction_category_enabled("chastity_jingle_cloth"), "enabling a category should remove disabled metadata")
+	TEST_ASSERT(!prefs.set_intimate_reaction_category_enabled("not_a_real_category", FALSE), "unknown category should reject enabled toggle")
+
+	prefs.intimate_reaction_enabled = FALSE
+	TEST_ASSERT(!prefs.can_emit_intimate_reaction_category("chastity_jingle_emotes", INTIMATE_CONTENT_CHASTITY), "master toggle should suppress source emission")
+	prefs.intimate_reaction_enabled = TRUE
+	prefs.intimate_reaction_show_chastity = FALSE
+	TEST_ASSERT(!prefs.can_emit_intimate_reaction_category("chastity_jingle_emotes", INTIMATE_CONTENT_CHASTITY), "chastity reaction toggle should suppress source emission")
 
 /datum/unit_test/intimate_reaction_character_flavor_attachment/Run()
 	var/mob/living/carbon/human/preview = allocate(/mob/living/carbon/human)
@@ -32,3 +56,11 @@
 	var/datum/component/intimate_reaction/character_flavor/reaction = preview.GetComponent(/datum/component/intimate_reaction/character_flavor)
 	TEST_ASSERT_NOTNULL(reaction, "custom character flavor strings should attach the component")
 	TEST_ASSERT_EQUAL(reaction.pick_flavor_string("neutral_movement", null, null), "one custom step", "attached component should use player-written character flavor strings")
+
+	prefs.intimate_reaction_enabled = FALSE
+	prefs.apply_character_flavor_component(preview)
+	TEST_ASSERT_NULL(preview.GetComponent(/datum/component/intimate_reaction/character_flavor), "disabling intimate reactions should remove the character flavor component")
+
+	prefs.intimate_reaction_enabled = TRUE
+	prefs.apply_character_flavor_component(preview)
+	TEST_ASSERT_NOTNULL(preview.GetComponent(/datum/component/intimate_reaction/character_flavor), "re-enabling intimate reactions should reattach custom character flavor strings")
