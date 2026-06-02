@@ -8,6 +8,26 @@
 	organ_slot = ORGAN_SLOT_TAIL
 	abstract_type = /datum/customizer_choice/organ/tail
 
+/datum/customizer_choice/organ/tail/proc/get_organ_type_for_accessory(accessory_type)
+	switch(accessory_type)
+		if(/datum/sprite_accessory/tail/manticore)
+			return /obj/item/organ/tail/manticore
+		if(/datum/sprite_accessory/tail/tailmaw)
+			return /obj/item/organ/tail/manticore/tailmaw
+		if(/datum/sprite_accessory/tail/tailmaw2)
+			return /obj/item/organ/tail/manticore/tailmaw2
+		if(/datum/sprite_accessory/tail/tailmaw2_head)
+			return /obj/item/organ/tail/manticore/tailmaw2_head
+		if(/datum/sprite_accessory/tail/tailmaw2_stripes)
+			return /obj/item/organ/tail/manticore/tailmaw2_stripes
+		if(/datum/sprite_accessory/tail/tailmaw2_headstripes)
+			return /obj/item/organ/tail/manticore/tailmaw2_headstripes
+	return organ_type
+
+/datum/customizer_choice/organ/tail/imprint_organ_dna(datum/organ_dna/organ_dna, datum/customizer_entry/entry, datum/preferences/prefs)
+	..()
+	organ_dna.organ_type = get_organ_type_for_accessory(entry.accessory_type)
+
 /datum/customizer/organ/tail/vulpkanin
 	customizer_choices = list(/datum/customizer_choice/organ/tail/vulpkanin)
 

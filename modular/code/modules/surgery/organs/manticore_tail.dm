@@ -23,6 +23,27 @@
 	/// The intimate_reaction component reference, for cleanup.
 	var/datum/component/intimate_reaction/manticore_tail/reaction_component
 
+/obj/item/organ/tail/manticore/tailmaw
+	name = "tailmaw"
+	accessory_type = /datum/sprite_accessory/tail/tailmaw
+	can_wag = FALSE
+
+/obj/item/organ/tail/manticore/tailmaw2
+	name = "tailmaw"
+	accessory_type = /datum/sprite_accessory/tail/tailmaw2
+
+/obj/item/organ/tail/manticore/tailmaw2_head
+	name = "tailmaw"
+	accessory_type = /datum/sprite_accessory/tail/tailmaw2_head
+
+/obj/item/organ/tail/manticore/tailmaw2_stripes
+	name = "tailmaw"
+	accessory_type = /datum/sprite_accessory/tail/tailmaw2_stripes
+
+/obj/item/organ/tail/manticore/tailmaw2_headstripes
+	name = "tailmaw"
+	accessory_type = /datum/sprite_accessory/tail/tailmaw2_headstripes
+
 /obj/item/organ/tail/manticore/Initialize(mapload)
 	. = ..()
 	// Pre-create the component; it won't bind until Insert() provides a wearer.
