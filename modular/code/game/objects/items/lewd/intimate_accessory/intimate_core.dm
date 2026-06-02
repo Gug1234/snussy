@@ -45,6 +45,8 @@
 	var/intimate_invisibility_icon_state = null
 	var/datum/bodypart_feature/intimate_accessory/intimate_feature
 	var/mob/living/carbon/human/wearer
+	var/violent_rear_ejection_active = FALSE
+	var/list/violent_rear_ejection_throw_stats
 	// nudist_approved = TRUE // prep for nudist PR being made by another person.
 
 /obj/item/intimate_accessory/proc/get_intimate_color_string()
@@ -574,6 +576,99 @@
 	H.update_intimate_invisibility_props()
 	set_current_intimate_slot(null)
 	notify_intimate_state_change(H, "removed")
+
+/obj/item/intimate_accessory/proc/prepare_violent_rear_ejection_throw()
+	if(violent_rear_ejection_active)
+		return
+	violent_rear_ejection_throw_stats = list(
+		"force" = force,
+		"throwforce" = throwforce,
+		"damtype" = damtype,
+		"armor_penetration" = armor_penetration,
+		"thrown_bclass" = thrown_bclass,
+		"throw_speed" = throw_speed,
+		"throw_range" = throw_range,
+	)
+	violent_rear_ejection_active = TRUE
+	force = 5
+	throwforce = 30
+	damtype = BRUTE
+	armor_penetration = 30
+	thrown_bclass = BCLASS_BLUNT
+	throw_speed = 4
+	throw_range = 15
+
+/obj/item/intimate_accessory/proc/restore_violent_rear_ejection_throw_stats()
+	if(!violent_rear_ejection_active)
+		return
+	if(length(violent_rear_ejection_throw_stats))
+		force = violent_rear_ejection_throw_stats["force"]
+		throwforce = violent_rear_ejection_throw_stats["throwforce"]
+		damtype = violent_rear_ejection_throw_stats["damtype"]
+		armor_penetration = violent_rear_ejection_throw_stats["armor_penetration"]
+		thrown_bclass = violent_rear_ejection_throw_stats["thrown_bclass"]
+		throw_speed = violent_rear_ejection_throw_stats["throw_speed"]
+		throw_range = violent_rear_ejection_throw_stats["throw_range"]
+	violent_rear_ejection_active = FALSE
+	violent_rear_ejection_throw_stats = null
+
+/obj/item/intimate_accessory/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	. = ..()
+	if(violent_rear_ejection_active)
+		restore_violent_rear_ejection_throw_stats()
+
+/mob/living/carbon/human/proc/get_rear_insertable_ejection_target(atom/impact_source, range = 15)
+	var/eject_dir = impact_source ? get_dir(impact_source, src) : dir
+	if(!eject_dir)
+		eject_dir = pick(GLOB.cardinals)
+	return get_ranged_target_turf(src, eject_dir, range)
+
+/mob/living/carbon/human/proc/violently_launch_rear_insertable(obj/item/intimate_accessory/rear/plug/rear_insertable, atom/impact_source)
+	if(!rear_insertable)
+		return FALSE
+	var/turf/eject_start = get_turf(src)
+	if(!eject_start)
+		return FALSE
+	var/turf/eject_target = get_rear_insertable_ejection_target(impact_source, 15)
+	if(!eject_target)
+		return FALSE
+	rear_insertable.forceMove(eject_start)
+	rear_insertable.prepare_violent_rear_ejection_throw()
+	if(!rear_insertable.throw_at(eject_target, rear_insertable.throw_range, rear_insertable.throw_speed, src, spin = TRUE))
+		rear_insertable.restore_violent_rear_ejection_throw_stats()
+		rear_insertable.forceMove(eject_start)
+		return FALSE
+	return TRUE
+
+/mob/living/carbon/human/proc/try_eject_rear_insertable_from_stomach_hit(damagetype, hit_zone, normal_eject_chance = 15, violent_eject_chance = 5, atom/impact_source = null)
+	if(damagetype != BRUTE)
+		return FALSE
+	if(hit_zone != BODY_ZONE_PRECISE_STOMACH)
+		return FALSE
+	var/obj/item/intimate_accessory/rear/plug/rear_insertable = intimate_rear_insertable
+	if(!istype(rear_insertable))
+		return FALSE
+
+	var/violent_eject = (violent_eject_chance > 0 && prob(violent_eject_chance))
+	if(!violent_eject && (normal_eject_chance <= 0 || !prob(normal_eject_chance)))
+		return FALSE
+
+	rear_insertable.remove_intimate_accessory(src)
+	if(!QDELETED(rear_insertable))
+		if(violent_eject)
+			visible_message(
+				span_danger("The force of the blow sends [src]'s \the [rear_insertable] violently shooting out!"),
+				span_danger("The blow to my stomach sends \the [rear_insertable] violently shooting out!")
+			)
+			if(!violently_launch_rear_insertable(rear_insertable, impact_source))
+				rear_insertable.forceMove(get_turf(src))
+		else
+			visible_message(
+				span_warning("The force of the blow sends [src]'s \the [rear_insertable] shooting out!"),
+				span_warning("The blow to my stomach sends \the [rear_insertable] shooting out!")
+			)
+			rear_insertable.forceMove(get_turf(src))
+	return TRUE
 
 // Signal plumbing and mood hooks.
 /obj/item/intimate_accessory/proc/register_wearer_intimate_signal(mob/living/carbon/human/H)

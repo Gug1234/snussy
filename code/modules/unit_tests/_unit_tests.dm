@@ -98,6 +98,7 @@
 #include "spawn_humans.dm"
 #include "species_whitelists.dm"
 #include "subsystem_init.dm"
+#include "tailmaw_customizer.dm"
 #include "timer_sanity.dm"
 #include "preferences_erp_menu.dm"
 #include "cursed_collar_preferences.dm"

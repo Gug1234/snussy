@@ -34,3 +34,23 @@
 	TEST_ASSERT(action.can_perform(user, target), "caged sounding action should perform when the target has a sounding rod")
 
 	qdel(action)
+
+/datum/unit_test/chastity_climax_marks_groin_not_face/proc/make_chaste_human_with_penis()
+	var/mob/living/carbon/human/consistent/H = allocate(/mob/living/carbon/human/consistent)
+	if(!H.getorganslot(ORGAN_SLOT_PENIS))
+		var/obj/item/organ/penis/penis = allocate(/obj/item/organ/penis, null)
+		penis.Insert(H)
+	var/obj/item/chastity/chastity_cage/cage = allocate(/obj/item/chastity/chastity_cage, H)
+	cage.finalize_chastity_equip(H)
+	cage.apply_standard_chastity_traits(H)
+	return H
+
+/datum/unit_test/chastity_climax_marks_groin_not_face/Run()
+	var/mob/living/carbon/human/consistent/wearer = make_chaste_human_with_penis()
+	wearer.forceMove(run_loc_bottom_left)
+
+	wearer.sexcon.modular_apply_chastity_cum_to_groin()
+
+	TEST_ASSERT_NULL(wearer.has_status_effect(/datum/status_effect/facial), "chastity climax should not apply facial cum")
+	TEST_ASSERT_NULL(wearer.has_status_effect(/datum/status_effect/facial/external), "chastity climax should not apply generic body cum")
+	TEST_ASSERT_NOTNULL(wearer.has_status_effect(/datum/status_effect/facial/internal), "chastity climax should mark cum on the groin")

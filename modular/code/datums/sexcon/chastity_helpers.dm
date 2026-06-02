@@ -128,9 +128,23 @@
 		return FALSE
 	return TRUE
 
+/// Applies chastity climax effects to the user's groin instead of the legacy facial/body cum path.
+/datum/sex_controller/proc/modular_apply_chastity_cum_to_groin()
+	if(!user || QDELETED(user) || !istype(user))
+		return FALSE
+
+	log_combat(user, user, "Came in their chastity device")
+	playsound(user, 'sound/misc/mat/endout.ogg', suppress_moan ? 12 : 50, TRUE, ignore_walls = FALSE)
+	var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+	add_cum_floor(get_turf(user), do_big_puddle = testes?.ball_size > DEFAULT_TESTICLES_SIZE)
+	apply_internal_creampie(user)
+	modular_record_collar_receive_event(user, user)
+	after_ejaculation()
+	return TRUE
+
 /// Attempts to produce a chastity-specific ejaculation spill message when the user climaxes into a device.
 /// Fires on a 50% chance if the user has any front or anal chastity blocking.
-/// Emits a visible_message (range suppressed if suppress_moan is set) and calls cum_onto(user).
+/// Emits a visible_message (range suppressed if suppress_moan is set) and applies cum to the user's groin.
 /// Returns TRUE if the spill happened, FALSE otherwise — callers use this to skip their own generic climax message.
 /datum/sex_controller/proc/modular_try_handle_chastity_ejaculation()
 	if(!(has_chastity_cage() || has_chastity_anal()))
@@ -143,7 +157,7 @@
 		self_mess_msg = "[user] spurts over [user.p_their()] own spiked chastity!"
 
 	user.visible_message(span_love(self_mess_msg), vision_distance = (suppress_moan ? 1 : DEFAULT_MESSAGE_RANGE))
-	cum_onto(user)
+	modular_apply_chastity_cum_to_groin()
 	return TRUE
 
 /// Returns the appropriate climax message string for the user, accounting for chastity state.

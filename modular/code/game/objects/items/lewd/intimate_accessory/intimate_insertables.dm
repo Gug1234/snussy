@@ -593,6 +593,7 @@
 	bead_count = "short"
 	/// How many individual beads are currently inserted. 0 = none inserted (not worn or just equipped).
 	var/beads_inserted = 0
+	var/mob/living/carbon/violent_rear_ejection_snared_owner
 
 /obj/item/intimate_accessory/rear/plug/analbeads/proc/get_bead_length()
 	if(bead_count == "medium" || bead_count == "long")
@@ -636,6 +637,51 @@
 	target.sexcon.set_arousal(MAX_AROUSAL)
 	target.emote("sexmoanhvy", forced = TRUE)
 	playsound(target, 'sound/misc/mat/pop.ogg', 60, TRUE, ignore_walls = FALSE)
+
+/obj/item/intimate_accessory/rear/plug/analbeads/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	var/was_violent_rear_ejection = violent_rear_ejection_active
+	. = ..()
+	if(. || !was_violent_rear_ejection || !iscarbon(hit_atom))
+		return
+	var/mob/living/carbon/C = hit_atom
+	ensnare_violent_rear_ejection(C)
+
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/ensnare_violent_rear_ejection(mob/living/carbon/C)
+	if(!C || C.legcuffed || C.get_num_legs(FALSE) < 2)
+		return FALSE
+	visible_message(span_danger("\The [src] tangles around [C]'s legs!"))
+	C.legcuffed = src
+	violent_rear_ejection_snared_owner = C
+	forceMove(C)
+	C.update_inv_legcuffed()
+	C.add_movespeed_modifier(MOVESPEED_ID_NET_SLOWDOWN, multiplicative_slowdown = 3)
+	C.apply_status_effect(/datum/status_effect/debuff/netted)
+	C.Knockdown(20)
+	to_chat(C, span_danger("\The [src] tangles around my legs!"))
+	addtimer(CALLBACK(src, PROC_REF(clear_violent_rear_ejection_snare)), 10 SECONDS, TIMER_OVERRIDE|TIMER_UNIQUE)
+	return TRUE
+
+/obj/item/intimate_accessory/rear/plug/analbeads/proc/clear_violent_rear_ejection_snare()
+	var/mob/living/carbon/C = violent_rear_ejection_snared_owner
+	violent_rear_ejection_snared_owner = null
+	if(!C || QDELETED(C))
+		return
+	if(C.legcuffed == src)
+		C.legcuffed = null
+		C.update_inv_legcuffed()
+	C.remove_movespeed_modifier(MOVESPEED_ID_NET_SLOWDOWN)
+	if(C.has_status_effect(/datum/status_effect/debuff/netted))
+		C.remove_status_effect(/datum/status_effect/debuff/netted)
+	if(loc == C)
+		forceMove(get_turf(C))
+
+/obj/item/intimate_accessory/rear/plug/analbeads/dropped(mob/user, silent)
+	clear_violent_rear_ejection_snare()
+	return ..()
+
+/obj/item/intimate_accessory/rear/plug/analbeads/Destroy()
+	clear_violent_rear_ejection_snare()
+	return ..()
 
 /obj/item/intimate_accessory/rear/plug/analbeads/finalize_intimate_equip(mob/living/carbon/human/H)
 	. = ..()
