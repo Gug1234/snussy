@@ -53,6 +53,7 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	var/chastity_gilded = FALSE // if the device drains the wearer's Nervelock on jingle triggers
 	var/gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
 	var/gilded_drain_amount = GILDED_CHASTITY_DEFAULT_DRAIN
+	var/gilded_overdraw_effect = GILDED_CHASTITY_OVERDRAW_SHRINK
 	var/gilded_total_drained = 0
 	var/gilded_next_shrink_threshold = GILDED_CHASTITY_SHRINK_DRAIN_STEP
 	var/gilded_zero_fund_jingles = 0
@@ -183,7 +184,7 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 		SStreasury.bank_accounts[wearer] = current_balance
 	var/drained = min(drain_amount, current_balance)
 	if(drained <= 0)
-		apply_gilded_zero_fund_pressure(wearer)
+		apply_gilded_overdraw_effect(wearer)
 		return 0
 
 	SStreasury.bank_accounts[wearer] = current_balance - drained

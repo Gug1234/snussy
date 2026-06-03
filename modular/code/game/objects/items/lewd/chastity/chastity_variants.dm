@@ -153,4 +153,5 @@
 	chastity_gilded = TRUE
 	gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
 	gilded_drain_amount = GILDED_CHASTITY_DEFAULT_DRAIN
+	gilded_overdraw_effect = GILDED_CHASTITY_OVERDRAW_SHRINK
 	gilded_next_shrink_threshold = GILDED_CHASTITY_SHRINK_DRAIN_STEP

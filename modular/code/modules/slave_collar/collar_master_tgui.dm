@@ -127,6 +127,8 @@
 			"gilded_recipient" = device ? device.gilded_recipient : GILDED_CHASTITY_RECIPIENT_MASTER,
 			"gilded_recipient_label" = device ? device.get_gilded_recipient_label() : "master",
 			"gilded_drain_amount" = device ? device.gilded_drain_amount : GILDED_CHASTITY_DEFAULT_DRAIN,
+			"gilded_overdraw_effect" = device ? device.gilded_overdraw_effect : GILDED_CHASTITY_OVERDRAW_SHRINK,
+			"gilded_overdraw_effect_label" = device ? device.get_gilded_overdraw_effect_label() : "shrink",
 			"gilded_total_drained" = device ? device.gilded_total_drained : 0,
 			"gilded_next_shrink_threshold" = device ? device.gilded_next_shrink_threshold : GILDED_CHASTITY_SHRINK_DRAIN_STEP,
 			"gilded_zero_fund_jingles" = device ? device.gilded_zero_fund_jingles : 0,
@@ -176,10 +178,7 @@
 		"chastity_set_flat",
 		"chastity_set_gilded_recipient",
 		"chastity_set_gilded_drain",
-		"chastity_gilded_shrink",
-		"chastity_gilded_pain",
-		"chastity_gilded_arousal",
-		"chastity_gilded_climax"
+		"chastity_set_gilded_overdraw_effect"
 	))
 	if(!cursed_direct_action)
 		if(!consume_cooldown(CM, user))
@@ -381,46 +380,16 @@
 			if(CM.set_pet_gilded_chastity_drain(pet, params["amount"]))
 				affected = 1
 			report_count(user, affected, "Updated gilded drain for", "No gilded drain changed.")
-		if("chastity_gilded_shrink")
+		if("chastity_set_gilded_overdraw_effect")
 			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
 			if(!pet)
 				return TRUE
 			if(!consume_cooldown(CM, user))
 				return TRUE
 			var/affected = 0
-			if(CM.trigger_pet_gilded_chastity_shrink(pet))
+			if(CM.set_pet_gilded_chastity_overdraw_effect(pet, params["effect"]))
 				affected = 1
-			report_count(user, affected, "Triggered gilded shrinkage on", "No gilded shrinkage occurred.")
-		if("chastity_gilded_pain")
-			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
-			if(!pet)
-				return TRUE
-			if(!consume_cooldown(CM, user))
-				return TRUE
-			var/affected = 0
-			if(CM.trigger_pet_gilded_chastity_pain(pet))
-				affected = 1
-			report_count(user, affected, "Triggered gilded pain on", "No gilded pain occurred.")
-		if("chastity_gilded_arousal")
-			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
-			if(!pet)
-				return TRUE
-			if(!consume_cooldown(CM, user))
-				return TRUE
-			var/affected = 0
-			if(CM.trigger_pet_gilded_chastity_arousal(pet))
-				affected = 1
-			report_count(user, affected, "Triggered gilded arousal on", "No gilded arousal occurred.")
-		if("chastity_gilded_climax")
-			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
-			if(!pet)
-				return TRUE
-			if(!consume_cooldown(CM, user))
-				return TRUE
-			var/affected = 0
-			if(CM.trigger_pet_gilded_chastity_climax(pet))
-				affected = 1
-			report_count(user, affected, "Forced gilded climax on", "No gilded climax occurred.")
+			report_count(user, affected, "Updated gilded overdraw effect for", "No gilded overdraw effect changed.")
 
 	return TRUE
 

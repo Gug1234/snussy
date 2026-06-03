@@ -20,6 +20,7 @@
 #define CHASTITY_LOG_FLAT "flat"
 #define CHASTITY_LOG_GILDED_DRAIN "gilded_drain"
 #define CHASTITY_LOG_GILDED_RECIPIENT "gilded_recipient"
+#define CHASTITY_LOG_GILDED_OVERDRAW_EFFECT "gilded_overdraw_effect"
 #define CHASTITY_LOG_GILDED_SHRINK "gilded_shrink"
 #define CHASTITY_LOG_GILDED_PAIN "gilded_pain"
 #define CHASTITY_LOG_GILDED_AROUSAL "gilded_arousal"

@@ -42,6 +42,8 @@ type PetEntry = {
     gilded_recipient: string;
     gilded_recipient_label: string;
     gilded_drain_amount: number;
+    gilded_overdraw_effect: string;
+    gilded_overdraw_effect_label: string;
     gilded_total_drained: number;
     gilded_next_shrink_threshold: number;
     gilded_zero_fund_jingles: number;
@@ -53,6 +55,13 @@ const gildedRecipientOptions = [
   { label: 'Master', value: 'master' },
   { label: 'Keep Treasury', value: 'treasury' },
   { label: 'Bandit Hoardmaster', value: 'hoardmaster' },
+];
+
+const gildedOverdrawEffectOptions = [
+  { label: 'Shrink', value: 'shrink', icon: 'compress' },
+  { label: 'Pain', value: 'pain', icon: 'bolt' },
+  { label: 'Arousal', value: 'arousal', icon: 'heart' },
+  { label: 'Climax', value: 'climax', icon: 'burst' },
 ];
 
 type Data = {
@@ -597,6 +606,8 @@ const CursedChastityControls = (props: {
     selectedCursedPet?.chastity.gilded_recipient ?? 'master';
   const currentGildedDrain =
     selectedCursedPet?.chastity.gilded_drain_amount ?? 1;
+  const currentGildedOverdrawEffect =
+    selectedCursedPet?.chastity.gilded_overdraw_effect ?? 'shrink';
   const penisOpen = currentFrontMode === 1 || currentFrontMode === 3;
   const vaginaOpen = currentFrontMode === 2 || currentFrontMode === 3;
 
@@ -763,49 +774,33 @@ const CursedChastityControls = (props: {
               {selectedCursedPet?.chastity.gilded_zero_fund_jingles ?? 0}
               {selectedCursedPet?.chastity.gilded_limped ? ' (limp)' : ''}
             </LabeledList.Item>
+            <LabeledList.Item label="Overdraw">
+              <Stack wrap>
+                {gildedOverdrawEffectOptions.map((option) => {
+                  const selected =
+                    currentGildedOverdrawEffect === option.value;
+                  return (
+                    <Stack.Item key={option.value}>
+                      <Button
+                        icon={selected ? 'check' : option.icon}
+                        color={selected ? 'good' : 'bad'}
+                        selected={selected}
+                        disabled={cursedActionDisabled}
+                        tooltip={reasonForCursedAction}
+                        onClick={() =>
+                          act('chastity_set_gilded_overdraw_effect', {
+                            effect: option.value,
+                          })
+                        }
+                      >
+                        {option.label}
+                      </Button>
+                    </Stack.Item>
+                  );
+                })}
+              </Stack>
+            </LabeledList.Item>
           </LabeledList>
-          <Stack mt={1} wrap>
-            <Stack.Item>
-              <Button
-                icon="compress"
-                disabled={cursedActionDisabled}
-                tooltip={reasonForCursedAction}
-                onClick={() => act('chastity_gilded_shrink')}
-              >
-                Shrink
-              </Button>
-            </Stack.Item>
-            <Stack.Item>
-              <Button
-                icon="bolt"
-                disabled={cursedActionDisabled}
-                tooltip={reasonForCursedAction}
-                onClick={() => act('chastity_gilded_pain')}
-              >
-                Pain
-              </Button>
-            </Stack.Item>
-            <Stack.Item>
-              <Button
-                icon="heart"
-                disabled={cursedActionDisabled}
-                tooltip={reasonForCursedAction}
-                onClick={() => act('chastity_gilded_arousal')}
-              >
-                Arousal
-              </Button>
-            </Stack.Item>
-            <Stack.Item>
-              <Button
-                icon="burst"
-                disabled={cursedActionDisabled}
-                tooltip={reasonForCursedAction}
-                onClick={() => act('chastity_gilded_climax')}
-              >
-                Climax
-              </Button>
-            </Stack.Item>
-          </Stack>
         </Stack.Item>
       )}
 

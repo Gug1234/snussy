@@ -1087,26 +1087,8 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		return FALSE
 	return device.set_gilded_drain_amount(pet, amount)
 
-/datum/component/collar_master/proc/trigger_pet_gilded_chastity_shrink(mob/living/carbon/human/pet)
-	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_GILDED_CHASTITY_SHRINK, null)
+/datum/component/collar_master/proc/set_pet_gilded_chastity_overdraw_effect(mob/living/carbon/human/pet, effect)
+	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_SET_GILDED_CHASTITY_OVERDRAW_EFFECT, effect)
 	if(!device || !device.chastity_gilded)
 		return FALSE
-	return device.apply_gilded_shrink(pet)
-
-/datum/component/collar_master/proc/trigger_pet_gilded_chastity_pain(mob/living/carbon/human/pet)
-	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_GILDED_CHASTITY_PAIN, null)
-	if(!device || !device.chastity_gilded)
-		return FALSE
-	return device.apply_gilded_pain(pet)
-
-/datum/component/collar_master/proc/trigger_pet_gilded_chastity_arousal(mob/living/carbon/human/pet)
-	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_GILDED_CHASTITY_AROUSAL, null)
-	if(!device || !device.chastity_gilded)
-		return FALSE
-	return device.apply_gilded_arousal(pet)
-
-/datum/component/collar_master/proc/trigger_pet_gilded_chastity_climax(mob/living/carbon/human/pet)
-	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_GILDED_CHASTITY_CLIMAX, null)
-	if(!device || !device.chastity_gilded)
-		return FALSE
-	return device.force_gilded_climax(pet)
+	return device.set_gilded_overdraw_effect(pet, effect)

@@ -160,6 +160,24 @@
 	SStreasury.bank_accounts[wearer] = 0
 	device.gilded_zero_fund_jingles = 0
 	device.gilded_limped = FALSE
+	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_SHRINK), "gilded overdraw shrink effect should be accepted")
+	REMOVE_TRAIT(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
+	penis.penis_size = DEFAULT_PENIS_SIZE
+	drained = device.on_chastity_jingle_triggered(wearer)
+	TEST_ASSERT_EQUAL(drained, 0, "overdraw jingle should not drain mammon")
+	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE - 1, "default overdraw effect should shrink penis size")
+
+	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_AROUSAL), "gilded overdraw arousal effect should be accepted")
+	penis.penis_size = DEFAULT_PENIS_SIZE
+	wearer.sexcon = new /datum/sex_controller(wearer)
+	wearer.sexcon.set_arousal(0)
+	drained = device.on_chastity_jingle_triggered(wearer)
+	TEST_ASSERT_EQUAL(drained, 0, "arousal overdraw jingle should not drain mammon")
+	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE, "arousal overdraw effect should not shrink penis size")
+	TEST_ASSERT_EQUAL(wearer.sexcon.arousal, 20, "arousal overdraw effect should raise arousal")
+
+	device.gilded_zero_fund_jingles = 0
+	device.gilded_limped = FALSE
 	REMOVE_TRAIT(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
 	for(var/i in 1 to GILDED_CHASTITY_ZERO_JINGLES_FOR_LIMP)
 		device.on_chastity_jingle_triggered(wearer)
