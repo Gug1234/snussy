@@ -237,6 +237,38 @@
 		return FALSE
 	return TRUE
 
+/datum/sex_action/custom/proc/apply_custom_sound_course(list/config, mob/living/carbon/human/user, mob/living/carbon/human/target)
+	if(!config || !user?.sexcon || !target)
+		return
+	switch(sanitize_custom_sex_sound_course(config["sound_course"]))
+		if(CUSTOM_SEX_SOUND_GENERIC)
+			user.sexcon.generic_sex_noise()
+		if(CUSTOM_SEX_SOUND_SUCKING)
+			user.sexcon.make_sucking_noise()
+		if(CUSTOM_SEX_SOUND_ORAL)
+			user.sexcon.oralcourse_noise(target)
+		if(CUSTOM_SEX_SOUND_OUTERCOURSE)
+			user.sexcon.outercourse_noise(target)
+		if(CUSTOM_SEX_SOUND_OUTERCOURSE_WET)
+			user.sexcon.outercourse_noise(target, TRUE)
+		if(CUSTOM_SEX_SOUND_INTERCOURSE)
+			user.sexcon.intercourse_noise(target)
+		if(CUSTOM_SEX_SOUND_INTERCOURSE_WET)
+			user.sexcon.intercourse_noise(target, TRUE)
+		if(CUSTOM_SEX_SOUND_CHASTITY)
+			user.sexcon.chastitycourse_noise(target)
+
+/datum/sex_action/custom/proc/apply_custom_animation(list/config, mob/living/carbon/human/user, mob/living/carbon/human/target)
+	if(!config || !user?.sexcon || !target)
+		return
+	switch(sanitize_custom_sex_animation_type(config["animation_type"]))
+		if(CUSTOM_SEX_ANIMATION_THRUST)
+			user.sexcon.do_thrust_animate(target)
+		if(CUSTOM_SEX_ANIMATION_SOFT_THRUST)
+			user.sexcon.do_thrust_animate(target, pixels = 2, time = 3)
+		if(CUSTOM_SEX_ANIMATION_HARD_THRUST)
+			user.sexcon.do_thrust_animate(target, pixels = 5, time = 2)
+
 /datum/sex_action/custom/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/list/config = get_slot_config(user)
 	if(!config)
@@ -259,6 +291,8 @@
 		user.visible_message(user.sexcon.spanify_force(text))
 	else
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] continues the act with [target]."))
+	apply_custom_sound_course(config, user, target)
+	apply_custom_animation(config, user, target)
 	// Apply configured stats.
 	var/user_arousal = config["user_arousal"]
 	var/target_arousal = config["target_arousal"]

@@ -20,4 +20,15 @@ describe('resolveIntimateReactionPreviewTokens', () => {
       ),
     ).toBe('Wearer shifts their knotted cock as they pass John Ratwood.');
   });
+
+  it('renders user possessive tokens without forming You-s possessives', () => {
+    const text = '[USERPOS] tail blooms while [USER] can feel it.';
+
+    expect(resolveIntimateReactionPreviewTokens(text, 'wearer')).toBe(
+      'your tail blooms while you can feel it.',
+    );
+    expect(resolveIntimateReactionPreviewTokens(text, 'bystander')).toBe(
+      "Wearer's tail blooms while Wearer can feel it.",
+    );
+  });
 });

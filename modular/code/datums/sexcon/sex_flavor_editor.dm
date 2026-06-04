@@ -127,6 +127,23 @@
 	data["max_length"]         = SEX_FLAVOR_MAX_LENGTH
 	data["phases"]             = list("on_start", "on_perform", "on_finish")
 	data["max_custom_actions"] = MAX_CUSTOM_SEX_ACTIONS
+	data["custom_sound_courses"] = list(
+		list("key" = CUSTOM_SEX_SOUND_NONE, "label" = "Silent"),
+		list("key" = CUSTOM_SEX_SOUND_GENERIC, "label" = "Generic"),
+		list("key" = CUSTOM_SEX_SOUND_SUCKING, "label" = "Sucking"),
+		list("key" = CUSTOM_SEX_SOUND_ORAL, "label" = "Oral"),
+		list("key" = CUSTOM_SEX_SOUND_OUTERCOURSE, "label" = "Outercourse"),
+		list("key" = CUSTOM_SEX_SOUND_OUTERCOURSE_WET, "label" = "Wet Outercourse"),
+		list("key" = CUSTOM_SEX_SOUND_INTERCOURSE, "label" = "Intercourse"),
+		list("key" = CUSTOM_SEX_SOUND_INTERCOURSE_WET, "label" = "Wet Intercourse"),
+		list("key" = CUSTOM_SEX_SOUND_CHASTITY, "label" = "Chastity"),
+	)
+	data["custom_animation_types"] = list(
+		list("key" = CUSTOM_SEX_ANIMATION_NONE, "label" = "Still"),
+		list("key" = CUSTOM_SEX_ANIMATION_THRUST, "label" = "Thrust"),
+		list("key" = CUSTOM_SEX_ANIMATION_SOFT_THRUST, "label" = "Soft Thrust"),
+		list("key" = CUSTOM_SEX_ANIMATION_HARD_THRUST, "label" = "Hard Thrust"),
+	)
 
 	// Custom action templates — preset archetypes for creating new custom actions.
 	data["custom_templates"] = list(
@@ -134,32 +151,38 @@
 			"category" = SEX_CATEGORY_PENETRATE,
 			"user_sex_part" = SEX_PART_COCK, "target_sex_part" = SEX_PART_CUNT,
 			"user_arousal" = 2, "target_arousal" = 3, "user_pain" = 0, "target_pain" = 4,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE,
+			"sound_course" = CUSTOM_SEX_SOUND_INTERCOURSE, "animation_type" = CUSTOM_SEX_ANIMATION_THRUST),
 		list("key" = "anal", "name" = "Anal",
 			"category" = SEX_CATEGORY_PENETRATE,
 			"user_sex_part" = SEX_PART_COCK, "target_sex_part" = SEX_PART_ANUS,
 			"user_arousal" = 2, "target_arousal" = 2, "user_pain" = 0, "target_pain" = 6,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE,
+			"sound_course" = CUSTOM_SEX_SOUND_INTERCOURSE, "animation_type" = CUSTOM_SEX_ANIMATION_THRUST),
 		list("key" = "oral", "name" = "Oral",
 			"category" = SEX_CATEGORY_MISC,
 			"user_sex_part" = SEX_PART_JAWS, "target_sex_part" = SEX_PART_COCK,
 			"user_arousal" = 1, "target_arousal" = 3, "user_pain" = 0, "target_pain" = 0,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE,
+			"sound_course" = CUSTOM_SEX_SOUND_ORAL, "animation_type" = CUSTOM_SEX_ANIMATION_THRUST),
 		list("key" = "manual", "name" = "Manual / Hands",
 			"category" = SEX_CATEGORY_HANDS,
 			"user_sex_part" = SEX_PART_NULL, "target_sex_part" = SEX_PART_NULL,
 			"user_arousal" = 1, "target_arousal" = 2, "user_pain" = 0, "target_pain" = 0,
-			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE),
+			"stamina_cost" = 1, "requires_other" = TRUE, "continuous" = TRUE,
+			"sound_course" = CUSTOM_SEX_SOUND_GENERIC, "animation_type" = CUSTOM_SEX_ANIMATION_NONE),
 		list("key" = "ride", "name" = "Ride",
 			"category" = SEX_CATEGORY_PENETRATE,
 			"user_sex_part" = SEX_PART_CUNT, "target_sex_part" = SEX_PART_COCK,
 			"user_arousal" = 3, "target_arousal" = 2, "user_pain" = 2, "target_pain" = 0,
-			"stamina_cost" = 2, "requires_other" = TRUE, "continuous" = TRUE),
+			"stamina_cost" = 2, "requires_other" = TRUE, "continuous" = TRUE,
+			"sound_course" = CUSTOM_SEX_SOUND_INTERCOURSE, "animation_type" = CUSTOM_SEX_ANIMATION_THRUST),
 		list("key" = "self", "name" = "Self / Solo",
 			"category" = SEX_CATEGORY_MISC,
 			"user_sex_part" = SEX_PART_NULL, "target_sex_part" = SEX_PART_NULL,
 			"user_arousal" = 2, "target_arousal" = 0, "user_pain" = 0, "target_pain" = 0,
-			"stamina_cost" = 1, "requires_other" = FALSE, "continuous" = TRUE),
+			"stamina_cost" = 1, "requires_other" = FALSE, "continuous" = TRUE,
+			"sound_course" = CUSTOM_SEX_SOUND_GENERIC, "animation_type" = CUSTOM_SEX_ANIMATION_NONE),
 	)
 
 	return data
@@ -302,6 +325,8 @@
 				"target_sex_part" = ca["target_sex_part"],
 				"requires_other"  = ca["requires_other"],
 				"continuous"      = ca["continuous"],
+				"sound_course"    = sanitize_custom_sex_sound_course(ca["sound_course"]),
+				"animation_type"  = sanitize_custom_sex_animation_type(ca["animation_type"]),
 				"req_user_chastity"   = ca["req_user_chastity"],
 				"req_target_chastity" = ca["req_target_chastity"],
 				"req_toy"             = ca["req_toy"],
@@ -625,6 +650,8 @@
 				"target_sex_part" = clamp(text2num("[params["target_sex_part"]]"), 0, 31),
 				"requires_other"  = !!params["requires_other"],
 				"continuous"      = !!params["continuous"],
+				"sound_course"    = sanitize_custom_sex_sound_course(params["sound_course"]),
+				"animation_type"  = sanitize_custom_sex_animation_type(params["animation_type"]),
 				"req_user_chastity"   = clamp(text2num("[params["req_user_chastity"]]"), 0, 2),
 				"req_target_chastity" = clamp(text2num("[params["req_target_chastity"]]"), 0, 2),
 				"req_toy"             = clamp(text2num("[params["req_toy"]]"), 0, 3),
@@ -682,6 +709,10 @@
 					entry["requires_other"] = !!params["requires_other"]
 				if("continuous" in params)
 					entry["continuous"] = !!params["continuous"]
+				if("sound_course" in params)
+					entry["sound_course"] = sanitize_custom_sex_sound_course(params["sound_course"])
+				if("animation_type" in params)
+					entry["animation_type"] = sanitize_custom_sex_animation_type(params["animation_type"])
 				if("req_user_chastity" in params)
 					entry["req_user_chastity"] = clamp(text2num("[params["req_user_chastity"]]"), 0, 2)
 				if("req_target_chastity" in params)

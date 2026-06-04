@@ -30,6 +30,7 @@ type PetEntry = {
   forced_love: boolean;
   received_cum_count: number | null;
   has_cursed_chastity: boolean;
+  has_cursed_piercing: boolean;
   has_penis: boolean;
   has_vagina: boolean;
   chastity: {
@@ -49,6 +50,27 @@ type PetEntry = {
     gilded_zero_fund_jingles: number;
     gilded_limped: boolean;
   };
+  piercing: {
+    slot_name: string;
+    metal_key: string;
+    metal_color: string;
+    gem_key: string;
+    gem_color: string;
+    has_penis: boolean;
+    penis_size: number | null;
+    has_testicles: boolean;
+    testicles_size: number | null;
+    has_breasts: boolean;
+    breasts_size: number | null;
+    lactating: boolean;
+    impotent: boolean;
+  };
+};
+
+type CursedPiercingOption = {
+  key: string;
+  label: string;
+  color: string;
 };
 
 const gildedRecipientOptions = [
@@ -71,6 +93,8 @@ type Data = {
   high_pop_mode: boolean;
   selected_count: number;
   pets: PetEntry[];
+  cursed_piercing_metal_options: CursedPiercingOption[];
+  cursed_piercing_gem_options: CursedPiercingOption[];
 };
 
 export const CollarControl = () => {
@@ -163,6 +187,7 @@ const getPetFlags = (pet: PetEntry) => {
       pet.clothing_forbidden && 'Nudist',
       pet.forced_love && 'Love',
       pet.chastity?.is_gilded && 'Gilded',
+      pet.has_cursed_piercing && 'Pierced',
     ]
       .filter(Boolean)
       .join(', ') || 'None'
@@ -268,13 +293,13 @@ const getCommandSectionTitle = (selectedPets: PetEntry[]) => {
   }
 
   const cursedCount = selectedPets.filter(
-    (pet) => pet.has_cursed_chastity,
+    (pet) => pet.has_cursed_chastity || pet.has_cursed_piercing,
   ).length;
   if (!cursedCount) {
     return 'Collar Commands';
   }
   if (cursedCount === selectedPets.length) {
-    return 'Cage Commands';
+    return 'Cursed Commands';
   }
   return 'Collar / Cage Commands';
 };
@@ -315,6 +340,9 @@ const ControlPanel = () => {
   const selectedCursedPets = selectedPets.filter(
     (pet) => pet.has_cursed_chastity,
   );
+  const selectedPiercingPets = selectedPets.filter(
+    (pet) => pet.has_cursed_piercing,
+  );
   const hasSelection = selectedPets.length > 0;
   const commandSectionTitle = getCommandSectionTitle(selectedPets);
   const speechState = getToggleVisualState(selectedPets, 'speech_altered');
@@ -340,9 +368,19 @@ const ControlPanel = () => {
         : selectedCursedPets.length > 1
           ? 'Select exactly one cursed pet'
           : undefined;
+  const reasonForPiercingAction = cooldown
+    ? `Cooling down (${cooldownText})`
+    : !hasSelection
+      ? 'Select at least one pet'
+      : !selectedPiercingPets.length
+        ? 'No selected pets have cursed piercings'
+        : selectedPiercingPets.length > 1
+          ? 'Select exactly one pet with a cursed piercing'
+          : undefined;
 
   const generalActionDisabled = !!reasonForGeneralAction;
   const cursedActionDisabled = !!reasonForCursedAction;
+  const piercingActionDisabled = !!reasonForPiercingAction;
 
   return (
     <Section fill scrollable title="Control Panel">
@@ -578,6 +616,16 @@ const ControlPanel = () => {
             />
           </Section>
         </Stack.Item>
+
+        <Stack.Item>
+          <Section title="Cursed Piercing">
+            <CursedPiercingControls
+              selectedPets={selectedPets}
+              piercingActionDisabled={piercingActionDisabled}
+              reasonForPiercingAction={reasonForPiercingAction}
+            />
+          </Section>
+        </Stack.Item>
       </Stack>
     </Section>
   );
@@ -777,8 +825,7 @@ const CursedChastityControls = (props: {
             <LabeledList.Item label="Overdraw">
               <Stack wrap>
                 {gildedOverdrawEffectOptions.map((option) => {
-                  const selected =
-                    currentGildedOverdrawEffect === option.value;
+                  const selected = currentGildedOverdrawEffect === option.value;
                   return (
                     <Stack.Item key={option.value}>
                       <Button
@@ -809,6 +856,186 @@ const CursedChastityControls = (props: {
           Direct-state controls require exactly one selected cursed pet.
         </NoticeBox>
       </Box>
+    </Stack>
+  );
+};
+
+const Swatch = (props: { color: string }) => (
+  <Box
+    as="span"
+    mr={0.5}
+    style={{
+      backgroundColor: props.color,
+      border: '1px solid rgba(255, 255, 255, 0.45)',
+      display: 'inline-block',
+      height: '0.8rem',
+      verticalAlign: 'middle',
+      width: '0.8rem',
+    }}
+  />
+);
+
+const CursedPiercingControls = (props: {
+  selectedPets: PetEntry[];
+  piercingActionDisabled: boolean;
+  reasonForPiercingAction?: string;
+}) => {
+  const { act, data } = useBackend<Data>();
+  const { selectedPets, piercingActionDisabled, reasonForPiercingAction } =
+    props;
+
+  const piercingPets = selectedPets.filter((pet) => pet.has_cursed_piercing);
+  const selectedPiercingPet =
+    piercingPets.length === 1 ? piercingPets[0] : undefined;
+  const piercing = selectedPiercingPet?.piercing;
+
+  const organControl = (
+    label: string,
+    organ: string,
+    value: number | null,
+    available: boolean,
+  ) => (
+    <LabeledList.Item label={label}>
+      <Stack align="center">
+        <Stack.Item>
+          <Button
+            icon="minus"
+            disabled={piercingActionDisabled || !available}
+            tooltip={reasonForPiercingAction}
+            onClick={() =>
+              act('piercing_adjust_organ_size', { organ, delta: -1 })
+            }
+          />
+        </Stack.Item>
+        <Stack.Item width="3rem" textAlign="center">
+          {available ? value : 'N/A'}
+        </Stack.Item>
+        <Stack.Item>
+          <Button
+            icon="plus"
+            disabled={piercingActionDisabled || !available}
+            tooltip={reasonForPiercingAction}
+            onClick={() =>
+              act('piercing_adjust_organ_size', { organ, delta: 1 })
+            }
+          />
+        </Stack.Item>
+      </Stack>
+    </LabeledList.Item>
+  );
+
+  return (
+    <Stack vertical>
+      <Stack.Item>
+        {!selectedPiercingPet ? (
+          <NoticeBox>
+            Direct piercing controls require exactly one selected pet with a
+            cursed piercing.
+          </NoticeBox>
+        ) : (
+          <LabeledList>
+            <LabeledList.Item label="Form">
+              {piercing?.slot_name ?? 'Unknown'}
+            </LabeledList.Item>
+            {organControl(
+              'Penis',
+              'penis',
+              piercing?.penis_size ?? null,
+              !!piercing?.has_penis,
+            )}
+            {organControl(
+              'Testicles',
+              'testicles',
+              piercing?.testicles_size ?? null,
+              !!piercing?.has_testicles,
+            )}
+            {organControl(
+              'Breasts',
+              'breasts',
+              piercing?.breasts_size ?? null,
+              !!piercing?.has_breasts,
+            )}
+            <LabeledList.Item label="Lactation">
+              <Button
+                color={piercing?.lactating ? 'pink' : 'good'}
+                disabled={piercingActionDisabled || !piercing?.has_breasts}
+                tooltip={reasonForPiercingAction}
+                onClick={() =>
+                  act('piercing_set_lactation', {
+                    enabled: piercing?.lactating ? 0 : 1,
+                  })
+                }
+              >
+                {piercing?.lactating ? 'ON' : 'OFF'}
+              </Button>
+            </LabeledList.Item>
+            <LabeledList.Item label="Impotence">
+              <Button
+                color={piercing?.impotent ? 'red' : 'good'}
+                disabled={piercingActionDisabled || !piercing?.has_penis}
+                tooltip={reasonForPiercingAction}
+                onClick={() =>
+                  act('piercing_set_impotence', {
+                    enabled: piercing?.impotent ? 0 : 1,
+                  })
+                }
+              >
+                {piercing?.impotent ? 'ON' : 'OFF'}
+              </Button>
+            </LabeledList.Item>
+          </LabeledList>
+        )}
+      </Stack.Item>
+
+      <Stack.Item>
+        <Box bold mb={1}>
+          Metal
+        </Box>
+        <Stack wrap>
+          {data.cursed_piercing_metal_options?.map((option) => {
+            const selected = piercing?.metal_key === option.key;
+            return (
+              <Stack.Item key={option.key}>
+                <Button
+                  selected={selected}
+                  disabled={piercingActionDisabled}
+                  tooltip={reasonForPiercingAction}
+                  onClick={() =>
+                    act('piercing_set_metal', { metal: option.key })
+                  }
+                >
+                  <Swatch color={option.color} />
+                  {option.label}
+                </Button>
+              </Stack.Item>
+            );
+          })}
+        </Stack>
+      </Stack.Item>
+
+      <Stack.Item>
+        <Box bold mb={1}>
+          Gem
+        </Box>
+        <Stack wrap>
+          {data.cursed_piercing_gem_options?.map((option) => {
+            const selected = piercing?.gem_key === option.key;
+            return (
+              <Stack.Item key={option.key}>
+                <Button
+                  selected={selected}
+                  disabled={piercingActionDisabled}
+                  tooltip={reasonForPiercingAction}
+                  onClick={() => act('piercing_set_gem', { gem: option.key })}
+                >
+                  <Swatch color={option.color} />
+                  {option.label}
+                </Button>
+              </Stack.Item>
+            );
+          })}
+        </Stack>
+      </Stack.Item>
     </Stack>
   );
 };

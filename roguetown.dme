@@ -3039,6 +3039,7 @@
 #include "modular\code\game\objects\items\lewd\intimate_accessory\intimate_insertables.dm"
 #include "modular\code\game\objects\items\lewd\intimate_accessory\intimate_menu_tgui.dm"
 #include "modular\code\game\objects\items\lewd\intimate_accessory\intimate_piercings.dm"
+#include "modular\code\game\objects\items\lewd\intimate_accessory\cursed_piercings.dm"
 #include "modular\code\game\objects\items\lewd\intimate_accessory\intimate_rules.dm"
 #include "modular\code\game\objects\items\lewd\intimate_accessory\intimate_variants.dm"
 #include "modular\code\game\objects\items\lewd\intimate_accessory\strings\intimate_string_banks.dm"

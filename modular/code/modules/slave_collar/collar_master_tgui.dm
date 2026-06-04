@@ -80,6 +80,8 @@
 	data["cooldown_remaining"] = cooldown_remaining
 	data["high_pop_mode"] = CM.is_high_pop_suppressed()
 	data["selected_count"] = length(resolve_selected_pets(CM))
+	data["cursed_piercing_metal_options"] = get_cursed_piercing_metal_options()
+	data["cursed_piercing_gem_options"] = get_cursed_piercing_gem_options()
 
 	var/list/pets_data = list()
 	for(var/mob/living/carbon/human/pet in CM.my_pets)
@@ -107,6 +109,7 @@
 		pet_entry["forced_love"] = pet.has_status_effect(/datum/status_effect/in_love)
 		var/obj/item/clothing/neck/roguetown/cursed_collar/collar = pet.get_item_by_slot(SLOT_NECK)
 		var/obj/item/chastity/device = CM.get_pet_cursed_chastity(pet)
+		var/obj/item/intimate_accessory/piercing/cursed/piercing = CM.get_pet_cursed_piercing(pet)
 		if(istype(collar))
 			pet_entry["received_cum_count"] = collar.received_cum_count
 		else if(device)
@@ -115,6 +118,7 @@
 			pet_entry["received_cum_count"] = null
 
 		pet_entry["has_cursed_chastity"] = !!device
+		pet_entry["has_cursed_piercing"] = !!piercing
 		pet_entry["has_penis"] = !!pet.getorganslot(ORGAN_SLOT_PENIS)
 		pet_entry["has_vagina"] = !!pet.getorganslot(ORGAN_SLOT_VAGINA)
 		pet_entry["chastity"] = list(
@@ -134,6 +138,7 @@
 			"gilded_zero_fund_jingles" = device ? device.gilded_zero_fund_jingles : 0,
 			"gilded_limped" = device ? device.gilded_limped : FALSE
 		)
+		pet_entry["piercing"] = piercing ? piercing.get_cursed_piercing_ui_data(pet) : list()
 
 		pets_data += list(pet_entry)
 
@@ -178,7 +183,12 @@
 		"chastity_set_flat",
 		"chastity_set_gilded_recipient",
 		"chastity_set_gilded_drain",
-		"chastity_set_gilded_overdraw_effect"
+		"chastity_set_gilded_overdraw_effect",
+		"piercing_adjust_organ_size",
+		"piercing_set_lactation",
+		"piercing_set_impotence",
+		"piercing_set_metal",
+		"piercing_set_gem"
 	))
 	if(!cursed_direct_action)
 		if(!consume_cooldown(CM, user))
@@ -390,6 +400,58 @@
 			if(CM.set_pet_gilded_chastity_overdraw_effect(pet, params["effect"]))
 				affected = 1
 			report_count(user, affected, "Updated gilded overdraw effect for", "No gilded overdraw effect changed.")
+		if("piercing_adjust_organ_size")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_piercing_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/organ_key = params["organ"]
+			var/delta = clamp(text2num("[params["delta"]]"), -1, 1)
+			var/affected = 0
+			if(delta && CM.adjust_pet_cursed_piercing_organ_size(pet, organ_key, delta))
+				affected = 1
+			report_count(user, affected, "Adjusted cursed piercing organ state for", "No cursed piercing organ states changed.")
+		if("piercing_set_lactation")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_piercing_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/affected = 0
+			if(CM.set_pet_cursed_piercing_lactation(pet, text2num("[params["enabled"]]")))
+				affected = 1
+			report_count(user, affected, "Updated cursed piercing lactation for", "No cursed piercing lactation states changed.")
+		if("piercing_set_impotence")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_piercing_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/affected = 0
+			if(CM.set_pet_cursed_piercing_impotence(pet, text2num("[params["enabled"]]")))
+				affected = 1
+			report_count(user, affected, "Updated cursed piercing impotence for", "No cursed piercing impotence states changed.")
+		if("piercing_set_metal")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_piercing_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/affected = 0
+			if(CM.set_pet_cursed_piercing_metal(pet, params["metal"]))
+				affected = 1
+			report_count(user, affected, "Updated cursed piercing metal for", "No cursed piercing metal changed.")
+		if("piercing_set_gem")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_piercing_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/affected = 0
+			if(CM.set_pet_cursed_piercing_gem(pet, params["gem"]))
+				affected = 1
+			report_count(user, affected, "Updated cursed piercing gem for", "No cursed piercing gem changed.")
 
 	return TRUE
 
@@ -423,6 +485,20 @@
 		return null
 	if(cursed_target_count > 1)
 		to_chat(user, span_warning("Select exactly one cursed pet for direct chastity control."))
+		return null
+	return cursed_targets[1]
+
+/datum/collar_control_menu/proc/resolve_single_cursed_piercing_target(datum/component/collar_master/CM, list/targets, mob/user)
+	var/list/cursed_targets = list()
+	for(var/mob/living/carbon/human/pet in targets)
+		if(CM.get_pet_cursed_piercing(pet))
+			cursed_targets += pet
+	var/cursed_target_count = length(cursed_targets)
+	if(!cursed_target_count)
+		to_chat(user, span_warning("No selected pets have cursed piercings."))
+		return null
+	if(cursed_target_count > 1)
+		to_chat(user, span_warning("Select exactly one cursed pet for direct piercing control."))
 		return null
 	return cursed_targets[1]
 

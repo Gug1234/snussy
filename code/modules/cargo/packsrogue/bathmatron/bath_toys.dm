@@ -65,6 +65,11 @@
 	cost = 100
 	contains = list(/obj/item/clothing/neck/roguetown/gorget/cursed_collar)
 
+/datum/supply_pack/rogue/bath_toys/cursedpiercing
+	name = "Cursed Piercing"
+	cost = 250
+	contains = list(/obj/item/intimate_accessory/piercing/cursed)
+
 //God so many variants
 
 /datum/supply_pack/rogue/bath_toys/chastity_cage

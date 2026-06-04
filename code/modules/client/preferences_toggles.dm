@@ -509,6 +509,9 @@
 		return
 	prefs.intimate_enabled = !prefs.intimate_enabled
 	prefs.save_preferences()
+	if(!prefs.intimate_enabled)
+		if(hascall(src, "modular_handle_intimate_accessories_toggle_disable"))
+			call(src, "modular_handle_intimate_accessories_toggle_disable")()
 	to_chat(src, prefs.intimate_enabled ? "Intimate accessories enabled." : "Intimate accessories disabled.")
 
 /client/proc/toggle_intimate_examine()

@@ -347,9 +347,10 @@
 	if(!message)
 		return FALSE
 
-	message = resolve_intimate_reaction_tokens(message, source)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, null, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, null, null)
 	last_movement_message_time = world.time
-	emit_intimate_reaction_message(source, span_notice(message), category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE)
+	emit_intimate_reaction_message(source, span_notice(viewer_message), category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE, self_message = span_notice(source_message))
 	return TRUE
 
 // ── Sex Action Handler ───────────────────────────────────────────────────────
@@ -392,7 +393,9 @@
 	if(!message)
 		return FALSE
 
-	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, null)
+	var/partner_resolved_message = acting_mob ? resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, acting_mob) : null
 	last_sex_flavor_time = world.time
-	emit_intimate_reaction_message(source, span_notice(message), message_category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE, partner = acting_mob)
+	emit_intimate_reaction_message(source, span_notice(viewer_message), message_category, INTIMATE_AUDIENCE_SELF, require_accessory_free = TRUE, partner = acting_mob, self_message = span_notice(source_message), partner_message = partner_resolved_message ? span_notice(partner_resolved_message) : null)
 	return TRUE

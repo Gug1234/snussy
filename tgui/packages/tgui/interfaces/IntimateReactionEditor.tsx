@@ -90,7 +90,8 @@ type BackendData = {
 
 /** Static tooltip descriptions for each token. */
 const TOKEN_DESCS: Record<string, string> = {
-  '[USER]': "Your character's name.",
+  '[USER]': 'Your character as you/name.',
+  '[USERPOS]': "Your character as your/name's.",
   '[TARGET]': "The other participant's name.",
   '[THEY]': 'Your pronoun (they/she/he).',
   '[THEM]': 'Your pronoun (them/her/him).',

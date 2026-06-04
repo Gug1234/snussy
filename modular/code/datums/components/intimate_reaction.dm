@@ -222,24 +222,28 @@
 	return source.client.prefs.get_intimate_reaction_audience(category, default_audience)
 
 /// Emits a reaction according to the wearer's per-category audience setting.
-/datum/component/intimate_reaction/proc/emit_intimate_reaction_message(mob/living/carbon/human/source, message, category, default_audience = INTIMATE_AUDIENCE_SELF, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, mob/living/carbon/human/partner = null)
+/datum/component/intimate_reaction/proc/emit_intimate_reaction_message(mob/living/carbon/human/source, message, category, default_audience = INTIMATE_AUDIENCE_SELF, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, mob/living/carbon/human/partner = null, self_message = null, partner_message = null)
 	if(!source || !message)
 		return FALSE
 	if(!source_can_emit_intimate_reaction(source, category, content_flags, require_accessory_free, require_intimate_accessories))
 		return FALSE
+	if(!self_message)
+		self_message = message
+	if(!partner_message)
+		partner_message = message
 	var/audience = get_intimate_reaction_audience(source, category, default_audience)
 	switch(audience)
 		if(INTIMATE_AUDIENCE_PARTNER)
-			to_chat(source, message)
+			to_chat(source, self_message)
 			if(partner && partner != source && viewer_can_see_intimate_reaction(partner, content_flags, require_accessory_free, require_intimate_accessories, category))
-				to_chat(partner, message)
+				to_chat(partner, partner_message)
 			return TRUE
 		if(INTIMATE_AUDIENCE_NEARBY, INTIMATE_AUDIENCE_VIEW)
 			var/vision_distance = (audience == INTIMATE_AUDIENCE_NEARBY) ? INTIMATE_AUDIENCE_NEARBY_RANGE : DEFAULT_MESSAGE_RANGE
 			var/list/excluded = get_intimate_excluded_mobs(source, content_flags, require_accessory_free, require_intimate_accessories, vision_distance, category)
-			source.visible_message(message, message, vision_distance = vision_distance, ignored_mobs = excluded)
+			source.visible_message(message, self_message, vision_distance = vision_distance, ignored_mobs = excluded)
 			return TRUE
-	to_chat(source, message)
+	to_chat(source, self_message)
 	return TRUE
 
 /**
@@ -653,10 +657,12 @@
 	var/message = pick_string_bank("chastity_receive_flavor.json", string_key, source = source)
 	if(!message)
 		return FALSE
-	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, null)
+	var/partner_resolved_message = acting_mob ? resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, acting_mob) : null
 
 	last_receive_flavor_time = world.time
-	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, INTIMATE_CONTENT_CHASTITY, partner = acting_mob)
+	emit_intimate_reaction_message(source, span_warning(viewer_message), string_key, INTIMATE_AUDIENCE_SELF, INTIMATE_CONTENT_CHASTITY, partner = acting_mob, self_message = span_warning(source_message), partner_message = partner_resolved_message ? span_warning(partner_resolved_message) : null)
 	return TRUE
 
 /// Handles the arousal message.

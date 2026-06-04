@@ -103,3 +103,11 @@
 	created_item = /obj/item/chastity/cursed
 	hammers_per_item = 14
 	skill_level = 5
+
+/datum/artificer_recipe/contraptions/cursed_piercing
+	name = "Cursed Piercing (+1 Bronze Cog, +1 Ruby, +1 Essence of Wilderness)"
+	required_item = /obj/item/ingot/steel
+	additional_items = list(/obj/item/roguegear/bronze, /obj/item/roguegem/ruby, /obj/item/natural/cured/essence)
+	created_item = /obj/item/intimate_accessory/piercing/cursed
+	hammers_per_item = 10
+	skill_level = 5

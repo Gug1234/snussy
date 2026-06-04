@@ -133,6 +133,7 @@ GLOBAL_LIST_EMPTY(collar_masters)
 
 	var/obj/item/clothing/neck/roguetown/cursed_collar/collar = pet.get_item_by_slot(SLOT_NECK)
 	var/obj/item/chastity/chastity = pet.chastity_device
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = pet.get_cursed_piercing()
 	var/obj/item/control_item
 
 	if(istype(collar))
@@ -145,12 +146,23 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		chastity.chastity_master = mindparent
 		if(!chastity.chastity_master)
 			return null
+	else if(istype(piercing))
+		control_item = piercing
+		piercing.cursed_piercing_master = mindparent
+		if(!piercing.cursed_piercing_master)
+			return null
 
 	return control_item
 
 // Returns a user-facing name for the active control item type.
 /datum/component/collar_master/proc/get_control_item_name(obj/item/control_item)
-	return istype(control_item, /obj/item/clothing/neck/roguetown/cursed_collar) ? "collar" : "chastity device"
+	if(istype(control_item, /obj/item/clothing/neck/roguetown/cursed_collar))
+		return "collar"
+	if(istype(control_item, /obj/item/chastity))
+		return "chastity device"
+	if(istype(control_item, /obj/item/intimate_accessory/piercing/cursed))
+		return "piercing"
+	return "control item"
 
 // Returns the controlling mind stamped onto a collar or cursed chastity item.
 /datum/component/collar_master/proc/get_control_item_master(obj/item/control_item)
@@ -160,6 +172,9 @@ GLOBAL_LIST_EMPTY(collar_masters)
 	if(istype(control_item, /obj/item/chastity))
 		var/obj/item/chastity/chastity = control_item
 		return chastity.chastity_master
+	if(istype(control_item, /obj/item/intimate_accessory/piercing/cursed))
+		var/obj/item/intimate_accessory/piercing/cursed/piercing = control_item
+		return piercing.cursed_piercing_master
 	return null
 
 /datum/component/collar_master/proc/control_item_allows_self_master_binding(obj/item/control_item)
@@ -169,6 +184,9 @@ GLOBAL_LIST_EMPTY(collar_masters)
 	if(istype(control_item, /obj/item/chastity))
 		var/obj/item/chastity/chastity = control_item
 		return chastity.roundstart_self_master_binding
+	if(istype(control_item, /obj/item/intimate_accessory/piercing/cursed))
+		var/obj/item/intimate_accessory/piercing/cursed/piercing = control_item
+		return piercing.roundstart_self_master_binding
 	return FALSE
 
 // Sends the correct control gain signal for the pet's active control item.
@@ -177,8 +195,10 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		return FALSE
 	if(istype(control_item, /obj/item/clothing/neck/roguetown/cursed_collar))
 		SEND_SIGNAL(pet, COMSIG_CARBON_GAIN_COLLAR, control_item)
-	else
+	else if(istype(control_item, /obj/item/chastity))
 		SEND_SIGNAL(pet, COMSIG_CARBON_GAIN_CHASTITY, control_item)
+	else
+		SEND_SIGNAL(pet, COMSIG_CARBON_GAIN_COLLAR, control_item)
 	return TRUE
 
 // Queues the delayed post-bind feedback and verification pulses without changing existing timing.
@@ -830,6 +850,13 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		if(!QDELETED(device))
 			device.forceMove(get_turf(pet))
 
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = pet.get_cursed_piercing()
+	if(istype(piercing) && piercing.cursed_piercing_master == mindparent)
+		SEND_SIGNAL(pet, COMSIG_CARBON_LOSE_COLLAR)
+		piercing.remove_intimate_accessory(pet)
+		if(!QDELETED(piercing))
+			piercing.forceMove(get_turf(pet))
+
 	return TRUE
 
 // Sends the standardized release feedback after all teardown work is complete.
@@ -1092,3 +1119,51 @@ GLOBAL_LIST_EMPTY(collar_masters)
 	if(!device || !device.chastity_gilded)
 		return FALSE
 	return device.set_gilded_overdraw_effect(pet, effect)
+
+// --- Cursed piercing command wrappers ---
+
+/datum/component/collar_master/proc/get_pet_cursed_piercing(mob/living/carbon/human/pet)
+	if(!pet)
+		return null
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = pet.get_cursed_piercing()
+	if(!istype(piercing))
+		return null
+	return piercing
+
+/datum/component/collar_master/proc/get_commandable_cursed_piercing(mob/living/carbon/human/pet, command_id, command_arg)
+	if(!pet || !(pet in my_pets))
+		return null
+	if(SEND_SIGNAL(pet, COMSIG_CARBON_COLLAR_COMMAND, src, command_id, command_arg) & COMPONENT_COLLAR_COMMAND_BLOCK)
+		return null
+	return get_pet_cursed_piercing(pet)
+
+/datum/component/collar_master/proc/adjust_pet_cursed_piercing_organ_size(mob/living/carbon/human/pet, organ_key, delta)
+	var/list/command_arg = list("organ" = organ_key, "delta" = delta)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_adjust_organ", command_arg)
+	if(!piercing)
+		return FALSE
+	return piercing.adjust_organ_size(pet, organ_key, delta)
+
+/datum/component/collar_master/proc/set_pet_cursed_piercing_lactation(mob/living/carbon/human/pet, enabled)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_lactation", enabled)
+	if(!piercing)
+		return FALSE
+	return piercing.set_lactation(pet, enabled)
+
+/datum/component/collar_master/proc/set_pet_cursed_piercing_impotence(mob/living/carbon/human/pet, enabled)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_impotence", enabled)
+	if(!piercing)
+		return FALSE
+	return piercing.set_impotence(pet, enabled)
+
+/datum/component/collar_master/proc/set_pet_cursed_piercing_metal(mob/living/carbon/human/pet, metal_key)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_metal", metal_key)
+	if(!piercing)
+		return FALSE
+	return piercing.set_cursed_metal(metal_key)
+
+/datum/component/collar_master/proc/set_pet_cursed_piercing_gem(mob/living/carbon/human/pet, gem_key)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_gem", gem_key)
+	if(!piercing)
+		return FALSE
+	return piercing.set_cursed_gem(gem_key)

@@ -144,7 +144,7 @@
 
 /**
  * Called when the player disables cursed-collar content from the options menu.
- * Strips any currently worn cursed collar and/or cursed chastity device.
+ * Strips any currently worn cursed collar, cursed chastity device, and/or cursed piercing.
  */
 /client/proc/modular_handle_cursed_toggle_disable()
 	if(!ishuman(mob))
@@ -166,3 +166,14 @@
 		SEND_SIGNAL(human_mob, COMSIG_CARBON_LOSE_COLLAR)
 		human_mob.dropItemToGround(collar, force = TRUE)
 		human_mob.visible_message(span_notice("The divine hand of Eora shatters the cursed collar from [human_mob]'s neck!"))
+
+	// Strip cursed piercings
+	if(human_mob.remove_cursed_piercings(FALSE))
+		human_mob.visible_message(span_notice("The divine hand of Eora twists the cursed piercing free from [human_mob]'s flesh!"))
+
+/client/proc/modular_handle_intimate_accessories_toggle_disable()
+	if(!ishuman(mob))
+		return
+	var/mob/living/carbon/human/human_mob = mob
+	if(human_mob.remove_cursed_piercings(FALSE))
+		human_mob.visible_message(span_notice("The divine hand of Eora rejects the cursed intimate piercing from [human_mob]'s body!"))

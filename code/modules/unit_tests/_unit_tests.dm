@@ -92,6 +92,7 @@
 #include "colorblind_hud_palette.dm"
 #include "component_tests.dm"
 #include "create_and_destroy.dm"
+#include "custom_sex_action_feedback.dm"
 #include "focus_only_tests.dm"
 #include "reagent_id_typos.dm"
 #include "reagent_recipe_collisions.dm"

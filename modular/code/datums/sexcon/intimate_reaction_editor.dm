@@ -10,7 +10,7 @@
  * preferences_intimate_reactions.dm) and persisted as JSON in the character savefile.
  *
  * Token placeholders resolved at runtime (see resolve_intimate_reaction_tokens):
- *   [USER]   [TARGET]  [THEY]  [THEM]  [THEIR]  [THEIR_CAP]
+ *   [USER]   [USERPOS]  [TARGET]  [THEY]  [THEM]  [THEIR]  [THEIR_CAP]
  *   [TTHEY]  [TTHEM]   [TTHEIR]
  *   [PENIS_TYPE]  [SHEATH]  [SIZEADJ]  [COCKSIZE]
  *   [VAGADJ]  [VAGTYPE]  [CUPADJ]  [CUPSIZE]  [BREASTTYPE]
@@ -366,7 +366,7 @@
 
 	// Token reference for the frontend help panel.
 	data["tokens"] = list(
-		"\[USER]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]", "\[THEIR_CAP]",
+		"\[USER]", "\[USERPOS]", "\[TARGET]", "\[THEY]", "\[THEM]", "\[THEIR]", "\[THEIR_CAP]",
 		"\[TTHEY]", "\[TTHEM]", "\[TTHEIR]",
 		"\[PENIS_TYPE]", "\[SHEATH]", "\[SIZEADJ]", "\[COCKSIZE]",
 		"\[VAGADJ]", "\[VAGTYPE]", "\[CUPADJ]", "\[CUPSIZE]", "\[BREASTTYPE]",

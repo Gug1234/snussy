@@ -187,3 +187,91 @@
 	SStreasury.treasury_value = old_treasury_value
 	if(SSmapping?.retainer)
 		SSmapping.retainer.bandit_contribute = old_bandit_contribute
+
+/datum/unit_test/cursed_piercing_contract/proc/setup_test_mind(mob/living/carbon/human/H, character_name)
+	H.name = character_name
+	H.real_name = character_name
+	var/datum/mind/M = new /datum/mind(null)
+	allocated += M
+	M.name = character_name
+	M.transfer_to(H)
+	return M
+
+/datum/unit_test/cursed_piercing_contract/proc/make_test_human(character_name, add_penis = FALSE, add_testicles = FALSE, add_breasts = FALSE)
+	var/mob/living/carbon/human/dummy/H = allocate(/mob/living/carbon/human/dummy, null)
+	setup_test_mind(H, character_name)
+	if(add_penis && !H.getorganslot(ORGAN_SLOT_PENIS))
+		var/obj/item/organ/penis/penis = allocate(/obj/item/organ/penis, null)
+		penis.Insert(H)
+	if(add_testicles && !H.getorganslot(ORGAN_SLOT_TESTICLES))
+		var/obj/item/organ/testicles/testicles = allocate(/obj/item/organ/testicles, null)
+		testicles.Insert(H)
+	if(add_breasts && !H.getorganslot(ORGAN_SLOT_BREASTS))
+		var/obj/item/organ/breasts/breasts = allocate(/obj/item/organ/breasts, null)
+		breasts.Insert(H)
+	return H
+
+/datum/unit_test/cursed_piercing_contract/Run()
+	var/mob/living/carbon/human/wearer = make_test_human("Cursed Piercing Wearer", TRUE, TRUE, TRUE)
+	var/mob/living/carbon/human/master = make_test_human("Cursed Piercing Master")
+	var/obj/item/organ/penis/penis = wearer.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/testicles/testicles = wearer.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/breasts/breasts = wearer.getorganslot(ORGAN_SLOT_BREASTS)
+	penis.penis_size = DEFAULT_PENIS_SIZE
+	testicles.ball_size = DEFAULT_TESTICLES_SIZE
+	breasts.breast_size = DEFAULT_BREASTS_SIZE
+	breasts.lactating = FALSE
+	REMOVE_TRAIT(wearer, TRAIT_LIMPDICK, CURSED_PIERCING_TRAIT_SOURCE)
+
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = allocate(/obj/item/intimate_accessory/piercing/cursed, wearer)
+	piercing.cursed_piercing_master = master.mind
+	TEST_ASSERT(piercing.supports_intimate_slot(INTIMATE_SLOT_NOSE), "cursed piercings should support non-genital piercing slots")
+	TEST_ASSERT(piercing.supports_intimate_slot(INTIMATE_SLOT_GENITAL), "cursed piercings should still support genital piercing slots")
+	TEST_ASSERT(piercing.set_current_intimate_slot(INTIMATE_SLOT_NOSE), "test piercing should be able to take the nose slot form")
+	piercing.finalize_intimate_equip(wearer)
+	TEST_ASSERT_EQUAL(wearer.intimate_nose_piercing, piercing, "nose-form cursed piercing should occupy the nose intimate slot")
+
+	var/datum/component/collar_master/CM = master.mind.AddComponent(/datum/component/collar_master)
+	TEST_ASSERT(CM.add_pet(wearer), "collar master component should accept a wearer bound by cursed piercing")
+	TEST_ASSERT_EQUAL(CM.get_pet_cursed_piercing(wearer), piercing, "component should resolve the pet's cursed piercing")
+
+	TEST_ASSERT(CM.adjust_pet_cursed_piercing_organ_size(wearer, CURSED_PIERCING_ORGAN_PENIS, 1), "master should enlarge penis through cursed piercing")
+	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE + 1, "penis should grow by one size step")
+	penis.penis_size = MAX_PENIS_SIZE
+	TEST_ASSERT(!CM.adjust_pet_cursed_piercing_organ_size(wearer, CURSED_PIERCING_ORGAN_PENIS, 1), "penis growth should refuse to exceed maximum")
+	TEST_ASSERT_EQUAL(penis.penis_size, MAX_PENIS_SIZE, "penis size should clamp at maximum")
+
+	TEST_ASSERT(CM.adjust_pet_cursed_piercing_organ_size(wearer, CURSED_PIERCING_ORGAN_TESTICLES, -1), "master should shrink testicles through cursed piercing")
+	TEST_ASSERT_EQUAL(testicles.ball_size, DEFAULT_TESTICLES_SIZE - 1, "testicles should shrink by one size step")
+	testicles.ball_size = MIN_TESTICLES_SIZE
+	TEST_ASSERT(!CM.adjust_pet_cursed_piercing_organ_size(wearer, CURSED_PIERCING_ORGAN_TESTICLES, -1), "testicle shrink should refuse to go below minimum")
+	TEST_ASSERT_EQUAL(testicles.ball_size, MIN_TESTICLES_SIZE, "testicle size should clamp at minimum")
+
+	TEST_ASSERT(CM.adjust_pet_cursed_piercing_organ_size(wearer, CURSED_PIERCING_ORGAN_BREASTS, 1), "master should enlarge breasts through cursed piercing")
+	TEST_ASSERT_EQUAL(breasts.breast_size, DEFAULT_BREASTS_SIZE + 1, "breasts should grow by one size step")
+	TEST_ASSERT(CM.set_pet_cursed_piercing_lactation(wearer, TRUE), "master should induce lactation through cursed piercing")
+	TEST_ASSERT(breasts.lactating, "breasts should be lactating after cursed piercing command")
+	TEST_ASSERT(CM.set_pet_cursed_piercing_lactation(wearer, FALSE), "master should stop lactation through cursed piercing")
+	TEST_ASSERT(!breasts.lactating, "breasts should stop lactating after cursed piercing command")
+
+	TEST_ASSERT(CM.set_pet_cursed_piercing_impotence(wearer, TRUE), "master should induce impotence through cursed piercing")
+	TEST_ASSERT(HAS_TRAIT(wearer, TRAIT_LIMPDICK), "impotence command should apply limp trait")
+	TEST_ASSERT(CM.set_pet_cursed_piercing_impotence(wearer, FALSE), "master should reverse impotence through cursed piercing")
+	TEST_ASSERT(!HAS_TRAIT(wearer, TRAIT_LIMPDICK), "reverse impotence command should remove limp trait")
+
+	TEST_ASSERT_EQUAL(piercing.intimate_metal_color, "#363636", "cursed piercing should default to dark cursed metal")
+	TEST_ASSERT_EQUAL(piercing.intimate_gem_color, "#990033", "cursed piercing should default to crimson gem")
+	TEST_ASSERT(CM.set_pet_cursed_piercing_metal(wearer, "gold"), "master should set cursed piercing metal appearance")
+	TEST_ASSERT_EQUAL(piercing.intimate_metal_name, "gold", "gold metal selection should update descriptor")
+	TEST_ASSERT_EQUAL(piercing.intimate_metal_color, "#C4B651", "gold metal selection should use existing piercing metal color")
+	TEST_ASSERT(CM.set_pet_cursed_piercing_gem(wearer, "ruby"), "master should set cursed piercing gem appearance")
+	TEST_ASSERT_EQUAL(piercing.current_gem_descriptor, "ruby", "ruby gem selection should update descriptor")
+	TEST_ASSERT_EQUAL(piercing.intimate_gem_color, "#B4142C", "ruby gem selection should use existing socket color")
+	TEST_ASSERT(!CM.set_pet_cursed_piercing_metal(wearer, "badmetal"), "invalid metal selection should be rejected")
+	TEST_ASSERT(!CM.set_pet_cursed_piercing_gem(wearer, "badgem"), "invalid gem selection should be rejected")
+
+	TEST_ASSERT(CM.set_pet_cursed_piercing_impotence(wearer, TRUE), "impotence should be active before release cleanup")
+	TEST_ASSERT(CM.remove_pet(wearer), "release should remove a cursed-piercing-bound pet")
+	TEST_ASSERT_NULL(wearer.intimate_nose_piercing, "release should clear the worn cursed piercing slot")
+	TEST_ASSERT(!(piercing in wearer.intimate_accessories), "release should remove cursed piercing from worn intimate accessories")
+	TEST_ASSERT(!HAS_TRAIT(wearer, TRAIT_LIMPDICK), "release should clear cursed piercing impotence trait")

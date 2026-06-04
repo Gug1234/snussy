@@ -13,6 +13,27 @@
 /// Maximum number of custom sex action slots a player can define.
 #define MAX_CUSTOM_SEX_ACTIONS 5
 
+/// Custom sex action sound course identifiers.
+#define CUSTOM_SEX_SOUND_NONE "none"
+#define CUSTOM_SEX_SOUND_GENERIC "generic"
+#define CUSTOM_SEX_SOUND_SUCKING "sucking"
+#define CUSTOM_SEX_SOUND_ORAL "oral"
+#define CUSTOM_SEX_SOUND_OUTERCOURSE "outercourse"
+#define CUSTOM_SEX_SOUND_OUTERCOURSE_WET "outercourse_wet"
+#define CUSTOM_SEX_SOUND_INTERCOURSE "intercourse"
+#define CUSTOM_SEX_SOUND_INTERCOURSE_WET "intercourse_wet"
+#define CUSTOM_SEX_SOUND_CHASTITY "chastity"
+/// Ordered list of valid custom sex action sound course identifiers.
+#define CUSTOM_SEX_SOUND_COURSES list(CUSTOM_SEX_SOUND_NONE, CUSTOM_SEX_SOUND_GENERIC, CUSTOM_SEX_SOUND_SUCKING, CUSTOM_SEX_SOUND_ORAL, CUSTOM_SEX_SOUND_OUTERCOURSE, CUSTOM_SEX_SOUND_OUTERCOURSE_WET, CUSTOM_SEX_SOUND_INTERCOURSE, CUSTOM_SEX_SOUND_INTERCOURSE_WET, CUSTOM_SEX_SOUND_CHASTITY)
+
+/// Custom sex action animation identifiers.
+#define CUSTOM_SEX_ANIMATION_NONE "none"
+#define CUSTOM_SEX_ANIMATION_THRUST "thrust"
+#define CUSTOM_SEX_ANIMATION_SOFT_THRUST "soft_thrust"
+#define CUSTOM_SEX_ANIMATION_HARD_THRUST "hard_thrust"
+/// Ordered list of valid custom sex action animation identifiers.
+#define CUSTOM_SEX_ANIMATION_TYPES list(CUSTOM_SEX_ANIMATION_NONE, CUSTOM_SEX_ANIMATION_THRUST, CUSTOM_SEX_ANIMATION_SOFT_THRUST, CUSTOM_SEX_ANIMATION_HARD_THRUST)
+
 /// Shared chunked import/export envelope version for ERP preference payloads.
 #define ERP_EXPORT_CONTRACT_VERSION 1
 /// Default maximum text length per exported chunk before base64 wrapping.

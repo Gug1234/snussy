@@ -17,6 +17,11 @@
 #define INTIMATE_FLAG_BERIDDLEABLE (1<<4)
 
 #define TRAIT_SOURCE_INTIMATE "intimate_accessory"
+#define CURSED_PIERCING_TRAIT_SOURCE "cursed_piercing"
+
+#define CURSED_PIERCING_ORGAN_PENIS "penis"
+#define CURSED_PIERCING_ORGAN_TESTICLES "testicles"
+#define CURSED_PIERCING_ORGAN_BREASTS "breasts"
 
 /// Bodypart feature slot prefix used by intimate accessory bodypart features.
 #define BODYPART_FEATURE_INTIMATE_ACCESSORY "intimate_accessory"

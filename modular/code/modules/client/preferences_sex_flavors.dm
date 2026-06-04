@@ -135,6 +135,20 @@
 
 	custom_sex_flavors = validated.len ? validated : null
 
+/proc/sanitize_custom_sex_sound_course(sound_course)
+	if(!istext(sound_course))
+		return CUSTOM_SEX_SOUND_NONE
+	if(sound_course in CUSTOM_SEX_SOUND_COURSES)
+		return sound_course
+	return CUSTOM_SEX_SOUND_NONE
+
+/proc/sanitize_custom_sex_animation_type(animation_type)
+	if(!istext(animation_type))
+		return CUSTOM_SEX_ANIMATION_NONE
+	if(animation_type in CUSTOM_SEX_ANIMATION_TYPES)
+		return animation_type
+	return CUSTOM_SEX_ANIMATION_NONE
+
 
 /**
  * Validates and sanitizes custom_sex_actions after loading from the savefile.
@@ -185,6 +199,8 @@
 		clean["target_sex_part"] = clamp(text2num("[entry["target_sex_part"]]"), 0, 31)
 		clean["requires_other"] = !!entry["requires_other"]
 		clean["continuous"] = !!entry["continuous"]
+		clean["sound_course"] = sanitize_custom_sex_sound_course(entry["sound_course"])
+		clean["animation_type"] = sanitize_custom_sex_animation_type(entry["animation_type"])
 		clean["req_user_chastity"] = clamp(text2num("[entry["req_user_chastity"]]"), 0, 2)
 		clean["req_target_chastity"] = clamp(text2num("[entry["req_target_chastity"]]"), 0, 2)
 		clean["req_toy"] = clamp(text2num("[entry["req_toy"]]"), 0, 3)

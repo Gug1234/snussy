@@ -45,6 +45,11 @@ type ActionEntry = {
   can_use: boolean;
 };
 
+type CustomActionChoice = {
+  key: string;
+  label: string;
+};
+
 type CustomTemplate = {
   key: string;
   name: string;
@@ -58,6 +63,8 @@ type CustomTemplate = {
   stamina_cost: number;
   requires_other: boolean;
   continuous: boolean;
+  sound_course: string;
+  animation_type: string;
 };
 
 type CustomAction = {
@@ -77,6 +84,8 @@ type CustomAction = {
   target_sex_part: number;
   requires_other: boolean;
   continuous: boolean;
+  sound_course: string;
+  animation_type: string;
   /** 0 = no requirement, 1 = must have chastity, 2 = must NOT have chastity */
   req_user_chastity: number;
   /** 0 = no requirement, 1 = must have chastity, 2 = must NOT have chastity */
@@ -118,6 +127,10 @@ type BackendData = {
   show_all_actions: boolean;
   /** Custom action templates for the editor. */
   custom_templates: CustomTemplate[];
+  /** Sound course choices for custom actions. */
+  custom_sound_courses: CustomActionChoice[];
+  /** Animation choices for custom actions. */
+  custom_animation_types: CustomActionChoice[];
   /** Player's defined custom actions. */
   custom_actions: CustomAction[];
   /** Max custom actions allowed. */
@@ -298,6 +311,8 @@ function CustomActionsTab() {
                       stamina_cost: t.stamina_cost,
                       requires_other: t.requires_other,
                       continuous: t.continuous,
+                      sound_course: t.sound_course,
+                      animation_type: t.animation_type,
                     })
                   }
                 >
@@ -389,6 +404,8 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
     on_finish: finishText,
   };
   const previewText = previewTextMap[previewPhase] || '';
+  const soundCourses = data.custom_sound_courses || [];
+  const animationTypes = data.custom_animation_types || [];
 
   /** Push a partial update to backend and save. */
   function update(fields: Record<string, any>) {
@@ -550,7 +567,52 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
         </Stack>
       </Stack.Item>
 
-      {/* ── Row 3: Body Parts ── */}
+      {/* Row 3: Feedback */}
+      <Stack.Item mt={0.5}>
+        <Box fontSize="11px" bold mb={0.25}>
+          Feedback
+        </Box>
+        <Stack wrap align="center">
+          <Stack.Item mr={1} mb={0.5}>
+            <Box fontSize="10px" opacity={0.7} mb={0.25}>
+              Sound
+            </Box>
+            {soundCourses.map((opt) => (
+              <Button
+                key={opt.key}
+                compact
+                selected={action.sound_course === opt.key}
+                color={
+                  action.sound_course === opt.key ? 'default' : 'transparent'
+                }
+                onClick={() => update({ sound_course: opt.key })}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </Stack.Item>
+          <Stack.Item mb={0.5}>
+            <Box fontSize="10px" opacity={0.7} mb={0.25}>
+              Animation
+            </Box>
+            {animationTypes.map((opt) => (
+              <Button
+                key={opt.key}
+                compact
+                selected={action.animation_type === opt.key}
+                color={
+                  action.animation_type === opt.key ? 'default' : 'transparent'
+                }
+                onClick={() => update({ animation_type: opt.key })}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </Stack.Item>
+        </Stack>
+      </Stack.Item>
+
+      {/* Row 4: Body Parts */}
       <Stack.Item mt={0.5}>
         <Box fontSize="11px" bold mb={0.25}>
           Body Parts
@@ -606,7 +668,7 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
         </Stack>
       </Stack.Item>
 
-      {/* ── Row 4: Requirements — clear tri-state + color-coded booleans ── */}
+      {/* Row 5: Requirements */}
       <Stack.Item mt={0.5}>
         <Box fontSize="11px" bold mb={0.25}>
           Requirements
@@ -809,7 +871,7 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
         </Stack>
       </Stack.Item>
 
-      {/* ── Row 5: Flavor Text + Live Preview combined ── */}
+      {/* Row 6: Flavor Text + Live Preview */}
       <Stack.Item mt={0.5}>
         <Box fontSize="11px" bold mb={0.25}>
           Flavor Text

@@ -252,25 +252,31 @@
  *
  * Returns the resolved string with all recognised tokens replaced.
  */
-/proc/resolve_intimate_reaction_tokens(text, mob/living/carbon/human/user, mob/living/carbon/human/target)
+/proc/resolve_intimate_reaction_tokens(text, mob/living/carbon/human/user, mob/living/carbon/human/target, user_is_viewer = FALSE, target_is_viewer = FALSE)
 	if(!text || !user)
 		return text
 
 	// --- Name tokens ---
-	text = replacetext(text, "\[USER]", user.name)
-	text = replacetext(text, "\[TARGET]", target ? target.name : "someone")
+	var/user_name = user_is_viewer ? "you" : user.name
+	var/user_possessive = user_is_viewer ? "your" : _intimate_reaction_possessive_name(user.name)
+	text = replacetext(text, "\[USERPOS]", user_possessive)
+	text = replacetext(text, "\[USER]", user_name)
+	if(target)
+		text = replacetext(text, "\[TARGET]", target_is_viewer ? "you" : target.name)
+	else
+		text = replacetext(text, "\[TARGET]", "someone")
 
 	// --- User pronoun tokens (leverage existing mob procs which respect disguises & pronoun prefs) ---
-	text = replacetext(text, "\[THEY]", user.p_they())
-	text = replacetext(text, "\[THEM]", user.p_them())
-	text = replacetext(text, "\[THEIR_CAP]", capitalize(user.p_their()))
-	text = replacetext(text, "\[THEIR]", user.p_their())
+	text = replacetext(text, "\[THEY]", user_is_viewer ? "you" : user.p_they())
+	text = replacetext(text, "\[THEM]", user_is_viewer ? "you" : user.p_them())
+	text = replacetext(text, "\[THEIR_CAP]", user_is_viewer ? "Your" : capitalize(user.p_their()))
+	text = replacetext(text, "\[THEIR]", user_is_viewer ? "your" : user.p_their())
 
 	// --- Target pronoun tokens ---
 	if(target)
-		text = replacetext(text, "\[TTHEY]", target.p_they())
-		text = replacetext(text, "\[TTHEM]", target.p_them())
-		text = replacetext(text, "\[TTHEIR]", target.p_their())
+		text = replacetext(text, "\[TTHEY]", target_is_viewer ? "you" : target.p_they())
+		text = replacetext(text, "\[TTHEM]", target_is_viewer ? "you" : target.p_them())
+		text = replacetext(text, "\[TTHEIR]", target_is_viewer ? "your" : target.p_their())
 	else
 		text = replacetext(text, "\[TTHEY]", "they")
 		text = replacetext(text, "\[TTHEM]", "them")
@@ -378,6 +384,16 @@
 	text = replacetext(text, "\[GENITAL_DESC]", genital_desc)
 
 	return text
+
+/// Returns the viewer-appropriate version of an intimate reaction token string.
+/proc/resolve_intimate_reaction_tokens_for_viewer(text, mob/living/carbon/human/user, mob/living/carbon/human/target, mob/viewer)
+	return resolve_intimate_reaction_tokens(text, user, target, viewer && viewer == user, viewer && viewer == target)
+
+/// Returns a visible-name possessive for third-person token output.
+/proc/_intimate_reaction_possessive_name(name)
+	if(!istext(name) || !length(name))
+		return "someone's"
+	return "[name]'s"
 
 /**
  * Maps a PENIS_TYPE_* define to a human-readable label for token resolution.

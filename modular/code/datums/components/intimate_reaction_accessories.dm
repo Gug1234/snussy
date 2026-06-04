@@ -215,10 +215,12 @@
 	var/message = pick_string_bank("piercing_receive_flavor.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
-	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, null)
+	var/partner_resolved_message = acting_mob ? resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, acting_mob) : null
 	last_receive_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob)
+	emit_intimate_reaction_message(source, span_warning(viewer_message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob, self_message = span_warning(source_message), partner_message = partner_resolved_message ? span_warning(partner_resolved_message) : null)
 	return TRUE
 
 /// Visible tongue-piercing flavor emitted during oral-course sound ticks.
@@ -242,10 +244,12 @@
 	var/message = pick_string_bank("tongue_piercing_oral_messages.json", string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
-	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, null)
+	var/partner_resolved_message = acting_mob ? resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, acting_mob) : null
 	last_oral_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	emit_intimate_reaction_message(source, span_notice(message), string_key, INTIMATE_AUDIENCE_VIEW, require_intimate_accessories = TRUE, partner = acting_mob)
+	emit_intimate_reaction_message(source, span_notice(viewer_message), string_key, INTIMATE_AUDIENCE_VIEW, require_intimate_accessories = TRUE, partner = acting_mob, self_message = span_notice(source_message), partner_message = partner_resolved_message ? span_notice(partner_resolved_message) : null)
 	return TRUE
 
 /**
@@ -347,10 +351,11 @@
 	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
-	message = resolve_intimate_reaction_tokens(message, source)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, null, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, null, null)
 	last_movement_message_time = world.time
 	mark_reaction_fired(source, "movement")
-	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE)
+	emit_intimate_reaction_message(source, span_warning(viewer_message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, self_message = span_warning(source_message))
 	return TRUE
 
 /// Sex-action handler: sends a private flavor message to the wearer.
@@ -376,10 +381,12 @@
 	var/message = pick_string_bank(json_file, string_key, INTIMATE_ACCESSORY_STRINGS_PATH, source)
 	if(!message)
 		return FALSE
-	message = resolve_intimate_reaction_tokens(message, source, acting_mob)
+	var/source_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, source)
+	var/viewer_message = resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, null)
+	var/partner_resolved_message = acting_mob ? resolve_intimate_reaction_tokens_for_viewer(message, source, acting_mob, acting_mob) : null
 	last_receive_flavor_time = world.time
 	mark_reaction_fired(source, "sex_received")
-	emit_intimate_reaction_message(source, span_warning(message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob)
+	emit_intimate_reaction_message(source, span_warning(viewer_message), string_key, INTIMATE_AUDIENCE_SELF, require_intimate_accessories = TRUE, partner = acting_mob, self_message = span_warning(source_message), partner_message = partner_resolved_message ? span_warning(partner_resolved_message) : null)
 	return TRUE
 
 #undef INTIMATE_ACCESSORY_STRINGS_PATH

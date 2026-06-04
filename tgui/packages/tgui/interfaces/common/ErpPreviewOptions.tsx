@@ -252,7 +252,11 @@ export function resolveErpPreviewTokens(
     perspective === 'intimate-wearer' || perspective === 'sex-giving';
   const targetIsYou = perspective === 'sex-receiving';
   const resolved = text
-    .replace(/\[USER\]/g, userIsYou ? 'You' : profile.userName)
+    .replace(
+      /\[USERPOS\]/g,
+      userIsYou ? 'your' : withNamePossessive(profile.userName),
+    )
+    .replace(/\[USER\]/g, userIsYou ? 'you' : profile.userName)
     .replace(/\[TARGET\]/g, targetIsYou ? 'You' : profile.targetName)
     .replace(/\[THEY\]/g, userIsYou ? 'you' : profile.userThey)
     .replace(/\[THEM\]/g, userIsYou ? 'you' : profile.userThem)
@@ -329,7 +333,9 @@ export function resolveErpPreviewTokens(
     )
     .replace(/\[FORCE\]/g, profile.force)
     .replace(/\[PLUG\]/g, profile.plug);
-  return normalizeSecondPersonPreviewGrammar(resolved);
+  return capitalizeInitialSecondPerson(
+    normalizeSecondPersonPreviewGrammar(resolved),
+  );
 }
 
 export function ErpPreviewOptionsButton({
@@ -577,6 +583,14 @@ function withPossessive(
   return `${secondPerson ? 'your' : thirdPersonPossessive} ${trimmed}`;
 }
 
+function withNamePossessive(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return "someone's";
+  }
+  return `${trimmed}'s`;
+}
+
 function capitalize(text: string): string {
   if (!text) {
     return text;
@@ -608,9 +622,19 @@ function normalizeSecondPersonPreviewGrammar(text: string): string {
     trembles: 'tremble',
     walks: 'walk',
   };
-  return text.replace(/\bYou ([a-z]+)\b/g, (match, verb: string) => {
-    return replacements[verb] ? `You ${replacements[verb]}` : match;
-  });
+  return text.replace(
+    /\b(You|you) ([a-z]+)\b/g,
+    (match, pronoun: string, verb: string) => {
+      return replacements[verb] ? `${pronoun} ${replacements[verb]}` : match;
+    },
+  );
+}
+
+function capitalizeInitialSecondPerson(text: string): string {
+  if (text.startsWith('you ')) {
+    return `You ${text.slice(4)}`;
+  }
+  return text;
 }
 
 function toServerKey(key: keyof ErpPreviewProfile): string {
