@@ -65,6 +65,7 @@
 	pref_cursed_master_name = initial(pref_cursed_master_name)
 	pref_cursed_self_master = initial(pref_cursed_self_master)
 	pref_gilded_chastity_recipient = initial(pref_gilded_chastity_recipient)
+	pref_cursed_piercing_slot = initial(pref_cursed_piercing_slot)
 
 /// Returns insertable options for the rear slot.
 /datum/preferences/proc/get_intimate_rear_insertable_options()
@@ -440,6 +441,8 @@
 	pref_cursed_self_master = sanitize_integer(pref_cursed_self_master, FALSE, TRUE, initial(pref_cursed_self_master))
 	if(!set_gilded_chastity_recipient(pref_gilded_chastity_recipient))
 		pref_gilded_chastity_recipient = initial(pref_gilded_chastity_recipient)
+	if(!set_cursed_piercing_slot(pref_cursed_piercing_slot))
+		pref_cursed_piercing_slot = initial(pref_cursed_piercing_slot)
 
 /// Builds lobby TGUI rows with option labels and the current selected label.
 /datum/preferences/proc/get_intimate_accessory_slot_rows()

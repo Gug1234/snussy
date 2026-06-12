@@ -24,10 +24,11 @@
 					return "slit_2"
 
 	if(uses_size_sprites)
+		var/visual_size = clamp(pp.penis_size, MIN_PENIS_SIZE, MAX_PENIS_SIZE)
 		if(pp.erect_state == ERECT_STATE_HARD)
-			return "[icon_state]_2_[min(pp.penis_size, 2)]"
+			return "[icon_state]_2_[visual_size]"
 		else
-			return "[icon_state]_1_[min(pp.penis_size, 2)]"
+			return "[icon_state]_1_[visual_size]"
 	else
 		if(pp.erect_state == ERECT_STATE_HARD)
 			return "[icon_state]_2"

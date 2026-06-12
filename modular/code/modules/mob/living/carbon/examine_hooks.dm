@@ -70,12 +70,23 @@
 	var/wearer_intimate_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
 	if(!viewer_intimate_ok || !wearer_intimate_ok || !length(intimate_accessories))
 		return lines
+	if(!has_visible_intimate_piercing_body_descriptor(user, list(/datum/mob_descriptor/penis, /datum/mob_descriptor/vagina)))
+		add_visible_intimate_examine_accessory(lines, user, intimate_genital_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "sex", FALSE, FALSE)
+	if(!has_visible_intimate_piercing_body_descriptor(user, list(/datum/mob_descriptor/breasts)))
+		add_visible_intimate_examine_accessory(lines, user, intimate_breast_piercing, BODY_ZONE_CHEST, observer_privilege, "nipples", TRUE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_rear_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "rear", FALSE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_mouth_piercing, BODY_ZONE_PRECISE_MOUTH, observer_privilege, "tongue", FALSE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_ear_piercing, BODY_ZONE_PRECISE_EARS, observer_privilege, "ears", TRUE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_nose_piercing, BODY_ZONE_PRECISE_NOSE, observer_privilege, "nose", FALSE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_belly_piercing, BODY_ZONE_PRECISE_STOMACH, observer_privilege, "belly button", FALSE, FALSE)
 	return lines
+
+/mob/living/carbon/human/proc/has_visible_intimate_piercing_body_descriptor(mob/user, list/descriptor_types)
+	for(var/descriptor_type in descriptor_types)
+		var/datum/mob_descriptor/descriptor = MOB_DESCRIPTOR(descriptor_type)
+		if(descriptor.can_describe(src) && descriptor.can_user_see(src, user))
+			return TRUE
+	return FALSE
 
 /mob/living/carbon/human/proc/human_modular_intimate_jewelry_examine_lines(mob/user, observer_privilege)
 	return human_modular_intimate_piercing_examine_lines(user, observer_privilege)

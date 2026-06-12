@@ -15,21 +15,21 @@
 
 /proc/get_cursed_piercing_gem_options()
 	return list(
-		list("key" = "cursed", "label" = "Cursed Ruby", "descriptor" = "cursed ruby", "color" = "#990033", "type" = /obj/item/roguegem/ruby),
-		list("key" = "ruby", "label" = "Ruby", "descriptor" = "ruby", "color" = "#B4142C", "type" = /obj/item/roguegem/ruby),
-		list("key" = "green", "label" = "Green", "descriptor" = "green gem", "color" = "#2FAE5A", "type" = /obj/item/roguegem/green),
+		list("key" = "cursed", "label" = "Cursed Rontz", "descriptor" = "cursed rontz", "color" = "#990033", "type" = /obj/item/roguegem/ruby),
+		list("key" = "ruby", "label" = "Rontz", "descriptor" = "rontz", "color" = "#B4142C", "type" = /obj/item/roguegem/ruby),
+		list("key" = "green", "label" = "Gemerald", "descriptor" = "gemerald", "color" = "#2FAE5A", "type" = /obj/item/roguegem/green),
 		list("key" = "jade", "label" = "Jade", "descriptor" = "jade", "color" = "#2FAE5A", "type" = /obj/item/roguegem/jade),
-		list("key" = "blue", "label" = "Blue", "descriptor" = "blue gem", "color" = "#60C9FF", "type" = /obj/item/roguegem/blue),
-		list("key" = "yellow", "label" = "Yellow", "descriptor" = "yellow gem", "color" = "#F0BE38", "type" = /obj/item/roguegem/yellow),
+		list("key" = "blue", "label" = "Blortz", "descriptor" = "blortz", "color" = "#60C9FF", "type" = /obj/item/roguegem/blue),
+		list("key" = "yellow", "label" = "Toper", "descriptor" = "toper", "color" = "#F0BE38", "type" = /obj/item/roguegem/yellow),
 		list("key" = "amber", "label" = "Amber", "descriptor" = "amber", "color" = "#F0BE38", "type" = /obj/item/roguegem/amber),
-		list("key" = "violet", "label" = "Violet", "descriptor" = "violet gem", "color" = "#9A5CFF", "type" = /obj/item/roguegem/violet),
-		list("key" = "amethyst", "label" = "Amethyst", "descriptor" = "amethyst", "color" = "#9A5CFF", "type" = /obj/item/roguegem/amethyst),
-		list("key" = "diamond", "label" = "Diamond", "descriptor" = "diamond", "color" = "#EAF3FF", "type" = /obj/item/roguegem/diamond),
+		list("key" = "violet", "label" = "Saffira", "descriptor" = "saffira", "color" = "#9A5CFF", "type" = /obj/item/roguegem/violet),
+		list("key" = "amethyst", "label" = "Amythortz", "descriptor" = "amythortz", "color" = "#9A5CFF", "type" = /obj/item/roguegem/amethyst),
+		list("key" = "diamond", "label" = "Dorpel", "descriptor" = "dorpel", "color" = "#EAF3FF", "type" = /obj/item/roguegem/diamond),
 		list("key" = "opal", "label" = "Opal", "descriptor" = "opal", "color" = "#EAF3FF", "type" = /obj/item/roguegem/opal),
-		list("key" = "oyster", "label" = "Oyster Pearl", "descriptor" = "oyster pearl", "color" = "#EAF3FF", "type" = /obj/item/roguegem/oyster),
+		list("key" = "oyster", "label" = "Fossilized Clam", "descriptor" = "fossilized clam", "color" = "#EAF3FF", "type" = /obj/item/roguegem/oyster),
 		list("key" = "onyxa", "label" = "Onyxa", "descriptor" = "onyxa", "color" = "#1D2130", "type" = /obj/item/roguegem/onyxa),
-		list("key" = "coral", "label" = "Coral", "descriptor" = "coral", "color" = "#FF6E66", "type" = /obj/item/roguegem/coral),
-		list("key" = "turq", "label" = "Turquoise", "descriptor" = "turquoise", "color" = "#2CC6C8", "type" = /obj/item/roguegem/turq)
+		list("key" = "coral", "label" = "Heartstone", "descriptor" = "heartstone", "color" = "#FF6E66", "type" = /obj/item/roguegem/coral),
+		list("key" = "turq", "label" = "Cerulite", "descriptor" = "cerulite", "color" = "#2CC6C8", "type" = /obj/item/roguegem/turq)
 	)
 
 /proc/find_cursed_piercing_option(list/options, key)
@@ -123,8 +123,6 @@
 
 /obj/item/intimate_accessory/piercing/cursed/attach_intimate_feature(mob/living/carbon/human/H)
 	sync_cursed_piercing_form()
-	if(get_effective_intimate_slot() in list(INTIMATE_SLOT_MOUTH, INTIMATE_SLOT_NOSE, INTIMATE_SLOT_BELLY))
-		return TRUE
 	return ..()
 
 /obj/item/intimate_accessory/piercing/cursed/finalize_intimate_equip(mob/living/carbon/human/H)
@@ -150,6 +148,30 @@
 	if(!cursed_piercing_master)
 		return null
 	return cursed_piercing_master.GetComponent(/datum/component/collar_master)
+
+/obj/item/intimate_accessory/piercing/cursed/proc/format_cursed_piercing_message(string_key, list/replacements)
+	var/message = pick_cursed_piercing_string("cursed_piercing_messages.json", string_key)
+	if(!istext(message))
+		return null
+	if(islist(replacements))
+		for(var/token in replacements)
+			message = replacetext(message, token, replacements[token])
+	return message
+
+/obj/item/intimate_accessory/piercing/cursed/proc/send_cursed_piercing_message(mob/living/carbon/human/H, string_key, list/replacements, severity = "notice")
+	if(!H)
+		return FALSE
+	var/message = format_cursed_piercing_message(string_key, replacements)
+	if(!message)
+		return FALSE
+	switch(severity)
+		if("danger")
+			to_chat(H, span_userdanger(message))
+		if("warning")
+			to_chat(H, span_warning(message))
+		else
+			to_chat(H, span_notice(message))
+	return TRUE
 
 /obj/item/intimate_accessory/piercing/cursed/proc/cleanup_cursed_piercing_binding(mob/living/carbon/human/H)
 	REMOVE_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
@@ -235,7 +257,7 @@
 		CM = cursed_piercing_master.AddComponent(/datum/component/collar_master)
 	CM.add_pet(H)
 	SEND_SIGNAL(H, COMSIG_CARBON_COLLAR_BOUND, cursed_piercing_master, src)
-	to_chat(H, span_userdanger("[src] pierces shut around me."))
+	send_cursed_piercing_message(H, "cursed_piercing_bound", list("%SLOT%" = lowertext(get_intimate_slot_display_name())), "danger")
 	to_chat(user, span_notice("[src] binds to [H]."))
 
 /obj/item/intimate_accessory/piercing/cursed/proc/can_apply_cursed_piercing(mob/living/carbon/human/H, mob/user)
@@ -284,6 +306,8 @@
 	if(!H || !delta)
 		return FALSE
 	var/changed = FALSE
+	var/organ_label
+	var/new_size
 	switch(organ_key)
 		if(CURSED_PIERCING_ORGAN_PENIS)
 			var/obj/item/organ/penis/penis = H.getorganslot(ORGAN_SLOT_PENIS)
@@ -293,6 +317,8 @@
 			if(new_penis_size == penis.penis_size)
 				return FALSE
 			penis.penis_size = new_penis_size
+			organ_label = "penis"
+			new_size = new_penis_size
 			changed = TRUE
 			H.sexcon?.update_erect_state()
 		if(CURSED_PIERCING_ORGAN_TESTICLES)
@@ -303,6 +329,8 @@
 			if(new_testicle_size == testicles.ball_size)
 				return FALSE
 			testicles.ball_size = new_testicle_size
+			organ_label = "testicles"
+			new_size = new_testicle_size
 			changed = TRUE
 		if(CURSED_PIERCING_ORGAN_BREASTS)
 			var/obj/item/organ/breasts/breasts = H.getorganslot(ORGAN_SLOT_BREASTS)
@@ -313,10 +341,17 @@
 				return FALSE
 			breasts.breast_size = new_breast_size
 			breasts.milk_max = max(75, breasts.breast_size * 100)
+			organ_label = "breasts"
+			new_size = new_breast_size
 			changed = TRUE
 	if(changed)
 		H.update_body_parts(TRUE)
 		playsound(H, 'sound/misc/vampirespell.ogg', 40, TRUE)
+		send_cursed_piercing_message(H, "cursed_piercing_organ_size_changed", list(
+			"%ORGAN%" = organ_label,
+			"%DIRECTION%" = delta > 0 ? "larger" : "smaller",
+			"%SIZE%" = "[new_size]"
+		))
 	return changed
 
 /obj/item/intimate_accessory/piercing/cursed/proc/set_lactation(mob/living/carbon/human/H, enabled)
@@ -332,6 +367,7 @@
 	if(new_state)
 		breasts.milk_max = max(75, breasts.breast_size * 100)
 	playsound(H, 'sound/misc/vampirespell.ogg', 40, TRUE)
+	send_cursed_piercing_message(H, new_state ? "cursed_piercing_lactation_start" : "cursed_piercing_lactation_stop")
 	return TRUE
 
 /obj/item/intimate_accessory/piercing/cursed/proc/set_impotence(mob/living/carbon/human/H, enabled)
@@ -348,6 +384,49 @@
 		REMOVE_TRAIT(H, TRAIT_LIMPDICK, CURSED_PIERCING_TRAIT_SOURCE)
 	H.sexcon?.update_erect_state()
 	playsound(H, 'sound/misc/vampirespell.ogg', 40, TRUE)
+	send_cursed_piercing_message(H, new_state ? "cursed_piercing_impotence_start" : "cursed_piercing_impotence_stop")
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/cursed/proc/restore_worn_intimate_slot(mob/living/carbon/human/H, old_slot, datum/bodypart_feature/intimate_accessory/old_feature)
+	if(!H)
+		return
+	set_current_intimate_slot(old_slot)
+	set_worn_in_slot(H, src)
+	intimate_feature = old_feature
+	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
+	if(chest && old_feature)
+		chest.add_bodypart_feature(old_feature)
+
+/obj/item/intimate_accessory/piercing/cursed/proc/set_worn_intimate_slot(mob/living/carbon/human/H, slot)
+	if(istext(slot))
+		slot = text2num(slot)
+	if(!H || wearer != H)
+		return FALSE
+	if(!is_valid_cursed_piercing_slot(slot) || !supports_intimate_slot(slot))
+		return FALSE
+	var/old_slot = get_effective_intimate_slot()
+	if(slot == old_slot)
+		return FALSE
+	var/obj/item/intimate_accessory/existing_accessory = get_worn_in_slot(H, slot)
+	if(existing_accessory && existing_accessory != src)
+		return FALSE
+
+	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
+	var/datum/bodypart_feature/intimate_accessory/old_feature = intimate_feature
+	if(chest && old_feature)
+		chest.remove_bodypart_feature(old_feature)
+	intimate_feature = null
+	clear_worn_slot_refs(H)
+	if(!set_current_intimate_slot(slot))
+		restore_worn_intimate_slot(H, old_slot, old_feature)
+		return FALSE
+	if(has_visual_intimate_feature() && !attach_intimate_feature(H))
+		restore_worn_intimate_slot(H, old_slot, old_feature)
+		return FALSE
+
+	finalize_intimate_equip(H)
+	notify_intimate_state_change(H, "cursed_slot_changed")
+	send_cursed_piercing_message(H, "cursed_piercing_slot_changed", list("%SLOT%" = lowertext(get_intimate_slot_display_name())))
 	return TRUE
 
 /obj/item/intimate_accessory/piercing/cursed/proc/set_cursed_metal(metal_key)
@@ -359,8 +438,9 @@
 	intimate_metal_color = option["color"]
 	is_silver = !!option["silver"]
 	refresh_piercing_state()
+	on_socket_state_changed("cursed_metal_changed")
 	if(wearer)
-		notify_intimate_state_change(wearer, "cursed_metal_changed")
+		send_cursed_piercing_message(wearer, "cursed_piercing_metal_changed", list("%METAL%" = option["name"]))
 	return TRUE
 
 /obj/item/intimate_accessory/piercing/cursed/proc/set_cursed_gem(gem_key, refresh = TRUE)
@@ -374,8 +454,20 @@
 	gem_value_bonus = 0
 	if(refresh)
 		refresh_piercing_state()
+		on_socket_state_changed("cursed_gem_changed")
 		if(wearer)
-			notify_intimate_state_change(wearer, "cursed_gem_changed")
+			send_cursed_piercing_message(wearer, "cursed_piercing_gem_changed", list("%GEM%" = current_gem_descriptor))
+	return TRUE
+
+/obj/item/intimate_accessory/piercing/cursed/proc/set_cursed_descriptor(descriptor)
+	var/old_descriptor = custom_piercing_descriptor
+	set_custom_piercing_descriptor(descriptor)
+	if(custom_piercing_descriptor == old_descriptor)
+		return FALSE
+	if(wearer)
+		send_cursed_piercing_message(wearer, "cursed_piercing_descriptor_changed", list(
+			"%NAME%" = custom_piercing_descriptor || "its original name"
+		))
 	return TRUE
 
 /obj/item/intimate_accessory/piercing/cursed/proc/get_cursed_piercing_ui_data(mob/living/carbon/human/H)
@@ -383,7 +475,10 @@
 	var/obj/item/organ/testicles/testicles = H?.getorganslot(ORGAN_SLOT_TESTICLES)
 	var/obj/item/organ/breasts/breasts = H?.getorganslot(ORGAN_SLOT_BREASTS)
 	return list(
+		"current_slot" = get_effective_intimate_slot(),
 		"slot_name" = get_intimate_slot_display_name(),
+		"supported_slots" = get_supported_intimate_slots(),
+		"custom_descriptor" = custom_piercing_descriptor || "",
 		"metal_key" = selected_metal_key,
 		"metal_color" = intimate_metal_color,
 		"gem_key" = selected_gem_key,

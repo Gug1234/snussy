@@ -23,5 +23,8 @@
 #define CURSED_PIERCING_ORGAN_TESTICLES "testicles"
 #define CURSED_PIERCING_ORGAN_BREASTS "breasts"
 
+#define CURSED_PIERCING_STRINGS_PATH "modular/code/game/objects/items/lewd/intimate_accessory/strings"
+#define pick_cursed_piercing_string(FILE, KEY) (pick(strings(FILE, KEY, CURSED_PIERCING_STRINGS_PATH)))
+
 /// Bodypart feature slot prefix used by intimate accessory bodypart features.
 #define BODYPART_FEATURE_INTIMATE_ACCESSORY "intimate_accessory"

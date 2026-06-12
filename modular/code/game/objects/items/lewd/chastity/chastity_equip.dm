@@ -137,6 +137,7 @@
 	clear_chastity_mood_effects(H)
 	UnregisterSignal(H, COMSIG_CARBON_CHASTITY_LOCK_INTERACT)
 	UnregisterSignal(H, COMSIG_CARBON_CHASTITY_STATE_CHANGED)
+	UnregisterSignal(H, COMSIG_MOB_EJACULATED)
 	chastity_move_counter = 0
 	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
 	if(chest && chastity_feature)
@@ -291,13 +292,16 @@
 	qdel(src)
 
 // Hooks wearer state signals; movement sound and messaging are handled by the intimate reaction component.
-/obj/item/chastity/proc/register_wearer_jingle(mob/living/carbon/human/H)
+/obj/item/chastity/proc/register_wearer_chastity_signals(mob/living/carbon/human/H)
 	if(!H)
 		return
 	UnregisterSignal(H, COMSIG_CARBON_CHASTITY_LOCK_INTERACT)
 	RegisterSignal(H, COMSIG_CARBON_CHASTITY_LOCK_INTERACT, PROC_REF(on_chastity_lock_interact))
 	UnregisterSignal(H, COMSIG_CARBON_CHASTITY_STATE_CHANGED)
 	RegisterSignal(H, COMSIG_CARBON_CHASTITY_STATE_CHANGED, PROC_REF(on_chastity_state_changed))
+	UnregisterSignal(H, COMSIG_MOB_EJACULATED)
+	if(chastity_gilded)
+		RegisterSignal(H, COMSIG_MOB_EJACULATED, PROC_REF(on_gilded_orgasm_triggered))
 	chastity_move_counter = 0
 
 // Shared state-change signal callback for all chastity trait toggles and mode switches.

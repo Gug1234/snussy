@@ -266,7 +266,7 @@
 
 #define COMSIG_MOB_KISS "comsig_mob_kiss"				//from base of /datum/emote/living/kiss/adjacentaction(mob/user, mob/target)
 #define COMSIG_MOB_KISSED "comsig_mob_kissed"				//from base of /datum/emote/living/kiss/adjacentaction(mob/user, mob/target)
-#define COMSIG_MOB_EJACULATED "comsig_mob_ejaculated"				//from base of /datum/sex_controller/proc/ejaculate()
+#define COMSIG_MOB_EJACULATED "comsig_mob_ejaculated"				//from successful /datum/sex_controller orgasm procs
 #define COMSIG_MOB_FELL_TREE "comsig_mob_fell_tree"				//from base of /obj/structure/flora/newtree/attacked_by(obj/item/I, mob/living/user
 #define COMSIG_MOB_DAWNED "comsig_mob_dawned"				///mob/living/carbon/human/update_tod(todd)
 #define COMSIG_MOB_DAYED "comsig_mob_dayed"				///mob/living/carbon/human/update_tod(todd)

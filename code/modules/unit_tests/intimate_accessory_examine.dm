@@ -113,6 +113,95 @@
 	TEST_ASSERT(list_has_text(piercing_lines, "His tongue is pierced through with"), "tongue piercings should move to the descriptor-adjacent piercing helper")
 	TEST_ASSERT(!list_has_text(piercing_lines, "Josh Killerfang"), "piercing examine text should not print the examined mob name")
 
+	var/mob/living/carbon/human/consistent/cursed_piercing_human = allocate(/mob/living/carbon/human/consistent)
+	cursed_piercing_human.name = "Cursed Piercing Tester"
+	cursed_piercing_human.real_name = "Cursed Piercing Tester"
+	cursed_piercing_human.gender = MALE
+	var/obj/item/organ/penis/cursed_penis = cursed_piercing_human.getorganslot(ORGAN_SLOT_PENIS)
+	if(!cursed_penis)
+		cursed_penis = allocate(/obj/item/organ/penis, null)
+		cursed_penis.Insert(cursed_piercing_human)
+	var/obj/item/organ/testicles/cursed_testes = cursed_piercing_human.getorganslot(ORGAN_SLOT_TESTICLES)
+	if(!cursed_testes)
+		cursed_testes = allocate(/obj/item/organ/testicles, null)
+		cursed_testes.Insert(cursed_piercing_human)
+
+	var/obj/item/intimate_accessory/piercing/cursed/cursed_genital_piercing = allocate(/obj/item/intimate_accessory/piercing/cursed)
+	TEST_ASSERT(cursed_genital_piercing.set_current_intimate_slot(INTIMATE_SLOT_GENITAL), "test cursed piercing should take the genital slot")
+	cursed_genital_piercing.finalize_intimate_equip(cursed_piercing_human)
+	descriptor_lines = build_cool_description(cursed_piercing_human.get_mob_descriptors(FALSE, cursed_piercing_human), cursed_piercing_human, cursed_piercing_human)
+	TEST_ASSERT(list_has_text(descriptor_lines, "pierced through with") && list_has_text(descriptor_lines, "genital piercing"), "genital cursed piercings should append inline to genital descriptor lines")
+
+	var/obj/item/intimate_accessory/piercing/cursed/cursed_nose_piercing = allocate(/obj/item/intimate_accessory/piercing/cursed)
+	TEST_ASSERT(cursed_nose_piercing.set_current_intimate_slot(INTIMATE_SLOT_NOSE), "test cursed piercing should take the nose slot")
+	cursed_nose_piercing.finalize_intimate_equip(cursed_piercing_human)
+	piercing_lines = cursed_piercing_human.human_modular_intimate_piercing_examine_lines(cursed_piercing_human, TRUE)
+	TEST_ASSERT(list_has_text(piercing_lines, "His nose is pierced through with") && list_has_text(piercing_lines, "nose piercing"), "non-inline cursed piercings should be reported by the descriptor-adjacent piercing helper")
+
+	var/mob/living/carbon/human/dummy/cursed_fallback_human = allocate(/mob/living/carbon/human/dummy)
+	cursed_fallback_human.name = "Cursed Piercing Fallback Tester"
+	cursed_fallback_human.real_name = "Cursed Piercing Fallback Tester"
+	cursed_fallback_human.gender = MALE
+	var/obj/item/intimate_accessory/piercing/cursed/cursed_fallback_piercing = allocate(/obj/item/intimate_accessory/piercing/cursed)
+	TEST_ASSERT(cursed_fallback_piercing.set_current_intimate_slot(INTIMATE_SLOT_GENITAL), "fallback test cursed piercing should take the genital slot")
+	cursed_fallback_piercing.finalize_intimate_equip(cursed_fallback_human)
+	piercing_lines = cursed_fallback_human.human_modular_intimate_piercing_examine_lines(cursed_fallback_human, TRUE)
+	TEST_ASSERT(list_has_text(piercing_lines, "His sex is pierced through with") && list_has_text(piercing_lines, "genital piercing"), "genital cursed piercings should get a descriptor-adjacent examine line when no inline genital descriptor is available")
+
+/datum/unit_test/intimate_piercing_visual_overlays/proc/make_visual_test_human()
+	var/mob/living/carbon/human/consistent/H = allocate(/mob/living/carbon/human/consistent)
+	H.forceMove(run_loc_bottom_left)
+	H.name = "Piercing Visual Tester"
+	H.real_name = "Piercing Visual Tester"
+	H.gender = MALE
+	H.underwear = null
+	return H
+
+/datum/unit_test/intimate_piercing_visual_overlays/proc/ensure_knotted_max_penis(mob/living/carbon/human/H)
+	var/obj/item/organ/penis/knotted/penis = allocate(/obj/item/organ/penis/knotted, null)
+	penis.accessory_type = /datum/sprite_accessory/penis/knotted
+	penis.penis_size = MAX_PENIS_SIZE
+	penis.erect_state = ERECT_STATE_HARD
+	penis.Insert(H)
+	return penis
+
+/datum/unit_test/intimate_piercing_visual_overlays/proc/appearance_list_has_existing_icon_state(list/appearances)
+	if(!length(appearances))
+		return FALSE
+	for(var/mutable_appearance/appearance as anything in appearances)
+		if(appearance?.icon && appearance.icon_state && icon_exists(appearance.icon, appearance.icon_state))
+			return TRUE
+	return FALSE
+
+/datum/unit_test/intimate_piercing_visual_overlays/proc/assert_piercing_visual(mob/living/carbon/human/H, obj/item/intimate_accessory/piercing/piercing, slot, failure_context)
+	TEST_ASSERT(piercing.set_current_intimate_slot(slot), "[failure_context] should accept the test slot")
+	TEST_ASSERT(piercing.attach_intimate_feature(H), "[failure_context] should attach an intimate feature")
+	piercing.finalize_intimate_equip(H)
+	TEST_ASSERT_NOTNULL(piercing.intimate_feature, "[failure_context] should create a bodypart feature")
+
+	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
+	TEST_ASSERT_NOTNULL(chest, "[failure_context] should have a chest bodypart for intimate overlays")
+	TEST_ASSERT(piercing.intimate_feature in chest.bodypart_features, "[failure_context] should add its feature to the wearer")
+	var/list/appearances = piercing.intimate_feature.get_bodypart_overlay(chest)
+	TEST_ASSERT(appearance_list_has_existing_icon_state(appearances), "[failure_context] should generate at least one real visible overlay icon state")
+
+/datum/unit_test/intimate_piercing_visual_overlays/Run()
+	var/mob/living/carbon/human/consistent/H = make_visual_test_human()
+	var/obj/item/organ/penis/knotted/penis = ensure_knotted_max_penis(H)
+	var/datum/sprite_accessory/penis/penis_accessory = SPRITE_ACCESSORY(penis.accessory_type)
+	TEST_ASSERT_EQUAL(penis_accessory.get_icon_state(penis, H.get_bodypart(BODY_ZONE_CHEST), H), "knotted_2_3", "max-size knotted penises should use the available size-3 sprite state")
+
+	assert_piercing_visual(H, allocate(/obj/item/intimate_accessory/piercing/genital/iron), INTIMATE_SLOT_GENITAL, "normal genital piercing on max-size knotted penis")
+	assert_piercing_visual(H, allocate(/obj/item/intimate_accessory/piercing/nose/iron), INTIMATE_SLOT_NOSE, "normal nose piercing")
+	assert_piercing_visual(H, allocate(/obj/item/intimate_accessory/piercing/belly/iron), INTIMATE_SLOT_BELLY, "normal belly piercing")
+
+	var/obj/item/intimate_accessory/piercing/cursed/cursed_genital = allocate(/obj/item/intimate_accessory/piercing/cursed)
+	assert_piercing_visual(H, cursed_genital, INTIMATE_SLOT_GENITAL, "cursed genital piercing")
+	var/obj/item/intimate_accessory/piercing/cursed/cursed_nose = allocate(/obj/item/intimate_accessory/piercing/cursed)
+	assert_piercing_visual(H, cursed_nose, INTIMATE_SLOT_NOSE, "cursed nose piercing")
+	var/obj/item/intimate_accessory/piercing/cursed/cursed_belly = allocate(/obj/item/intimate_accessory/piercing/cursed)
+	assert_piercing_visual(H, cursed_belly, INTIMATE_SLOT_BELLY, "cursed belly piercing")
+
 /datum/unit_test/rear_insertable_stomach_brute_eject/Run()
 	var/mob/living/carbon/human/consistent/wearer = allocate(/mob/living/carbon/human/consistent)
 	wearer.forceMove(run_loc_bottom_left)

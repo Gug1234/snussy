@@ -50,14 +50,15 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	var/lockable = TRUE // if the device can be traditionally locked with a key or lockpick, should be true for everything but cursed devices which are locked via the collar master menu
 	locked = FALSE
 	var/chastity_cursed = FALSE // if the device works like a cursed collar
-	var/chastity_gilded = FALSE // if the device drains the wearer's Nervelock on jingle triggers
+	var/chastity_gilded = FALSE // if the device drains the wearer's Nervelock on orgasm
 	var/gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
 	var/gilded_drain_amount = GILDED_CHASTITY_DEFAULT_DRAIN
 	var/gilded_overdraw_effect = GILDED_CHASTITY_OVERDRAW_SHRINK
 	var/gilded_total_drained = 0
 	var/gilded_next_shrink_threshold = GILDED_CHASTITY_SHRINK_DRAIN_STEP
-	var/gilded_zero_fund_jingles = 0
+	var/gilded_zero_fund_orgasms = 0
 	var/gilded_limped = FALSE
+	var/tmp/gilded_orgasm_drain_in_progress = FALSE
 	var/mob/living/carbon/human/chastity_victim = null // variable for anyone currently caged
 	var/datum/mind/chastity_master = null // varient of the collar master variable but for specifically cages
 	var/roundstart_self_master_binding = FALSE
@@ -173,26 +174,35 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	chastity_victim.update_body_parts(TRUE)
 	chastity_victim.update_inv_belt()
 
-/obj/item/chastity/proc/on_chastity_jingle_triggered(mob/living/carbon/human/wearer)
-	if(!chastity_gilded || !wearer)
+/obj/item/chastity/proc/on_gilded_orgasm_triggered(datum/source)
+	SIGNAL_HANDLER
+	var/mob/living/carbon/human/wearer = source
+	if(!chastity_gilded || !wearer || QDELETED(wearer))
+		return 0
+	if(wearer.chastity_device != src || loc != wearer)
+		return 0
+	if(gilded_orgasm_drain_in_progress)
 		return 0
 	var/drain_amount = clamp(round(gilded_drain_amount), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
 	if(drain_amount <= 0)
 		return 0
+	gilded_orgasm_drain_in_progress = TRUE
 	var/current_balance = max(0, SStreasury.bank_accounts[wearer] || 0)
 	if(SStreasury.bank_accounts[wearer] != current_balance)
 		SStreasury.bank_accounts[wearer] = current_balance
 	var/drained = min(drain_amount, current_balance)
 	if(drained <= 0)
 		apply_gilded_overdraw_effect(wearer)
+		gilded_orgasm_drain_in_progress = FALSE
 		return 0
 
 	SStreasury.bank_accounts[wearer] = current_balance - drained
 	gilded_total_drained += drained
-	gilded_zero_fund_jingles = 0
+	gilded_zero_fund_orgasms = 0
 	credit_gilded_recipient(wearer, drained)
 	log_cursed_chastity_command(wearer, CHASTITY_LOG_GILDED_DRAIN, "amount=[drained] recipient=[gilded_recipient] total=[gilded_total_drained]")
 	apply_gilded_drain_milestones(wearer)
+	gilded_orgasm_drain_in_progress = FALSE
 	return drained
 
 // Restricts caging to valid player-controlled humans and disallows transformed werewolves.
@@ -243,7 +253,7 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	chest.add_bodypart_feature(chastity_feature)
 	return TRUE
 
-// Finalizes equip bookkeeping by moving the item, assigning wearer refs, and movement jingle hooks.
+// Finalizes equip bookkeeping by moving the item, assigning wearer refs, and wearer signal hooks.
 /obj/item/chastity/proc/finalize_chastity_equip(mob/living/carbon/human/H)
 	forceMove(H)
 	H.chastity_device = src
@@ -254,7 +264,7 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	var/datum/component/intimate_reaction/chastity_receive_flavor/reaction_component = LoadComponent(/datum/component/intimate_reaction/chastity_receive_flavor)
 	if(reaction_component)
 		reaction_component.bind_to_wearer(H)
-	register_wearer_jingle(H)
+	register_wearer_chastity_signals(H)
 	refresh_chastity_mood_effects(H)
 	refresh_wearer_overlays()
 

@@ -1156,6 +1156,12 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		return FALSE
 	return piercing.set_impotence(pet, enabled)
 
+/datum/component/collar_master/proc/set_pet_cursed_piercing_slot(mob/living/carbon/human/pet, slot)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_slot", slot)
+	if(!piercing)
+		return FALSE
+	return piercing.set_worn_intimate_slot(pet, slot)
+
 /datum/component/collar_master/proc/set_pet_cursed_piercing_metal(mob/living/carbon/human/pet, metal_key)
 	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_metal", metal_key)
 	if(!piercing)
@@ -1167,3 +1173,9 @@ GLOBAL_LIST_EMPTY(collar_masters)
 	if(!piercing)
 		return FALSE
 	return piercing.set_cursed_gem(gem_key)
+
+/datum/component/collar_master/proc/set_pet_cursed_piercing_descriptor(mob/living/carbon/human/pet, descriptor)
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = get_commandable_cursed_piercing(pet, "cursed_piercing_descriptor", descriptor)
+	if(!piercing)
+		return FALSE
+	return piercing.set_cursed_descriptor(descriptor)

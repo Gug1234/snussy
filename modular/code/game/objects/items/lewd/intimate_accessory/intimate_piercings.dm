@@ -1441,9 +1441,6 @@
 	. = ..()
 	finalize_piercing_initialize("[lowertext(intimate_metal_name)] nose piercing")
 
-/obj/item/intimate_accessory/piercing/nose/attach_intimate_feature(mob/living/carbon/human/H)
-	return TRUE
-
 /obj/item/intimate_accessory/piercing/nose/finalize_intimate_equip(mob/living/carbon/human/H)
 	. = ..()
 	play_piercing_sound(H, 'sound/foley/pierce.ogg')
@@ -1507,9 +1504,6 @@
 /obj/item/intimate_accessory/piercing/belly/Initialize()
 	. = ..()
 	finalize_piercing_initialize("[lowertext(intimate_metal_name)] belly button piercing")
-
-/obj/item/intimate_accessory/piercing/belly/attach_intimate_feature(mob/living/carbon/human/H)
-	return TRUE
 
 /obj/item/intimate_accessory/piercing/belly/finalize_intimate_equip(mob/living/carbon/human/H)
 	. = ..()

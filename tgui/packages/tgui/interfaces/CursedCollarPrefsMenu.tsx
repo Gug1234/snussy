@@ -16,13 +16,21 @@ type DeviceOption = {
   value: string;
 };
 
+type SlotOption = {
+  label: string;
+  value: number;
+};
+
 type BackendData = {
   cursed_enabled: boolean;
   chastenable: boolean;
+  intimate_enabled: boolean;
   device: string;
   device_options: DeviceOption[];
   gilded_recipient: string;
   gilded_recipient_options: DeviceOption[];
+  piercing_slot: number;
+  piercing_slot_options: SlotOption[];
   master_name: string;
   self_master: boolean;
   character_name: string;
@@ -33,12 +41,14 @@ const deviceIcons: Record<string, string> = {
   collar: 'link',
   chastity: 'lock',
   gilded_chastity: 'coins',
+  piercing: 'gem',
 };
 
 export function CursedCollarPrefsMenu() {
   const { act, data } = useBackend<BackendData>();
   const cursedEnabled = !!data.cursed_enabled;
   const chastenable = !!data.chastenable;
+  const intimateEnabled = !!data.intimate_enabled;
   const selectedDevice = data.device || 'none';
   const deviceOptions = Array.isArray(data.device_options)
     ? data.device_options
@@ -46,6 +56,10 @@ export function CursedCollarPrefsMenu() {
   const gildedRecipient = data.gilded_recipient || 'master';
   const gildedRecipientOptions = Array.isArray(data.gilded_recipient_options)
     ? data.gilded_recipient_options
+    : [];
+  const piercingSlot = Number(data.piercing_slot) || 1;
+  const piercingSlotOptions = Array.isArray(data.piercing_slot_options)
+    ? data.piercing_slot_options
     : [];
   const selfMaster = !!data.self_master;
   const masterName = data.master_name || '';
@@ -73,6 +87,8 @@ export function CursedCollarPrefsMenu() {
         { label: 'None', value: 'none' },
         { label: 'Cursed Collar', value: 'collar' },
         { label: 'Cursed Chastity', value: 'chastity' },
+        { label: 'Gilded Chastity', value: 'gilded_chastity' },
+        { label: 'Cursed Piercing', value: 'piercing' },
       ];
 
   return (
@@ -87,9 +103,9 @@ export function CursedCollarPrefsMenu() {
 
         <Section title="Cursed Binding">
           <Box mb={1} opacity={0.5} fontSize="11px" italic>
-            Choose whether this character starts with a cursed collar or a
-            cursed chastity device. The selected master controls the cursed item
-            when the round begins.
+            Choose whether this character starts with a cursed collar, cursed
+            chastity device, or cursed piercing. The selected master controls
+            the cursed item when the round begins.
           </Box>
 
           <LabeledList>
@@ -126,6 +142,13 @@ export function CursedCollarPrefsMenu() {
                 chastity.
               </NoticeBox>
             )}
+
+          {selectedDevice === 'piercing' && !intimateEnabled && (
+            <NoticeBox danger>
+              Enable intimate accessories in the options menu to spawn with a
+              cursed piercing.
+            </NoticeBox>
+          )}
         </Section>
 
         {selectedDevice === 'gilded_chastity' && (
@@ -143,6 +166,30 @@ export function CursedCollarPrefsMenu() {
                         act('set_gilded_recipient', {
                           recipient: option.value,
                         })
+                      }
+                    >
+                      {selected ? 'Selected' : 'Select'}
+                    </Button>
+                  </LabeledList.Item>
+                );
+              })}
+            </LabeledList>
+          </Section>
+        )}
+
+        {selectedDevice === 'piercing' && (
+          <Section title="Starting Location">
+            <LabeledList>
+              {piercingSlotOptions.map((option) => {
+                const selected = piercingSlot === Number(option.value);
+                return (
+                  <LabeledList.Item key={option.value} label={option.label}>
+                    <Button
+                      icon={selected ? 'check' : 'gem'}
+                      color={selected ? 'good' : 'bad'}
+                      selected={selected}
+                      onClick={() =>
+                        act('set_piercing_slot', { slot: option.value })
                       }
                     >
                       {selected ? 'Selected' : 'Select'}

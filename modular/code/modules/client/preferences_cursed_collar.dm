@@ -1,15 +1,16 @@
 /**
  * # Cursed Collar Round-start Preferences
  *
- * Per-character state for choosing a cursed collar or cursed chastity device
- * before spawning. Account-level cursed/chastity toggles still gate whether
- * the selected item is applied.
+ * Per-character state for choosing a cursed collar, cursed chastity device, or
+ * cursed piercing before spawning. Account-level cursed/chastity/intimate
+ * toggles still gate whether the selected item is applied.
  */
 
 /datum/preferences/var/pref_cursed_roundstart_device = CURSED_ROUNDSTART_NONE
 /datum/preferences/var/pref_cursed_master_name = ""
 /datum/preferences/var/pref_cursed_self_master = FALSE
 /datum/preferences/var/pref_gilded_chastity_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
+/datum/preferences/var/pref_cursed_piercing_slot = INTIMATE_SLOT_GENITAL
 
 /proc/is_valid_gilded_chastity_recipient(recipient)
 	if(!istext(recipient))
@@ -27,12 +28,37 @@
 		"Bandit Hoardmaster" = GILDED_CHASTITY_RECIPIENT_HOARDMASTER,
 	)
 
+/proc/is_valid_cursed_piercing_slot(slot)
+	if(istext(slot))
+		slot = text2num(slot)
+	return slot in list(
+		INTIMATE_SLOT_GENITAL,
+		INTIMATE_SLOT_REAR,
+		INTIMATE_SLOT_BREAST,
+		INTIMATE_SLOT_MOUTH,
+		INTIMATE_SLOT_EAR,
+		INTIMATE_SLOT_NOSE,
+		INTIMATE_SLOT_BELLY,
+	)
+
+/proc/get_cursed_piercing_slot_options()
+	return list(
+		"Genital" = INTIMATE_SLOT_GENITAL,
+		"Rear" = INTIMATE_SLOT_REAR,
+		"Breast" = INTIMATE_SLOT_BREAST,
+		"Mouth" = INTIMATE_SLOT_MOUTH,
+		"Ear" = INTIMATE_SLOT_EAR,
+		"Nose" = INTIMATE_SLOT_NOSE,
+		"Belly" = INTIMATE_SLOT_BELLY,
+	)
+
 /datum/preferences/proc/get_cursed_roundstart_device_options()
 	return list(
 		"None" = CURSED_ROUNDSTART_NONE,
 		"Cursed Collar" = CURSED_ROUNDSTART_COLLAR,
 		"Cursed Chastity" = CURSED_ROUNDSTART_CHASTITY,
 		"Gilded Chastity" = CURSED_ROUNDSTART_GILDED_CHASTITY,
+		"Cursed Piercing" = CURSED_ROUNDSTART_PIERCING,
 	)
 
 /datum/preferences/proc/is_valid_cursed_roundstart_device(device)
@@ -43,6 +69,7 @@
 		CURSED_ROUNDSTART_COLLAR,
 		CURSED_ROUNDSTART_CHASTITY,
 		CURSED_ROUNDSTART_GILDED_CHASTITY,
+		CURSED_ROUNDSTART_PIERCING,
 	)
 
 /datum/preferences/proc/set_cursed_roundstart_device(device)
@@ -65,6 +92,14 @@
 		return FALSE
 	pref_gilded_chastity_recipient = recipient
 	apply_gilded_self_master_recipient_default()
+	return TRUE
+
+/datum/preferences/proc/set_cursed_piercing_slot(slot)
+	if(istext(slot))
+		slot = text2num(slot)
+	if(!is_valid_cursed_piercing_slot(slot))
+		return FALSE
+	pref_cursed_piercing_slot = slot
 	return TRUE
 
 /datum/preferences/proc/apply_gilded_self_master_recipient_default()
@@ -117,10 +152,14 @@
 
 	var/visual_only = istype(wearer, /mob/living/carbon/human/dummy)
 	var/datum/mind/master_mind
+	var/defer_piercing_master_binding = FALSE
 	if(!visual_only)
 		master_mind = find_cursed_roundstart_master_mind(wearer)
 		if(!master_mind)
-			return schedule_cursed_roundstart_retry(wearer, retry_count)
+			if(pref_cursed_roundstart_device == CURSED_ROUNDSTART_PIERCING && (pref_cursed_self_master || length(pref_cursed_master_name)))
+				defer_piercing_master_binding = TRUE
+			else
+				return schedule_cursed_roundstart_retry(wearer, retry_count)
 
 	switch(pref_cursed_roundstart_device)
 		if(CURSED_ROUNDSTART_COLLAR)
@@ -133,6 +172,13 @@
 			if(!chastenable)
 				return FALSE
 			return apply_roundstart_cursed_chastity(wearer, master_mind, visual_only, /obj/item/chastity/cursed/gilded)
+		if(CURSED_ROUNDSTART_PIERCING)
+			if(!intimate_enabled)
+				return FALSE
+			var/applied = apply_roundstart_cursed_piercing(wearer, master_mind, visual_only)
+			if(applied && defer_piercing_master_binding)
+				schedule_cursed_roundstart_retry(wearer, retry_count)
+			return applied
 	return FALSE
 
 /datum/preferences/proc/apply_roundstart_cursed_collar(mob/living/carbon/human/wearer, datum/mind/master_mind, visual_only = FALSE)
@@ -204,3 +250,60 @@
 	ADD_TRAIT(device, TRAIT_NODROP, CURSED_ITEM_TRAIT)
 	to_chat(wearer, span_userdanger("[device.chastity_gilded ? "The gilded chastity device" : "The cursed chastity device"] seals itself around you."))
 	return TRUE
+
+/datum/preferences/proc/bind_roundstart_cursed_piercing(mob/living/carbon/human/wearer, obj/item/intimate_accessory/piercing/cursed/piercing, datum/mind/master_mind)
+	if(!wearer || !piercing || !master_mind)
+		return FALSE
+	var/datum/component/collar_master/CM = master_mind.GetComponent(/datum/component/collar_master)
+	if(piercing.cursed_piercing_master == master_mind && CM && (wearer in CM.my_pets))
+		return TRUE
+	piercing.cursed_piercing_master = master_mind
+	piercing.roundstart_self_master_binding = !!(wearer.mind == master_mind)
+	if(!CM)
+		CM = master_mind.AddComponent(/datum/component/collar_master)
+	if(!CM || (!CM.add_pet(wearer) && !(wearer in CM.my_pets)))
+		piercing.remove_intimate_accessory(wearer)
+		qdel(piercing)
+		return FALSE
+
+	SEND_SIGNAL(wearer, COMSIG_CARBON_COLLAR_BOUND, master_mind, piercing)
+	to_chat(wearer, span_userdanger("The cursed piercing twists shut around you."))
+	return TRUE
+
+/datum/preferences/proc/apply_roundstart_cursed_piercing(mob/living/carbon/human/wearer, datum/mind/master_mind, visual_only = FALSE)
+	if(!wearer)
+		return FALSE
+	var/obj/item/clothing/neck/roguetown/cursed_collar/existing_collar = wearer.get_item_by_slot(SLOT_NECK)
+	if(istype(existing_collar))
+		return FALSE
+	var/obj/item/chastity/existing_chastity = wearer.chastity_device
+	if(istype(existing_chastity) && existing_chastity.chastity_cursed)
+		return FALSE
+	var/obj/item/intimate_accessory/piercing/cursed/piercing = wearer.get_cursed_piercing()
+	if(istype(piercing))
+		if(visual_only || !master_mind)
+			return TRUE
+		return bind_roundstart_cursed_piercing(wearer, piercing, master_mind)
+
+	piercing = new(wearer)
+	piercing.cursed_piercing_master = master_mind
+	piercing.roundstart_self_master_binding = !!(master_mind && wearer.mind == master_mind)
+	var/slot = pref_cursed_piercing_slot
+	if(!is_valid_cursed_piercing_slot(slot) || !piercing.set_current_intimate_slot(slot))
+		qdel(piercing)
+		return FALSE
+	var/obj/item/intimate_accessory/existing_accessory = piercing.get_worn_in_slot(wearer, slot)
+	if(existing_accessory)
+		existing_accessory.remove_intimate_accessory(wearer)
+		qdel(existing_accessory)
+	if(!piercing.is_slot_available(wearer, slot))
+		qdel(piercing)
+		return FALSE
+	if(!piercing.attach_intimate_feature(wearer))
+		qdel(piercing)
+		return FALSE
+	piercing.roundstart_equipped = TRUE
+	piercing.finalize_intimate_equip(wearer)
+	if(visual_only || !master_mind)
+		return TRUE
+	return bind_roundstart_cursed_piercing(wearer, piercing, master_mind)

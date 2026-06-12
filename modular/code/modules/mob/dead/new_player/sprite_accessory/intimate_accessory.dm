@@ -100,15 +100,40 @@
 		return "belly_pierce[cross_suffix]"
 	return "belly_pierce"
 
+/datum/sprite_accessory/intimate_accessory/proc/resolve_genital_piercing_icon_state(overlay_icon_state)
+	if(icon_exists(icon, overlay_icon_state))
+		return overlay_icon_state
+	var/layer_index_state = "[overlay_icon_state]_1"
+	if(icon_exists(icon, layer_index_state))
+		return layer_index_state
+	return null
+
+/datum/sprite_accessory/intimate_accessory/proc/get_genital_piercing_gem_icon_state(overlay_icon_state)
+	var/suffixed_gem_state = "[overlay_icon_state]_gem"
+	if(icon_exists(icon, suffixed_gem_state))
+		return suffixed_gem_state
+	if(findtext(overlay_icon_state, "vagina_pierce_") == 1)
+		var/vagina_state = copytext(overlay_icon_state, length("vagina_pierce_") + 1)
+		var/prefixed_gem_state = "vagina_pierce_gem_[vagina_state]"
+		if(icon_exists(icon, prefixed_gem_state))
+			return prefixed_gem_state
+	return null
+
 /datum/sprite_accessory/intimate_accessory/proc/get_genital_piercing_overlay(overlay_icon_state, color_string, passed_layer)
+	var/resolved_icon_state = resolve_genital_piercing_icon_state(overlay_icon_state)
+	if(!resolved_icon_state)
+		return null
+
 	color_string = sanitize_color_string(color_string)
-	var/cache_key = "[type]-genital-[overlay_icon_state]-[color_string]"
+	var/cache_key = "[type]-genital-[resolved_icon_state]-[color_string]"
 	if(!accessory_icon_cache[cache_key])
 		var/list/color_list = color_string_to_list(color_string)
-		accessory_icon_cache[cache_key] = generate_genital_piercing_icon_state(overlay_icon_state, color_list)
+		var/icon/icon_bundle = icon('icons/Testing/greyscale_error.dmi')
+		icon_bundle.Insert(generate_genital_piercing_icon_state(resolved_icon_state, color_list), resolved_icon_state)
+		accessory_icon_cache[cache_key] = icon_bundle
 
 	var/icon/cached_icon = icon(accessory_icon_cache[cache_key])
-	var/mutable_appearance/appearance = mutable_appearance(cached_icon, overlay_icon_state, layer = -passed_layer)
+	var/mutable_appearance/appearance = mutable_appearance(cached_icon, resolved_icon_state, layer = -passed_layer)
 	appearance.pixel_x = pixel_x
 	appearance.pixel_y = pixel_y
 	return appearance
@@ -125,8 +150,9 @@
 	var/icon/result_icon = icon(icon, overlay_icon_state)
 	result_icon.Blend(metal_color, ICON_MULTIPLY)
 
-	if(icon_exists(icon, "[overlay_icon_state]_gem"))
-		var/icon/gem_mask_icon = icon(icon, "[overlay_icon_state]_gem")
+	var/gem_icon_state = get_genital_piercing_gem_icon_state(overlay_icon_state)
+	if(gem_icon_state)
+		var/icon/gem_mask_icon = icon(icon, gem_icon_state)
 		gem_mask_icon.Blend(gem_color, ICON_MULTIPLY)
 		result_icon.Blend(gem_mask_icon, ICON_OVERLAY)
 

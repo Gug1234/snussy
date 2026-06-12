@@ -145,7 +145,7 @@
 
 /obj/item/chastity/cursed/gilded
 	name = "gilded chastity device"
-	desc = "A gilded cursed chastity frame linked to the wearer's Nervelock. Every jingle can draw mammon from the account it grips."
+	desc = "A gilded cursed chastity frame linked to the wearer's Nervelock. Each orgasm can draw mammon from the account it grips."
 	icon_state = "cage_belt"
 	item_state = "cage_belt"
 	mob_overlay_icon = "cage_belt"

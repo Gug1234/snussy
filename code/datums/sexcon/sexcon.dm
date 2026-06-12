@@ -355,6 +355,7 @@
 /datum/sex_controller/proc/cum_onto(mob/living/carbon/human/splashed_user = null, cum_on_face = TRUE)
 	if(try_resist_orgasm())
 		return
+	SEND_SIGNAL(user, COMSIG_MOB_EJACULATED)
 	var/mob/living/carbon/human/effective_target = splashed_user || target
 	log_combat(user, effective_target, "Came onto the target")
 	if(effective_target)
@@ -475,6 +476,8 @@
 /datum/sex_controller/proc/cum_into(oral = FALSE, mob/living/carbon/human/splashed_user = null, datum/sex_action/knot_action = null, knot_swap_roles = FALSE, mob/living/carbon/human/knot_btm = null, orifice = SEX_PART_NULL, skip_knot_try = FALSE, consume_charge = TRUE)
 	if(try_resist_orgasm())
 		return
+	if(consume_charge)
+		SEND_SIGNAL(user, COMSIG_MOB_EJACULATED)
 
 	// splashed_user is the receiving bottom. Riding and oral actions can set
 	// it explicitly when src.target is not the body receiving the payload.
@@ -752,6 +755,7 @@
 /datum/sex_controller/proc/ejaculate_container(obj/item/reagent_containers/glass/C)
 	if(try_resist_orgasm())
 		return
+	SEND_SIGNAL(user, COMSIG_MOB_EJACULATED)
 	if(C && istype(C))
 		log_combat(user, user, "Ejaculated into a container")
 		user.visible_message(span_love("[user] spills into [C]!"))

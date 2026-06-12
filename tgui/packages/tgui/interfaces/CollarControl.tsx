@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -47,11 +47,14 @@ type PetEntry = {
     gilded_overdraw_effect_label: string;
     gilded_total_drained: number;
     gilded_next_shrink_threshold: number;
-    gilded_zero_fund_jingles: number;
+    gilded_zero_fund_orgasms: number;
     gilded_limped: boolean;
   };
   piercing: {
+    current_slot: number;
     slot_name: string;
+    supported_slots: number[];
+    custom_descriptor: string;
     metal_key: string;
     metal_color: string;
     gem_key: string;
@@ -71,6 +74,11 @@ type CursedPiercingOption = {
   key: string;
   label: string;
   color: string;
+};
+
+type CursedPiercingSlotOption = {
+  label: string;
+  value: number;
 };
 
 const gildedRecipientOptions = [
@@ -95,6 +103,7 @@ type Data = {
   pets: PetEntry[];
   cursed_piercing_metal_options: CursedPiercingOption[];
   cursed_piercing_gem_options: CursedPiercingOption[];
+  cursed_piercing_slot_options: CursedPiercingSlotOption[];
 };
 
 export const CollarControl = () => {
@@ -777,11 +786,11 @@ const CursedChastityControls = (props: {
             Gilded
           </Box>
           <LabeledList>
-            <LabeledList.Item label="Drain">
+            <LabeledList.Item label="Drain/Orgasm">
               <NumberInput
                 step={1}
                 minValue={0}
-                maxValue={50}
+                maxValue={100}
                 value={currentGildedDrain}
                 disabled={cursedActionDisabled}
                 onChange={(value: number) =>
@@ -818,8 +827,8 @@ const CursedChastityControls = (props: {
               {selectedCursedPet?.chastity.gilded_total_drained ?? 0} /{' '}
               {selectedCursedPet?.chastity.gilded_next_shrink_threshold ?? 0}
             </LabeledList.Item>
-            <LabeledList.Item label="Empty jingles">
-              {selectedCursedPet?.chastity.gilded_zero_fund_jingles ?? 0}
+            <LabeledList.Item label="Empty orgasms">
+              {selectedCursedPet?.chastity.gilded_zero_fund_orgasms ?? 0}
               {selectedCursedPet?.chastity.gilded_limped ? ' (limp)' : ''}
             </LabeledList.Item>
             <LabeledList.Item label="Overdraw">
@@ -888,6 +897,15 @@ const CursedPiercingControls = (props: {
   const selectedPiercingPet =
     piercingPets.length === 1 ? piercingPets[0] : undefined;
   const piercing = selectedPiercingPet?.piercing;
+  const supportedPiercingSlots = (piercing?.supported_slots ?? []).map(Number);
+  const currentDescriptor = piercing?.custom_descriptor ?? '';
+  const [descriptorDraft, setDescriptorDraft] = useState(currentDescriptor);
+
+  useEffect(() => {
+    setDescriptorDraft(currentDescriptor);
+  }, [currentDescriptor, selectedPiercingPet?.ref]);
+
+  const descriptorChanged = descriptorDraft !== currentDescriptor;
 
   const organControl = (
     label: string,
@@ -936,6 +954,80 @@ const CursedPiercingControls = (props: {
           <LabeledList>
             <LabeledList.Item label="Form">
               {piercing?.slot_name ?? 'Unknown'}
+            </LabeledList.Item>
+            <LabeledList.Item label="Examine Name">
+              <Stack align="center">
+                <Stack.Item grow>
+                  <Input
+                    fluid
+                    value={descriptorDraft}
+                    maxLength={48}
+                    placeholder="Generated name"
+                    disabled={piercingActionDisabled}
+                    onChange={setDescriptorDraft}
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="tag"
+                    disabled={piercingActionDisabled || !descriptorChanged}
+                    tooltip={
+                      reasonForPiercingAction ||
+                      (!descriptorChanged ? 'No name change' : undefined)
+                    }
+                    onClick={() =>
+                      act('piercing_set_descriptor', {
+                        descriptor: descriptorDraft,
+                      })
+                    }
+                  >
+                    Set
+                  </Button>
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="times"
+                    disabled={piercingActionDisabled || !currentDescriptor}
+                    tooltip={reasonForPiercingAction}
+                    onClick={() => {
+                      act('piercing_set_descriptor', { descriptor: '' });
+                      setDescriptorDraft('');
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </Stack.Item>
+              </Stack>
+            </LabeledList.Item>
+            <LabeledList.Item label="Location">
+              <Stack wrap>
+                {data.cursed_piercing_slot_options?.map((option) => {
+                  const value = Number(option.value);
+                  const selected = piercing?.current_slot === value;
+                  const supported = supportedPiercingSlots.includes(value);
+                  return (
+                    <Stack.Item key={option.value}>
+                      <Button
+                        icon="map-pin"
+                        selected={selected}
+                        disabled={
+                          piercingActionDisabled || selected || !supported
+                        }
+                        tooltip={
+                          !supported
+                            ? 'This piercing cannot use that location.'
+                            : reasonForPiercingAction
+                        }
+                        onClick={() =>
+                          act('piercing_set_slot', { slot: option.value })
+                        }
+                      >
+                        {option.label}
+                      </Button>
+                    </Stack.Item>
+                  );
+                })}
+              </Stack>
             </LabeledList.Item>
             {organControl(
               'Penis',

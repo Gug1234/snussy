@@ -207,7 +207,7 @@
 	if(!chastity_gilded || !H)
 		return FALSE
 	gilded_drain_amount = clamp(round(text2num("[amount]")), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
-	to_chat(H, span_notice("The gilded device clicks to [gilded_drain_amount] mammon per jingle."))
+	to_chat(H, span_notice("The gilded device clicks to [gilded_drain_amount] mammon per orgasm."))
 	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_DRAIN, "amount=[gilded_drain_amount]")
 	return TRUE
 
@@ -321,7 +321,7 @@
 /obj/item/chastity/proc/apply_gilded_overdraw_effect(mob/living/carbon/human/H)
 	if(!chastity_gilded || !H)
 		return FALSE
-	gilded_zero_fund_jingles++
+	gilded_zero_fund_orgasms++
 	var/effect_handled = FALSE
 	switch(gilded_overdraw_effect)
 		if(GILDED_CHASTITY_OVERDRAW_PAIN)
@@ -332,7 +332,7 @@
 			effect_handled = force_gilded_climax(H)
 		else
 			effect_handled = apply_gilded_shrink(H)
-	if(!gilded_limped && gilded_zero_fund_jingles >= GILDED_CHASTITY_ZERO_JINGLES_FOR_LIMP && H.getorganslot(ORGAN_SLOT_PENIS))
+	if(!gilded_limped && gilded_zero_fund_orgasms >= GILDED_CHASTITY_ZERO_ORGASMS_FOR_LIMP && H.getorganslot(ORGAN_SLOT_PENIS))
 		ADD_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
 		gilded_limped = TRUE
 		H.visible_message(span_warning("[H]'s gilded chastity device rings hollow and cinches shut."), span_userdanger("The gilded cage drinks from an empty Nervelock and leaves me permanently limp."))

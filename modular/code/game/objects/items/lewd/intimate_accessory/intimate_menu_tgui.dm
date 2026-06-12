@@ -117,7 +117,7 @@
 		"custom_descriptor" = "",
 	)
 
-	if(is_self && istype(acc, /obj/item/intimate_accessory/piercing))
+	if(is_self && istype(acc, /obj/item/intimate_accessory/piercing) && !istype(acc, /obj/item/intimate_accessory/piercing/cursed))
 		var/obj/item/intimate_accessory/piercing/piercing = acc
 		data["can_customize_descriptor"] = TRUE
 		data["custom_descriptor"] = piercing.custom_piercing_descriptor || ""
@@ -193,6 +193,8 @@
 	if(!istype(accessory, /obj/item/intimate_accessory/piercing))
 		return FALSE
 	var/obj/item/intimate_accessory/piercing/piercing = accessory
+	if(istype(piercing, /obj/item/intimate_accessory/piercing/cursed))
+		return FALSE
 	piercing.set_custom_piercing_descriptor(descriptor)
 	var/slot_key = piercing.get_intimate_preference_slot_key()
 	if(slot_key && wearer.client?.prefs)

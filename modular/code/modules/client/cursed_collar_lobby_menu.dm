@@ -1,8 +1,8 @@
 /**
  * # Cursed Collar Lobby Menu
  *
- * Character-sheet TGUI for selecting a round-start cursed collar or cursed
- * chastity binding and the character name that should control it.
+ * Character-sheet TGUI for selecting a round-start cursed binding and the
+ * character name that should control it.
  */
 
 /datum/cursed_collar_lobby_menu
@@ -43,13 +43,23 @@
 			"label" = label,
 			"value" = raw_recipient_options[label],
 		))
+	var/list/piercing_slot_options = list()
+	var/list/raw_piercing_slot_options = get_cursed_piercing_slot_options()
+	for(var/label in raw_piercing_slot_options)
+		piercing_slot_options += list(list(
+			"label" = label,
+			"value" = raw_piercing_slot_options[label],
+		))
 
 	data["cursed_enabled"] = prefs.cursed_enabled
 	data["chastenable"] = prefs.chastenable
+	data["intimate_enabled"] = prefs.intimate_enabled
 	data["device"] = prefs.pref_cursed_roundstart_device
 	data["device_options"] = device_options
 	data["gilded_recipient"] = prefs.pref_gilded_chastity_recipient
 	data["gilded_recipient_options"] = gilded_recipient_options
+	data["piercing_slot"] = prefs.pref_cursed_piercing_slot
+	data["piercing_slot_options"] = piercing_slot_options
 	data["master_name"] = prefs.pref_cursed_master_name
 	data["self_master"] = prefs.pref_cursed_self_master
 	data["character_name"] = prefs.real_name
@@ -75,6 +85,13 @@
 			if(!prefs.set_gilded_chastity_recipient(params["recipient"]))
 				return FALSE
 			prefs.save_character()
+			return TRUE
+
+		if("set_piercing_slot")
+			if(!prefs.set_cursed_piercing_slot(params["slot"]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
 			return TRUE
 
 		if("set_master_name")
