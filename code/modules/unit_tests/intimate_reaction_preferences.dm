@@ -41,7 +41,7 @@
 	TEST_ASSERT(!prefs.can_emit_intimate_reaction_category("chastity_jingle_emotes", INTIMATE_CONTENT_CHASTITY), "chastity reaction toggle should suppress source emission")
 
 /datum/unit_test/intimate_reaction_token_perspective/Run()
-	var/mob/living/carbon/human/source = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/consistent/source = allocate(/mob/living/carbon/human/consistent)
 	source.name = "Josh Killerfang"
 
 	var/raw_text = "\[USERPOS] tail blooms while \[USER] can feel it."
@@ -49,7 +49,7 @@
 	TEST_ASSERT_EQUAL(resolve_intimate_reaction_tokens(raw_text, source), "Josh Killerfang's tail blooms while Josh Killerfang can feel it.", "viewer-facing tokens should resolve in third person")
 
 /datum/unit_test/intimate_reaction_character_flavor_attachment/Run()
-	var/mob/living/carbon/human/preview = allocate(/mob/living/carbon/human)
+	var/mob/living/carbon/human/consistent/preview = allocate(/mob/living/carbon/human/consistent)
 	var/datum/preferences/prefs = new
 
 	prefs.custom_intimate_reactions = list(
