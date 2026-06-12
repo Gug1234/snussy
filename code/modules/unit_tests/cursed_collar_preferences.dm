@@ -251,6 +251,7 @@
 	penis.penis_size = DEFAULT_PENIS_SIZE
 	drained = device.on_gilded_orgasm_triggered(wearer)
 	TEST_ASSERT_EQUAL(drained, 0, "overdraw orgasm should not drain mammon")
+	sleep(1)
 	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE - 1, "default overdraw effect should shrink penis size")
 
 	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_AROUSAL), "gilded overdraw arousal effect should be accepted")
@@ -259,6 +260,7 @@
 	wearer.sexcon.set_arousal(0)
 	drained = device.on_gilded_orgasm_triggered(wearer)
 	TEST_ASSERT_EQUAL(drained, 0, "arousal overdraw orgasm should not drain mammon")
+	sleep(1)
 	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE, "arousal overdraw effect should not shrink penis size")
 	TEST_ASSERT_EQUAL(wearer.sexcon.arousal, 20, "arousal overdraw effect should raise arousal")
 
@@ -267,6 +269,7 @@
 	REMOVE_TRAIT(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
 	for(var/i in 1 to GILDED_CHASTITY_ZERO_ORGASMS_FOR_LIMP)
 		device.on_gilded_orgasm_triggered(wearer)
+		sleep(1)
 	TEST_ASSERT(HAS_TRAIT(wearer, TRAIT_LIMPDICK), "three zero-fund orgasms should apply round-only limpness")
 
 	if(wearer.chastity_device == device)

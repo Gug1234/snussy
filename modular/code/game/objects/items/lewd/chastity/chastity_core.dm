@@ -174,9 +174,8 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	chastity_victim.update_body_parts(TRUE)
 	chastity_victim.update_inv_belt()
 
-/obj/item/chastity/proc/on_gilded_orgasm_triggered(datum/source)
+/obj/item/chastity/proc/on_gilded_orgasm_triggered(mob/living/carbon/human/wearer)
 	SIGNAL_HANDLER
-	var/mob/living/carbon/human/wearer = source
 	if(!chastity_gilded || !wearer || QDELETED(wearer))
 		return 0
 	if(wearer.chastity_device != src || loc != wearer)
@@ -192,8 +191,7 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 		SStreasury.bank_accounts[wearer] = current_balance
 	var/drained = min(drain_amount, current_balance)
 	if(drained <= 0)
-		apply_gilded_overdraw_effect(wearer)
-		gilded_orgasm_drain_in_progress = FALSE
+		INVOKE_ASYNC(src, PROC_REF(handle_gilded_overdraw_effect_async), wearer)
 		return 0
 
 	SStreasury.bank_accounts[wearer] = current_balance - drained
@@ -204,6 +202,17 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	apply_gilded_drain_milestones(wearer)
 	gilded_orgasm_drain_in_progress = FALSE
 	return drained
+
+/obj/item/chastity/proc/handle_gilded_overdraw_effect_async(mob/living/carbon/human/wearer)
+	set waitfor = FALSE
+	if(!chastity_gilded || !wearer || QDELETED(wearer))
+		gilded_orgasm_drain_in_progress = FALSE
+		return FALSE
+	if(wearer.chastity_device != src || loc != wearer)
+		gilded_orgasm_drain_in_progress = FALSE
+		return FALSE
+	. = apply_gilded_overdraw_effect(wearer)
+	gilded_orgasm_drain_in_progress = FALSE
 
 // Restricts caging to valid player-controlled humans and disallows transformed werewolves.
 /obj/item/chastity/proc/can_cage_target(mob/living/carbon/human/H, mob/user)
