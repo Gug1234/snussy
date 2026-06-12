@@ -287,7 +287,8 @@
 	var/obj/item/organ/penis/user_penis = user.getorganslot(ORGAN_SLOT_PENIS)
 	if(user_penis)
 		penis_type_label = get_penis_type_label(user_penis.penis_type)
-	text = replacetext(text, "\[PENIS_TYPE]", penis_type_label)
+	var/custom_penis_type_label = resolve_custom_anatomy_token(user, "cock", CUSTOM_ANATOMY_TOKEN_BARE, penis_type_label)
+	text = replacetext(text, "\[PENIS_TYPE]", custom_penis_type_label)
 
 	// --- Penis size descriptor token ---
 	// [COCKSIZE] resolves to a visceral, shame/lust-coded descriptor based on penis_size.
@@ -326,7 +327,8 @@
 		cup_short_label = find_key_by_value(GLOB.named_breast_sizes, user_breasts.breast_size)
 		if(!cup_short_label)
 			cup_short_label = "unknown"
-	text = replacetext(text, "\[CUPSIZE]", cup_label)
+	var/custom_cup_label = resolve_custom_anatomy_token(user, "cup_size", CUSTOM_ANATOMY_TOKEN_BARE, cup_label)
+	text = replacetext(text, "\[CUPSIZE]", custom_cup_label)
 
 	// --- Short breast-size adjective ---
 	// [CUPADJ] resolves to a single word: "flat", "small", "modest", "generous", "heavy", "obscene".
@@ -342,7 +344,8 @@
 	var/breast_type_label = "none"
 	if(user_breasts)
 		breast_type_label = _breast_type_descriptor(user_breasts.accessory_type, user_breasts.breast_size)
-	text = replacetext(text, "\[BREASTTYPE]", breast_type_label)
+	var/custom_breast_type_label = resolve_custom_anatomy_token(user, "breast_type", CUSTOM_ANATOMY_TOKEN_BARE, breast_type_label)
+	text = replacetext(text, "\[BREASTTYPE]", custom_breast_type_label)
 
 	// --- Vagina type token ---
 	// [VAGTYPE] resolves to a visceral descriptor based on the vagina's sprite accessory type.
@@ -350,7 +353,8 @@
 	var/obj/item/organ/vagina/user_vagina = user.getorganslot(ORGAN_SLOT_VAGINA)
 	if(user_vagina)
 		vagtype_label = _vagina_type_descriptor(user_vagina.accessory_type)
-	text = replacetext(text, "\[VAGTYPE]", vagtype_label)
+	var/custom_vagtype_label = resolve_custom_anatomy_token(user, "vag", CUSTOM_ANATOMY_TOKEN_BARE, vagtype_label)
+	text = replacetext(text, "\[VAGTYPE]", custom_vagtype_label)
 
 	// --- Short vagina-type adjective ---
 	// [VAGADJ] resolves to a single word: "smooth", "hairy", "trimmed", "spaded", "furred", "gaping", "cloacal".

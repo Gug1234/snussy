@@ -58,6 +58,66 @@ describe('ERP preview token options', () => {
     );
   });
 
+  it('uses shared custom anatomy tokens for sex and intimate preview nouns', () => {
+    const profile = {
+      ...createDefaultErpPreviewProfile(),
+      userName: 'Mara Ratwood',
+      userThey: 'she',
+      userThem: 'her',
+      userTheir: 'her',
+      penisType: 'plain cock',
+      sizeAdj: 'heavy',
+      vagAdj: 'slick',
+      vagType: 'plain slit',
+      cupSize: 'plain cup',
+      breastType: 'plain breasts',
+      userCock: 'plain cock',
+      userVag: 'plain slit',
+      userCupSize: 'plain cup',
+      userBreastType: 'plain breasts',
+      targetName: 'Jane Ratwood',
+      targetThey: 'she',
+      targetThem: 'her',
+      targetTheir: 'her',
+      targetCock: 'barbed cock',
+    };
+    const anatomyTokens = {
+      cock: 'big ol dick',
+      vag: 'axe wound pussy',
+      cup_size: 'double Qs',
+      breast_type: 'hyper chest',
+    };
+
+    expect(
+      resolveErpPreviewTokens(
+        '[PENIS_TYPE] [VAGTYPE] [CUPSIZE] [BREASTTYPE] [SIZEADJ] [VAGADJ]',
+        'intimate-bystander',
+        profile,
+        anatomyTokens,
+      ),
+    ).toBe(
+      'big ol dick axe wound pussy double Qs hyper chest heavy slick',
+    );
+    expect(
+      resolveErpPreviewTokens(
+        '[USER] guides [UCOCK] toward [UVAG] and [UBREASTTYPE].',
+        'sex-giving',
+        profile,
+        anatomyTokens,
+      ),
+    ).toBe(
+      'You guide your big ol dick toward your axe wound pussy and your hyper chest.',
+    );
+    expect(
+      resolveErpPreviewTokens(
+        '[TARGET] guides [TCOCK] toward [TVAG].',
+        'sex-receiving',
+        profile,
+        anatomyTokens,
+      ),
+    ).toBe('You guide your big ol dick toward your axe wound pussy.');
+  });
+
   it('applies fixed target presets for name and pronouns', () => {
     const profile = applyTargetPresetToPreviewProfile(
       createDefaultErpPreviewProfile(),

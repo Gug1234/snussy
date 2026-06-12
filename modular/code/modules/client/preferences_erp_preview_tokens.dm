@@ -1,12 +1,14 @@
 /**
  * preferences_erp_preview_tokens.dm - Per-character local preview token profile.
  *
- * This data is only for TGUI live previews in ERP text editors. Runtime output
- * still resolves from real mobs. The profile is saved per character slot so
- * previews do not hit server-side prefs on every keystroke.
+ * Preview profile data is only for TGUI live previews in ERP text editors.
+ * Runtime output still resolves from real mobs. custom_anatomy_tokens is the
+ * shared per-character runtime override map used by both custom sex and
+ * intimate reaction token resolution.
  */
 
 /datum/preferences/var/list/erp_preview_tokens = null
+/datum/preferences/var/list/custom_anatomy_tokens = null
 
 /proc/get_default_erp_preview_tokens()
 	var/list/profile = list(
@@ -64,6 +66,106 @@
 	if(!istext(value))
 		return null
 	return strip_html_simple(sanitize_simple(copytext(value, 1, 96)))
+
+/proc/get_custom_anatomy_token_keys()
+	return list("cock", "shaft", "size", "vag", "cup_size", "breast_type")
+
+/proc/sanitize_custom_anatomy_token_value(value)
+	if(!istext(value))
+		return null
+	return strip_html_simple(sanitize_simple(html_decode(copytext(value, 1, 97))))
+
+/datum/preferences/proc/validate_custom_anatomy_tokens()
+	if(!islist(custom_anatomy_tokens))
+		custom_anatomy_tokens = null
+		return
+
+	var/list/valid_keys = get_custom_anatomy_token_keys()
+	var/list/validated = list()
+	for(var/key in valid_keys)
+		var/value = sanitize_custom_anatomy_token_value(custom_anatomy_tokens[key])
+		if(!value || !length(value))
+			continue
+		validated[key] = value
+	custom_anatomy_tokens = length(validated) ? validated : null
+
+/datum/preferences/proc/get_custom_anatomy_tokens()
+	validate_custom_anatomy_tokens()
+	return islist(custom_anatomy_tokens) ? custom_anatomy_tokens : list()
+
+/datum/preferences/proc/get_custom_anatomy_token(key)
+	if(!(key in get_custom_anatomy_token_keys()))
+		return null
+	validate_custom_anatomy_tokens()
+	if(!islist(custom_anatomy_tokens))
+		return null
+	return custom_anatomy_tokens[key]
+
+/datum/preferences/proc/set_custom_anatomy_token(key, value)
+	if(!(key in get_custom_anatomy_token_keys()))
+		return FALSE
+	var/clean_value = sanitize_custom_anatomy_token_value(value)
+	if(!clean_value || !length(clean_value))
+		return clear_custom_anatomy_token(key)
+	if(!islist(custom_anatomy_tokens))
+		custom_anatomy_tokens = list()
+	custom_anatomy_tokens[key] = clean_value
+	return TRUE
+
+/datum/preferences/proc/clear_custom_anatomy_token(key)
+	if(!(key in get_custom_anatomy_token_keys()))
+		return FALSE
+	if(islist(custom_anatomy_tokens))
+		custom_anatomy_tokens.Remove(key)
+		if(!length(custom_anatomy_tokens))
+			custom_anatomy_tokens = null
+	return TRUE
+
+/proc/get_default_custom_anatomy_token(mob/living/carbon/human/owner, key)
+	if(!owner)
+		return "none"
+
+	var/obj/item/organ/penis/penis = owner.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/vagina/vagina = owner.getorganslot(ORGAN_SLOT_VAGINA)
+	var/obj/item/organ/breasts/breasts = owner.getorganslot(ORGAN_SLOT_BREASTS)
+	switch(key)
+		if("cock", "shaft")
+			if(penis)
+				return get_penis_type_label(penis.penis_type)
+		if("size")
+			if(penis)
+				return _penis_size_adjective(penis.penis_size)
+		if("vag")
+			if(vagina)
+				return _vagina_type_descriptor(vagina.accessory_type)
+		if("cup_size")
+			if(breasts)
+				return _breast_size_adjective(breasts.breast_size)
+		if("breast_type")
+			if(breasts)
+				return _breast_type_descriptor(breasts.accessory_type, breasts.breast_size)
+	return "none"
+
+/proc/resolve_custom_anatomy_token(mob/living/carbon/human/owner, key, mode = CUSTOM_ANATOMY_TOKEN_BARE, fallback_value = null, datum/preferences/prefs = null)
+	var/resolved_text = null
+	var/datum/preferences/source_prefs = prefs || owner?.client?.prefs
+	if(source_prefs)
+		resolved_text = source_prefs.get_custom_anatomy_token(key)
+	if(!istext(resolved_text) || !length(trim(resolved_text)))
+		resolved_text = istext(fallback_value) ? fallback_value : get_default_custom_anatomy_token(owner, key)
+	if(!istext(resolved_text))
+		return "none"
+
+	var/trimmed_text = trim(resolved_text)
+	if(!length(trimmed_text) || trimmed_text == "none")
+		return trimmed_text
+
+	switch(mode)
+		if(CUSTOM_ANATOMY_TOKEN_SECOND_PERSON)
+			return "your [trimmed_text]"
+		if(CUSTOM_ANATOMY_TOKEN_POSSESSIVE)
+			return "[owner ? owner.p_their() : "their"] [trimmed_text]"
+	return trimmed_text
 
 /datum/preferences/proc/validate_erp_preview_tokens()
 	if(!islist(erp_preview_tokens))

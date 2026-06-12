@@ -13,6 +13,11 @@
 /// Maximum number of custom sex action slots a player can define.
 #define MAX_CUSTOM_SEX_ACTIONS 5
 
+/// Runtime custom anatomy token output modes.
+#define CUSTOM_ANATOMY_TOKEN_BARE "bare"
+#define CUSTOM_ANATOMY_TOKEN_POSSESSIVE "possessive"
+#define CUSTOM_ANATOMY_TOKEN_SECOND_PERSON "second_person"
+
 /// Custom sex action sound course identifiers.
 #define CUSTOM_SEX_SOUND_NONE "none"
 #define CUSTOM_SEX_SOUND_GENERIC "generic"

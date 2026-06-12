@@ -12,6 +12,9 @@
  * Token placeholders resolved at runtime (see resolve_sex_flavor_tokens):
  *   [USER]   [TARGET]  [THEY]  [THEM]  [THEIR]
  *   [TTHEY]  [TTHEM]   [TTHEIR]        [FORCE]
+ *   [UCOCK]  [TCOCK]   [USHAFT] [TSHAFT]
+ *   [USIZE]  [TSIZE]   [UVAG]   [TVAG]
+ *   [UCUPSIZE] [TCUPSIZE] [UBREASTTYPE] [TBREASTTYPE]
  */
 
 /// IC verb available to any chastenable player. Opens their own flavor editor.
@@ -204,6 +207,7 @@
 	// for this action) and `can_use` (whether the character's anatomy supports it).
 	data["dirty"] = dirty
 	data["preview_tokens"] = prefs.get_erp_preview_tokens()
+	data["anatomy_tokens"] = prefs.get_custom_anatomy_tokens()
 	var/datum/erp_chunked_export_panel_state/transfer = get_transfer_state()
 	data["export_text"] = transfer.export_text
 	data["export_chunk_count"] = transfer.export_chunk_count
@@ -448,6 +452,18 @@
 
 		if("set_preview_token")
 			if(!prefs.set_erp_preview_token(params["key"], params["value"]))
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("set_anatomy_token")
+			if(!prefs.set_custom_anatomy_token(params["key"], params["value"]))
+				return FALSE
+			dirty = TRUE
+			return TRUE
+
+		if("clear_anatomy_token")
+			if(!prefs.clear_custom_anatomy_token(params["key"]))
 				return FALSE
 			dirty = TRUE
 			return TRUE

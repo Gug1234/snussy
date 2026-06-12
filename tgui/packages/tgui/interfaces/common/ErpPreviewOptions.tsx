@@ -79,6 +79,15 @@ export type ErpPreviewProfileData = Partial<ErpPreviewProfile> & {
   target_taur?: string;
 };
 
+export type CustomAnatomyTokenData = Partial<{
+  cock: string;
+  shaft: string;
+  size: string;
+  vag: string;
+  cup_size: string;
+  breast_type: string;
+}>;
+
 export type PreviewOptionsAct = (
   action: string,
   payload?: Record<string, string>,
@@ -246,8 +255,13 @@ export function resolveErpPreviewTokens(
   text: string,
   perspective: ErpPreviewPerspective,
   profileData?: ErpPreviewProfileData,
+  anatomyTokens?: CustomAnatomyTokenData,
 ): string {
-  const profile = normalizeErpPreviewProfile(profileData);
+  const profile = applyCustomAnatomyTokensToPreviewProfile(
+    normalizeErpPreviewProfile(profileData),
+    anatomyTokens,
+    perspective,
+  );
   const userIsYou =
     perspective === 'intimate-wearer' || perspective === 'sex-giving';
   const targetIsYou = perspective === 'sex-receiving';
@@ -340,16 +354,28 @@ export function resolveErpPreviewTokens(
 
 export function ErpPreviewOptionsButton({
   profile,
+  anatomyTokens,
   act,
 }: {
   profile?: ErpPreviewProfileData;
+  anatomyTokens?: CustomAnatomyTokenData;
   act: PreviewOptionsAct;
 }) {
   const [open, setOpen] = useState(false);
   const normalized = normalizeErpPreviewProfile(profile);
+  const normalizedAnatomyTokens = normalizeCustomAnatomyTokens(anatomyTokens);
 
   function setToken(key: keyof ErpPreviewProfile, value: string) {
     act('set_preview_token', { key: toServerKey(key), value });
+  }
+
+  function setAnatomyToken(key: keyof CustomAnatomyTokenData, value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      act('clear_anatomy_token', { key });
+      return;
+    }
+    act('set_anatomy_token', { key, value: trimmed });
   }
 
   function setTargetPreset(preset: string) {
@@ -389,6 +415,31 @@ export function ErpPreviewOptionsButton({
                     Refresh Features
                   </Button>
                 </Stack.Item>
+              </Stack>
+            </Stack.Item>
+            <Stack.Item>
+              <Box bold fontSize="11px" mb={0.25}>
+                Shared Anatomy
+              </Box>
+              <Stack wrap>
+                {(
+                  [
+                    ['cock', 'Cock'],
+                    ['shaft', 'Shaft'],
+                    ['size', 'Size'],
+                    ['vag', 'Vag'],
+                    ['cup_size', 'Cup'],
+                    ['breast_type', 'Breasts'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <TextTokenField
+                    key={key}
+                    label={label}
+                    value={normalizedAnatomyTokens[key] ?? ''}
+                    placeholder="Feature default"
+                    onChange={(value) => setAnatomyToken(key, value)}
+                  />
+                ))}
               </Stack>
             </Stack.Item>
             <Stack.Item>
@@ -509,10 +560,12 @@ export function ErpPreviewOptionsButton({
 function TextTokenField({
   label,
   value,
+  placeholder,
   onChange,
 }: {
   label: string;
   value: string;
+  placeholder?: string;
   onChange: (value: string) => void;
 }) {
   const [draft, setDraft] = useState(value);
@@ -525,6 +578,7 @@ function TextTokenField({
       <Input
         fluid
         value={draft}
+        placeholder={placeholder}
         onChange={setDraft}
         onBlur={() => onChange(draft)}
       />
@@ -581,6 +635,78 @@ function withPossessive(
     return trimmed;
   }
   return `${secondPerson ? 'your' : thirdPersonPossessive} ${trimmed}`;
+}
+
+function normalizeCustomAnatomyTokens(
+  tokens?: CustomAnatomyTokenData,
+): CustomAnatomyTokenData {
+  const normalized: CustomAnatomyTokenData = {};
+  if (!tokens) {
+    return normalized;
+  }
+  for (const key of [
+    'cock',
+    'shaft',
+    'size',
+    'vag',
+    'cup_size',
+    'breast_type',
+  ] as const) {
+    const value = tokens[key];
+    if (typeof value === 'string' && value.trim()) {
+      normalized[key] = value.trim();
+    }
+  }
+  return normalized;
+}
+
+function applyCustomAnatomyTokensToPreviewProfile(
+  profile: ErpPreviewProfile,
+  tokens: CustomAnatomyTokenData | undefined,
+  perspective: ErpPreviewPerspective,
+): ErpPreviewProfile {
+  const anatomy = normalizeCustomAnatomyTokens(tokens);
+  const userIsYou =
+    perspective === 'intimate-wearer' || perspective === 'sex-giving';
+  const targetIsYou = perspective === 'sex-receiving';
+
+  return {
+    ...profile,
+    penisType: anatomy.cock ?? profile.penisType,
+    vagType: anatomy.vag ?? profile.vagType,
+    cupSize: anatomy.cup_size ?? profile.cupSize,
+    breastType: anatomy.breast_type ?? profile.breastType,
+    userCock: userIsYou ? (anatomy.cock ?? profile.userCock) : profile.userCock,
+    userShaft: userIsYou
+      ? (anatomy.shaft ?? profile.userShaft)
+      : profile.userShaft,
+    userSize: userIsYou ? (anatomy.size ?? profile.userSize) : profile.userSize,
+    userVag: userIsYou ? (anatomy.vag ?? profile.userVag) : profile.userVag,
+    userCupSize: userIsYou
+      ? (anatomy.cup_size ?? profile.userCupSize)
+      : profile.userCupSize,
+    userBreastType: userIsYou
+      ? (anatomy.breast_type ?? profile.userBreastType)
+      : profile.userBreastType,
+    targetCock: targetIsYou
+      ? (anatomy.cock ?? profile.targetCock)
+      : profile.targetCock,
+    targetShaft: targetIsYou
+      ? (anatomy.shaft ?? profile.targetShaft)
+      : profile.targetShaft,
+    targetSize: targetIsYou
+      ? (anatomy.size ?? profile.targetSize)
+      : profile.targetSize,
+    targetVag: targetIsYou
+      ? (anatomy.vag ?? profile.targetVag)
+      : profile.targetVag,
+    targetCupSize: targetIsYou
+      ? (anatomy.cup_size ?? profile.targetCupSize)
+      : profile.targetCupSize,
+    targetBreastType: targetIsYou
+      ? (anatomy.breast_type ?? profile.targetBreastType)
+      : profile.targetBreastType,
+  };
 }
 
 function withNamePossessive(name: string): string {

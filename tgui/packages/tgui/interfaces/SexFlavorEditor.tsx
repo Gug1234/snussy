@@ -28,6 +28,7 @@ import { useDebouncedCallback } from '../common/useDebouncedCallback';
 import { Window } from '../layouts';
 import { ChunkedExportImportSection } from './common/ChunkedExportImportSection';
 import {
+  type CustomAnatomyTokenData,
   ErpPreviewOptionsButton,
   type ErpPreviewProfileData,
   resolveErpPreviewTokens,
@@ -141,6 +142,8 @@ type BackendData = {
   selected_perspective: string;
   /** Per-character local token profile for live previews. */
   preview_tokens?: ErpPreviewProfileData;
+  /** Per-character shared anatomy token overrides. */
+  anatomy_tokens?: CustomAnatomyTokenData;
   export_text?: string;
   export_chunk_count?: number;
   export_payload_bytes?: number;
@@ -1014,6 +1017,7 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
                       previewText,
                       'sex-giving',
                       data.preview_tokens,
+                      data.anatomy_tokens,
                     )}
                   </Box>
                 </Stack.Item>
@@ -1036,6 +1040,7 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
                       previewText,
                       'sex-receiving',
                       data.preview_tokens,
+                      data.anatomy_tokens,
                     )}
                   </Box>
                 </Stack.Item>
@@ -1043,7 +1048,11 @@ function CustomActionEditor({ action }: { action: CustomAction }) {
             </Stack.Item>
           )}
           <Stack.Item>
-            <ErpPreviewOptionsButton profile={data.preview_tokens} act={act} />
+            <ErpPreviewOptionsButton
+              profile={data.preview_tokens}
+              anatomyTokens={data.anatomy_tokens}
+              act={act}
+            />
           </Stack.Item>
         </Stack>
       </Stack.Item>
@@ -1700,6 +1709,7 @@ export function SexFlavorEditor() {
                                         inputText,
                                         'sex-giving',
                                         data.preview_tokens,
+                                        data.anatomy_tokens,
                                       )}
                                     </Box>
                                   </Stack.Item>
@@ -1729,6 +1739,7 @@ export function SexFlavorEditor() {
                                         inputText,
                                         'sex-receiving',
                                         data.preview_tokens,
+                                        data.anatomy_tokens,
                                       )}
                                     </Box>
                                   </Stack.Item>
@@ -1738,6 +1749,7 @@ export function SexFlavorEditor() {
                             <Stack.Item>
                               <ErpPreviewOptionsButton
                                 profile={data.preview_tokens}
+                                anatomyTokens={data.anatomy_tokens}
                                 act={act}
                               />
                             </Stack.Item>

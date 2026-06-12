@@ -399,6 +399,7 @@
 	data["selected_bank"]     = selected_bank
 	data["dirty"]             = dirty
 	data["preview_tokens"]    = prefs.get_erp_preview_tokens()
+	data["anatomy_tokens"]    = prefs.get_custom_anatomy_tokens()
 	var/datum/erp_chunked_export_panel_state/transfer = get_transfer_state()
 	data["export_text"] = transfer.export_text
 	data["export_chunk_count"] = transfer.export_chunk_count
@@ -596,6 +597,20 @@
 			if(!prefs.set_erp_preview_token(params["key"], params["value"]))
 				return FALSE
 			dirty = TRUE
+			return TRUE
+
+		if("set_anatomy_token")
+			if(!prefs.set_custom_anatomy_token(params["key"], params["value"]))
+				return FALSE
+			dirty = TRUE
+			sync_character_flavor_component()
+			return TRUE
+
+		if("clear_anatomy_token")
+			if(!prefs.clear_custom_anatomy_token(params["key"]))
+				return FALSE
+			dirty = TRUE
+			sync_character_flavor_component()
 			return TRUE
 
 		if("add_string")

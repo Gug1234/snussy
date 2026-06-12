@@ -193,6 +193,17 @@
 		text = replacetext(text, "\[TTHEIR]", target.p_their())
 	if(user?.sexcon)
 		text = replacetext(text, "\[FORCE]", user.sexcon.get_generic_force_adjective())
+	text = resolve_custom_sex_anatomy_tokens(text, user, "U")
+	text = resolve_custom_sex_anatomy_tokens(text, target, "T")
+	return text
+
+/datum/sex_action/custom/proc/resolve_custom_sex_anatomy_tokens(text, mob/living/carbon/human/owner, token_prefix)
+	text = replacetext(text, "\[[token_prefix]COCK]", resolve_custom_anatomy_token(owner, "cock", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
+	text = replacetext(text, "\[[token_prefix]SHAFT]", resolve_custom_anatomy_token(owner, "shaft", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
+	text = replacetext(text, "\[[token_prefix]SIZE]", resolve_custom_anatomy_token(owner, "size", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
+	text = replacetext(text, "\[[token_prefix]VAG]", resolve_custom_anatomy_token(owner, "vag", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
+	text = replacetext(text, "\[[token_prefix]CUPSIZE]", resolve_custom_anatomy_token(owner, "cup_size", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
+	text = replacetext(text, "\[[token_prefix]BREASTTYPE]", resolve_custom_anatomy_token(owner, "breast_type", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
 	return text
 
 /datum/sex_action/custom/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)

@@ -30,6 +30,7 @@ import { useDebouncedCallback } from '../common/useDebouncedCallback';
 import { Window } from '../layouts';
 import { ChunkedExportImportSection } from './common/ChunkedExportImportSection';
 import {
+  type CustomAnatomyTokenData,
   ErpPreviewOptionsButton,
   type ErpPreviewProfileData,
 } from './common/ErpPreviewOptions';
@@ -84,6 +85,7 @@ type BackendData = {
   status_kind?: 'success' | 'danger' | 'info';
   max_import_text_bytes?: number;
   preview_tokens?: ErpPreviewProfileData;
+  anatomy_tokens?: CustomAnatomyTokenData;
 };
 
 // ______ Constants ________________________________________________________________________________________________________________________________________________________________________________________________
@@ -585,6 +587,7 @@ function InputSection({
   onCancel,
   onPreview,
   previewProfile,
+  anatomyTokens,
   act,
 }: {
   isEditing: boolean;
@@ -602,6 +605,7 @@ function InputSection({
   onCancel: () => void;
   onPreview: () => void;
   previewProfile?: ErpPreviewProfileData;
+  anatomyTokens?: CustomAnatomyTokenData;
   act: (action: string, payload?: Record<string, string>) => void;
 }) {
   const placeholder = isEditing
@@ -662,8 +666,16 @@ function InputSection({
         category.
       </Box>
 
-      <LivePreviewBoxes text={inputText} profile={previewProfile} />
-      <ErpPreviewOptionsButton profile={previewProfile} act={act} />
+      <LivePreviewBoxes
+        text={inputText}
+        profile={previewProfile}
+        anatomyTokens={anatomyTokens}
+      />
+      <ErpPreviewOptionsButton
+        profile={previewProfile}
+        anatomyTokens={anatomyTokens}
+        act={act}
+      />
     </Section>
   );
 }
@@ -673,9 +685,11 @@ function InputSection({
 function LivePreviewBoxes({
   text,
   profile,
+  anatomyTokens,
 }: {
   text: string;
   profile?: ErpPreviewProfileData;
+  anatomyTokens?: CustomAnatomyTokenData;
 }) {
   const trimmed = text.trim();
   if (!trimmed) {
@@ -699,7 +713,12 @@ function LivePreviewBoxes({
             wordBreak: 'break-word',
           }}
         >
-          {resolveIntimateReactionPreviewTokens(trimmed, 'wearer', profile)}
+          {resolveIntimateReactionPreviewTokens(
+            trimmed,
+            'wearer',
+            profile,
+            anatomyTokens,
+          )}
         </Box>
       </Stack.Item>
       <Stack.Item grow basis="50%" ml={0.5}>
@@ -718,7 +737,12 @@ function LivePreviewBoxes({
             wordBreak: 'break-word',
           }}
         >
-          {resolveIntimateReactionPreviewTokens(trimmed, 'bystander', profile)}
+          {resolveIntimateReactionPreviewTokens(
+            trimmed,
+            'bystander',
+            profile,
+            anatomyTokens,
+          )}
         </Box>
       </Stack.Item>
     </Stack>
@@ -729,10 +753,12 @@ function PreviewSection({
   previewText,
   onClose,
   profile,
+  anatomyTokens,
 }: {
   previewText: string;
   onClose: () => void;
   profile?: ErpPreviewProfileData;
+  anatomyTokens?: CustomAnatomyTokenData;
 }) {
   return (
     <Section
@@ -760,7 +786,11 @@ function PreviewSection({
           </Box>
         </Stack.Item>
       </Stack>
-      <LivePreviewBoxes text={previewText} profile={profile} />
+      <LivePreviewBoxes
+        text={previewText}
+        profile={profile}
+        anatomyTokens={anatomyTokens}
+      />
     </Section>
   );
 }
@@ -982,6 +1012,7 @@ function EditorPanel() {
     default_strings,
     tokens,
     preview_tokens,
+    anatomy_tokens,
   } = data;
 
   const [inputText, setInputText] = useState('');
@@ -1065,6 +1096,7 @@ function EditorPanel() {
             onCancel={cancelEdit}
             onPreview={() => handlePreview(inputText)}
             previewProfile={preview_tokens}
+            anatomyTokens={anatomy_tokens}
             act={act}
           />
         </Stack.Item>
@@ -1075,6 +1107,7 @@ function EditorPanel() {
               previewText={previewText}
               onClose={() => setPreviewText('')}
               profile={preview_tokens}
+              anatomyTokens={anatomy_tokens}
             />
           </Stack.Item>
         )}
