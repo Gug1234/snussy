@@ -14,6 +14,11 @@ import {
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
 
+type GildedForcedMessage = {
+  kind: string;
+  message: string;
+};
+
 type PetEntry = {
   ref: string;
   name: string;
@@ -45,6 +50,8 @@ type PetEntry = {
     gilded_drain_amount: number;
     gilded_overdraw_effect: string;
     gilded_overdraw_effect_label: string;
+    gilded_forced_message_enabled: boolean;
+    gilded_forced_messages: GildedForcedMessage[];
     gilded_total_drained: number;
     gilded_next_shrink_threshold: number;
     gilded_zero_fund_orgasms: number;
@@ -90,9 +97,25 @@ const gildedRecipientOptions = [
 const gildedOverdrawEffectOptions = [
   { label: 'Shrink', value: 'shrink', icon: 'compress' },
   { label: 'Pain', value: 'pain', icon: 'bolt' },
-  { label: 'Arousal', value: 'arousal', icon: 'heart' },
-  { label: 'Climax', value: 'climax', icon: 'burst' },
+  { label: 'Strip', value: 'strip', icon: 'tshirt' },
 ];
+
+const gildedForcedMessageKindOptions = [
+  { label: '/say', value: 'say', icon: 'comment' },
+  { label: '/me', value: 'me', icon: 'theater-masks' },
+];
+
+const normalizeGildedForcedMessages = (
+  messages: GildedForcedMessage[] = [],
+) => {
+  return Array.from({ length: 3 }, (_, index) => {
+    const message = messages[index];
+    return {
+      kind: message?.kind === 'me' ? 'me' : 'say',
+      message: message?.message ?? '',
+    };
+  });
+};
 
 type Data = {
   invalid?: boolean;
@@ -665,8 +688,34 @@ const CursedChastityControls = (props: {
     selectedCursedPet?.chastity.gilded_drain_amount ?? 1;
   const currentGildedOverdrawEffect =
     selectedCursedPet?.chastity.gilded_overdraw_effect ?? 'shrink';
+  const currentGildedForcedMessageEnabled =
+    selectedCursedPet?.chastity.gilded_forced_message_enabled ?? false;
+  const currentGildedForcedMessages = normalizeGildedForcedMessages(
+    selectedCursedPet?.chastity.gilded_forced_messages,
+  );
+  const currentGildedForcedMessagesKey = JSON.stringify(
+    currentGildedForcedMessages,
+  );
+  const [forcedMessageDrafts, setForcedMessageDrafts] = useState<
+    GildedForcedMessage[]
+  >(currentGildedForcedMessages);
   const penisOpen = currentFrontMode === 1 || currentFrontMode === 3;
   const vaginaOpen = currentFrontMode === 2 || currentFrontMode === 3;
+
+  useEffect(() => {
+    setForcedMessageDrafts(currentGildedForcedMessages);
+  }, [currentGildedForcedMessagesKey, selectedCursedPet?.ref]);
+
+  const updateForcedMessageDraft = (
+    index: number,
+    patch: Partial<GildedForcedMessage>,
+  ) => {
+    setForcedMessageDrafts((drafts) =>
+      normalizeGildedForcedMessages(drafts).map((draft, draftIndex) =>
+        draftIndex === index ? { ...draft, ...patch } : draft,
+      ),
+    );
+  };
 
   const togglePenisFrontMode = () => {
     const newMode = penisOpen
@@ -856,6 +905,108 @@ const CursedChastityControls = (props: {
                 })}
               </Stack>
             </LabeledList.Item>
+            <LabeledList.Item label="Message">
+              <Button
+                icon={currentGildedForcedMessageEnabled ? 'check' : 'comment'}
+                color={currentGildedForcedMessageEnabled ? 'good' : 'bad'}
+                selected={currentGildedForcedMessageEnabled}
+                disabled={cursedActionDisabled}
+                tooltip={reasonForCursedAction}
+                onClick={() =>
+                  act('chastity_set_gilded_forced_message_enabled', {
+                    enabled: currentGildedForcedMessageEnabled ? 0 : 1,
+                  })
+                }
+              >
+                {currentGildedForcedMessageEnabled ? 'Enabled' : 'Disabled'}
+              </Button>
+            </LabeledList.Item>
+            {forcedMessageDrafts.map((draft, index) => {
+              const savedMessage = currentGildedForcedMessages[index];
+              const changed =
+                draft.kind !== savedMessage.kind ||
+                draft.message !== savedMessage.message;
+              return (
+                <LabeledList.Item key={index} label={`Message ${index + 1}`}>
+                  <Stack align="center">
+                    <Stack.Item>
+                      <Stack>
+                        {gildedForcedMessageKindOptions.map((option) => {
+                          const selected = draft.kind === option.value;
+                          return (
+                            <Stack.Item key={option.value}>
+                              <Button
+                                icon={selected ? 'check' : option.icon}
+                                color={selected ? 'good' : 'bad'}
+                                selected={selected}
+                                disabled={cursedActionDisabled}
+                                tooltip={reasonForCursedAction}
+                                onClick={() =>
+                                  updateForcedMessageDraft(index, {
+                                    kind: option.value,
+                                  })
+                                }
+                              >
+                                {option.label}
+                              </Button>
+                            </Stack.Item>
+                          );
+                        })}
+                      </Stack>
+                    </Stack.Item>
+                    <Stack.Item grow>
+                      <Input
+                        fluid
+                        value={draft.message}
+                        maxLength={2048}
+                        placeholder="Punishment message"
+                        disabled={cursedActionDisabled}
+                        onChange={(message) =>
+                          updateForcedMessageDraft(index, { message })
+                        }
+                      />
+                    </Stack.Item>
+                    <Stack.Item>
+                      <Button
+                        icon="save"
+                        disabled={cursedActionDisabled || !changed}
+                        tooltip={
+                          reasonForCursedAction ||
+                          (!changed ? 'No message change' : undefined)
+                        }
+                        onClick={() =>
+                          act('chastity_set_gilded_forced_message', {
+                            index: index + 1,
+                            kind: draft.kind,
+                            message: draft.message,
+                          })
+                        }
+                      />
+                    </Stack.Item>
+                    <Stack.Item>
+                      <Button
+                        icon="times"
+                        disabled={
+                          cursedActionDisabled ||
+                          (!savedMessage.message && !draft.message)
+                        }
+                        tooltip={reasonForCursedAction}
+                        onClick={() => {
+                          updateForcedMessageDraft(index, { message: '' });
+                          if (savedMessage.message) {
+                            act('chastity_set_gilded_forced_message', {
+                              index: index + 1,
+                              kind: draft.kind,
+                              message: '',
+                            });
+                          }
+                        }}
+                      />
+                    </Stack.Item>
+                  </Stack>
+                </LabeledList.Item>
+              );
+            })}
           </LabeledList>
         </Stack.Item>
       )}

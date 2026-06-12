@@ -23,5 +23,5 @@
 #define CHASTITY_LOG_GILDED_OVERDRAW_EFFECT "gilded_overdraw_effect"
 #define CHASTITY_LOG_GILDED_SHRINK "gilded_shrink"
 #define CHASTITY_LOG_GILDED_PAIN "gilded_pain"
-#define CHASTITY_LOG_GILDED_AROUSAL "gilded_arousal"
-#define CHASTITY_LOG_GILDED_CLIMAX "gilded_climax"
+#define CHASTITY_LOG_GILDED_STRIP "gilded_strip"
+#define CHASTITY_LOG_GILDED_FORCED_MESSAGE "gilded_forced_message"

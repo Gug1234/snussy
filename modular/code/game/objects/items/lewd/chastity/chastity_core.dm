@@ -54,6 +54,8 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	var/gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
 	var/gilded_drain_amount = GILDED_CHASTITY_DEFAULT_DRAIN
 	var/gilded_overdraw_effect = GILDED_CHASTITY_OVERDRAW_SHRINK
+	var/gilded_forced_message_enabled = FALSE
+	var/list/gilded_forced_messages
 	var/gilded_total_drained = 0
 	var/gilded_next_shrink_threshold = GILDED_CHASTITY_SHRINK_DRAIN_STEP
 	var/gilded_zero_fund_orgasms = 0

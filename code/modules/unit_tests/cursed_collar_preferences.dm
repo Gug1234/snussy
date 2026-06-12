@@ -246,6 +246,8 @@
 	SStreasury.bank_accounts[wearer] = 0
 	device.gilded_zero_fund_orgasms = 0
 	device.gilded_limped = FALSE
+	TEST_ASSERT(!is_valid_gilded_chastity_overdraw_effect("arousal"), "gilded overdraw arousal should no longer be a valid empty-Nervelock punishment")
+	TEST_ASSERT(!is_valid_gilded_chastity_overdraw_effect("climax"), "gilded overdraw climax should no longer be a valid empty-Nervelock punishment")
 	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_SHRINK), "gilded overdraw shrink effect should be accepted")
 	REMOVE_TRAIT(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
 	penis.penis_size = DEFAULT_PENIS_SIZE
@@ -254,18 +256,35 @@
 	sleep(1)
 	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE - 1, "default overdraw effect should shrink penis size")
 
-	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_AROUSAL), "gilded overdraw arousal effect should be accepted")
-	penis.penis_size = DEFAULT_PENIS_SIZE
-	wearer.sexcon = new /datum/sex_controller(wearer)
-	wearer.sexcon.set_arousal(0)
+	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_STRIP), "gilded overdraw strip effect should be accepted")
+	var/obj/item/clothing/shoes/roguetown/simpleshoes/strip_shoes = allocate(/obj/item/clothing/shoes/roguetown/simpleshoes, wearer)
+	TEST_ASSERT(wearer.equip_to_slot_if_possible(strip_shoes, SLOT_SHOES, FALSE, TRUE, TRUE, TRUE), "test setup should equip removable shoes")
+	TEST_ASSERT_EQUAL(wearer.get_item_by_slot(SLOT_SHOES), strip_shoes, "test shoes should occupy the shoe slot before strip punishment")
 	drained = device.on_gilded_orgasm_triggered(wearer)
-	TEST_ASSERT_EQUAL(drained, 0, "arousal overdraw orgasm should not drain mammon")
+	TEST_ASSERT_EQUAL(drained, 0, "strip overdraw orgasm should not drain mammon")
 	sleep(1)
-	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE, "arousal overdraw effect should not shrink penis size")
-	TEST_ASSERT_EQUAL(wearer.sexcon.arousal, 20, "arousal overdraw effect should raise arousal")
+	TEST_ASSERT_NULL(wearer.get_item_by_slot(SLOT_SHOES), "strip overdraw effect should remove removable clothing")
+	TEST_ASSERT_EQUAL(strip_shoes.loc, get_turf(wearer), "strip overdraw effect should drop removed clothing at the wearer")
+
+	TEST_ASSERT(device.set_gilded_forced_message_enabled(wearer, TRUE), "gilded forced messages should be toggleable")
+	TEST_ASSERT(device.set_gilded_forced_message(wearer, 1, GILDED_CHASTITY_FORCED_MESSAGE_SAY, "I am empty."), "first forced message should be accepted")
+	TEST_ASSERT(device.set_gilded_forced_message(wearer, 2, GILDED_CHASTITY_FORCED_MESSAGE_ME, "trembles in the empty gilded cage."), "second forced message should allow /me")
+	TEST_ASSERT(device.set_gilded_forced_message(wearer, 3, GILDED_CHASTITY_FORCED_MESSAGE_SAY, "Please fill my Nervelock."), "third forced message should be accepted")
+	TEST_ASSERT(!device.set_gilded_forced_message(wearer, 4, GILDED_CHASTITY_FORCED_MESSAGE_SAY, "too many"), "forced message slots should be capped at three")
+	TEST_ASSERT(!device.set_gilded_forced_message(wearer, 1, "bad-kind", "invalid kind"), "forced message kind should be validated")
+	TEST_ASSERT_EQUAL(length(device.get_configured_gilded_forced_messages()), GILDED_CHASTITY_MAX_FORCED_MESSAGES, "configured forced message list should expose at most three messages")
+	TEST_ASSERT(device.apply_gilded_forced_message(wearer), "configured forced message punishment should run independently")
+	TEST_ASSERT(device.set_gilded_overdraw_effect(wearer, GILDED_CHASTITY_OVERDRAW_STRIP), "strip should remain selectable while forced message punishment is enabled")
+	var/obj/item/clothing/shoes/roguetown/simpleshoes/paired_strip_shoes = allocate(/obj/item/clothing/shoes/roguetown/simpleshoes, wearer)
+	TEST_ASSERT(wearer.equip_to_slot_if_possible(paired_strip_shoes, SLOT_SHOES, FALSE, TRUE, TRUE, TRUE), "test setup should equip removable shoes for paired message punishment")
+	drained = device.on_gilded_orgasm_triggered(wearer)
+	TEST_ASSERT_EQUAL(drained, 0, "paired strip/message overdraw orgasm should not drain mammon")
+	sleep(1)
+	TEST_ASSERT_NULL(wearer.get_item_by_slot(SLOT_SHOES), "forced message punishment should pair with strip instead of replacing it")
 
 	device.gilded_zero_fund_orgasms = 0
 	device.gilded_limped = FALSE
+	device.set_gilded_forced_message_enabled(wearer, FALSE)
 	REMOVE_TRAIT(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
 	for(var/i in 1 to GILDED_CHASTITY_ZERO_ORGASMS_FOR_LIMP)
 		device.on_gilded_orgasm_triggered(wearer)

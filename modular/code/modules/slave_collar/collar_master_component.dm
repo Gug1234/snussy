@@ -1120,6 +1120,23 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		return FALSE
 	return device.set_gilded_overdraw_effect(pet, effect)
 
+/datum/component/collar_master/proc/set_pet_gilded_chastity_forced_message_enabled(mob/living/carbon/human/pet, enabled)
+	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_SET_GILDED_CHASTITY_FORCED_MESSAGE_ENABLED, enabled)
+	if(!device || !device.chastity_gilded)
+		return FALSE
+	return device.set_gilded_forced_message_enabled(pet, enabled)
+
+/datum/component/collar_master/proc/set_pet_gilded_chastity_forced_message(mob/living/carbon/human/pet, index, kind, message)
+	var/list/command_arg = list(
+		"index" = index,
+		"kind" = kind,
+		"message" = message
+	)
+	var/obj/item/chastity/device = get_commandable_cursed_chastity(pet, COLLAR_COMMAND_SET_GILDED_CHASTITY_FORCED_MESSAGE, command_arg)
+	if(!device || !device.chastity_gilded)
+		return FALSE
+	return device.set_gilded_forced_message(pet, index, kind, message)
+
 // --- Cursed piercing command wrappers ---
 
 /datum/component/collar_master/proc/get_pet_cursed_piercing(mob/living/carbon/human/pet)

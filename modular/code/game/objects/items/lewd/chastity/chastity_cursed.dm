@@ -215,18 +215,21 @@
 	return effect in list(
 		GILDED_CHASTITY_OVERDRAW_SHRINK,
 		GILDED_CHASTITY_OVERDRAW_PAIN,
-		GILDED_CHASTITY_OVERDRAW_AROUSAL,
-		GILDED_CHASTITY_OVERDRAW_CLIMAX
+		GILDED_CHASTITY_OVERDRAW_STRIP
+	)
+
+/proc/is_valid_gilded_chastity_forced_message_kind(kind)
+	return kind in list(
+		GILDED_CHASTITY_FORCED_MESSAGE_SAY,
+		GILDED_CHASTITY_FORCED_MESSAGE_ME
 	)
 
 /obj/item/chastity/proc/get_gilded_overdraw_effect_label()
 	switch(gilded_overdraw_effect)
 		if(GILDED_CHASTITY_OVERDRAW_PAIN)
 			return "pain"
-		if(GILDED_CHASTITY_OVERDRAW_AROUSAL)
-			return "arousal"
-		if(GILDED_CHASTITY_OVERDRAW_CLIMAX)
-			return "climax"
+		if(GILDED_CHASTITY_OVERDRAW_STRIP)
+			return "strip"
 	return "shrink"
 
 /obj/item/chastity/proc/set_gilded_overdraw_effect(mob/living/carbon/human/H, effect)
@@ -237,6 +240,84 @@
 	gilded_overdraw_effect = effect
 	to_chat(H, span_notice("The gilded device clicks; overdrawn Nervelocks will answer with [get_gilded_overdraw_effect_label()]."))
 	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_OVERDRAW_EFFECT, "effect=[gilded_overdraw_effect]")
+	return TRUE
+
+/obj/item/chastity/proc/ensure_gilded_forced_messages()
+	if(!islist(gilded_forced_messages))
+		gilded_forced_messages = list()
+	return gilded_forced_messages
+
+/obj/item/chastity/proc/get_configured_gilded_forced_messages()
+	var/list/messages = ensure_gilded_forced_messages()
+	var/list/configured_messages = list()
+	var/message_count = min(length(messages), GILDED_CHASTITY_MAX_FORCED_MESSAGES)
+	if(message_count <= 0)
+		return configured_messages
+	for(var/i in 1 to message_count)
+		var/list/entry = messages[i]
+		if(!islist(entry))
+			continue
+		var/kind = entry["kind"]
+		var/message = entry["message"]
+		if(!is_valid_gilded_chastity_forced_message_kind(kind) || !istext(message) || !length(message))
+			continue
+		configured_messages += list(list(
+			"kind" = kind,
+			"message" = message
+		))
+	return configured_messages
+
+/obj/item/chastity/proc/get_gilded_forced_message_ui_data()
+	var/list/messages = ensure_gilded_forced_messages()
+	var/list/ui_messages = list()
+	for(var/i in 1 to GILDED_CHASTITY_MAX_FORCED_MESSAGES)
+		var/kind = GILDED_CHASTITY_FORCED_MESSAGE_SAY
+		var/message = ""
+		if(i <= length(messages))
+			var/list/entry = messages[i]
+			if(islist(entry))
+				if(is_valid_gilded_chastity_forced_message_kind(entry["kind"]))
+					kind = entry["kind"]
+				if(istext(entry["message"]))
+					message = entry["message"]
+		ui_messages += list(list(
+			"kind" = kind,
+			"message" = message
+		))
+	return ui_messages
+
+/obj/item/chastity/proc/set_gilded_forced_message_enabled(mob/living/carbon/human/H, should_enable)
+	if(!chastity_gilded || !H)
+		return FALSE
+	gilded_forced_message_enabled = !!text2num("[should_enable]")
+	to_chat(H, span_notice("The gilded device [gilded_forced_message_enabled ? "will now" : "will no longer"] force a message from empty Nervelock punishments."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_FORCED_MESSAGE, "enabled=[gilded_forced_message_enabled]")
+	return TRUE
+
+/obj/item/chastity/proc/set_gilded_forced_message(mob/living/carbon/human/H, index, kind, message)
+	if(!chastity_gilded || !H)
+		return FALSE
+	var/message_index = round(text2num("[index]"))
+	if(message_index < 1 || message_index > GILDED_CHASTITY_MAX_FORCED_MESSAGES)
+		return FALSE
+	kind = "[kind]"
+	if(!is_valid_gilded_chastity_forced_message_kind(kind))
+		return FALSE
+	var/message_text = trim(copytext_char(sanitize("[message]"), 1, MAX_MESSAGE_LEN))
+	var/list/messages = ensure_gilded_forced_messages()
+	if(length(messages) < message_index)
+		messages.len = message_index
+	if(!length(message_text))
+		messages[message_index] = null
+		to_chat(H, span_notice("The gilded device clears forced message [message_index]."))
+		log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_FORCED_MESSAGE, "index=[message_index] cleared=TRUE")
+		return TRUE
+	messages[message_index] = list(
+		"kind" = kind,
+		"message" = message_text
+	)
+	to_chat(H, span_notice("The gilded device remembers forced [kind == GILDED_CHASTITY_FORCED_MESSAGE_ME ? "/me" : "/say"] message [message_index]."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_FORCED_MESSAGE, "index=[message_index] kind=[kind]")
 	return TRUE
 
 /obj/item/chastity/proc/credit_gilded_master(mob/living/carbon/human/wearer, amount)
@@ -326,18 +407,17 @@
 	switch(gilded_overdraw_effect)
 		if(GILDED_CHASTITY_OVERDRAW_PAIN)
 			effect_handled = apply_gilded_pain(H)
-		if(GILDED_CHASTITY_OVERDRAW_AROUSAL)
-			effect_handled = apply_gilded_arousal(H)
-		if(GILDED_CHASTITY_OVERDRAW_CLIMAX)
-			effect_handled = force_gilded_climax(H)
+		if(GILDED_CHASTITY_OVERDRAW_STRIP)
+			effect_handled = apply_gilded_strip(H)
 		else
 			effect_handled = apply_gilded_shrink(H)
+	var/message_handled = apply_gilded_forced_message(H)
 	if(!gilded_limped && gilded_zero_fund_orgasms >= GILDED_CHASTITY_ZERO_ORGASMS_FOR_LIMP && H.getorganslot(ORGAN_SLOT_PENIS))
 		ADD_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
 		gilded_limped = TRUE
 		H.visible_message(span_warning("[H]'s gilded chastity device rings hollow and cinches shut."), span_userdanger("The gilded cage drinks from an empty Nervelock and leaves me permanently limp."))
 		log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_SHRINK, "limpdick=TRUE")
-	return effect_handled
+	return effect_handled || message_handled
 
 /obj/item/chastity/proc/apply_gilded_pain(mob/living/carbon/human/H)
 	if(!chastity_gilded || !H)
@@ -349,30 +429,64 @@
 	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_PAIN)
 	return TRUE
 
-/obj/item/chastity/proc/apply_gilded_arousal(mob/living/carbon/human/H)
+/obj/item/chastity/proc/apply_gilded_strip(mob/living/carbon/human/H)
 	if(!chastity_gilded || !H)
 		return FALSE
-	if(!H.sexcon)
-		H.sexcon = new /datum/sex_controller(H)
-	H.sexcon.adjust_arousal(20)
-	H.flash_fullscreen("love", /atom/movable/screen/fullscreen/love)
-	to_chat(H, span_love("The gilded device pulses heat through your nethers."))
-	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_AROUSAL)
+	var/removed_anything = FALSE
+	H.drop_all_held_items()
+	for(var/obj/item/I in H.get_equipped_items())
+		if(istype(I, /obj/item/chastity))
+			continue
+		if(HAS_TRAIT(I, TRAIT_NODROP))
+			continue
+		if(I.item_flags & ABSTRACT)
+			continue
+		if(I.slot_flags & ITEM_SLOT_NECK)
+			continue
+		if(H.dropItemToGround(I, TRUE))
+			removed_anything = TRUE
+	if(removed_anything)
+		to_chat(H, span_userdanger("The gilded device bites into me and forces my hands to tear away my clothing."))
+		H.visible_message(span_warning("[H]'s gilded chastity device rings sharply as they strip in a forced panic."))
+		playsound(H, 'sound/misc/vampirespell.ogg', 50, TRUE)
+	else
+		to_chat(H, span_warning("The gilded device tugs for clothing to strip away, but finds nothing it can force loose."))
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_STRIP, "changed=[removed_anything]")
+	return removed_anything
+
+/obj/item/chastity/proc/apply_gilded_forced_message(mob/living/carbon/human/H)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!gilded_forced_message_enabled)
+		return FALSE
+	var/list/messages = get_configured_gilded_forced_messages()
+	if(!length(messages))
+		return FALSE
+	var/list/entry = pick(messages)
+	var/kind = entry["kind"]
+	var/message = entry["message"]
+	if(!is_valid_gilded_chastity_forced_message_kind(kind) || !istext(message) || !length(message))
+		return FALSE
+	to_chat(H, span_userdanger("The gilded cage seizes my voice and forces out my master's words."))
+	if(kind == GILDED_CHASTITY_FORCED_MESSAGE_ME)
+		if(!run_gilded_forced_me(H, message))
+			return FALSE
+	else
+		H.say(message, forced = "gilded chastity")
+	if(!H.is_shifted)
+		H.do_jitter_animation(10)
+	playsound(H, 'sound/misc/vampirespell.ogg', 50, TRUE)
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_FORCED_MESSAGE, "kind=[kind]")
 	return TRUE
 
-/obj/item/chastity/proc/force_gilded_climax(mob/living/carbon/human/H)
-	if(!chastity_gilded || !H)
+/obj/item/chastity/proc/run_gilded_forced_me(mob/living/carbon/human/H, message)
+	if(!H || !istext(message) || !length(message))
 		return FALSE
-	if(!H.sexcon)
-		H.sexcon = new /datum/sex_controller(H)
-	if(!H.sexcon.can_ejaculate())
-		to_chat(H, span_warning("The gilded device strains for a climax my body cannot provide."))
-		log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_CLIMAX, "changed=FALSE")
-		return FALSE
-	H.sexcon.set_arousal(ACTIVE_EJAC_THRESHOLD)
-	H.sexcon.ejaculate()
-	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_CLIMAX, "changed=TRUE")
-	return TRUE
+	var/list/custom_emotes = GLOB.emote_list["me"]
+	for(var/datum/emote/emote_datum in custom_emotes)
+		if(emote_datum.run_emote(H, message, EMOTE_VISIBLE, TRUE))
+			return TRUE
+	return FALSE
 
 // Plays the most appropriate front-state transition sound for cursed devices.
 /obj/item/chastity/proc/play_cursed_front_mode_change_sound(mob/living/carbon/human/H, old_mode, new_mode)
