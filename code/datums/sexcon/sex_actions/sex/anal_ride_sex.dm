@@ -10,7 +10,7 @@
 /datum/sex_action/anal_ride_sex/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(anal_blocked_by_rear_plug(user, user))
 		return FALSE
@@ -23,7 +23,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(anal_blocked_by_rear_plug(user, user, TRUE))
 		return FALSE
@@ -52,7 +52,7 @@
 		target.visible_message(span_love("[target] cums into [user]'s butt!"))
 		for(var/i = 1; i <= target.sexcon.get_load_bursts(); i++)
 			target.sexcon.cum_into(splashed_user = user, knot_action = src, knot_swap_roles = TRUE, knot_btm = user, orifice = SEX_PART_ANUS)
-			if(HAS_TRAIT(user, TRAIT_BAOTHA_FERTILITY_BOON) && !user.getorganslot(ORGAN_SLOT_VAGINA))
+			if(HAS_TRAIT(user, TRAIT_BAOTHA_FERTILITY_BOON) && !user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 				target.try_impregnate(user)
 			sleep(10)
 		target.virginity = FALSE

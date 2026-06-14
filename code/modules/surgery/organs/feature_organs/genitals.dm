@@ -4,6 +4,7 @@
 	visible_organ = TRUE
 	zone = BODY_ZONE_PRECISE_GROIN
 	slot = ORGAN_SLOT_PENIS
+	genital_visibility_preference = GENITAL_HIDDEN_BY_CLOTHES
 	organ_dna_type = /datum/organ_dna/penis
 	accessory_type = /datum/sprite_accessory/penis/human
 	var/sheath_type = SHEATH_TYPE_NONE
@@ -115,6 +116,7 @@
 	visible_organ = TRUE
 	zone = BODY_ZONE_PRECISE_GROIN
 	slot = ORGAN_SLOT_VAGINA
+	genital_visibility_preference = GENITAL_HIDDEN_BY_CLOTHES
 	accessory_type = /datum/sprite_accessory/vagina/human
 	var/pregnant = FALSE
 	var/fertility = TRUE
@@ -140,6 +142,7 @@
 	visible_organ = TRUE
 	zone = BODY_ZONE_CHEST
 	slot = ORGAN_SLOT_BREASTS
+	genital_visibility_preference = GENITAL_HIDDEN_BY_CLOTHES
 	organ_dna_type = /datum/organ_dna/breasts
 	accessory_type = /datum/sprite_accessory/breasts/pair
 	var/breast_size = DEFAULT_BREASTS_SIZE
@@ -158,6 +161,7 @@
 	visible_organ = TRUE
 	zone = BODY_ZONE_PRECISE_GROIN
 	slot = ORGAN_SLOT_TESTICLES
+	genital_visibility_preference = GENITAL_HIDDEN_BY_CLOTHES
 	organ_dna_type = /datum/organ_dna/testicles
 	accessory_type = /datum/sprite_accessory/testicles/pair
 	var/ball_size = DEFAULT_TESTICLES_SIZE
@@ -167,4 +171,5 @@
 /obj/item/organ/testicles/internal
 	name = "internal testicles"
 	visible_organ = FALSE
+	genital_visibility_preference = GENITAL_SKIP_VISIBILITY
 	accessory_type = /datum/sprite_accessory/none

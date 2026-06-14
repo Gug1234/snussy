@@ -38,6 +38,7 @@
 	var/roundstart_equipped = FALSE
 	var/intimate_retains_internal_creampie = FALSE
 	var/intimate_passive_insertable_effect = FALSE
+	var/lubedup = FALSE
 	var/list/supported_intimate_slots = null
 	var/current_intimate_slot = null
 	var/sprite_acc = /datum/sprite_accessory/intimate_overlays/piercing_genital
@@ -144,6 +145,51 @@
 		return display_name
 	var/token_end = token_start + length(token)
 	return "[copytext(display_name, 1, token_start)]<font color='[clean_color]'>[copytext(display_name, token_start, token_end)]</font>[copytext(display_name, token_end)]"
+
+/obj/item/intimate_accessory/proc/get_lubricated_description(base_desc)
+	if(!lubedup)
+		return base_desc
+	var/lubrication_desc = "It is slick with butter."
+	if(!length(base_desc))
+		return lubrication_desc
+	if(findtext(base_desc, lubrication_desc))
+		return base_desc
+	return "[base_desc] [lubrication_desc]"
+
+/obj/item/intimate_accessory/proc/on_lubrication_changed()
+	desc = get_lubricated_description(desc)
+	if(wearer)
+		notify_intimate_state_change(wearer, "lubricated")
+
+/obj/item/intimate_accessory/proc/is_butter_lubricant(obj/item/I)
+	return istype(I, /obj/item/reagent_containers/food/snacks/butter) || istype(I, /obj/item/reagent_containers/food/snacks/butterslice)
+
+/obj/item/intimate_accessory/proc/try_lubricate_with_butter(obj/item/I, mob/living/user)
+	if(!is_butter_lubricant(I))
+		return FALSE
+	if(!(intimate_flags & INTIMATE_FLAG_INSERTABLE))
+		return FALSE
+	if(lubedup)
+		to_chat(user, span_warning("[src] is already slick with butter."))
+		return TRUE
+	lubedup = TRUE
+	on_lubrication_changed()
+	to_chat(user, span_notice("I rub [I] over [src], leaving it slick with butter."))
+	playsound(get_turf(src), 'sound/foley/dropsound/food_drop.ogg', 30, TRUE)
+	qdel(I)
+	return TRUE
+
+/obj/item/intimate_accessory/proc/get_intimate_action_delay(base_delay)
+	if(!lubedup)
+		return base_delay
+	if(base_delay <= 1)
+		return base_delay
+	return max(base_delay * 0.5, 1)
+
+/obj/item/intimate_accessory/proc/get_rear_insertable_ejection_chance(base_chance)
+	if(!lubedup)
+		return base_chance
+	return base_chance * 2
 
 /proc/intimate_accessory_count_word(number)
 	var/static/list/number_words = list(
@@ -591,10 +637,10 @@
 	)
 	violent_rear_ejection_active = TRUE
 	force = 5
-	throwforce = 30
+	throwforce = 30///May be too much, but whatever, I wanna see an ejected plug embed some poor shmuck.
 	damtype = BRUTE
-	armor_penetration = 30
-	thrown_bclass = BCLASS_BLUNT
+	armor_penetration = 30///Hilarious.
+	thrown_bclass = BCLASS_BLUNT///Be glad I didn't make this pick.
 	throw_speed = 4
 	throw_range = 15
 
@@ -649,6 +695,8 @@
 	if(!istype(rear_insertable))
 		return FALSE
 
+	normal_eject_chance = rear_insertable.get_rear_insertable_ejection_chance(normal_eject_chance)
+	violent_eject_chance = rear_insertable.get_rear_insertable_ejection_chance(violent_eject_chance)
 	var/violent_eject = (violent_eject_chance > 0 && prob(violent_eject_chance))
 	if(!violent_eject && (normal_eject_chance <= 0 || !prob(normal_eject_chance)))
 		return FALSE
@@ -910,6 +958,9 @@
 
 // Item interactions.
 /obj/item/intimate_accessory/attackby(obj/item/I, mob/living/user, params)
+	if(try_lubricate_with_butter(I, user))
+		return TRUE
+
 	if(istype(I, /obj/item/rogueweapon/hammer) || istype(I, /obj/item/rogueweapon/chisel))
 		if(has_socketed_insert())
 			return try_extract_socketed_item(user)

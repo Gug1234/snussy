@@ -22,7 +22,7 @@
 		return
 
 	user.visible_message(span_notice("[user] starts fitting [src]."))
-	if(!do_after(user, 30, needhand = 1, target = H))
+	if(!do_after(user, get_intimate_action_delay(30), needhand = 1, target = H))
 		set_current_intimate_slot(null)
 		return
 
@@ -54,7 +54,7 @@
 		return
 
 	user.visible_message(span_notice("[user] starts fitting [src] on [H]."))
-	if(!do_after(user, 40, needhand = 1, target = H))
+	if(!do_after(user, get_intimate_action_delay(40), needhand = 1, target = H))
 		set_current_intimate_slot(null)
 		return
 
@@ -156,7 +156,7 @@
 		visible_message(span_notice("[src] starts removing [choice] from [target]..."))
 
 	var/remove_delay = (target == src) ? 25 : 35
-	if(!do_after(src, remove_delay, needhand = 1, target = target))
+	if(!do_after(src, choice.get_intimate_action_delay(remove_delay), needhand = 1, target = target))
 		return
 
 	if(choice.get_worn_in_slot(target) != choice)

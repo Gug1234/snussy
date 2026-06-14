@@ -246,6 +246,11 @@
 	var/bead_count = null
 	var/psydonic_socketed = FALSE
 	var/zizite_socketed = FALSE
+	var/tailplug_socketed = FALSE
+	var/tailplug_tail_accessory_type = null
+	var/tailplug_tail_colors = null
+	var/tailplug_item_icon_base = null
+	var/datum/bodypart_feature/intimate_tailplug/tailplug_tail_feature
 
 /obj/item/intimate_accessory/rear/plug/proc/is_worn_in_rear_slot(mob/living/carbon/human/H)
 	return !!(H && H.intimate_rear_insertable == src)
@@ -253,6 +258,253 @@
 /obj/item/intimate_accessory/rear/plug/proc/play_plug_sound(mob/living/carbon/human/H, sound_file)
 	if(H)
 		playsound(H, sound_file, 45, TRUE, ignore_walls = FALSE)
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_tail_accessory_choices()
+	var/static/list/tailplug_tail_accessory_choices
+	if(!tailplug_tail_accessory_choices)
+		tailplug_tail_accessory_choices = list()
+		var/datum/customizer_choice/organ/tail/anthro/tail_choice = new
+		for(var/accessory_type in tail_choice.sprite_accessories)
+			var/datum/sprite_accessory/tail/accessory = SPRITE_ACCESSORY(accessory_type)
+			if(!accessory)
+				continue
+			tailplug_tail_accessory_choices[accessory.name] = accessory_type
+		qdel(tail_choice)
+	return tailplug_tail_accessory_choices.Copy()
+
+/obj/item/intimate_accessory/rear/plug/proc/is_tailplug_tail_accessory_type(accessory_type)
+	if(!ispath(accessory_type, /datum/sprite_accessory/tail))
+		return FALSE
+	var/list/tail_choices = get_tailplug_tail_accessory_choices()
+	return !!find_key_by_value(tail_choices, accessory_type)
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_item_icon_choices()
+	return list(
+		"Dog tail" = "dogplug",
+		"Cat tail" = "catplug",
+		"Rat tail" = "ratplug",
+		"Lizard tail" = "lizardplug",
+		"Bunny tail" = "rabbitplug",
+	)
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_item_icon_base(item_icon_choice)
+	var/static/list/valid_icon_bases = list("dogplug", "catplug", "ratplug", "lizardplug", "rabbitplug")
+	if(item_icon_choice in valid_icon_bases)
+		return item_icon_choice
+	var/list/icon_choices = get_tailplug_item_icon_choices()
+	return icon_choices[item_icon_choice]
+
+/obj/item/intimate_accessory/rear/plug/proc/prompt_tailplug_tail_colors(mob/living/user, tail_accessory_type)
+	var/datum/sprite_accessory/tail/accessory = SPRITE_ACCESSORY(tail_accessory_type)
+	if(!user || !accessory)
+		return null
+	var/color_string = accessory.get_default_colors(color_key_source_list_from_carbon(user))
+	var/list/color_list = color_string_to_list(color_string)
+	if(!color_list)
+		color_list = list()
+	while(length(color_list) < accessory.color_keys)
+		color_list += "#FFFFFF"
+	for(var/color_index in 1 to accessory.color_keys)
+		var/color_name = accessory.color_key_name
+		if(accessory.color_keys > 1 && length(accessory.color_key_names) >= color_index)
+			color_name = accessory.color_key_names[color_index]
+		var/new_color = color_pick_sanitized(user, "Choose the [color_name] color:", "Tailplug Tail", color_list[color_index])
+		if(!new_color)
+			return null
+		color_list[color_index] = sanitize_hexcolor(new_color, 6, TRUE)
+	return accessory.sanitize_color_string(color_list_to_string(color_list))
+
+/obj/item/intimate_accessory/rear/plug/proc/try_socket_tail_fur(obj/item/natural/fur/fur, mob/living/user)
+	if(!fur || !user)
+		return FALSE
+	if(has_socketed_insert())
+		to_chat(user, span_warning("[src] already has something socketed in it."))
+		return TRUE
+
+	var/list/tail_choices = get_tailplug_tail_accessory_choices()
+	var/chosen_tail_name = tgui_input_list(user, "Choose the tail sprite this will show while worn.", "Tailplug Tail", tail_choices)
+	if(!chosen_tail_name || QDELETED(src) || QDELETED(fur) || user.incapacitated() || !in_range(user, src))
+		return TRUE
+	var/chosen_tail_type = tail_choices[chosen_tail_name]
+	var/chosen_tail_colors = prompt_tailplug_tail_colors(user, chosen_tail_type)
+	if(!chosen_tail_colors || QDELETED(src) || QDELETED(fur) || user.incapacitated() || !in_range(user, src))
+		return TRUE
+
+	var/list/icon_choices = get_tailplug_item_icon_choices()
+	var/chosen_icon_name = tgui_input_list(user, "Choose the unequipped item tail shape.", "Tailplug Item", icon_choices)
+	if(!chosen_icon_name || QDELETED(src) || QDELETED(fur) || user.incapacitated() || !in_range(user, src))
+		return TRUE
+	var/chosen_icon_base = icon_choices[chosen_icon_name]
+	var/fur_name = fur.name
+	if(!socket_tail_fur(fur, chosen_tail_type, chosen_tail_colors, chosen_icon_base))
+		to_chat(user, span_warning("I can't socket [fur_name] into [src]."))
+		return TRUE
+
+	to_chat(user, span_notice("I socket [fur_name] into [src], setting the fake tail in place."))
+	playsound(get_turf(src), 'sound/items/gem.ogg', 50, TRUE)
+	return TRUE
+
+/obj/item/intimate_accessory/rear/plug/proc/socket_tail_fur(obj/item/natural/fur/fur, tail_accessory_type, tail_color_string, item_icon_choice)
+	if(fur && !istype(fur, /obj/item/natural/fur))
+		return FALSE
+	if(has_socketed_insert())
+		return FALSE
+	if(!is_tailplug_tail_accessory_type(tail_accessory_type))
+		return FALSE
+	var/datum/sprite_accessory/tail/accessory = SPRITE_ACCESSORY(tail_accessory_type)
+	if(!accessory)
+		return FALSE
+	var/item_icon_base = get_tailplug_item_icon_base(item_icon_choice)
+	if(!item_icon_base)
+		return FALSE
+
+	tailplug_socketed = TRUE
+	tailplug_tail_accessory_type = tail_accessory_type
+	tailplug_tail_colors = accessory.sanitize_color_string(tail_color_string)
+	tailplug_item_icon_base = item_icon_base
+	socketed_item_type = fur ? fur.type : /obj/item/natural/fur
+	current_gem_descriptor = accessory.name
+	intimate_gem_color = get_tailplug_primary_color()
+	gem_value_bonus = 0
+	if(fur)
+		qdel(fur)
+	on_socket_state_changed("tail_socketed")
+	return TRUE
+
+/obj/item/intimate_accessory/rear/plug/proc/is_tailplug()
+	return tailplug_socketed && tailplug_tail_accessory_type && tailplug_item_icon_base
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_primary_color()
+	var/list/color_list = color_string_to_list(tailplug_tail_colors)
+	if(length(color_list) >= 1)
+		return color_list[1]
+	return "#FFFFFF"
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_tail_name()
+	var/datum/sprite_accessory/tail/accessory = SPRITE_ACCESSORY(tailplug_tail_accessory_type)
+	if(accessory?.name)
+		return accessory.name
+	return "fake tail"
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_noun()
+	return "tailplug"
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_examine_plain_name()
+	var/metal_descriptor = get_metal_descriptor()
+	if(metal_descriptor)
+		return "[get_tailplug_tail_name()] [metal_descriptor] [get_tailplug_noun()]"
+	return "[get_tailplug_tail_name()] [get_tailplug_noun()]"
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_examine_colored_name()
+	var/display_name = html_encode(get_tailplug_examine_plain_name())
+	display_name = color_intimate_examine_token(display_name, html_encode(get_tailplug_tail_name()), get_tailplug_primary_color())
+	if(intimate_metal_name && intimate_metal_color)
+		display_name = color_intimate_examine_token(display_name, html_encode(lowertext(intimate_metal_name)), intimate_metal_color)
+	return display_name
+
+/obj/item/intimate_accessory/rear/plug/proc/can_user_identify_tailplug(mob/user)
+	if(isobserver(user))
+		return TRUE
+	if(!isliving(user))
+		return FALSE
+	var/mob/living/L = user
+	return L.STAPER >= 10
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_examine_line(mob/living/carbon/human/examined, mob/user)
+	if(!examined || !is_tailplug() || !can_user_identify_tailplug(user))
+		return null
+	var/accessory_name = examined.get_examine_item_name_with_hover(user, src, get_tailplug_examine_colored_name())
+	var/accessory_article = get_intimate_examine_article()
+	return "[examined.p_they(TRUE)] [examined.p_have()] [accessory_article] [accessory_name] up [examined.p_their()] rear."
+
+/obj/item/intimate_accessory/rear/plug/get_intimate_examine_line(mob/living/carbon/human/examined, mob/user, part, part_plural = FALSE)
+	if(is_tailplug())
+		return get_tailplug_examine_line(examined, user)
+	return ..()
+
+/obj/item/intimate_accessory/rear/plug/get_intimate_examine_plain_name()
+	if(is_tailplug())
+		return get_tailplug_examine_plain_name()
+	return ..()
+
+/obj/item/intimate_accessory/rear/plug/get_intimate_examine_colored_name()
+	if(is_tailplug())
+		return get_tailplug_examine_colored_name()
+	return ..()
+
+/obj/item/intimate_accessory/rear/plug/proc/update_tailplug_item_visuals(layer_index)
+	cut_overlays()
+	apply_intimate_item_tint()
+	var/base_state = "[tailplug_item_icon_base][layer_index]"
+	item_state = base_state
+	icon_state = base_state
+	var/tail_state = "[tailplug_item_icon_base]3"
+	if(icon_exists(icon, tail_state))
+		var/mutable_appearance/tail_overlay = mutable_appearance(icon, tail_state)
+		tail_overlay.color = get_tailplug_primary_color()
+		add_overlay(tail_overlay)
+	update_icon()
+
+/obj/item/intimate_accessory/rear/plug/proc/remove_tailplug_tail_feature(mob/living/carbon/human/H)
+	if(!tailplug_tail_feature)
+		return
+	if(H)
+		var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
+		if(chest)
+			chest.remove_bodypart_feature(tailplug_tail_feature)
+	tailplug_tail_feature = null
+
+/obj/item/intimate_accessory/rear/plug/proc/yank_tailplug_from(mob/living/carbon/human/target, mob/living/puller)
+	if(!target || !is_tailplug())
+		return FALSE
+	if(istype(src, /obj/item/intimate_accessory/rear/plug/analbeads))
+		var/obj/item/intimate_accessory/rear/plug/analbeads/beads = src
+		if(beads.beads_inserted > 0)
+			var/mob/pull_actor = puller ? puller : target
+			var/message = beads.get_ripcord_message(pull_actor, target, FALSE)
+			if(message)
+				target.visible_message(span_warning(message))
+			beads.on_ripcord(pull_actor, target, FALSE)
+			beads.beads_inserted = 0
+	else if(target.sexcon && !target.sexcon.arousal_frozen)
+		target.sexcon.adjust_arousal(80)
+	remove_intimate_accessory(target)
+	if(QDELETED(src))
+		return TRUE
+	if(puller)
+		if(!puller.put_in_hands(src))
+			forceMove(get_turf(puller))
+	else
+		forceMove(get_turf(target))
+	return TRUE
+
+/mob/living/proc/can_pulltail_with_free_hand()
+	var/list/empty_hands = get_empty_held_indexes()
+	if(!length(empty_hands))
+		return FALSE
+	for(var/hand_index in empty_hands)
+		if(has_hand_for_held_index(hand_index, TRUE))
+			return TRUE
+	return FALSE
+
+/mob/living/carbon/human/proc/get_fake_tailplug()
+	var/obj/item/intimate_accessory/rear/plug/rear_insertable = intimate_rear_insertable
+	if(istype(rear_insertable) && rear_insertable.is_tailplug())
+		return rear_insertable
+	return null
+
+/mob/living/carbon/human/proc/has_pulltail_target()
+	if(getorganslot(ORGAN_SLOT_TAIL))
+		return TRUE
+	return !!get_fake_tailplug()
+
+/mob/living/carbon/human/proc/try_pull_fake_tail(mob/living/puller, force_remove = FALSE)
+	var/obj/item/intimate_accessory/rear/plug/fake_tail = get_fake_tailplug()
+	if(!fake_tail)
+		return FALSE
+	if(!force_remove && !prob(10))
+		return FALSE
+	return fake_tail.yank_tailplug_from(src, puller)
 
 /obj/item/intimate_accessory/rear/plug/proc/refresh_rear_plug_state()
 	update_sellprice()
@@ -281,6 +533,7 @@
 		reaction.unbind_from_wearer(H)
 	if(is_worn_in_rear_slot(H))
 		play_plug_sound(H, 'sound/items/uncork.ogg')
+	remove_tailplug_tail_feature(H)
 	return ..()
 
 /obj/item/intimate_accessory/rear/plug/proc/update_sellprice()
@@ -289,6 +542,10 @@
 
 /obj/item/intimate_accessory/rear/plug/proc/update_item_visuals()
 	cut_overlays()
+
+	if(is_tailplug())
+		update_tailplug_item_visuals(1)
+		return
 
 	var/special_state = get_special_rear_item_state("rear_plug_item")
 	if(special_state)
@@ -309,6 +566,33 @@
 			gem_overlay.color = intimate_gem_color
 		add_overlay(gem_overlay)
 	update_icon()
+
+/obj/item/intimate_accessory/rear/plug/has_visual_intimate_feature()
+	if(is_tailplug())
+		return TRUE
+	return ..()
+
+/obj/item/intimate_accessory/rear/plug/ensure_intimate_feature(mob/living/carbon/human/H)
+	if(!is_tailplug())
+		return ..()
+	if(tailplug_tail_feature)
+		return TRUE
+	var/datum/bodypart_feature/intimate_tailplug/new_feature = new
+	new_feature.feature_slot = "intimate_tailplug_tail_[get_effective_intimate_slot()]"
+	new_feature.set_accessory_type(tailplug_tail_accessory_type, tailplug_tail_colors, H)
+	new_feature.accessory_item = src
+	tailplug_tail_feature = new_feature
+	return TRUE
+
+/obj/item/intimate_accessory/rear/plug/attach_intimate_feature(mob/living/carbon/human/H)
+	if(!is_tailplug())
+		return ..()
+	var/obj/item/bodypart/chest = H.get_bodypart(BODY_ZONE_CHEST)
+	if(!chest)
+		return FALSE
+	if(!tailplug_tail_feature)
+		ensure_intimate_feature(H)
+	return chest.add_bodypart_feature(tailplug_tail_feature)
 
 /obj/item/intimate_accessory/rear/plug/proc/get_metal_descriptor()
 	if(!intimate_metal_name)
@@ -401,26 +685,32 @@
 	return "[state_prefix]_[style]"
 
 /obj/item/intimate_accessory/rear/plug/proc/update_description()
+	var/base_desc = default_desc
 	if(is_beriddled())
-		desc = beriddled_desc
-		return
+		base_desc = beriddled_desc
 
-	if(blue_pearled)
-		desc = blue_pearled_desc
-		return
+	else if(blue_pearled)
+		base_desc = blue_pearled_desc
 
-	if(zizite_socketed && zizite_desc)
-		desc = zizite_desc
-		return
+	else if(zizite_socketed && zizite_desc)
+		base_desc = zizite_desc
 
-	if(psydonic_socketed && psydonic_desc)
-		desc = psydonic_desc
-		return
+	else if(psydonic_socketed && psydonic_desc)
+		base_desc = psydonic_desc
 
-	desc = default_desc
+	desc = get_lubricated_description(base_desc)
+
+/obj/item/intimate_accessory/rear/plug/on_lubrication_changed()
+	update_description()
+	if(wearer)
+		notify_intimate_state_change(wearer, "lubricated")
 
 /obj/item/intimate_accessory/rear/plug/proc/update_dynamic_name()
 	var/metal_descriptor = get_metal_descriptor()
+	if(is_tailplug())
+		name = "[get_tailplug_tail_name()] [metal_descriptor] [get_tailplug_noun()]"
+		return
+
 	if(is_beriddled())
 		name = "beriddleed [metal_descriptor] [rear_accessory_noun]"
 		return
@@ -453,16 +743,22 @@
 	blue_pearled = istype(src, /obj/item/intimate_accessory/rear/plug/analbeads/abyssor) || ispath(socketed_item_type, /obj/item/pearl/blue)
 	psydonic_socketed = is_psydonic_socket_type(socketed_item_type)
 	zizite_socketed = is_zizite_socket_type(socketed_item_type)
+	tailplug_socketed = ispath(socketed_item_type, /obj/item/natural/fur) && !!tailplug_tail_accessory_type && !!tailplug_item_icon_base
 
 /obj/item/intimate_accessory/rear/plug/has_custom_socket_state()
-	return beriddleed || blue_pearled
+	return beriddleed || blue_pearled || tailplug_socketed
 
 /obj/item/intimate_accessory/rear/plug/clear_custom_socket_state()
 	beriddleed = FALSE
 	blue_pearled = FALSE
 	psydonic_socketed = FALSE
 	zizite_socketed = FALSE
-	desc = default_desc
+	tailplug_socketed = FALSE
+	tailplug_tail_accessory_type = null
+	tailplug_tail_colors = null
+	tailplug_item_icon_base = null
+	remove_tailplug_tail_feature(wearer)
+	desc = get_lubricated_description(default_desc)
 	update_beriddleed_glow()
 
 /obj/item/intimate_accessory/rear/plug/is_beriddled()
@@ -470,12 +766,10 @@
 
 /obj/item/intimate_accessory/rear/plug/on_beriddle_state_changed(new_state)
 	if(!!new_state)
-		desc = beriddled_desc
 		beriddleed = TRUE
 	else
 		beriddleed = FALSE
-		if(!blue_pearled)
-			desc = default_desc
+	update_description()
 	update_beriddleed_glow()
 
 /obj/item/intimate_accessory/rear/plug/proc/update_beriddleed_glow()
@@ -535,6 +829,9 @@
 	return TRUE
 
 /obj/item/intimate_accessory/rear/plug/attackby(obj/item/I, mob/living/user, params)
+	if(istype(I, /obj/item/natural/fur))
+		return try_socket_tail_fur(I, user)
+
 	if(is_psydonic_socket_item(I) || is_zizite_socket_item(I))
 		return try_socket_special_cross(I, user)
 
@@ -546,6 +843,12 @@
 /obj/item/intimate_accessory/rear/plug/on_socket_state_changed(reason = "")
 	refresh_socket_flags()
 	on_beriddle_state_changed(is_beriddled())
+	if(wearer)
+		if(is_tailplug())
+			remove_tailplug_tail_feature(wearer)
+			attach_intimate_feature(wearer)
+		else
+			remove_tailplug_tail_feature(wearer)
 	refresh_rear_plug_state()
 	return ..()
 
@@ -608,6 +911,21 @@
 		if("medium")
 			return 5
 	return 4
+
+/obj/item/intimate_accessory/rear/plug/analbeads/get_tailplug_noun()
+	return "tailbeads"
+
+/obj/item/intimate_accessory/rear/plug/analbeads/get_tailplug_examine_plain_name()
+	var/metal_descriptor = intimate_metal_name ? lowertext(intimate_metal_name) : null
+	if(metal_descriptor)
+		return "[get_tailplug_tail_name()] [metal_descriptor] [get_tailplug_noun()]"
+	return "[get_tailplug_tail_name()] [get_tailplug_noun()]"
+
+/obj/item/intimate_accessory/rear/plug/analbeads/get_tailplug_examine_line(mob/living/carbon/human/examined, mob/user)
+	if(!examined || !is_tailplug() || !can_user_identify_tailplug(user))
+		return null
+	var/accessory_name = examined.get_examine_item_name_with_hover(user, src, get_tailplug_examine_colored_name())
+	return "[examined.p_they(TRUE)] [examined.p_are()] wearing a set of [accessory_name] stuffed [intimate_accessory_count_word(beads_inserted)] beads deep."
 
 /// Returns a custom visible_message for pushing a bead in. Override for bespoke insertion text.
 /// Return null to use the default message.
@@ -708,6 +1026,13 @@
 /obj/item/intimate_accessory/rear/plug/analbeads/update_dynamic_name()
 	var/metal_descriptor = intimate_metal_name ? lowertext(intimate_metal_name) : null
 
+	if(is_tailplug())
+		if(metal_descriptor)
+			name = "[get_tailplug_tail_name()] [metal_descriptor] [get_tailplug_noun()]"
+		else
+			name = "[get_tailplug_tail_name()] [get_tailplug_noun()]"
+		return
+
 	if(is_beriddled())
 		if(metal_descriptor)
 			name = "beriddleed [metal_descriptor] [rear_accessory_noun]"
@@ -740,6 +1065,10 @@
 
 /obj/item/intimate_accessory/rear/plug/analbeads/update_item_visuals()
 	cut_overlays()
+	if(is_tailplug())
+		update_tailplug_item_visuals(2)
+		return
+
 	if(src.blue_pearled)
 		color = initial(color)
 		item_state = "rear_bead_item_abyssor"

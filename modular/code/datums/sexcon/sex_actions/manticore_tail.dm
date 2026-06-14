@@ -26,7 +26,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -37,7 +37,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -81,7 +81,7 @@
 		return FALSE
 	if(!get_manticore_tail(target))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -92,7 +92,7 @@
 		return FALSE
 	if(!get_manticore_tail(target))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -191,7 +191,7 @@
 		return FALSE
 	if(!get_manticore_tail(target))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -200,7 +200,7 @@
 		return FALSE
 	if(!get_manticore_tail(target))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -336,9 +336,9 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -349,9 +349,9 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -609,7 +609,7 @@
 		return FALSE
 	if(!both_extreme_erp(user, target))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 
@@ -622,7 +622,7 @@
 		return FALSE
 	if(!both_extreme_erp(user, target))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 
@@ -661,7 +661,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -672,7 +672,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -681,7 +681,7 @@
 	playsound(target, 'sound/misc/mat/insert (1).ogg', 20, TRUE, ignore_walls = FALSE)
 
 /datum/sex_action/manticore_tail_suck_breast/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/obj/item/organ/breasts/tits = target.getorganslot(ORGAN_SLOT_BREASTS)
+	var/obj/item/organ/breasts/tits = target.get_visible_genital_organ(ORGAN_SLOT_BREASTS)
 	var/lactating = tits?.lactating
 	var/message
 	switch(user.sexcon.force)
@@ -730,7 +730,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	var/obj/item/organ/penis/cock = target.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/cock = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!cock)
 		return FALSE
 	// Slit-type penises have no discrete urethral opening
@@ -745,7 +745,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	var/obj/item/organ/penis/cock = target.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/cock = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!cock)
 		return FALSE
 	if(cock.sheath_type == SHEATH_TYPE_SLIT)
@@ -796,7 +796,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 
@@ -807,7 +807,7 @@
 		return FALSE
 	if(!get_manticore_tail(user))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 

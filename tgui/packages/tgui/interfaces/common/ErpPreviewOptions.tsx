@@ -256,11 +256,13 @@ export function resolveErpPreviewTokens(
   perspective: ErpPreviewPerspective,
   profileData?: ErpPreviewProfileData,
   anatomyTokens?: CustomAnatomyTokenData,
+  targetAnatomyTokens?: CustomAnatomyTokenData,
 ): string {
   const profile = applyCustomAnatomyTokensToPreviewProfile(
     normalizeErpPreviewProfile(profileData),
     anatomyTokens,
     perspective,
+    targetAnatomyTokens,
   );
   const userIsYou =
     perspective === 'intimate-wearer' || perspective === 'sex-giving';
@@ -347,9 +349,7 @@ export function resolveErpPreviewTokens(
     )
     .replace(/\[FORCE\]/g, profile.force)
     .replace(/\[PLUG\]/g, profile.plug);
-  return capitalizeInitialSecondPerson(
-    normalizeSecondPersonPreviewGrammar(resolved),
-  );
+  return capitalizeInitialSecondPerson(resolved);
 }
 
 export function ErpPreviewOptionsButton({
@@ -664,11 +664,24 @@ function applyCustomAnatomyTokensToPreviewProfile(
   profile: ErpPreviewProfile,
   tokens: CustomAnatomyTokenData | undefined,
   perspective: ErpPreviewPerspective,
+  targetTokens?: CustomAnatomyTokenData,
 ): ErpPreviewProfile {
   const anatomy = normalizeCustomAnatomyTokens(tokens);
+  const separateRoleAnatomy = targetTokens !== undefined;
+  const emptyAnatomy: CustomAnatomyTokenData = {};
   const userIsYou =
     perspective === 'intimate-wearer' || perspective === 'sex-giving';
   const targetIsYou = perspective === 'sex-receiving';
+  const userAnatomy = separateRoleAnatomy
+    ? anatomy
+    : userIsYou
+      ? anatomy
+      : emptyAnatomy;
+  const targetAnatomy = separateRoleAnatomy
+    ? normalizeCustomAnatomyTokens(targetTokens)
+    : targetIsYou
+      ? anatomy
+      : emptyAnatomy;
 
   return {
     ...profile,
@@ -676,36 +689,18 @@ function applyCustomAnatomyTokensToPreviewProfile(
     vagType: anatomy.vag ?? profile.vagType,
     cupSize: anatomy.cup_size ?? profile.cupSize,
     breastType: anatomy.breast_type ?? profile.breastType,
-    userCock: userIsYou ? (anatomy.cock ?? profile.userCock) : profile.userCock,
-    userShaft: userIsYou
-      ? (anatomy.shaft ?? profile.userShaft)
-      : profile.userShaft,
-    userSize: userIsYou ? (anatomy.size ?? profile.userSize) : profile.userSize,
-    userVag: userIsYou ? (anatomy.vag ?? profile.userVag) : profile.userVag,
-    userCupSize: userIsYou
-      ? (anatomy.cup_size ?? profile.userCupSize)
-      : profile.userCupSize,
-    userBreastType: userIsYou
-      ? (anatomy.breast_type ?? profile.userBreastType)
-      : profile.userBreastType,
-    targetCock: targetIsYou
-      ? (anatomy.cock ?? profile.targetCock)
-      : profile.targetCock,
-    targetShaft: targetIsYou
-      ? (anatomy.shaft ?? profile.targetShaft)
-      : profile.targetShaft,
-    targetSize: targetIsYou
-      ? (anatomy.size ?? profile.targetSize)
-      : profile.targetSize,
-    targetVag: targetIsYou
-      ? (anatomy.vag ?? profile.targetVag)
-      : profile.targetVag,
-    targetCupSize: targetIsYou
-      ? (anatomy.cup_size ?? profile.targetCupSize)
-      : profile.targetCupSize,
-    targetBreastType: targetIsYou
-      ? (anatomy.breast_type ?? profile.targetBreastType)
-      : profile.targetBreastType,
+    userCock: userAnatomy.cock ?? profile.userCock,
+    userShaft: userAnatomy.shaft ?? profile.userShaft,
+    userSize: userAnatomy.size ?? profile.userSize,
+    userVag: userAnatomy.vag ?? profile.userVag,
+    userCupSize: userAnatomy.cup_size ?? profile.userCupSize,
+    userBreastType: userAnatomy.breast_type ?? profile.userBreastType,
+    targetCock: targetAnatomy.cock ?? profile.targetCock,
+    targetShaft: targetAnatomy.shaft ?? profile.targetShaft,
+    targetSize: targetAnatomy.size ?? profile.targetSize,
+    targetVag: targetAnatomy.vag ?? profile.targetVag,
+    targetCupSize: targetAnatomy.cup_size ?? profile.targetCupSize,
+    targetBreastType: targetAnatomy.breast_type ?? profile.targetBreastType,
   };
 }
 
@@ -722,38 +717,6 @@ function capitalize(text: string): string {
     return text;
   }
   return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function normalizeSecondPersonPreviewGrammar(text: string): string {
-  const replacements: Record<string, string> = {
-    adjusts: 'adjust',
-    bites: 'bite',
-    freezes: 'freeze',
-    goes: 'go',
-    grabs: 'grab',
-    guides: 'guide',
-    hisses: 'hiss',
-    keeps: 'keep',
-    lets: 'let',
-    moves: 'move',
-    passes: 'pass',
-    saunters: 'saunter',
-    shifts: 'shift',
-    shivers: 'shiver',
-    staggers: 'stagger',
-    stops: 'stop',
-    strides: 'stride',
-    takes: 'take',
-    tenses: 'tense',
-    trembles: 'tremble',
-    walks: 'walk',
-  };
-  return text.replace(
-    /\b(You|you) ([a-z]+)\b/g,
-    (match, pronoun: string, verb: string) => {
-      return replacements[verb] ? `${pronoun} ${replacements[verb]}` : match;
-    },
-  );
 }
 
 function capitalizeInitialSecondPerson(text: string): string {

@@ -14,7 +14,7 @@
 				return FALSE
 		else
 			return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -30,7 +30,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_MOUTH))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(!user.sexcon.can_use_penis())
 		return FALSE

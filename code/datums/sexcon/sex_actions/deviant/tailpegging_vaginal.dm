@@ -7,7 +7,7 @@
 /datum/sex_action/tailpegging_vaginal/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	if(!user.getorganslot(ORGAN_SLOT_TAIL) && !islamia(user))
 		return FALSE
@@ -18,7 +18,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	if(!user.getorganslot(ORGAN_SLOT_TAIL) && !islamia(user))
 		return FALSE

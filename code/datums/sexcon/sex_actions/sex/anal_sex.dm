@@ -9,7 +9,7 @@
 /datum/sex_action/anal_sex/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(anal_blocked_by_rear_plug(user, target))
 		return FALSE
@@ -22,7 +22,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(!user.sexcon.can_use_penis())
 		return FALSE
@@ -53,7 +53,7 @@
 		user.visible_message(span_love("[user] cums into [target]'s butt!"))
 		for(var/i = 1; i <= user.sexcon.get_load_bursts(); i++)
 			user.sexcon.cum_into(splashed_user = target, orifice = SEX_PART_ANUS, consume_charge = i == 1 ? TRUE : FALSE)
-			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.getorganslot(ORGAN_SLOT_VAGINA))
+			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 				user.try_impregnate(target)
 			sleep(10)
 		user.virginity = FALSE
@@ -107,7 +107,7 @@
 		user.visible_message(span_love("[user] cums into [target]'s butt!"))
 		for(var/i = 1; i <= user.sexcon.get_load_bursts(); i++)
 			user.sexcon.cum_into(splashed_user = target, orifice = SEX_PART_ANUS, consume_charge = i == 1 ? TRUE : FALSE)
-			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.getorganslot(ORGAN_SLOT_VAGINA))
+			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 				user.try_impregnate(target)
 			sleep(10)
 		user.virginity = FALSE

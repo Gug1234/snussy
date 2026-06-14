@@ -66,6 +66,28 @@
 	TEST_ASSERT(!findtext(resolved, "\[UVAG]"), "custom sex user vagina token should resolve")
 	TEST_ASSERT(!findtext(resolved, "\[TCOCK]"), "custom sex target cock token should resolve")
 
+/datum/unit_test/custom_sex_action_feedback_perspective_tokens/Run()
+	var/mob/living/carbon/human/consistent/user = allocate(/mob/living/carbon/human/consistent)
+	var/mob/living/carbon/human/consistent/target = allocate(/mob/living/carbon/human/consistent)
+
+	var/obj/item/organ/penis/knotted/user_penis = allocate(/obj/item/organ/penis/knotted)
+	user_penis.Insert(user)
+	var/obj/item/organ/vagina/target_vagina = allocate(/obj/item/organ/vagina)
+	target_vagina.Insert(target)
+	var/obj/item/organ/breasts/target_breasts = allocate(/obj/item/organ/breasts)
+	target_breasts.Insert(target)
+
+	var/datum/sex_action/custom/action = allocate(/datum/sex_action/custom)
+	var/text = "\[USER] guides \[UCOCK] toward \[TVAG] and \[TBREASTTYPE]."
+	var/resolved_for_user = action.resolve_sex_flavor_tokens(text, user, target, user)
+	var/resolved_for_target = action.resolve_sex_flavor_tokens(text, user, target, target)
+
+	TEST_ASSERT(findtext(resolved_for_user, "your"), "user-facing custom sex anatomy should describe user-owned tokens in second person")
+	TEST_ASSERT(findtext(resolved_for_target, "your"), "target-facing custom sex anatomy should describe target-owned tokens in second person")
+	TEST_ASSERT(findtext(resolved_for_target, "their"), "target-facing custom sex anatomy should keep user-owned tokens in third person")
+	TEST_ASSERT(!findtext(resolved_for_user, "none"), "user-facing custom sex anatomy should not collapse visible organs to none")
+	TEST_ASSERT(!findtext(resolved_for_target, "none"), "target-facing custom sex anatomy should not collapse visible organs to none")
+
 /datum/unit_test/custom_anatomy_token_preferences/Run()
 	var/datum/preferences/prefs = new
 

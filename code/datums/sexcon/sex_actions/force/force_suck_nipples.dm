@@ -12,7 +12,7 @@
 				return FALSE
 		else
 			return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -28,7 +28,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_MOUTH))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -55,7 +55,7 @@
 		user.sexcon.perform_deepthroat_oxyloss(target, 0.6)
 	target.sexcon.handle_passive_ejaculation()
 
-	var/obj/item/organ/breasts/breasts = user.getorganslot(ORGAN_SLOT_BREASTS)
+	var/obj/item/organ/breasts/breasts = user.get_visible_genital_organ(ORGAN_SLOT_BREASTS)
 	var/milk_to_add = min(max(breasts.breast_size, 1), breasts.milk_stored)
 	if(breasts.lactating && milk_to_add > 0 && prob(25))
 		target.reagents.add_reagent(/datum/reagent/consumable/milk, milk_to_add)

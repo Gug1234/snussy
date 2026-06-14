@@ -769,6 +769,64 @@
 
 	emote("pinch", intentional = TRUE, targetted = TRUE)
 
+/datum/emote/living/pulltail
+	key = "pulltail"
+	key_third_person = "pulls"
+	message = ""
+	message_param = "pulls %t's tail."
+	emote_type = EMOTE_VISIBLE
+	restraint_check = TRUE
+
+/datum/emote/living/pulltail/can_run_emote(mob/user, status_check = TRUE, intentional)
+	. = ..()
+	if(!.)
+		return FALSE
+	if(!ishuman(user))
+		return FALSE
+	var/mob/living/carbon/human/L = user
+	if(!L.can_pulltail_with_free_hand())
+		if(intentional)
+			to_chat(user, span_warning("I need a free hand to pull a tail."))
+		return FALSE
+	return TRUE
+
+/datum/emote/living/pulltail/run_emote(mob/user, params, type_override, intentional, targetted)
+	if(!targetted)
+		return ..()
+	var/list/mobsadjacent = list()
+	for(var/mob/living/carbon/human/H in range(user, 2))
+		if(H == user)
+			continue
+		if(H.has_pulltail_target())
+			mobsadjacent += H
+	if(!length(mobsadjacent))
+		if(intentional)
+			to_chat(user, span_warning("No one nearby has a tail to pull."))
+		return FALSE
+	var/mob/living/carbon/human/chosenmob = tgui_input_list(user, "[key] who?", "XYLIX", mobsadjacent)
+	if(!chosenmob || !user.Adjacent(chosenmob) || !chosenmob.has_pulltail_target())
+		return FALSE
+	. = ..(user, chosenmob.name, type_override, intentional, FALSE)
+	if(.)
+		adjacentaction(user, chosenmob)
+
+/datum/emote/living/pulltail/adjacentaction(mob/user, mob/target)
+	. = ..()
+	if(!user || !target || !ishuman(target))
+		return
+	var/mob/living/carbon/human/H = target
+	if(!H.has_pulltail_target())
+		return
+	H.flash_fullscreen("redflash1")
+	if(H.get_fake_tailplug())
+		H.try_pull_fake_tail(user)
+
+/mob/living/carbon/human/verb/emote_pulltail()
+	set name = "Pull Tail"
+	set category = "Emotes"
+
+	emote("pulltail", intentional = TRUE, targetted = TRUE)
+
 /datum/emote/living/laugh/run_emote(mob/user, params, type_override, intentional, targetted)
 	. = ..()
 	if(. && user.mind)

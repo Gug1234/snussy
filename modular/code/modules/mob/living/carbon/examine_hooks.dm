@@ -49,9 +49,11 @@
 	var/viewer_intimate_ok = !user.client?.prefs || user.client.prefs.intimate_enabled
 	var/wearer_intimate_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
 	if(viewer_intimate_ok && wearer_intimate_ok && length(intimate_accessories))
-		add_visible_intimate_examine_accessory(lines, user, intimate_genital_insertable, BODY_ZONE_PRECISE_GROIN, observer_privilege, get_genital_insertable_examine_part(intimate_genital_insertable))
+		if(has_visible_front_genital_organ())
+			add_visible_intimate_examine_accessory(lines, user, intimate_genital_insertable, BODY_ZONE_PRECISE_GROIN, observer_privilege, get_genital_insertable_examine_part(intimate_genital_insertable))
 		add_visible_intimate_examine_accessory(lines, user, intimate_rear_insertable, BODY_ZONE_PRECISE_GROIN, observer_privilege, "rear")
-		add_visible_intimate_examine_accessory(lines, user, intimate_breast_insertable, BODY_ZONE_CHEST, observer_privilege, "chest")
+		if(has_visible_genital_organ(ORGAN_SLOT_BREASTS))
+			add_visible_intimate_examine_accessory(lines, user, intimate_breast_insertable, BODY_ZONE_CHEST, observer_privilege, "chest")
 		add_visible_intimate_examine_accessory(lines, user, intimate_mouth_insertable, BODY_ZONE_PRECISE_MOUTH, observer_privilege, "mouth")
 
 	// Append an examine link to open the intimate accessories panel when:
@@ -70,9 +72,9 @@
 	var/wearer_intimate_ok = !client?.prefs || (client.prefs.intimate_enabled && client.prefs.show_intimate_examine)
 	if(!viewer_intimate_ok || !wearer_intimate_ok || !length(intimate_accessories))
 		return lines
-	if(!has_visible_intimate_piercing_body_descriptor(user, list(/datum/mob_descriptor/penis, /datum/mob_descriptor/vagina)))
+	if(has_visible_front_genital_organ() && !has_visible_intimate_piercing_body_descriptor(user, list(/datum/mob_descriptor/penis, /datum/mob_descriptor/vagina)))
 		add_visible_intimate_examine_accessory(lines, user, intimate_genital_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "sex", FALSE, FALSE)
-	if(!has_visible_intimate_piercing_body_descriptor(user, list(/datum/mob_descriptor/breasts)))
+	if(has_visible_genital_organ(ORGAN_SLOT_BREASTS) && !has_visible_intimate_piercing_body_descriptor(user, list(/datum/mob_descriptor/breasts)))
 		add_visible_intimate_examine_accessory(lines, user, intimate_breast_piercing, BODY_ZONE_CHEST, observer_privilege, "nipples", TRUE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_rear_piercing, BODY_ZONE_PRECISE_GROIN, observer_privilege, "rear", FALSE, FALSE)
 	add_visible_intimate_examine_accessory(lines, user, intimate_mouth_piercing, BODY_ZONE_PRECISE_MOUTH, observer_privilege, "tongue", FALSE, FALSE)
@@ -132,7 +134,7 @@
 		return base_description
 	return "[base_description], [piercing_descriptor]"
 
-
+/// hacky but works
 /mob/living/carbon/human/proc/get_genital_insertable_examine_part(obj/item/intimate_accessory/accessory)
 	if(istype(accessory, /obj/item/intimate_accessory/genital/plug/sounding_rod))
 		return "urethra"

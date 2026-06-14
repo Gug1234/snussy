@@ -9,10 +9,10 @@
 /datum/sex_action/slit_sex/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	var/obj/item/organ/penis/pp = target.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/pp = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!pp || pp.sheath_type != SHEATH_TYPE_SLIT)
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	return TRUE
 
@@ -23,7 +23,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
-	var/obj/item/organ/penis/pp = target.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/pp = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!pp || pp.sheath_type != SHEATH_TYPE_SLIT)
 		return FALSE
 	if(!user.sexcon.can_use_penis())
@@ -53,7 +53,7 @@
 		user.visible_message(span_love("[user] cums into [target]'s slit!"))
 		for(var/i = 1; i <= user.sexcon.get_load_bursts(); i++)
 			user.sexcon.cum_into(splashed_user = target, orifice = SEX_PART_SLIT_SHEATH, consume_charge = i == 1 ? TRUE : FALSE)
-			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.getorganslot(ORGAN_SLOT_VAGINA))
+			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 				user.try_impregnate(target)
 			sleep(10)
 		user.virginity = FALSE
@@ -108,7 +108,7 @@
 		user.visible_message(span_love("[user] cums into [target]'s slit!"))
 		for(var/i = 1; i <= user.sexcon.get_load_bursts(); i++)
 			user.sexcon.cum_into(splashed_user = target, orifice = SEX_PART_SLIT_SHEATH, consume_charge = i == 1 ? TRUE : FALSE)
-			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.getorganslot(ORGAN_SLOT_VAGINA))
+			if(HAS_TRAIT(target, TRAIT_BAOTHA_FERTILITY_BOON) && !target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 				user.try_impregnate(target)
 			sleep(10)
 		user.virginity = FALSE

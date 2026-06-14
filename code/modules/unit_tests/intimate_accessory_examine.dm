@@ -148,6 +148,127 @@
 	piercing_lines = cursed_fallback_human.human_modular_intimate_piercing_examine_lines(cursed_fallback_human, TRUE)
 	TEST_ASSERT(list_has_text(piercing_lines, "His sex is pierced through with") && list_has_text(piercing_lines, "genital piercing"), "genital cursed piercings should get a descriptor-adjacent examine line when no inline genital descriptor is available")
 
+/datum/unit_test/intimate_insertable_butter_lubrication/Run()
+	var/mob/living/carbon/human/consistent/human = allocate(/mob/living/carbon/human/consistent)
+	human.forceMove(run_loc_bottom_left)
+
+	var/obj/item/intimate_accessory/rear/plug/iron/plug = allocate(/obj/item/intimate_accessory/rear/plug/iron)
+	var/original_name = plug.name
+	var/original_desc = plug.desc
+	var/obj/item/reagent_containers/food/snacks/butterslice/butter = allocate(/obj/item/reagent_containers/food/snacks/butterslice)
+	plug.attackby(butter, human, null)
+
+	TEST_ASSERT(plug.lubedup, "butter should lubricate rear insertables")
+	TEST_ASSERT_EQUAL(plug.name, original_name, "lubrication should not change the item name")
+	TEST_ASSERT(findtext(plug.desc, original_desc), "lubrication should preserve the base description")
+	TEST_ASSERT(findtext(plug.desc, "slick with butter"), "lubrication should be noted in the description")
+	var/lubed_desc = plug.desc
+	var/obj/item/reagent_containers/food/snacks/butterslice/second_butter = allocate(/obj/item/reagent_containers/food/snacks/butterslice)
+	plug.attackby(second_butter, human, null)
+	TEST_ASSERT(!QDELETED(second_butter), "already-lubricated insertables should not consume more butter")
+	TEST_ASSERT_EQUAL(plug.desc, lubed_desc, "already-lubricated insertables should not duplicate the butter description")
+	TEST_ASSERT_EQUAL(plug.get_intimate_action_delay(30), 15, "lubricated insertables should halve do_after delays")
+	TEST_ASSERT_EQUAL(plug.get_rear_insertable_ejection_chance(15), 30, "lubricated rear insertables should double normal ejection chance")
+	TEST_ASSERT_EQUAL(plug.get_rear_insertable_ejection_chance(80), 160, "single-use lubrication should not need an ejection chance cap")
+
+	var/obj/item/intimate_accessory/genital/plug/iron/genital_plug = allocate(/obj/item/intimate_accessory/genital/plug/iron)
+	var/obj/item/reagent_containers/food/snacks/butter/butter_stick = allocate(/obj/item/reagent_containers/food/snacks/butter)
+	genital_plug.attackby(butter_stick, human, null)
+
+	TEST_ASSERT(genital_plug.lubedup, "butter sticks should lubricate genital insertables")
+	TEST_ASSERT(findtext(genital_plug.desc, "slick with butter"), "genital insertable lubrication should be noted in the description")
+
+/datum/unit_test/tailplug_socketing_and_visuals/proc/has_item_overlay(obj/item/item, expected_state, expected_color = null)
+	if(!item || !expected_state)
+		return FALSE
+	for(var/mutable_appearance/appearance as anything in item.overlays)
+		if(appearance?.icon_state != expected_state)
+			continue
+		if(expected_color && lowertext("[appearance.color]") != lowertext(expected_color))
+			continue
+		return TRUE
+	return FALSE
+
+/datum/unit_test/tailplug_socketing_and_visuals/Run()
+	var/tail_colors = "#5BCEFA#F5A9B8#FFFFFF"
+	var/obj/item/intimate_accessory/rear/plug/steel/plug = allocate(/obj/item/intimate_accessory/rear/plug/steel)
+	var/obj/item/natural/fur/direbear/fur = allocate(/obj/item/natural/fur/direbear)
+
+	TEST_ASSERT(plug.socket_tail_fur(fur, /datum/sprite_accessory/tail/manticore, tail_colors, "catplug"), "empty steel buttplugs should accept fur as a tailplug socket")
+	TEST_ASSERT(QDELETED(fur), "socketing fur should consume the fur item")
+	TEST_ASSERT(plug.is_tailplug(), "socketed fur should mark the plug as a tailplug")
+	TEST_ASSERT_EQUAL(plug.icon_state, "catplug1", "tailplugs should use the plug item layer for buttplugs")
+	TEST_ASSERT_EQUAL(plug.color, "#9BADB7", "tailplug plug layers should keep the accessory metal color")
+	TEST_ASSERT(has_item_overlay(plug, "catplug3", "#5BCEFA"), "tailplug item tail layer should use the first selected tail color")
+	TEST_ASSERT(!has_item_overlay(plug, "catplug2"), "buttplug tail items should not use the bead item layer")
+	TEST_ASSERT_EQUAL(plug.get_tailplug_primary_color(), "#5BCEFA", "tailplug primary color should come from the first tail sprite color")
+
+	var/datum/sprite_accessory/tail/tail_accessory = SPRITE_ACCESSORY(plug.tailplug_tail_accessory_type)
+	TEST_ASSERT_EQUAL(tail_accessory.color_keys, 3, "manticore tailplug sockets should preserve all three color zones")
+	TEST_ASSERT_EQUAL(plug.current_gem_descriptor, "Manticore", "tailplug socket descriptors should use the chosen tail accessory name")
+
+	var/obj/item/intimate_accessory/rear/plug/analbeads/steel/beads = allocate(/obj/item/intimate_accessory/rear/plug/analbeads/steel)
+	var/obj/item/natural/fur/bead_fur = allocate(/obj/item/natural/fur)
+	TEST_ASSERT(beads.socket_tail_fur(bead_fur, /datum/sprite_accessory/tail/cat, "#5BCEFA", "dogplug"), "empty steel anal beads should accept fur as a tailbeads socket")
+	TEST_ASSERT(beads.is_tailplug(), "socketed fur should mark beads as fake-tail insertables")
+	TEST_ASSERT_EQUAL(beads.icon_state, "dogplug2", "tailbeads should use the bead item layer")
+	TEST_ASSERT_EQUAL(beads.color, "#9BADB7", "tailbeads bead layers should keep the accessory metal color")
+	TEST_ASSERT(has_item_overlay(beads, "dogplug3", "#5BCEFA"), "tailbeads item tail layer should use the first selected tail color")
+	TEST_ASSERT(!has_item_overlay(beads, "dogplug1"), "tailbeads should not use the plug item layer")
+
+/datum/unit_test/tailplug_worn_examine_and_pull/proc/appearance_list_has_existing_icon_state(list/appearances)
+	if(!length(appearances))
+		return FALSE
+	for(var/mutable_appearance/appearance as anything in appearances)
+		if(appearance?.icon && appearance.icon_state && icon_exists(appearance.icon, appearance.icon_state))
+			return TRUE
+	return FALSE
+
+/datum/unit_test/tailplug_worn_examine_and_pull/Run()
+	var/mob/living/carbon/human/consistent/wearer = allocate(/mob/living/carbon/human/consistent)
+	wearer.forceMove(run_loc_bottom_left)
+	wearer.gender = MALE
+	var/mob/living/carbon/human/consistent/puller = allocate(/mob/living/carbon/human/consistent)
+	puller.forceMove(run_loc_bottom_left)
+
+	var/obj/item/intimate_accessory/rear/plug/steel/plug = allocate(/obj/item/intimate_accessory/rear/plug/steel)
+	TEST_ASSERT(plug.socket_tail_fur(null, /datum/sprite_accessory/tail/manticore, "#5BCEFA#F5A9B8#FFFFFF", "catplug"), "tests should be able to socket a tailplug without a physical fur item")
+	TEST_ASSERT(plug.attach_intimate_feature(wearer), "tailplugs should attach a fake tail bodypart feature")
+	plug.finalize_intimate_equip(wearer)
+	TEST_ASSERT_EQUAL(wearer.intimate_rear_insertable, plug, "tailplugs should occupy the rear insertable slot")
+	TEST_ASSERT(wearer.has_pulltail_target(), "tailplugs should make the wearer a valid pulltail target")
+
+	var/obj/item/bodypart/chest = wearer.get_bodypart(BODY_ZONE_CHEST)
+	TEST_ASSERT_NOTNULL(plug.tailplug_tail_feature, "tailplugs should keep a separate tail feature")
+	TEST_ASSERT(plug.tailplug_tail_feature in chest.bodypart_features, "tailplug fake tails should be attached to the wearer's chest bodypart feature list")
+	TEST_ASSERT(appearance_list_has_existing_icon_state(plug.tailplug_tail_feature.get_bodypart_overlay(chest)), "tailplug fake tails should render a real tail sprite accessory overlay")
+
+	puller.STAPER = 9
+	TEST_ASSERT_NULL(plug.get_tailplug_examine_line(wearer, puller), "low-perception examiners should not identify fake tails as tailplugs")
+	puller.STAPER = 10
+	var/tailplug_line = plug.get_tailplug_examine_line(wearer, puller)
+	TEST_ASSERT(findtext(lowertext(tailplug_line), "tailplug"), "high-perception examiners should see exposed fake tails as tailplugs")
+	TEST_ASSERT(findtext(lowertext(tailplug_line), "<font color='#5bcefa'>manticore</font>"), "tailplug examine text should color the chosen tail accessory name")
+	TEST_ASSERT(findtext(lowertext(tailplug_line), "<font color='#9badb7'>steel</font>"), "tailplug examine text should keep the metal portion colored like other intimate accessories")
+
+	TEST_ASSERT(wearer.try_pull_fake_tail(puller, TRUE), "forced test pulltail should yank a fake tail free")
+	TEST_ASSERT_NULL(wearer.intimate_rear_insertable, "pulltail removal should clear the target's rear insertable slot")
+	TEST_ASSERT(!(plug in wearer.intimate_accessories), "pulltail removal should remove the tailplug from worn accessory tracking")
+	TEST_ASSERT_EQUAL(plug.loc, puller, "pulltail removal should place the yanked tailplug in the puller's hands when possible")
+	TEST_ASSERT(!wearer.has_pulltail_target(), "a wearer with no real or fake tail should stop being a valid pulltail target")
+
+	var/mob/living/carbon/human/consistent/bead_wearer = allocate(/mob/living/carbon/human/consistent)
+	bead_wearer.forceMove(run_loc_bottom_left)
+	var/obj/item/intimate_accessory/rear/plug/analbeads/steel/beads = allocate(/obj/item/intimate_accessory/rear/plug/analbeads/steel)
+	TEST_ASSERT(beads.socket_tail_fur(null, /datum/sprite_accessory/tail/cat, "#5BCEFA", "ratplug"), "tests should be able to socket fake-tail beads")
+	beads.attach_intimate_feature(bead_wearer)
+	beads.finalize_intimate_equip(bead_wearer)
+	beads.beads_inserted = 3
+
+	TEST_ASSERT(bead_wearer.try_pull_fake_tail(puller, TRUE), "forced test pulltail should yank fake-tail beads free")
+	TEST_ASSERT_NULL(bead_wearer.intimate_rear_insertable, "pulltail removal should clear yanked tailbeads from the rear slot")
+	TEST_ASSERT_EQUAL(beads.beads_inserted, 0, "tailbeads yanked by pulltail should use the nonviolent ripcord reset path")
+
 /datum/unit_test/intimate_piercing_visual_overlays/proc/make_visual_test_human()
 	var/mob/living/carbon/human/consistent/H = allocate(/mob/living/carbon/human/consistent)
 	H.forceMove(run_loc_bottom_left)

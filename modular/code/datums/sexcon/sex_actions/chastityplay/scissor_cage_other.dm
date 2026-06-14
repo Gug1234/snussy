@@ -8,7 +8,7 @@
         return FALSE
     if(!user.sexcon.has_chastity_vagina())
         return FALSE
-    if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+    if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
         return FALSE
     if(target.sexcon.has_chastity_vagina())
         return FALSE
@@ -19,7 +19,7 @@
         return FALSE
     if(!user.sexcon.has_chastity_vagina())
         return FALSE
-    if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+    if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
         return FALSE
     if(target.sexcon.has_chastity_vagina())
         return FALSE

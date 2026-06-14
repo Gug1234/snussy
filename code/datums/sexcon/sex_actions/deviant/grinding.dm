@@ -30,7 +30,7 @@
 			zone_text = user.dir == target.dir ? "ass" : "crotch"
 			pleasure_target = 1
 		if(BODY_ZONE_CHEST)
-			zone_text = target.getorganslot(ORGAN_SLOT_BREASTS) ? "tits" : "chest"
+			zone_text = target.get_visible_genital_organ(ORGAN_SLOT_BREASTS) ? "tits" : "chest"
 			pleasure_target = 1
 		else
 			zone_text = LOWER_TEXT(parse_zone(user.zone_selected))

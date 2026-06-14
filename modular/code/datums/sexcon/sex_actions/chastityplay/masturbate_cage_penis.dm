@@ -6,7 +6,7 @@
 /datum/sex_action/chastityplay/masturbate_cage_penis/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(user != target)
         return FALSE
-    if(!user.getorganslot(ORGAN_SLOT_PENIS))
+    if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
         return FALSE
     // has_chastity_cage() would also match vagina-only belts; we specifically need a caged cock here.
     if(!user.sexcon.has_chastity_penis())
@@ -16,7 +16,7 @@
 /datum/sex_action/chastityplay/masturbate_cage_penis/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(user != target)
         return FALSE
-    if(!user.getorganslot(ORGAN_SLOT_PENIS))
+    if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
         return FALSE
     if(!user.sexcon.has_chastity_penis())
         return FALSE

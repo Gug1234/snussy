@@ -1,5 +1,5 @@
 /datum/sex_controller/proc/knot_penis_type()
-	var/obj/item/organ/penis/penis = user.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penis = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!penis)
 		return FALSE
 	if(!penis.functional)
@@ -10,7 +10,7 @@
 	return FALSE
 
 /datum/sex_controller/proc/double_penis_type()
-	var/obj/item/organ/penis/penis = user.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penis = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!penis)
 		return FALSE
 	if(!penis.functional)
@@ -149,7 +149,7 @@
 		GLOB.azure_round_stats[STATS_KNOTTED_NOT_LUPIANS]++
 
 /datum/sex_controller/proc/knot_movement_mods_remove_his_knot_ty(mob/living/carbon/human/top, mob/living/carbon/human/btm)
-	var/obj/item/organ/penis/penor = top.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penor = top.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!penor)
 		return FALSE
 	penor.Remove(top)
@@ -195,7 +195,7 @@
 		knot_remove()
 		return
 	if(prob(10) && top.m_intent == MOVE_INTENT_WALK && (btm in top.buckled_mobs)) // if the two characters are being held in a fireman carry, let them muturally get pleasure from it
-		var/obj/item/organ/penis/penis = top.getorganslot(ORGAN_SLOT_PENIS)
+		var/obj/item/organ/penis/penis = top.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 		top.sexcon.perform_sex_action(btm, penis?.penis_size > DEFAULT_PENIS_SIZE ? 6.0 : 3.0, 2, FALSE)
 		btm.sexcon.handle_passive_ejaculation()
 		if(prob(50))
@@ -390,7 +390,7 @@
 			if(top?.dna?.species?.id == "gnoll")
 				btm.has_gnoll_scent_this_round = TRUE
 			modular_record_collar_receive_event(btm, top)
-			var/obj/item/organ/testicles/testes = top.getorganslot(ORGAN_SLOT_TESTICLES)
+			var/obj/item/organ/testicles/testes = top.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 			var/knot_orifice = top.sexcon.knotted_part_partner & (SEX_PART_CUNT|SEX_PART_ANUS|SEX_PART_SLIT_SHEATH)
 			apply_creampie_drip(btm, knot_orifice, use_long = testes?.ball_size > DEFAULT_TESTICLES_SIZE)
 		if(top.sexcon.knotted_part_partner&SEX_PART_JAWS)
@@ -401,7 +401,7 @@
 			else
 				facial.refresh_cum()
 			if(btm.reagents)
-				if(top.getorganslot(ORGAN_SLOT_PENIS))
+				if(top.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 					btm.reagents.add_reagent(/datum/reagent/erpjuice/cum, top.sexcon.get_semen_volume())
 				else
 					btm.reagents.add_reagent(/datum/reagent/erpjuice/femcum, 2)

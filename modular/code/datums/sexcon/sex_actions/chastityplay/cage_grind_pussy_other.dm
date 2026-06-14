@@ -6,11 +6,11 @@
 /datum/sex_action/chastityplay/cage_grind_pussy_other/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(!requires_other_target(user, target))
         return FALSE
-    if(!user.getorganslot(ORGAN_SLOT_PENIS))
+    if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
         return FALSE
     if(!user.sexcon.has_chastity_penis())
         return FALSE
-    if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+    if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
         return FALSE
     if(target.sexcon.has_chastity_vagina())
         return FALSE
@@ -19,11 +19,11 @@
 /datum/sex_action/chastityplay/cage_grind_pussy_other/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(!requires_other_target(user, target))
         return FALSE
-    if(!user.getorganslot(ORGAN_SLOT_PENIS))
+    if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
         return FALSE
     if(!user.sexcon.has_chastity_penis())
         return FALSE
-    if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+    if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
         return FALSE
     if(target.sexcon.has_chastity_vagina())
         return FALSE

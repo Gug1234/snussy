@@ -416,6 +416,7 @@
 #define COMSIG_HUMAN_DISARM_HIT	"human_disarm_hit"	//Hit by successful disarm attack (mob/living/carbon/human/attacker,zone_targeted)
 #define COMSIG_JOB_RECEIVED "job_received"										//Whenever EquipRanked is called, called after job is set
 #define COMSIG_HUMAN_LIFE "human_life"
+#define COMSIG_HUMAN_TOGGLE_GENITALS "human_toggle_genitals"					//from mob/living/carbon/human/proc/set_genital_visibility_preference()
 
 // /datum/species signals
 #define COMSIG_SPECIES_GAIN "species_gain"						//from datum/species/on_species_gain(): (datum/species/new_species, datum/species/old_species)

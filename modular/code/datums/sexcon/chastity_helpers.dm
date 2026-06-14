@@ -68,7 +68,7 @@
 /datum/sex_controller/has_chastity_penis()
 	var/obj/item/chastity/device = user?.chastity_device
 	if(istype(device) && device.chastity_cursed)
-		if(!user.getorganslot(ORGAN_SLOT_PENIS))
+		if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 			return FALSE
 		// Cursed mode 1 and 3 expose penis access.
 		return !(device.cursed_front_mode == 1 || device.cursed_front_mode == 3)
@@ -80,7 +80,7 @@
 /datum/sex_controller/has_chastity_vagina()
 	var/obj/item/chastity/device = user?.chastity_device
 	if(istype(device) && device.chastity_cursed)
-		if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+		if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 			return FALSE
 		// Cursed mode 2 and 3 expose vagina access.
 		return !(device.cursed_front_mode == 2 || device.cursed_front_mode == 3)
@@ -112,7 +112,7 @@
 		return FALSE
 	if(has_chastity_penis())
 		return FALSE
-	var/obj/item/organ/penis/penor = user.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penor = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!penor)
 		return FALSE
 	if(!penor.functional)
@@ -124,7 +124,7 @@
 /datum/sex_controller/proc/modular_can_use_vagina()
 	if(has_chastity_vagina())
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 
@@ -135,7 +135,7 @@
 
 	log_combat(user, user, "Came in their chastity device")
 	playsound(user, 'sound/misc/mat/endout.ogg', suppress_moan ? 12 : 50, TRUE, ignore_walls = FALSE)
-	var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 	add_cum_floor(get_turf(user), do_big_puddle = testes?.ball_size > DEFAULT_TESTICLES_SIZE)
 	apply_internal_creampie(user)
 	modular_record_collar_receive_event(user, user)

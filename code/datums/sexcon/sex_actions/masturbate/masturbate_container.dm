@@ -9,11 +9,11 @@
 /datum/sex_action/masturbate_container/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user != target)
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS) && !user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS) && !user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
-	if(user.getorganslot(ORGAN_SLOT_PENIS) && !user.sexcon.has_chastity_penis())
+	if(user.get_visible_genital_organ(ORGAN_SLOT_PENIS) && !user.sexcon.has_chastity_penis())
 		return TRUE
-	if(user.getorganslot(ORGAN_SLOT_VAGINA) && !user.sexcon.has_chastity_vagina())
+	if(user.get_visible_genital_organ(ORGAN_SLOT_VAGINA) && !user.sexcon.has_chastity_vagina())
 		return TRUE
 	return FALSE
 
@@ -25,11 +25,11 @@
 		return FALSE
 	if(!check_location_accessible(user, user, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS) && !user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS) && !user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
-	if(user.getorganslot(ORGAN_SLOT_PENIS) && !user.sexcon.has_chastity_penis())
+	if(user.get_visible_genital_organ(ORGAN_SLOT_PENIS) && !user.sexcon.has_chastity_penis())
 		return TRUE
-	if(user.getorganslot(ORGAN_SLOT_VAGINA) && !user.sexcon.has_chastity_vagina())
+	if(user.get_visible_genital_organ(ORGAN_SLOT_VAGINA) && !user.sexcon.has_chastity_vagina())
 		return TRUE
 	return FALSE
 

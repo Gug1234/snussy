@@ -225,6 +225,8 @@
 		return FALSE
 	var/mob/living/carbon/human/H = owner
 	if(istype(src, /datum/sprite_accessory/intimate_accessory/piercing_breast))
+		if(!H.has_visible_genital_organ(ORGAN_SLOT_BREASTS))
+			return FALSE
 		if(H.underwear?.covers_breasts)
 			return FALSE
 		return is_human_part_visible(owner, HIDEBOOB)

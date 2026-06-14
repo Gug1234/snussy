@@ -6,9 +6,9 @@
 /datum/sex_action/chastityplay/frot_cage/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(!requires_other_target(user, target))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(!target.sexcon.has_chastity_penis())
 		return FALSE
@@ -17,11 +17,11 @@
 /datum/sex_action/chastityplay/frot_cage/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(!requires_other_target(user, target))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_PENIS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(!target.sexcon.has_chastity_penis())
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_PENIS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 		return FALSE
 	if(!can_reach_target_groin(user, target))
 		return FALSE

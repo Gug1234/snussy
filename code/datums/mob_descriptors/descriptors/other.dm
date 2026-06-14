@@ -27,7 +27,7 @@
 	if(!ishuman(described))
 		return FALSE
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/penis/penis = H.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penis = H.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!penis)
 		return FALSE
 	if(H.sexcon && H.sexcon.bottom_exposed == TRUE)
@@ -40,7 +40,9 @@
 
 /datum/mob_descriptor/penis/get_description(mob/living/described)
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/penis/penis = H.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penis = H.get_visible_genital_organ(ORGAN_SLOT_PENIS)
+	if(!penis)
+		return null
 	var/adjective
 	var/arousal_modifier
 	switch(penis.penis_size)
@@ -96,8 +98,8 @@
 	if(!ishuman(described))
 		return FALSE
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/testicles/testes = H.getorganslot(ORGAN_SLOT_TESTICLES)
-	var/obj/item/organ/penis/penis = H.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/testicles/testes = H.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/penis/penis = H.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(penis && penis.sheath_type == SHEATH_TYPE_SLIT) //If our penis hides in a slit, dont describe testicles
 		return FALSE
 	if(!testes)
@@ -112,7 +114,9 @@
 
 /datum/mob_descriptor/testicles/get_description(mob/living/described)
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/testicles/testes = H.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = H.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
+	if(!testes)
+		return null
 	var/adjective
 	switch(testes.ball_size)
 		if(1)
@@ -136,7 +140,7 @@
 	if(!ishuman(described))
 		return FALSE
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/vagina/vagina = H.getorganslot(ORGAN_SLOT_VAGINA)
+	var/obj/item/organ/vagina/vagina = H.get_visible_genital_organ(ORGAN_SLOT_VAGINA)
 	if(!vagina)
 		return FALSE
 	if(H.sexcon && H.sexcon.bottom_exposed == TRUE)
@@ -149,7 +153,9 @@
 
 /datum/mob_descriptor/vagina/get_description(mob/living/described)
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/vagina/vagina = H.getorganslot(ORGAN_SLOT_VAGINA)
+	var/obj/item/organ/vagina/vagina = H.get_visible_genital_organ(ORGAN_SLOT_VAGINA)
+	if(!vagina)
+		return null
 	var/vagina_type
 	var/arousal_modifier
 	switch(vagina.accessory_type)
@@ -197,7 +203,7 @@
 	if(!ishuman(described))
 		return FALSE
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/breasts/breasts = H.getorganslot(ORGAN_SLOT_BREASTS)
+	var/obj/item/organ/breasts/breasts = H.get_visible_genital_organ(ORGAN_SLOT_BREASTS)
 	if(!breasts)
 		return FALSE
 	if(H.underwear && H.underwear.covers_breasts)
@@ -208,7 +214,9 @@
 
 /datum/mob_descriptor/breasts/get_description(mob/living/described)
 	var/mob/living/carbon/human/H = described
-	var/obj/item/organ/breasts/breasts = H.getorganslot(ORGAN_SLOT_BREASTS)
+	var/obj/item/organ/breasts/breasts = H.get_visible_genital_organ(ORGAN_SLOT_BREASTS)
+	if(!breasts)
+		return null
 	var/adjective
 	switch(breasts.breast_size)
 		if(0)

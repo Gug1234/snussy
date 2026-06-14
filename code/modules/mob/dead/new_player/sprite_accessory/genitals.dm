@@ -36,11 +36,14 @@
 			return "[icon_state]_1"
 
 /datum/sprite_accessory/penis/is_visible(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	var/default_visibility = FALSE
 	if(owner.sexcon && owner.sexcon.bottom_exposed == TRUE)
-		return TRUE
-	if(owner.underwear)
-		return FALSE
-	return is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+		default_visibility = TRUE
+	else if(owner.underwear)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+	return organ.apply_genital_visibility_preference(default_visibility)
 
 /datum/sprite_accessory/penis/human
 	icon_state = "human"
@@ -128,11 +131,14 @@
 	var/obj/item/organ/penis/pp = owner.getorganslot(ORGAN_SLOT_PENIS)
 	if(pp && pp.sheath_type == SHEATH_TYPE_SLIT)
 		return FALSE
+	var/default_visibility = FALSE
 	if(owner.sexcon && owner.sexcon.bottom_exposed == TRUE)
-		return TRUE
-	if(owner.underwear)
-		return FALSE
-	return is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+		default_visibility = TRUE
+	else if(owner.underwear)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+	return organ.apply_genital_visibility_preference(default_visibility)
 
 /datum/sprite_accessory/testicles/pair
 	name = "Pair"
@@ -152,9 +158,12 @@
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BREASTS, OFFSET_BREASTS_F)
 
 /datum/sprite_accessory/breasts/is_visible(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	var/default_visibility = FALSE
 	if(owner.underwear && owner.underwear.covers_breasts)
-		return FALSE
-	return is_human_part_visible(owner, HIDEBOOB|HIDEJUMPSUIT)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDEBOOB|HIDEJUMPSUIT)
+	return organ.apply_genital_visibility_preference(default_visibility)
 
 /datum/sprite_accessory/breasts/pair
 	icon_state = "pair"
@@ -180,11 +189,14 @@
 	generic_gender_feature_adjust(appearance_list, organ, bodypart, owner, OFFSET_BELT, OFFSET_BELT_F)
 
 /datum/sprite_accessory/vagina/is_visible(obj/item/organ/organ, obj/item/bodypart/bodypart, mob/living/carbon/owner)
+	var/default_visibility = FALSE
 	if(owner.sexcon && owner.sexcon.bottom_exposed == TRUE)
-		return TRUE
-	if(owner.underwear)
-		return FALSE
-	return is_human_part_visible(owner, HIDECROTCH|HIDEJUMPSUIT)
+		default_visibility = TRUE
+	else if(owner.underwear)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDECROTCH|HIDEJUMPSUIT)
+	return organ.apply_genital_visibility_preference(default_visibility)
 
 /datum/sprite_accessory/vagina/human
 	icon_state = "human"

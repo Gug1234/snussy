@@ -62,8 +62,8 @@
  * - Intersex (both): cock ripped off, CBT wound, device stripped off.
  */
 /datum/sex_action/chastityplay/proc/_try_spiked_catastrophe(mob/living/carbon/human/user, mob/living/carbon/human/target, action_type = "twist")
-	var/obj/item/organ/penis_organ = target.getorganslot(ORGAN_SLOT_PENIS)
-	var/obj/item/organ/vagina_organ = target.getorganslot(ORGAN_SLOT_VAGINA)
+	var/obj/item/organ/penis_organ = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/vagina_organ = target.get_visible_genital_organ(ORGAN_SLOT_VAGINA)
 	var/obj/item/chastity/chastity_dev = target.chastity_device
 	var/obj/item/bodypart/chest = target.get_bodypart(BODY_ZONE_CHEST)
 	var/turf/drop_turf = get_turf(target)

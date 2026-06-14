@@ -190,10 +190,10 @@
 	action_target.emote("scream", forced = TRUE)
 
 /mob/living/carbon/human/proc/try_impregnate(mob/living/carbon/human/wife)
-	var/obj/item/organ/testicles/testes = getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 	if(!testes)
 		return
-	var/obj/item/organ/vagina/vag = wife.getorganslot(ORGAN_SLOT_VAGINA)
+	var/obj/item/organ/vagina/vag = wife.get_visible_genital_organ(ORGAN_SLOT_VAGINA)
 	if(!vag && !HAS_TRAIT(wife, TRAIT_BAOTHA_FERTILITY_BOON))
 		return
 	if(!is_virile())

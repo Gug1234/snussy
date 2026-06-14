@@ -29,6 +29,8 @@
 
 	/// Whether the organ is fully internal and should not be seen by bare eyes.
 	var/visible_organ = FALSE
+	/// Player-selected exposure behavior for genital sprite accessories.
+	var/genital_visibility_preference = GENITAL_SKIP_VISIBILITY
 	/// Description when the organ is visible and examined while it's attached to a bodypart.
 	var/bodypart_desc = "This is an organ."
 	/// Icon of the organ when it's on a bodypart.

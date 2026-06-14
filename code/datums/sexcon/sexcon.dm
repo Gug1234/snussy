@@ -360,7 +360,7 @@
 	log_combat(user, effective_target, "Came onto the target")
 	if(effective_target)
 		playsound(effective_target, 'sound/misc/mat/endout.ogg', 50, TRUE, ignore_walls = FALSE)
-	var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 	add_cum_floor(get_turf(effective_target || user), do_big_puddle = testes?.ball_size > DEFAULT_TESTICLES_SIZE)
 	if(splashed_user)
 		if(cum_on_face)
@@ -506,7 +506,7 @@
 		else
 			splashed_type.refresh_cum()
 		if(oral && splashed_user.reagents) //cum fills hunger if taking it orally
-			if(user.getorganslot(ORGAN_SLOT_PENIS))
+			if(user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 				splashed_user.reagents.add_reagent(/datum/reagent/erpjuice/cum, get_semen_volume())
 			else
 				splashed_user.reagents.add_reagent(/datum/reagent/erpjuice/femcum, 2)
@@ -515,7 +515,7 @@
 			splashed_user.has_gnoll_scent_this_round = TRUE
 		modular_record_collar_receive_event(splashed_user, user)
 		if(!oral)
-			var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+			var/obj/item/organ/testicles/testes = user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 			if(!is_receiver_actively_knotted_to_user)
 				apply_creampie_drip(splashed_user, orifice, use_long = testes?.ball_size > DEFAULT_TESTICLES_SIZE)
 	if(effective_target?.has_flaw(/datum/charflaw/addiction/lovefiend))
@@ -717,7 +717,7 @@
 		user.visible_message(span_love(self_mess_msg), vision_distance = (suppress_moan ? 1 : DEFAULT_MESSAGE_RANGE))
 		modular_apply_chastity_cum_to_groin()
 		return
-	if(user.getorganslot(ORGAN_SLOT_PENIS) && knotted_status == KNOTTED_AS_TOP && knotted_owner == user && ishuman(knotted_recipient) && !QDELETED(knotted_recipient) && knotted_recipient?.sexcon)
+	if(user.get_visible_genital_organ(ORGAN_SLOT_PENIS) && knotted_status == KNOTTED_AS_TOP && knotted_owner == user && ishuman(knotted_recipient) && !QDELETED(knotted_recipient) && knotted_recipient?.sexcon)
 		var/orifice = knotted_part_partner
 		var/is_oral_knot = (orifice & SEX_PART_JAWS) != SEX_PART_NULL
 		var/knotted_climax_msg = is_oral_knot ? "[user] climaxes down [knotted_recipient]'s throat!" : "[user] climaxes deep inside [knotted_recipient]!"
@@ -737,7 +737,7 @@
 		return
 	playsound(user, 'sound/misc/mat/endout.ogg', suppress_moan ? 12 : 50, TRUE, ignore_walls = FALSE)
 	var/semen_vol = get_semen_volume()
-	var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 	add_cum_floor(get_turf(user), do_big_puddle = testes?.ball_size > DEFAULT_TESTICLES_SIZE)
 	after_ejaculation()
 
@@ -747,7 +747,7 @@
 	var/obj/item/reagent_containers/glass/cum_chalice = locate() in cur_loc
 	if(!cum_chalice?.spillable) // leak contents underneath the first found open container
 		return
-	if(user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		cum_chalice.reagents.add_reagent(/datum/reagent/erpjuice/femcum,1)
 	else
 		cum_chalice.reagents.add_reagent(/datum/reagent/erpjuice/cum, semen_vol)
@@ -760,14 +760,14 @@
 		log_combat(user, user, "Ejaculated into a container")
 		user.visible_message(span_love("[user] spills into [C]!"))
 		playsound(user, 'sound/misc/mat/endout.ogg', 50, TRUE, ignore_walls = FALSE)
-		if(user.getorganslot(ORGAN_SLOT_PENIS))
+		if(user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 			C.reagents.add_reagent(/datum/reagent/erpjuice/cum, get_semen_volume())
 		else
 			C.reagents.add_reagent(/datum/reagent/erpjuice/femcum, 2)
 	after_ejaculation()
 
 /datum/sex_controller/proc/get_semen_volume()
-	var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 	if(!testes)
 		return 0
 	var/volume
@@ -779,7 +779,7 @@
 		else
 			volume = 3
 
-	var/obj/item/organ/penis/shaft = user.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/shaft = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(shaft?.penis_type in list(PENIS_TYPE_KNOTTED, PENIS_TYPE_EQUINE, PENIS_TYPE_EQUINE_KNOTTED, PENIS_TYPE_TAPERED_KNOTTED, PENIS_TYPE_TAPERED_DOUBLE_KNOTTED, PENIS_TYPE_BARBED_KNOTTED))
 		volume += 1
 
@@ -803,7 +803,7 @@
 /datum/sex_controller/proc/get_max_loads()
 	var/con = user.STACON
 	var/minimum_loads = 3
-	var/obj/item/organ/testicles/testes = user.getorganslot(ORGAN_SLOT_TESTICLES)
+	var/obj/item/organ/testicles/testes = user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES)
 	if(testes)
 		switch(testes.ball_size)
 			if(MIN_TESTICLES_SIZE)
@@ -945,7 +945,7 @@
 	update_erect_state()
 
 /datum/sex_controller/proc/update_erect_state()
-	var/obj/item/organ/penis/penis = user.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penis = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 
 	if(user.mind)
 		var/datum/antagonist/werewolf/W = user.mind.has_antag_datum(/datum/antagonist/werewolf/)
@@ -1102,7 +1102,7 @@
 	return TRUE
 
 /datum/sex_controller/proc/can_ejaculate()
-	if(!user.getorganslot(ORGAN_SLOT_TESTICLES) && !user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_TESTICLES) && !user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	if(HAS_TRAIT(user, TRAIT_LIMPDICK))
 		return FALSE
@@ -1179,7 +1179,7 @@
 		return FALSE
 	if(has_chastity_penis())
 		return FALSE
-	var/obj/item/organ/penis/penor = user.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/penor = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!penor)
 		return FALSE
 	if(!penor.functional)
@@ -1193,7 +1193,7 @@
 
 	if(has_chastity_vagina())
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 
@@ -1257,8 +1257,8 @@
 	var/force_name = get_force_string()
 	var/speed_name = get_speed_string()
 	var/manual_arousal_name = get_manual_arousal_string()
-	var/obj/item/organ/penis/got_cock = user.getorganslot(ORGAN_SLOT_PENIS)
-	var/obj/item/organ/vagina/got_pussy = user.getorganslot(ORGAN_SLOT_VAGINA)
+	var/obj/item/organ/penis/got_cock = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/vagina/got_pussy = user.get_visible_genital_organ(ORGAN_SLOT_VAGINA)
 	dat += "<center><a href='?src=[REF(src)];task=speed_down'>\<</a> [speed_name] <a href='?src=[REF(src)];task=speed_up'>\></a> ~|~ <a href='?src=[REF(src)];task=force_down'>\<</a> [force_name] <a href='?src=[REF(src)];task=force_up'>\></a>"
 	if(got_cock)
 		dat += " ~|~ <a href='?src=[REF(src)];task=manual_arousal_down'>\<</a> [manual_arousal_name] <a href='?src=[REF(src)];task=manual_arousal_up'>\></a>"
@@ -1312,6 +1312,8 @@
 		if(istype(action, /datum/sex_action/chastityplay) && !chastity_content_enabled_for_pair())
 			continue
 		if(istype(action, /datum/sex_action/chastityplay) && !chastity_content_enabled_for_pair())
+			continue
+		if(action_blocked_by_genital_visibility(action))
 			continue
 		if(!action.shows_on_menu(user, target))
 			continue
@@ -1487,6 +1489,8 @@
 	if(istype(action, /datum/sex_action/chastityplay) && !chastity_content_enabled_for_pair())
 		return FALSE
 	if(!inherent_perform_check(action_type, incapacitated))
+		return FALSE
+	if(action_blocked_by_genital_visibility(action))
 		return FALSE
 	if(action_blocked_by_intimate_state(action))
 		return FALSE

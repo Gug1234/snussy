@@ -8,7 +8,7 @@
 
 /mob/living/carbon/human/verb/intimate_accessory_menu()
 	set name = "Manage Intimate Accessories"
-	set category = "Options"
+	set category = "IC"
 
 	if(client?.prefs && !client.prefs.intimate_enabled)
 		to_chat(src, span_warning("I have intimate accessories disabled."))
@@ -178,7 +178,7 @@
 	if(!_can_act_on_accessory(user, accessory))
 		return FALSE
 	var/remove_delay = (user == wearer) ? 25 : 35
-	if(!do_after(user, remove_delay, needhand = 1, target = wearer))
+	if(!do_after(user, accessory.get_intimate_action_delay(remove_delay), needhand = 1, target = wearer))
 		return FALSE
 	if(!_can_act_on_accessory(user, accessory))
 		return FALSE
@@ -213,7 +213,7 @@
 	if(!message)
 		message = "[user] pushes another bead into [wearer]."
 	user.visible_message(span_notice(message))
-	if(!do_after(user, 20, needhand = 1, target = wearer))
+	if(!do_after(user, beads.get_intimate_action_delay(20), needhand = 1, target = wearer))
 		return FALSE
 	if(!_can_act_on_accessory(user, beads) || beads.beads_inserted >= beads.get_max_beads())
 		return FALSE
@@ -231,7 +231,7 @@
 	if(!message)
 		message = "[user] pulls one bead out of [wearer]."
 	user.visible_message(span_notice(message))
-	if(!do_after(user, 20, needhand = 1, target = wearer))
+	if(!do_after(user, beads.get_intimate_action_delay(20), needhand = 1, target = wearer))
 		return FALSE
 	if(!_can_act_on_accessory(user, beads) || beads.beads_inserted <= 0)
 		return FALSE
@@ -253,7 +253,7 @@
 	var/message = beads.get_ripcord_message(user, wearer, FALSE)
 	if(message)
 		user.visible_message(span_warning(message))
-	if(!do_after(user, 35, needhand = 1, target = wearer))
+	if(!do_after(user, beads.get_intimate_action_delay(35), needhand = 1, target = wearer))
 		return FALSE
 	if(!_can_act_on_accessory(user, beads) || beads.beads_inserted < 1)
 		return FALSE

@@ -1150,11 +1150,11 @@
 		if(user.InCone(src, turn(src.dir, 180)) && !src.underwear.covers_rear)
 			var/list/descriptors = list()
 			//only populate the descriptors for genitals you have
-			if(src.getorganslot(ORGAN_SLOT_PENIS))
+			if(src.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 				descriptors += /datum/mob_descriptor/penis
-			if(src.getorganslot(ORGAN_SLOT_VAGINA))
+			if(src.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 				descriptors += /datum/mob_descriptor/vagina
-			if(src.getorganslot(ORGAN_SLOT_TESTICLES))
+			if(src.get_visible_genital_organ(ORGAN_SLOT_TESTICLES))
 				descriptors += /datum/mob_descriptor/testicles
 			. += span_info("[t_his] underwear doesn't cover [t_him] from behind.")
 			//male genitalia line

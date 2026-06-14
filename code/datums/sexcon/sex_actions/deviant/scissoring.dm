@@ -6,9 +6,9 @@
 /datum/sex_action/scissoring/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 
@@ -19,9 +19,9 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	return TRUE
 

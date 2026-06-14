@@ -16,11 +16,14 @@
 	else
 		if(HAS_TRAIT(owner, TRAIT_CHASTITY_FULL) || HAS_TRAIT(owner, TRAIT_CHASTITY_CAGE) || HAS_TRAIT(owner, TRAIT_CHASTITY_PENIS_BLOCKED))
 			return FALSE
+	var/default_visibility = FALSE
 	if(owner.sexcon && owner.sexcon.bottom_exposed == TRUE)
-		return TRUE
-	if(owner.underwear)
-		return FALSE
-	return is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+		default_visibility = TRUE
+	else if(owner.underwear)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+	return organ.apply_genital_visibility_preference(default_visibility)
 
 /// Reorders testicle layers when a cage-type device is worn so they sit beneath the cage overlay.
 /// Upstream adjust_appearance_list handles the generic offset; this fires after and only adjusts layers
@@ -50,11 +53,14 @@
 		return FALSE
 	if((HAS_TRAIT(owner, TRAIT_CHASTITY_CAGE) || HAS_TRAIT(owner, TRAIT_CHASTITY_PENIS_BLOCKED)) && !chastity_shows_testicles(owner))
 		return FALSE
+	var/default_visibility = FALSE
 	if(owner.sexcon && owner.sexcon.bottom_exposed == TRUE)
-		return TRUE
-	if(owner.underwear)
-		return FALSE
-	return is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+		default_visibility = TRUE
+	else if(owner.underwear)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDEJUMPSUIT|HIDECROTCH)
+	return organ.apply_genital_visibility_preference(default_visibility)
 
 /// Hides the vagina sprite while a chastity device is blocking front access.
 /// Respects cursed mode: modes 2 and 3 expose the vagina regardless of the device being worn.
@@ -72,6 +78,9 @@
 	else
 		if(HAS_TRAIT(owner, TRAIT_CHASTITY_FULL) || HAS_TRAIT(owner, TRAIT_CHASTITY_VAGINA_BLOCKED))
 			return FALSE
+	var/default_visibility = FALSE
 	if(owner.underwear)
-		return FALSE
-	return is_human_part_visible(owner, HIDECROTCH|HIDEJUMPSUIT)
+		default_visibility = FALSE
+	else
+		default_visibility = is_human_part_visible(owner, HIDECROTCH|HIDEJUMPSUIT)
+	return organ.apply_genital_visibility_preference(default_visibility)

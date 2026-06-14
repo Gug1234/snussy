@@ -8,7 +8,7 @@
 /datum/sex_action/chastityplay/ride_cage_slit/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(!requires_other_target(user, target))
         return FALSE
-    var/obj/item/organ/penis/user_penis = user.getorganslot(ORGAN_SLOT_PENIS)
+    var/obj/item/organ/penis/user_penis = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
     if(!user_penis || user_penis.sheath_type != SHEATH_TYPE_SLIT)
         return FALSE
     if(user.sexcon.has_chastity_cage())
@@ -20,7 +20,7 @@
 /datum/sex_action/chastityplay/ride_cage_slit/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(!requires_other_target(user, target))
         return FALSE
-    var/obj/item/organ/penis/user_penis = user.getorganslot(ORGAN_SLOT_PENIS)
+    var/obj/item/organ/penis/user_penis = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
     if(!user_penis || user_penis.sheath_type != SHEATH_TYPE_SLIT)
         return FALSE
     if(!user.sexcon.can_use_penis())

@@ -6,7 +6,7 @@
 /datum/sex_action/suck_nipples/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -17,7 +17,7 @@
 		return FALSE
 	if(!check_location_accessible(user, user, BODY_ZONE_PRECISE_MOUTH))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -39,7 +39,7 @@
 	user.sexcon.perform_sex_action(target, 1, 3, TRUE)
 	target.sexcon.handle_passive_ejaculation()
 
-	var/obj/item/organ/breasts/breasts = target.getorganslot(ORGAN_SLOT_BREASTS)
+	var/obj/item/organ/breasts/breasts = target.get_visible_genital_organ(ORGAN_SLOT_BREASTS)
 	var/milk_to_add = min(max(breasts.breast_size, 1), breasts.milk_stored)
 	if(breasts.lactating && milk_to_add > 0 && prob(25))
 		user.reagents.add_reagent(/datum/reagent/consumable/milk, milk_to_add)

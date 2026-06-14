@@ -5,7 +5,7 @@
 /datum/sex_action/suck_balls/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_TESTICLES))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_TESTICLES))
 		return FALSE
 	return TRUE
 
@@ -16,7 +16,7 @@
 		return FALSE
 	if(!check_location_accessible(user, user, BODY_ZONE_PRECISE_MOUTH))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_TESTICLES))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_TESTICLES))
 		return FALSE
 	return TRUE
 

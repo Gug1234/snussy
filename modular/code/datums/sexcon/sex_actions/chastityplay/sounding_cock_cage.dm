@@ -11,7 +11,7 @@
 		return FALSE
 	if(!target_has_sounding_rod(target))
 		return FALSE
-	var/obj/item/organ/penis/target_cock = target.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/target_cock = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!target_cock)
 		return FALSE
 	// Slitted penises have no urethral opening to sound. Sorry taper chuds.
@@ -26,7 +26,7 @@
 		return FALSE
 	if(!target_has_sounding_rod(target))
 		return FALSE
-	var/obj/item/organ/penis/target_cock = target.getorganslot(ORGAN_SLOT_PENIS)
+	var/obj/item/organ/penis/target_cock = target.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 	if(!target_cock)
 		return FALSE
 	if(target_cock.sheath_type == SHEATH_TYPE_SLIT)

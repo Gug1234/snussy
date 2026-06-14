@@ -45,7 +45,7 @@
 			pleasure_target = 2
 			zone_text = "cunt"
 		if(SEX_PART_ANUS)
-			var/has_prostate = recipient.getorganslot(ORGAN_SLOT_PENIS)
+			var/has_prostate = recipient.get_visible_genital_organ(ORGAN_SLOT_PENIS)
 			pleasure_target = has_prostate ? 4 : 1
 			zone_text = "butt"
 		if(SEX_PART_JAWS)

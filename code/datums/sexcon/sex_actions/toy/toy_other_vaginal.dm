@@ -7,7 +7,7 @@
 /datum/sex_action/toy_other_vagina/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user == target)
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	if(!pegging && !get_dildo_in_either_hand(user) || pegging && !get_dildo_on_belt(user))
 		return FALSE
@@ -18,7 +18,7 @@
 		return FALSE
 	if(!check_location_accessible(user, target, BODY_ZONE_PRECISE_GROIN, TRUE))
 		return FALSE
-	if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+	if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 		return FALSE
 	if(!pegging && !get_dildo_in_either_hand(user) || pegging && !get_dildo_on_belt(user))
 		return FALSE

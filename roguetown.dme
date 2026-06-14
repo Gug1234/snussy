@@ -3075,6 +3075,7 @@
 #include "modular\code\modules\mob\dead\new_player\sprite_accessory\intimate_accessory.dm"
 #include "modular\code\modules\mob\living\carbon\chastity_hooks.dm"
 #include "modular\code\modules\mob\living\carbon\examine_hooks.dm"
+#include "modular\code\modules\mob\living\carbon\genital_visibility.dm"
 #include "modular\code\modules\mob\living\carbon\intimate_invisibility_toys.dm"
 #include "modular\code\modules\surgery\bodyparts\bodypart_features\intimate_accessory.dm"
 #include "modular\code\modules\surgery\organs\manticore_tail.dm"

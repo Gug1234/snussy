@@ -6,7 +6,7 @@
 /datum/sex_action/masturbate_breasts/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	if(user != target)
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 
@@ -15,7 +15,7 @@
 		return FALSE
 	if(!check_location_accessible(user, user, BODY_ZONE_CHEST, TRUE))
 		return FALSE
-	if(!user.getorganslot(ORGAN_SLOT_BREASTS))
+	if(!user.get_visible_genital_organ(ORGAN_SLOT_BREASTS))
 		return FALSE
 	return TRUE
 

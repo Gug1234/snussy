@@ -175,36 +175,60 @@
 		return FALSE
 	return TRUE
 
-/datum/sex_action/custom/proc/resolve_sex_flavor_tokens(text, mob/living/carbon/human/user, mob/living/carbon/human/target)
+/datum/sex_action/custom/proc/resolve_sex_flavor_tokens(text, mob/living/carbon/human/user, mob/living/carbon/human/target, mob/living/carbon/human/viewer)
 	if(!istext(text))
 		return ""
 
-	var/user_name = user ? "[user]" : "someone"
-	var/target_name = target ? "[target]" : "someone"
+	var/user_is_viewer = user && viewer == user
+	var/target_is_viewer = target && viewer == target
+	var/user_name = user ? (user_is_viewer ? "You" : "[user]") : "someone"
+	var/target_name = target ? (target_is_viewer ? "You" : "[target]") : "someone"
 	text = replacetext(text, "\[USER]", user_name)
 	text = replacetext(text, "\[TARGET]", target_name)
 	if(user)
-		text = replacetext(text, "\[THEY]", user.p_they())
-		text = replacetext(text, "\[THEM]", user.p_them())
-		text = replacetext(text, "\[THEIR]", user.p_their())
+		text = replacetext(text, "\[THEY]", user_is_viewer ? "you" : user.p_they())
+		text = replacetext(text, "\[THEM]", user_is_viewer ? "you" : user.p_them())
+		text = replacetext(text, "\[THEIR]", user_is_viewer ? "your" : user.p_their())
 	if(target)
-		text = replacetext(text, "\[TTHEY]", target.p_they())
-		text = replacetext(text, "\[TTHEM]", target.p_them())
-		text = replacetext(text, "\[TTHEIR]", target.p_their())
+		text = replacetext(text, "\[TTHEY]", target_is_viewer ? "you" : target.p_they())
+		text = replacetext(text, "\[TTHEM]", target_is_viewer ? "you" : target.p_them())
+		text = replacetext(text, "\[TTHEIR]", target_is_viewer ? "your" : target.p_their())
 	if(user?.sexcon)
 		text = replacetext(text, "\[FORCE]", user.sexcon.get_generic_force_adjective())
-	text = resolve_custom_sex_anatomy_tokens(text, user, "U")
-	text = resolve_custom_sex_anatomy_tokens(text, target, "T")
+	text = resolve_custom_sex_anatomy_tokens(text, user, "U", viewer)
+	text = resolve_custom_sex_anatomy_tokens(text, target, "T", viewer)
 	return text
 
-/datum/sex_action/custom/proc/resolve_custom_sex_anatomy_tokens(text, mob/living/carbon/human/owner, token_prefix)
-	text = replacetext(text, "\[[token_prefix]COCK]", resolve_custom_anatomy_token(owner, "cock", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
-	text = replacetext(text, "\[[token_prefix]SHAFT]", resolve_custom_anatomy_token(owner, "shaft", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
-	text = replacetext(text, "\[[token_prefix]SIZE]", resolve_custom_anatomy_token(owner, "size", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
-	text = replacetext(text, "\[[token_prefix]VAG]", resolve_custom_anatomy_token(owner, "vag", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
-	text = replacetext(text, "\[[token_prefix]CUPSIZE]", resolve_custom_anatomy_token(owner, "cup_size", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
-	text = replacetext(text, "\[[token_prefix]BREASTTYPE]", resolve_custom_anatomy_token(owner, "breast_type", CUSTOM_ANATOMY_TOKEN_POSSESSIVE))
+/datum/sex_action/custom/proc/resolve_custom_sex_anatomy_tokens(text, mob/living/carbon/human/owner, token_prefix, mob/living/carbon/human/viewer)
+	var/mode = (owner && viewer == owner) ? CUSTOM_ANATOMY_TOKEN_SECOND_PERSON : CUSTOM_ANATOMY_TOKEN_POSSESSIVE
+	text = replacetext(text, "\[[token_prefix]COCK]", resolve_custom_anatomy_token(owner, "cock", mode))
+	text = replacetext(text, "\[[token_prefix]SHAFT]", resolve_custom_anatomy_token(owner, "shaft", mode))
+	text = replacetext(text, "\[[token_prefix]SIZE]", resolve_custom_anatomy_token(owner, "size", mode))
+	text = replacetext(text, "\[[token_prefix]VAG]", resolve_custom_anatomy_token(owner, "vag", mode))
+	text = replacetext(text, "\[[token_prefix]CUPSIZE]", resolve_custom_anatomy_token(owner, "cup_size", mode))
+	text = replacetext(text, "\[[token_prefix]BREASTTYPE]", resolve_custom_anatomy_token(owner, "breast_type", mode))
 	return text
+
+/datum/sex_action/custom/proc/span_custom_sex_flavor_text(text, mob/living/carbon/human/user, force_span = FALSE)
+	if(force_span && user?.sexcon)
+		return user.sexcon.spanify_force(text)
+	return span_warning(text)
+
+/datum/sex_action/custom/proc/show_custom_sex_flavor_message(text, mob/living/carbon/human/user, mob/living/carbon/human/target, force_span = FALSE)
+	if(!user || !istext(text) || !length(text))
+		return
+
+	var/observer_text = span_custom_sex_flavor_text(resolve_sex_flavor_tokens(text, user, target), user, force_span)
+	var/user_text = span_custom_sex_flavor_text(resolve_sex_flavor_tokens(text, user, target, user), user, force_span)
+	var/target_text = null
+	var/list/excluded = null
+	if(target && target != user)
+		target_text = span_custom_sex_flavor_text(resolve_sex_flavor_tokens(text, user, target, target), user, force_span)
+		excluded = list(target)
+
+	user.visible_message(observer_text, user_text, ignored_mobs = excluded)
+	if(target_text)
+		to_chat(target, target_text)
 
 /datum/sex_action/custom/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
 	var/list/config = get_slot_config(user)
@@ -217,18 +241,18 @@
 	// Check user anatomy against configured user_sex_part.
 	var/upart = config["user_sex_part"]
 	if(upart & SEX_PART_COCK)
-		if(!user.getorganslot(ORGAN_SLOT_PENIS))
+		if(!user.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 			return FALSE
 	if(upart & SEX_PART_CUNT)
-		if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+		if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 			return FALSE
 	// Check target anatomy against configured target_sex_part.
 	var/tpart = config["target_sex_part"]
 	if(tpart & SEX_PART_COCK)
-		if(!target.getorganslot(ORGAN_SLOT_PENIS))
+		if(!target.get_visible_genital_organ(ORGAN_SLOT_PENIS))
 			return FALSE
 	if(tpart & SEX_PART_CUNT)
-		if(!target.getorganslot(ORGAN_SLOT_VAGINA))
+		if(!target.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
 			return FALSE
 	// Validate unique requirement checks.
 	if(!check_requirements(config, user, target))
@@ -287,8 +311,7 @@
 	log_game("CUSTOM_SEX_ACTION: [key_name(user)] used custom action '[config["name"]]' (slot [slot_number]) on [key_name(target)] at [AREACOORD(user)]")
 	var/text = config["on_start_text"]
 	if(istext(text) && length(text))
-		text = resolve_sex_flavor_tokens(text, user, target)
-		user.visible_message(span_warning(text))
+		show_custom_sex_flavor_message(text, user, target)
 	else
 		user.visible_message(span_warning("[user] begins a custom act with [target]..."))
 
@@ -298,8 +321,7 @@
 		return
 	var/text = config["on_perform_text"]
 	if(istext(text) && length(text))
-		text = resolve_sex_flavor_tokens(text, user, target)
-		user.visible_message(user.sexcon.spanify_force(text))
+		show_custom_sex_flavor_message(text, user, target, TRUE)
 	else
 		user.visible_message(user.sexcon.spanify_force("[user] [user.sexcon.get_generic_force_adjective()] continues the act with [target]."))
 	apply_custom_sound_course(config, user, target)
@@ -319,8 +341,7 @@
 		return
 	var/text = config["on_finish_text"]
 	if(istext(text) && length(text))
-		text = resolve_sex_flavor_tokens(text, user, target)
-		user.visible_message(span_warning(text))
+		show_custom_sex_flavor_message(text, user, target)
 	else
 		user.visible_message(span_warning("[user] stops the custom act with [target]."))
 

@@ -18,6 +18,7 @@
 	var/emits_movement_sound = FALSE
 	/// Visual movement style for non-bell piercings. null = standard bars/studs/hoops.
 	/// Set to "psydonic" or "zizite" on cross-bearing variants to dispatch to specific visual string banks.
+	/// Crosses swinging from titties look very different from just a pair of barbells.
 	var/visual_movement_style = null
 	/// Player-facing noun used only in examine text, e.g. "jacob's ladder".
 	var/custom_piercing_descriptor = null
@@ -189,9 +190,6 @@
 	sellprice = 150
 
 // --- Breast bell piercings ---
-// A nipple ring fitted with a small dangling bell that chimes audibly during movement.
-// Inherits breast/Initialize(), so update_dynamic_name() picks up piercing_region_name and
-// produces "[metal] nipple bell piercing" automatically without an extra Initialize override.
 /obj/item/intimate_accessory/piercing/breast/bell
 	desc = "A nipple ring fitted with a tiny dangling bell. Each step produces a soft, telltale chime that announces the wearer with musical indiscretion."
 	piercing_region_name = "nipple bell"
@@ -234,7 +232,6 @@
 	sellprice = 165
 
 // --- Breast psydonic piercings ---
-// A nipple piercing set with a fixed psycross pendant that dangles from each bar.
 /obj/item/intimate_accessory/piercing/breast/psydonic
 	name = "psydonic nipple piercing"
 	desc = "A set of nipple bars, each hung with a tiny psycross pendant. The little devotionals dangle and sway from pierced flesh with pious indiscretion."
@@ -279,7 +276,6 @@
 	sellprice = 50
 
 // --- Breast zizite piercings ---
-// A nipple piercing set with a fixed zcross and morbid skull beadwork.
 /obj/item/intimate_accessory/piercing/breast/zizite
 	name = "zizite nipple piercing"
 	desc = "A set of nipple bars hung with zcross pendants and tiny skull beads. The Dame of Progress's spite, threaded through tender flesh."
@@ -416,8 +412,6 @@
 	sellprice = 150
 
 // --- Genital bell piercings ---
-// A genital kit supplemented with a dangle-bell charm that chimes with each step.
-// Inherits beriddled/goodlover behaviour from the genital parent; only adds the movement-sound flag.
 /obj/item/intimate_accessory/piercing/genital/bell
 	desc = "A genital piercing kit dressed with a small dangling bell charm. Its soft chime makes no secret of what lies beneath."
 	piercing_region_name = "genital bell"

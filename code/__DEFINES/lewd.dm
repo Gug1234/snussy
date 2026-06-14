@@ -2,6 +2,11 @@
 #define CHASTITY_HIGH_POP_THRESHOLD 120
 #define CHASTITY_HIGH_POP_SOUND_MULT 0.4
 
+#define GENITAL_SKIP_VISIBILITY "skip"
+#define GENITAL_NEVER_SHOW "never"
+#define GENITAL_HIDDEN_BY_CLOTHES "hidden_by_clothes"
+#define GENITAL_ALWAYS_SHOW "always"
+
 #define COLLAR_LOG_SHOCK "shock"
 #define COLLAR_LOG_FORCE_STRIP "force_strip"
 #define COLLAR_LOG_HALLUCINATIONS "toggle_hallucinations"

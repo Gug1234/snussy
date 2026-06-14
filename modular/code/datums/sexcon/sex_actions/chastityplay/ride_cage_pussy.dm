@@ -8,7 +8,7 @@
 /datum/sex_action/chastityplay/ride_cage_pussy/shows_on_menu(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(!requires_other_target(user, target))
         return FALSE
-    if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+    if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
         return FALSE
     if(user.sexcon.has_chastity_vagina())
         return FALSE
@@ -19,7 +19,7 @@
 /datum/sex_action/chastityplay/ride_cage_pussy/can_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
     if(!requires_other_target(user, target))
         return FALSE
-    if(!user.getorganslot(ORGAN_SLOT_VAGINA))
+    if(!user.get_visible_genital_organ(ORGAN_SLOT_VAGINA))
         return FALSE
     if(user.sexcon.has_chastity_vagina())
         return FALSE
