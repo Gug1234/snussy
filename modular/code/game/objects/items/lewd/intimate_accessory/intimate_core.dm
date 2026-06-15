@@ -664,7 +664,7 @@
 		restore_violent_rear_ejection_throw_stats()
 
 /mob/living/carbon/human/proc/get_rear_insertable_ejection_target(atom/impact_source, range = 15)
-	var/eject_dir = impact_source ? get_dir(impact_source, src) : dir
+	var/eject_dir = REVERSE_DIR(dir)
 	if(!eject_dir)
 		eject_dir = pick(GLOB.cardinals)
 	return get_ranged_target_turf(src, eject_dir, range)

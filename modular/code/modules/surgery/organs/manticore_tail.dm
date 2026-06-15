@@ -71,9 +71,39 @@
 /obj/item/organ/tail/manticore/proc/get_examine_text(mob/living/carbon/human/looker)
 	if(!owner)
 		return
+	var/datum/mob_descriptor/manticore_tail/descriptor = MOB_DESCRIPTOR(/datum/mob_descriptor/manticore_tail)
+	return descriptor.get_standalone_text(owner, looker)
+
+/obj/item/organ/tail/manticore/proc/get_examine_description()
 	if(maw_engorged)
-		return span_warning("The maw at [owner.p_their()] tail's tip is splayed open, feelers writhing visibly and slick with sweet-smelling nectar.")
-	return span_notice("The bonelike plates at [owner.p_their()] tail's tip are sealed tightly shut, with only a faint bead of fluid visible at the seam.")
+		return "a manticore tail whose tail-tip maw is splayed open, feelers writhing visibly and slick with sweet-smelling nectar"
+	return "a manticore tail with bonelike plates sealed tightly around its tail-tip maw, with only a faint bead of fluid visible at the seam"
+
+/datum/mob_descriptor/manticore_tail
+	name = "manticore tail"
+	verbage = "has"
+	show_obscured = TRUE
+	descriptor_color = "#ff66cc"
+
+/datum/mob_descriptor/manticore_tail/can_describe(mob/living/described)
+	if(!ishuman(described))
+		return FALSE
+	var/mob/living/carbon/human/H = described
+	return istype(H.getorganslot(ORGAN_SLOT_TAIL), /obj/item/organ/tail/manticore)
+
+/datum/mob_descriptor/manticore_tail/get_description(mob/living/described)
+	var/mob/living/carbon/human/H = described
+	var/obj/item/organ/tail/manticore/manticore_tail = H.getorganslot(ORGAN_SLOT_TAIL)
+	if(!istype(manticore_tail))
+		return null
+	return manticore_tail.get_examine_description()
+
+/datum/mob_descriptor/manticore_tail/get_descriptor_color(mob/living/described)
+	var/mob/living/carbon/human/H = described
+	var/obj/item/organ/tail/manticore/manticore_tail = H.getorganslot(ORGAN_SLOT_TAIL)
+	if(istype(manticore_tail) && manticore_tail.maw_engorged)
+		return "#ff5555"
+	return ..()
 
 /// Called by the sex controller's arousal updates to toggle the maw's visual state.
 /// Uses the tail's wagging system to swap between icon states:

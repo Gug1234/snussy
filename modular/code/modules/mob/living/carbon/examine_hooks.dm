@@ -6,6 +6,10 @@
 		lines += "[t_He] is wearing a chastity device!\n"
 	return lines
 
+/mob/living/carbon/human/get_extra_mob_descriptors()
+	. = ..()
+	. += /datum/mob_descriptor/manticore_tail
+
 /mob/living/carbon/human/proc/human_modular_examine_extension(mob/user, observer_privilege, m1, m2, m3)
 	var/list/lines = list()
 	var/user_is_gnoll = FALSE
@@ -30,15 +34,6 @@
 		else
 			lines += span_warning("They have a strange scent about them...")
 
-
-	// ── Manticore tail maw examine text ──
-	var/obj/item/organ/tail/manticore/manticore_tail = getorganslot(ORGAN_SLOT_TAIL)
-	if(istype(manticore_tail))
-		var/groin_visible = observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)
-		if(groin_visible)
-			var/maw_text = manticore_tail.get_examine_text(user)
-			if(maw_text)
-				lines += maw_text
 
 	var/viewer_chastity_ok = !user.client?.prefs || user.client.prefs.chastenable
 	if(viewer_chastity_ok && chastity_device && (observer_privilege || get_location_accessible(src, BODY_ZONE_PRECISE_GROIN)))

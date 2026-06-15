@@ -943,6 +943,7 @@
 	arousal = clamp(amount, 0, MAX_AROUSAL)
 	update_pink_screen()
 	update_erect_state()
+	update_tail_arousal_state()
 
 /datum/sex_controller/proc/update_erect_state()
 	var/obj/item/organ/penis/penis = user.get_visible_genital_organ(ORGAN_SLOT_PENIS)
@@ -954,6 +955,11 @@
 
 	if(penis && hascall(penis, "update_erect_state"))
 		penis.update_erect_state()
+
+/datum/sex_controller/proc/update_tail_arousal_state()
+	var/obj/item/organ/tail/tail = user.getorganslot(ORGAN_SLOT_TAIL)
+	if(tail && hascall(tail, "update_maw_state"))
+		call(tail, "update_maw_state")()
 
 /datum/sex_controller/proc/update_exposure()
 	user.regenerate_icons()

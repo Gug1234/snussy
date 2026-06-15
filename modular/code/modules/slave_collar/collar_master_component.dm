@@ -999,7 +999,7 @@ GLOBAL_LIST_EMPTY(collar_masters)
 		return
 
 	if(pet.sexcon.arousal > 90)
-		pet.sexcon.arousal = 90
+		pet.sexcon.set_arousal(90)
 		if(high_pop_feedback_allowed(pet, "denial_message", 8 SECONDS))
 			to_chat(pet, span_warning("Your collar prevents you from reaching climax!"))
 

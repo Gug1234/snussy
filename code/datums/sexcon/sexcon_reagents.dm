@@ -91,7 +91,7 @@
 	var/datum/sex_controller/S = C.sexcon
 	if(!S.arousal_frozen)
 		S.arousal_frozen = TRUE
-	C.sexcon.arousal = 40
+	S.set_arousal(40)
 	if(S.aphrodisiac < 1.5)
 		S.aphrodisiac = 1.5
 	if(prob(10))

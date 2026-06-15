@@ -9,6 +9,7 @@
 	var/slot = MOB_DESCRIPTOR_SLOT_NOTHING
 	var/pre_string
 	var/post_string
+	var/descriptor_color
 
 /datum/mob_descriptor/New()
 	. = ..()
@@ -45,7 +46,11 @@
 	return "%THEY% [get_coalesce_text(described, null, watcher)]"
 
 /datum/mob_descriptor/proc/get_coalesce_text(mob/living/described, list/used_verbage, mob/watcher = null)
-	return "[should_add_verbage(described, used_verbage) ? "[get_verbage(described)] " : ""][get_pre_string(described)][get_description_for_watcher(described, watcher)][post_string]"
+	var/descriptor_text = "[should_add_verbage(described, used_verbage) ? "[get_verbage(described)] " : ""][get_pre_string(described)][get_description_for_watcher(described, watcher)][post_string]"
+	var/color = get_descriptor_color(described)
+	if(color)
+		return "<span style='color:[color]'>[descriptor_text]</span>"
+	return descriptor_text
 
 /datum/mob_descriptor/proc/get_coalesce_text_nofluff(mob/living/described, list/used_verbage)
 	return "[get_description(described)]"
@@ -55,3 +60,6 @@
 
 /datum/mob_descriptor/proc/get_description_for_watcher(mob/living/described, mob/watcher = null)
 	return get_description(described)
+
+/datum/mob_descriptor/proc/get_descriptor_color(mob/living/described)
+	return descriptor_color

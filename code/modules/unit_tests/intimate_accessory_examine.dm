@@ -344,12 +344,20 @@
 	TEST_ASSERT(!wearer.try_eject_rear_insertable_from_stomach_hit(BRUTE, BODY_ZONE_CHEST, 100, 100), "generic chest brute damage should not eject rear insertables")
 	TEST_ASSERT_EQUAL(wearer.intimate_rear_insertable, plug, "generic chest brute damage should leave rear insertables equipped")
 
+	wearer.forceMove(run_loc_top_right)
+	wearer.setDir(NORTH)
 	TEST_ASSERT(wearer.try_eject_rear_insertable_from_stomach_hit(BRUTE, BODY_ZONE_PRECISE_STOMACH, 0, 100), "stomach brute hit should violently eject worn rear insertables when violent chance succeeds")
 	TEST_ASSERT_NULL(wearer.intimate_rear_insertable, "violent stomach brute ejection should clear the rear insertable slot")
 	TEST_ASSERT(plug.violent_rear_ejection_active, "violently ejected rear plugs should keep temporary projectile stats until impact")
+	var/datum/thrownthing/plug_throw = plug.throwing
+	TEST_ASSERT_NOTNULL(plug_throw, "violently ejected rear plugs should start an active throw")
+	TEST_ASSERT_EQUAL(plug_throw.init_dir, SOUTH, "violently ejected rear plugs should launch opposite the wearer's facing direction")
+	TEST_ASSERT_EQUAL(plug_throw.target_turf, get_ranged_target_turf(wearer, SOUTH, plug.throw_range), "violently ejected rear plugs should target the turf behind the wearer")
 	TEST_ASSERT_EQUAL(plug.throwforce, 30, "violently ejected rear plugs should hit with iron sling bullet damage")
 	TEST_ASSERT_EQUAL(plug.armor_penetration, 30, "violently ejected rear plugs should use iron sling bullet armor penetration")
 	TEST_ASSERT_EQUAL(plug.throw_range, 15, "violently ejected rear plugs should fly as far as sling bullets")
+	if(plug_throw)
+		qdel(plug_throw)
 	plug.restore_violent_rear_ejection_throw_stats()
 
 	var/mob/living/carbon/human/consistent/victim = allocate(/mob/living/carbon/human/consistent)

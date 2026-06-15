@@ -22,6 +22,7 @@
 	slot = MOB_DESCRIPTOR_SLOT_PENIS
 	verbage = "has"
 	show_obscured = TRUE
+	descriptor_color = "#ff66cc"
 
 /datum/mob_descriptor/penis/can_describe(mob/living/described)
 	if(!ishuman(described))
@@ -93,6 +94,7 @@
 	slot = MOB_DESCRIPTOR_SLOT_TESTICLES
 	verbage = "has"
 	show_obscured = TRUE
+	descriptor_color = "#ff66cc"
 
 /datum/mob_descriptor/testicles/can_describe(mob/living/described)
 	if(!ishuman(described))
@@ -135,6 +137,7 @@
 	slot = MOB_DESCRIPTOR_SLOT_VAGINA
 	verbage = "has"
 	show_obscured = TRUE
+	descriptor_color = "#ff66cc"
 
 /datum/mob_descriptor/vagina/can_describe(mob/living/described)
 	if(!ishuman(described))
@@ -198,6 +201,7 @@
 	slot = MOB_DESCRIPTOR_SLOT_BREASTS
 	verbage = "has"
 	show_obscured = TRUE
+	descriptor_color = "#ff66cc"
 
 /datum/mob_descriptor/breasts/can_describe(mob/living/described)
 	if(!ishuman(described))
