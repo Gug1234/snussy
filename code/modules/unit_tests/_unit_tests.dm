@@ -94,6 +94,7 @@
 #include "create_and_destroy.dm"
 #include "custom_sex_action_feedback.dm"
 #include "focus_only_tests.dm"
+#include "genital_customizer_preferences.dm"
 #include "genital_visibility.dm"
 #include "reagent_id_typos.dm"
 #include "reagent_recipe_collisions.dm"

@@ -366,6 +366,8 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/list/culinary_preferences = list()
 
 	var/datum/advclass/preview_subclass
+	/// Transient lobby mannequin arousal state. This is not saved to character prefs.
+	var/preview_erect_state = ERECT_STATE_NONE
 
 	var/tgui_pref = TRUE
 
@@ -744,6 +746,15 @@ GLOBAL_LIST_EMPTY(chosen_names)
 				dat += "<div style='text-align: center'><br>Subclass Preview:<br> <a href='?_src_=prefs;preference=subclassoutfit;task=input'>[preview_subclass ? "[preview_subclass.name]" : "None"]</a></div>"
 			else
 				preview_subclass = null
+			var/arousal_preview_label
+			switch(preview_erect_state)
+				if(ERECT_STATE_PARTIAL)
+					arousal_preview_label = "Partial"
+				if(ERECT_STATE_HARD)
+					arousal_preview_label = "Hard"
+				else
+					arousal_preview_label = "None"
+			dat += "<div style='text-align: center'><br>Arousal Preview:<br> <a href='?_src_=prefs;preference=preview_erect_state'>[arousal_preview_label]</a></div>"
 			// Rightmost column, 40% width
 			dat += "<td width=40% valign='top'>"
 			dat += "<h2>Body</h2>"
@@ -1089,6 +1100,15 @@ GLOBAL_LIST_EMPTY(chosen_names)
 
 #undef APPEARANCE_CATEGORY_COLUMN
 #undef MAX_MUTANT_ROWS
+
+/datum/preferences/proc/cycle_preview_erect_state()
+	switch(preview_erect_state)
+		if(ERECT_STATE_NONE)
+			preview_erect_state = ERECT_STATE_PARTIAL
+		if(ERECT_STATE_PARTIAL)
+			preview_erect_state = ERECT_STATE_HARD
+		else
+			preview_erect_state = ERECT_STATE_NONE
 
 /datum/preferences/proc/CaptureKeybinding(mob/user, datum/keybinding/kb, old_key)
 	var/HTML = {"
@@ -3041,6 +3061,9 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 					user << browse(null, "window=preferences_browser")
 					user << browse(null, "window=lobby_window")
 					return
+
+				if("preview_erect_state")
+					cycle_preview_erect_state()
 
 				if("save")
 					save_preferences()
