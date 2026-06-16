@@ -622,7 +622,7 @@
 	H.update_intimate_invisibility_props()
 	set_current_intimate_slot(null)
 	notify_intimate_state_change(H, "removed")
-
+/// Rear insert launching stuff
 /obj/item/intimate_accessory/proc/prepare_violent_rear_ejection_throw()
 	if(violent_rear_ejection_active)
 		return
@@ -734,7 +734,7 @@
 	refresh_intimate_mood_effects(wearer)
 
 	// Refresh body overlays when this accessory changes state so visuals stay in sync.
-	// Avoid updateappearance() — it overwrites gender from stale dna.uni_identity.
+	// Avoid updateappearance() overwrites gender from stale dna.uni_identity.
 	wearer.update_body()
 	wearer.update_hair()
 	wearer.update_body_parts()
