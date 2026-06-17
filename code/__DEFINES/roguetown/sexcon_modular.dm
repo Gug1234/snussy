@@ -153,8 +153,8 @@
 #define TRAIT_INTIMATE_WITHDRAWAL "intimate_withdrawal"
 
 // ── Intimate Visible Message Content Flags ─────────────────────────────────
-// Bitflags passed to get_intimate_excluded_mobs() so viewer pref filtering
-// can be resolved in a single hearers pass per visible_message call.
+// Bitflags passed to intimate reaction viewer filters so viewer pref filtering
+// can be resolved during one audience scan per visible message.
 
 /// Message relates to chastity devices (jingles, arousal, denial, pain).
 #define INTIMATE_CONTENT_CHASTITY (1<<0)

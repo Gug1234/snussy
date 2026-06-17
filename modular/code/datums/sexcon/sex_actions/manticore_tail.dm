@@ -526,19 +526,16 @@
 	return TRUE
 
 /datum/sex_action/manticore_pear_anal/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user]'s tail presses its sealed bud against [target]'s rim, the interlocking plates grinding together as it forces its way inside with a cruel, deliberate slowness."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user]'s tail presses its sealed bud against [target]'s rim, the interlocking plates grinding together as it forces its way inside with a cruel, deliberate slowness."), content_source = target)
 	playsound(target, 'sound/misc/mat/insert (1).ogg', 35, TRUE, ignore_walls = FALSE)
 
 /datum/sex_action/manticore_pear_anal/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user]'s tail bud begins to flower open inside [target]'s ass, the bonelike plates spreading apart with a grinding creak, stretching [target]'s insides far beyond what flesh was meant to accommodate. [target]'s screams are accompanied by the wet crack of something giving way deep inside."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user]'s tail bud begins to flower open inside [target]'s ass, the bonelike plates spreading apart with a grinding creak, stretching [target]'s insides far beyond what flesh was meant to accommodate. [target]'s screams are accompanied by the wet crack of something giving way deep inside."), content_source = target)
 	playsound(target, 'sound/combat/fracture/fracturewet (1).ogg', 40, TRUE, ignore_walls = FALSE)
 	user.sexcon.perform_sex_action(target, 0, 10, TRUE)
 
 /datum/sex_action/manticore_pear_anal/on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user] rips [user.p_their()] tail free from [target]'s destroyed rear, the plates snapping shut with a wet crunch, leaving behind a gaping, prolapsed ruin."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user] rips [user.p_their()] tail free from [target]'s destroyed rear, the plates snapping shut with a wet crunch, leaving behind a gaping, prolapsed ruin."), content_source = target)
 	// Apply pelvis fracture
 	var/obj/item/bodypart/chest/chest = target.get_bodypart(BODY_ZONE_CHEST)
 	if(chest)
@@ -573,19 +570,16 @@
 	return TRUE
 
 /datum/sex_action/manticore_pear_oral/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user]'s tail forces its sealed bud past [target]'s lips, the ridged plates scraping across teeth and gums as it pushes deep into [target]'s mouth."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user]'s tail forces its sealed bud past [target]'s lips, the ridged plates scraping across teeth and gums as it pushes deep into [target]'s mouth."), content_source = target)
 	playsound(target, 'sound/misc/mat/insert (1).ogg', 35, TRUE, ignore_walls = FALSE)
 
 /datum/sex_action/manticore_pear_oral/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("The bud inside [target]'s mouth begins to blossom, the bonelike plates cranking apart with agonizing slowness, forcing [target]'s jaw wider and wider until the joints pop and creak, teeth cracking against the unyielding chitin."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("The bud inside [target]'s mouth begins to blossom, the bonelike plates cranking apart with agonizing slowness, forcing [target]'s jaw wider and wider until the joints pop and creak, teeth cracking against the unyielding chitin."), content_source = target)
 	playsound(target, 'sound/combat/fracture/fracturewet (1).ogg', 40, TRUE, ignore_walls = FALSE)
 	user.sexcon.perform_sex_action(target, 0, 10, TRUE)
 
 /datum/sex_action/manticore_pear_oral/on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user] wrenches [user.p_their()] tail free from [target]'s ruined mouth, the plates folding shut as they drag loose teeth and blood with them, leaving [target]'s jaw hanging at a sickening angle."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user] wrenches [user.p_their()] tail free from [target]'s ruined mouth, the plates folding shut as they drag loose teeth and blood with them, leaving [target]'s jaw hanging at a sickening angle."), content_source = target)
 	// Apply jaw fracture
 	var/obj/item/bodypart/head/head = target.get_bodypart(BODY_ZONE_HEAD)
 	if(head)
@@ -627,19 +621,16 @@
 	return TRUE
 
 /datum/sex_action/manticore_pear_vaginal/on_start(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user]'s tail pushes its sealed bud between [target]'s legs, the interlocking plates pressing against [target]'s entrance before forcing inside with a sick, grinding push."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user]'s tail pushes its sealed bud between [target]'s legs, the interlocking plates pressing against [target]'s entrance before forcing inside with a sick, grinding push."), content_source = target)
 	playsound(target, 'sound/misc/mat/insert (1).ogg', 35, TRUE, ignore_walls = FALSE)
 
 /datum/sex_action/manticore_pear_vaginal/on_perform(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("The tail bud blossoms inside [target], the plates spreading apart with merciless force, stretching walls that were never meant to give this far. Something tears deep inside, the wet sound of ripping flesh drowned out by [target]'s agonized screaming."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("The tail bud blossoms inside [target], the plates spreading apart with merciless force, stretching walls that were never meant to give this far. Something tears deep inside, the wet sound of ripping flesh drowned out by [target]'s agonized screaming."), content_source = target)
 	playsound(target, 'sound/combat/fracture/fracturewet (1).ogg', 40, TRUE, ignore_walls = FALSE)
 	user.sexcon.perform_sex_action(target, 0, 10, TRUE)
 
 /datum/sex_action/manticore_pear_vaginal/on_finish(mob/living/carbon/human/user, mob/living/carbon/human/target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
-	user.visible_message(span_userdanger("[user] tears [user.p_their()] tail free from [target]'s savaged cunt, the plates folding shut with a crunch, dragging blood and tissue with them."), ignored_mobs = excluded)
+	send_extreme_content_visible_message(user, span_userdanger("[user] tears [user.p_their()] tail free from [target]'s savaged cunt, the plates folding shut with a crunch, dragging blood and tissue with them."), content_source = target)
 	// Apply CBT wound as genital trauma
 	var/obj/item/bodypart/chest/chest = target.get_bodypart(BODY_ZONE_CHEST)
 	if(chest)

@@ -293,18 +293,19 @@
 	return chastity.record_nonself_ejaculation(source, receiver)
 
 // ── Global Extreme-Content Viewer Filter ────────────────────────────────────
-// Builds a list of nearby mobs whose client prefs say they should NOT see
-// extreme ERP visible_messages. Used by bead consequences, manticore pear,
-// spiked cage catastrophes, chisel removal, etc.
+// Sends extreme ERP visible_messages through one audience scan, filtering
+// observers by preference before dispatching chat. Used by bead consequences,
+// manticore pear, spiked cage catastrophes, chisel removal, etc.
 //
-// source — the atom broadcasting the message (usually the victim mob).
-// Returns a list suitable for passing to visible_message(ignored_mobs = ...).
+// source is the atom broadcasting the message; content_source is the mob whose
+// extreme-content preference exemption should be preserved when they differ.
+/proc/viewer_can_see_extreme_content(atom/source, mob/viewer)
+	if(viewer == source || !viewer?.client?.prefs)
+		return TRUE
+	return viewer.client.prefs.extreme_erp
 
-/proc/get_extreme_content_excluded_mobs(atom/source)
-	var/list/excluded = list()
-	for(var/mob/M in get_hearers_in_view(DEFAULT_MESSAGE_RANGE, source))
-		if(M == source || !M.client?.prefs)
-			continue
-		if(!M.client.prefs.extreme_erp)
-			excluded += M
-	return excluded
+/proc/send_extreme_content_visible_message(atom/source, message, self_message = null, vision_distance = DEFAULT_MESSAGE_RANGE, atom/content_source = null)
+	if(!content_source)
+		content_source = source
+	var/datum/callback/viewer_filter = CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(viewer_can_see_extreme_content), content_source)
+	return send_gated_visible_message(source, message, self_message, vision_distance, viewer_filter)

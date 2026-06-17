@@ -67,14 +67,13 @@
 	var/obj/item/chastity/chastity_dev = target.chastity_device
 	var/obj/item/bodypart/chest = target.get_bodypart(BODY_ZONE_CHEST)
 	var/turf/drop_turf = get_turf(target)
-	var/list/excluded = get_extreme_content_excluded_mobs(target)
 
 	if(penis_organ && vagina_organ)
 		// Intersex: corkscrew/pull tears the cock loose and batters the remaining anatomy.
 		if(action_type == "pull")
-			target.visible_message(span_userdanger("[user] hauls [target]'s spiked cage free with catastrophic force — [target.p_their()] prick still inside it, ripped clean off, the rest of [target.p_their()] groin left wrecked by what came with it."), ignored_mobs = excluded)
+			send_extreme_content_visible_message(target, span_userdanger("[user] hauls [target]'s spiked cage free with catastrophic force — [target.p_their()] prick still inside it, ripped clean off, the rest of [target.p_their()] groin left wrecked by what came with it."))
 		else
-			target.visible_message(span_userdanger("With a catastrophic final rotation, [target]'s spiked cage tears loose completely — [target.p_their()] prick ripped free inside it, the violence of it wrecking everything else it touched on the way out."), ignored_mobs = excluded)
+			send_extreme_content_visible_message(target, span_userdanger("With a catastrophic final rotation, [target]'s spiked cage tears loose completely — [target.p_their()] prick ripped free inside it, the violence of it wrecking everything else it touched on the way out."))
 		playsound(drop_turf, pick('modular/sound/masomoans/agony/CBTScreamIntersex1.ogg', 'modular/sound/masomoans/agony/CBTScreamIntersex2.ogg'), 85, FALSE, 2)
 		target.add_splatter_floor(drop_turf)
 		penis_organ.Remove(target)
@@ -84,9 +83,9 @@
 	else if(penis_organ)
 		// Cock-only: device and organ torn free together.
 		if(action_type == "pull")
-			target.visible_message(span_userdanger("With one final heave, [target]'s spiked cage tears clean off — [target.p_their()] prick hauled out still inside it, ripped free at the root."), ignored_mobs = excluded)
+			send_extreme_content_visible_message(target, span_userdanger("With one final heave, [target]'s spiked cage tears clean off — [target.p_their()] prick hauled out still inside it, ripped free at the root."))
 		else
-			target.visible_message(span_userdanger("With a gut-wrenching final revolution, [target]'s spiked cage tears itself from the mount entirely — [target.p_their()] trapped prick ripped clean off with it, dragged free by the inward spines."), ignored_mobs = excluded)
+			send_extreme_content_visible_message(target, span_userdanger("With a gut-wrenching final revolution, [target]'s spiked cage tears itself from the mount entirely — [target.p_their()] trapped prick ripped clean off with it, dragged free by the inward spines."))
 		playsound(drop_turf, pick('modular/sound/masomoans/agony/CBTScreamMale1.ogg', 'modular/sound/masomoans/agony/CBTScreamMale2.ogg'), 85, FALSE, 2)
 		target.add_splatter_floor(drop_turf)
 		penis_organ.Remove(target)
@@ -94,9 +93,9 @@
 	else if(vagina_organ && chastity_dev && chest && !chest.has_wound(/datum/wound/cbt))
 		// Vagina-only: device wrenches loose, CBT wound from the internal damage.
 		if(action_type == "pull")
-			target.visible_message(span_userdanger("[user] tears [target]'s spiked [get_chastity_device_name(target)] free entirely — ripping loose from between [target.p_their()] thighs with a sickening wrench, blood following after."), ignored_mobs = excluded)
+			send_extreme_content_visible_message(target, span_userdanger("[user] tears [target]'s spiked [get_chastity_device_name(target)] free entirely — ripping loose from between [target.p_their()] thighs with a sickening wrench, blood following after."))
 		else
-			target.visible_message(span_userdanger("With a vicious final corkscrew, [target]'s spiked [get_chastity_device_name(target)] wrenches itself entirely loose — tearing free of [target.p_their()] body and leaving nothing but ruin."), ignored_mobs = excluded)
+			send_extreme_content_visible_message(target, span_userdanger("With a vicious final corkscrew, [target]'s spiked [get_chastity_device_name(target)] wrenches itself entirely loose — tearing free of [target.p_their()] body and leaving nothing but ruin."))
 		playsound(drop_turf, pick('modular/sound/masomoans/agony/CBTScreamFemale1.ogg', 'modular/sound/masomoans/agony/CBTScreamFemale2.ogg'), 85, FALSE, 2)
 		target.add_splatter_floor(drop_turf)
 		chest.add_wound(/datum/wound/cbt)

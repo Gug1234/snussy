@@ -72,3 +72,21 @@
 	prefs.intimate_reaction_enabled = TRUE
 	prefs.apply_character_flavor_component(preview)
 	TEST_ASSERT_NOTNULL(preview.GetComponent(/datum/component/intimate_reaction/character_flavor), "re-enabling intimate reactions should reattach custom character flavor strings")
+
+/datum/unit_test/content_gated_visible_message_helper/proc/allows_expected_viewer(mob/allowed, mob/blocked, mob/viewer)
+	return viewer == allowed && viewer != blocked
+
+/datum/unit_test/content_gated_visible_message_helper/Run()
+	var/mob/living/carbon/human/consistent/source = allocate(/mob/living/carbon/human/consistent)
+	source.forceMove(run_loc_bottom_left)
+
+	var/mob/living/carbon/human/consistent/allowed = allocate(/mob/living/carbon/human/consistent)
+	allowed.forceMove(run_loc_bottom_left)
+
+	var/mob/living/carbon/human/consistent/blocked = allocate(/mob/living/carbon/human/consistent)
+	blocked.forceMove(run_loc_bottom_left)
+
+	var/datum/callback/filter = CALLBACK(src, PROC_REF(allows_expected_viewer), allowed, blocked)
+	var/accepted_viewers = send_gated_visible_message(source, "observer text", "self text", DEFAULT_MESSAGE_RANGE, filter)
+
+	TEST_ASSERT_EQUAL(accepted_viewers, 1, "The helper should scan local hearers once, skip the self-message target, and count only filter-approved observers.")
