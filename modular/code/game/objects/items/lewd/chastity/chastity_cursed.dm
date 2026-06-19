@@ -65,6 +65,9 @@
 			// Explicitly unregister to avoid leaking handlers into later life.
 			CM.cleanup_pet_signals(H)
 
+	if(chastity_gilded)
+		REMOVE_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
+		gilded_limped = FALSE
 	REMOVE_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
 	return TRUE
 
@@ -209,6 +212,32 @@
 	gilded_drain_amount = clamp(round(text2num("[amount]")), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
 	to_chat(H, span_notice("The gilded device clicks to [gilded_drain_amount] mammon per orgasm."))
 	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_DRAIN, "amount=[gilded_drain_amount]")
+	return TRUE
+
+/obj/item/chastity/proc/force_gilded_payment(mob/living/carbon/human/H)
+	if(!can_gilded_drain_wearer(H))
+		return FALSE
+	drain_gilded_nervelock(H, TRUE)
+	return TRUE
+
+/obj/item/chastity/proc/set_gilded_impotence(mob/living/carbon/human/H, should_enable)
+	if(!chastity_gilded || !H)
+		return FALSE
+	if(!H.getorganslot(ORGAN_SLOT_PENIS))
+		return FALSE
+	var/enabled = !!text2num("[should_enable]")
+	if(enabled)
+		if(!HAS_TRAIT_FROM(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE))
+			ADD_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
+		gilded_limped = TRUE
+		to_chat(H, span_userdanger("The gilded cage drinks the strength from my cock, leaving me limp at my master's whim."))
+	else
+		if(HAS_TRAIT_FROM(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE))
+			REMOVE_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
+		gilded_limped = FALSE
+		to_chat(H, span_notice("The gilded cage loosens its curse, letting my body answer again."))
+	H.sexcon?.update_erect_state()
+	log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_IMPOTENCE, "enabled=[enabled]")
 	return TRUE
 
 /proc/is_valid_gilded_chastity_overdraw_effect(effect)
@@ -412,11 +441,6 @@
 		else
 			effect_handled = apply_gilded_shrink(H)
 	var/message_handled = apply_gilded_forced_message(H)
-	if(!gilded_limped && gilded_zero_fund_orgasms >= GILDED_CHASTITY_ZERO_ORGASMS_FOR_LIMP && H.getorganslot(ORGAN_SLOT_PENIS))
-		ADD_TRAIT(H, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)
-		gilded_limped = TRUE
-		H.visible_message(span_warning("[H]'s gilded chastity device rings hollow and cinches shut."), span_userdanger("The gilded cage drinks from an empty Nervelock and leaves me permanently limp."))
-		log_cursed_chastity_command(H, CHASTITY_LOG_GILDED_SHRINK, "limpdick=TRUE")
 	return effect_handled || message_handled
 
 /obj/item/chastity/proc/apply_gilded_pain(mob/living/carbon/human/H)

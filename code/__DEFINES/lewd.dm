@@ -30,3 +30,4 @@
 #define CHASTITY_LOG_GILDED_PAIN "gilded_pain"
 #define CHASTITY_LOG_GILDED_STRIP "gilded_strip"
 #define CHASTITY_LOG_GILDED_FORCED_MESSAGE "gilded_forced_message"
+#define CHASTITY_LOG_GILDED_IMPOTENCE "gilded_impotence"

@@ -690,6 +690,8 @@ const CursedChastityControls = (props: {
     selectedCursedPet?.chastity.gilded_overdraw_effect ?? 'shrink';
   const currentGildedForcedMessageEnabled =
     selectedCursedPet?.chastity.gilded_forced_message_enabled ?? false;
+  const currentGildedImpotent =
+    selectedCursedPet?.chastity.gilded_limped ?? false;
   const currentGildedForcedMessages = normalizeGildedForcedMessages(
     selectedCursedPet?.chastity.gilded_forced_messages,
   );
@@ -836,16 +838,31 @@ const CursedChastityControls = (props: {
           </Box>
           <LabeledList>
             <LabeledList.Item label="Drain/Orgasm">
-              <NumberInput
-                step={1}
-                minValue={0}
-                maxValue={100}
-                value={currentGildedDrain}
-                disabled={cursedActionDisabled}
-                onChange={(value: number) =>
-                  act('chastity_set_gilded_drain', { amount: value })
-                }
-              />
+              <Stack align="center">
+                <Stack.Item>
+                  <NumberInput
+                    step={1}
+                    minValue={0}
+                    maxValue={100}
+                    value={currentGildedDrain}
+                    disabled={cursedActionDisabled}
+                    onChange={(value: number) =>
+                      act('chastity_set_gilded_drain', { amount: value })
+                    }
+                  />
+                </Stack.Item>
+                <Stack.Item>
+                  <Button
+                    icon="coins"
+                    color="yellow"
+                    disabled={cursedActionDisabled}
+                    tooltip={reasonForCursedAction}
+                    onClick={() => act('chastity_force_gilded_payment')}
+                  >
+                    Force Payment
+                  </Button>
+                </Stack.Item>
+              </Stack>
             </LabeledList.Item>
             <LabeledList.Item label="Recipient">
               <Stack wrap>
@@ -878,8 +895,25 @@ const CursedChastityControls = (props: {
             </LabeledList.Item>
             <LabeledList.Item label="Empty orgasms">
               {selectedCursedPet?.chastity.gilded_zero_fund_orgasms ?? 0}
-              {selectedCursedPet?.chastity.gilded_limped ? ' (limp)' : ''}
             </LabeledList.Item>
+            {showPenisControls && (
+              <LabeledList.Item label="Impotence">
+                <Button
+                  icon={currentGildedImpotent ? 'ban' : 'undo'}
+                  color={currentGildedImpotent ? 'bad' : 'good'}
+                  selected={currentGildedImpotent}
+                  disabled={cursedActionDisabled}
+                  tooltip={reasonForCursedAction}
+                  onClick={() =>
+                    act('chastity_set_gilded_impotence', {
+                      enabled: currentGildedImpotent ? 0 : 1,
+                    })
+                  }
+                >
+                  {currentGildedImpotent ? 'Impotent' : 'Potent'}
+                </Button>
+              </LabeledList.Item>
+            )}
             <LabeledList.Item label="Overdraw">
               <Stack wrap>
                 {gildedOverdrawEffectOptions.map((option) => {

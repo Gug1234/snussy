@@ -23,7 +23,7 @@
 /datum/intimate_lobby_menu/ui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, "IntimatePrefsMenu", "Intimate Accessories", 500, 480)
+		ui = new(user, src, "IntimatePrefsMenu", "Intimate Accessories", 620, 640)
 		ui.open()
 
 /datum/intimate_lobby_menu/ui_state(mob/user)
@@ -49,6 +49,71 @@
 			if(!(chosen in options))
 				return FALSE
 			if(!prefs.set_intimate_accessory_slot_typepath(slot_key, options[chosen]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("select_type")
+			var/slot_key = params["slot"]
+			var/type_key = params["type"]
+			if(!prefs.set_intimate_accessory_slot_design(slot_key, type_key = type_key))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("select_metal")
+			var/slot_key = params["slot"]
+			var/metal_key = params["metal"]
+			if(!prefs.set_intimate_accessory_slot_design(slot_key, metal_key = metal_key))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("set_bell")
+			var/slot_key = params["slot"]
+			if(!prefs.set_intimate_accessory_slot_design(slot_key, has_bell = !!params["enabled"]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("select_socket")
+			var/slot_key = params["slot"]
+			if(!prefs.set_intimate_accessory_slot_socket(slot_key, params["socket"]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("set_tail_type")
+			var/slot_key = params["slot"]
+			if(!prefs.set_intimate_accessory_tail_socket(slot_key, params["tail_type"], null, prefs.pref_intimate_rear_insertable_tail_icon))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("set_tail_icon")
+			var/slot_key = params["slot"]
+			if(!prefs.set_intimate_accessory_tail_socket(slot_key, prefs.pref_intimate_rear_insertable_tail_type, prefs.pref_intimate_rear_insertable_tail_colors, params["tail_icon"]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("set_tail_color")
+			var/slot_key = params["slot"]
+			if(!prefs.set_intimate_accessory_tail_socket_color(slot_key, params["color_index"], params["color"]))
+				return FALSE
+			prefs.save_character()
+			prefs.update_preview_icon()
+			return TRUE
+
+		if("set_bead_shape")
+			if(!prefs.set_intimate_accessory_rear_bead_shape(params["bead_shape"]))
 				return FALSE
 			prefs.save_character()
 			prefs.update_preview_icon()

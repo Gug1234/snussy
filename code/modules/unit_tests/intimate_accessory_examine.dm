@@ -216,6 +216,47 @@
 	TEST_ASSERT(has_item_overlay(beads, "dogplug3", "#5BCEFA"), "tailbeads item tail layer should use the first selected tail color")
 	TEST_ASSERT(!has_item_overlay(beads, "dogplug1"), "tailbeads should not use the plug item layer")
 
+/datum/unit_test/roundstart_intimate_socket_preferences/Run()
+	var/datum/preferences/prefs = new /datum/preferences/unit_test_intimate_accessory_lobby_anatomy(null)
+	prefs.intimate_enabled = TRUE
+	TEST_ASSERT(prefs.set_intimate_accessory_slot_typepath("rear_insertable", /obj/item/intimate_accessory/rear/plug/gold), "test setup should select a rear plug")
+	TEST_ASSERT(prefs.set_intimate_accessory_slot_socket("rear_insertable", "ruby"), "round-start gem sockets should be accepted for rear plugs")
+
+	var/mob/living/carbon/human/consistent/wearer = allocate(/mob/living/carbon/human/consistent)
+	wearer.forceMove(run_loc_bottom_left)
+	prefs.apply_intimate_preferences(wearer)
+
+	var/obj/item/intimate_accessory/rear/plug/plug = wearer.intimate_rear_insertable
+	TEST_ASSERT_NOTNULL(plug, "round-start rear insertable preferences should equip the selected plug")
+	TEST_ASSERT_EQUAL(plug.current_gem_descriptor, "rontz", "round-start gem sockets should use the real gem descriptor")
+	TEST_ASSERT_EQUAL(lowertext(plug.intimate_gem_color), "#b4142c", "round-start gem sockets should use the real gem color")
+	TEST_ASSERT(plug.roundstart_socket_breaks_on_extract, "round-start gem sockets should be marked fragile")
+	TEST_ASSERT_EQUAL(plug.gem_value_bonus, 0, "round-start gem sockets should not add sale value")
+	TEST_ASSERT_EQUAL(plug.sellprice, 1, "round-start socketed accessories should keep the round-start sell price floor")
+	TEST_ASSERT(findtext(plug.get_intimate_examine_plain_name(), "rontz-set"), "round-start gem sockets should appear as normal gem-set accessories")
+	TEST_ASSERT(!findtext(lowertext(plug.get_intimate_examine_plain_name()), "fake"), "round-start gem sockets should not reveal fake socket internals in item names")
+
+	plug.remove_intimate_accessory(wearer)
+	plug.forceMove(get_turf(wearer))
+	var/mob/living/carbon/human/consistent/user = allocate(/mob/living/carbon/human/consistent)
+	user.forceMove(get_turf(wearer))
+	user.physiology.do_after_speed = 0
+	var/obj/item/rogueweapon/hammer/hammer = allocate(/obj/item/rogueweapon/hammer)
+	var/obj/item/rogueweapon/chisel/chisel = allocate(/obj/item/rogueweapon/chisel)
+	user.put_in_hands(hammer)
+	user.put_in_hands(chisel)
+
+	TEST_ASSERT(plug.try_extract_socketed_item(user), "hammer and chisel extraction should handle fragile round-start sockets")
+	TEST_ASSERT(!plug.has_socketed_insert(), "fragile round-start socket extraction should clear socket state")
+	TEST_ASSERT_NULL(locate(/obj/item/roguegem/ruby) in get_turf(user), "fragile round-start socket extraction should not spawn a sellable gem")
+
+	var/obj/item/intimate_accessory/rear/plug/analbeads/steel/beads = allocate(/obj/item/intimate_accessory/rear/plug/analbeads/steel)
+	TEST_ASSERT(beads.apply_roundstart_tail_socket(/datum/sprite_accessory/tail/manticore, "#5BCEFA#F5A9B8#FFFFFF", "catplug"), "round-start tail sockets should apply to rear beads without a physical fur item")
+	TEST_ASSERT(beads.is_tailplug(), "round-start tail sockets should mark rear beads as fake-tail insertables")
+	TEST_ASSERT_EQUAL(beads.current_gem_descriptor, "Manticore", "round-start tail sockets should use the selected tail descriptor")
+
+	qdel(prefs)
+
 /datum/unit_test/tailplug_worn_examine_and_pull/proc/appearance_list_has_existing_icon_state(list/appearances)
 	if(!length(appearances))
 		return FALSE
@@ -250,6 +291,10 @@
 	TEST_ASSERT(findtext(lowertext(tailplug_line), "tailplug"), "high-perception examiners should see exposed fake tails as tailplugs")
 	TEST_ASSERT(findtext(lowertext(tailplug_line), "<font color='#5bcefa'>manticore</font>"), "tailplug examine text should color the chosen tail accessory name")
 	TEST_ASSERT(findtext(lowertext(tailplug_line), "<font color='#9badb7'>steel</font>"), "tailplug examine text should keep the metal portion colored like other intimate accessories")
+	var/tailpull_message = plug.get_tailplug_pull_observer_message(wearer, puller)
+	TEST_ASSERT(findtext(tailpull_message, "<span class='love'>"), "tailplug pull removal should use the intimate interaction span")
+	TEST_ASSERT(findtext(lowertext(tailpull_message), "manticore steel tailplug"), "tailplug pull removal should name the socketed fake tail")
+	TEST_ASSERT(findtext(lowertext(tailpull_message), "pops free"), "tailplug pull removal should describe the toy coming free")
 
 	TEST_ASSERT(wearer.try_pull_fake_tail(puller, TRUE), "forced test pulltail should yank a fake tail free")
 	TEST_ASSERT_NULL(wearer.intimate_rear_insertable, "pulltail removal should clear the target's rear insertable slot")

@@ -146,7 +146,7 @@
 			"gilded_total_drained" = device ? device.gilded_total_drained : 0,
 			"gilded_next_shrink_threshold" = device ? device.gilded_next_shrink_threshold : GILDED_CHASTITY_SHRINK_DRAIN_STEP,
 			"gilded_zero_fund_orgasms" = device ? device.gilded_zero_fund_orgasms : 0,
-			"gilded_limped" = device ? device.gilded_limped : FALSE
+			"gilded_limped" = device ? (device.gilded_limped || HAS_TRAIT_FROM(pet, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE)) : FALSE
 		)
 		pet_entry["piercing"] = piercing ? piercing.get_cursed_piercing_ui_data(pet) : list()
 
@@ -193,9 +193,11 @@
 		"chastity_set_flat",
 		"chastity_set_gilded_recipient",
 		"chastity_set_gilded_drain",
+		"chastity_force_gilded_payment",
 		"chastity_set_gilded_overdraw_effect",
 		"chastity_set_gilded_forced_message_enabled",
 		"chastity_set_gilded_forced_message",
+		"chastity_set_gilded_impotence",
 		"piercing_adjust_organ_size",
 		"piercing_set_lactation",
 		"piercing_set_impotence",
@@ -404,6 +406,16 @@
 			if(CM.set_pet_gilded_chastity_drain(pet, params["amount"]))
 				affected = 1
 			report_count(user, affected, "Updated gilded drain for", "No gilded drain changed.")
+		if("chastity_force_gilded_payment")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/affected = 0
+			if(CM.force_pet_gilded_chastity_payment(pet))
+				affected = 1
+			report_count(user, affected, "Called gilded payment from", "No gilded payment was called.")
 		if("chastity_set_gilded_overdraw_effect")
 			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
 			if(!pet)
@@ -435,6 +447,17 @@
 			if(CM.set_pet_gilded_chastity_forced_message(pet, params["index"], params["kind"], params["message"]))
 				affected = 1
 			report_count(user, affected, "Updated gilded forced message for", "No gilded forced messages changed.")
+		if("chastity_set_gilded_impotence")
+			var/mob/living/carbon/human/pet = resolve_single_cursed_target(CM, targets, user)
+			if(!pet)
+				return TRUE
+			if(!consume_cooldown(CM, user))
+				return TRUE
+			var/enabled = text2num("[params["enabled"]]")
+			var/affected = 0
+			if(CM.set_pet_gilded_chastity_impotence(pet, enabled))
+				affected = 1
+			report_count(user, affected, "Updated gilded impotence for", "No gilded impotence state changed.")
 		if("piercing_adjust_organ_size")
 			var/mob/living/carbon/human/pet = resolve_single_cursed_piercing_target(CM, targets, user)
 			if(!pet)

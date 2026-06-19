@@ -116,6 +116,12 @@
 	SIGNAL_HANDLER
 	if(QDELETED(src) || QDELETED(victim) || QDELETED(wearer) || src.wearer != victim)
 		return
+	INVOKE_ASYNC(src, PROC_REF(shatter_on_z_impact), victim)
+
+/obj/item/intimate_accessory/rear/plug/analbeads/glass/proc/shatter_on_z_impact(mob/living/carbon/human/victim)
+	set waitfor = FALSE
+	if(QDELETED(src) || QDELETED(victim) || QDELETED(wearer) || src.wearer != victim)
+		return
 	// Shatter the beads
 	send_extreme_content_visible_message(
 		victim,

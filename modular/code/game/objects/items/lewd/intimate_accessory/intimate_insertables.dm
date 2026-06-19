@@ -371,6 +371,12 @@
 	on_socket_state_changed("tail_socketed")
 	return TRUE
 
+/obj/item/intimate_accessory/rear/plug/proc/apply_roundstart_tail_socket(tail_accessory_type, tail_color_string, item_icon_choice)
+	if(!socket_tail_fur(null, tail_accessory_type, tail_color_string, item_icon_choice))
+		return FALSE
+	roundstart_socket_breaks_on_extract = FALSE
+	return TRUE
+
 /obj/item/intimate_accessory/rear/plug/proc/is_tailplug()
 	return tailplug_socketed && tailplug_tail_accessory_type && tailplug_item_icon_base
 
@@ -401,6 +407,24 @@
 	if(intimate_metal_name && intimate_metal_color)
 		display_name = color_intimate_examine_token(display_name, html_encode(lowertext(intimate_metal_name)), intimate_metal_color)
 	return display_name
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_pull_observer_message(mob/living/carbon/human/target, mob/living/puller)
+	if(!target || !is_tailplug())
+		return null
+	var/puller_name = puller ? "[puller]" : "Someone"
+	return span_love("[puller_name] yanks [target]'s [get_tailplug_examine_plain_name()] by the tail, and the toy pops free with a slick tug.")
+
+/obj/item/intimate_accessory/rear/plug/proc/get_tailplug_pull_self_message(mob/living/carbon/human/target, mob/living/puller)
+	if(!target || !is_tailplug())
+		return null
+	var/puller_name = puller ? "[puller]" : "Someone"
+	return span_love("[puller_name] yanks my [get_tailplug_examine_plain_name()] by the tail, and the toy pops free with a slick tug.")
+
+/obj/item/intimate_accessory/rear/plug/proc/show_tailplug_pull_message(mob/living/carbon/human/target, mob/living/puller)
+	var/observer_message = get_tailplug_pull_observer_message(target, puller)
+	if(!observer_message)
+		return
+	target.visible_message(observer_message, get_tailplug_pull_self_message(target, puller))
 
 /obj/item/intimate_accessory/rear/plug/proc/can_user_identify_tailplug(mob/user)
 	if(isobserver(user))
@@ -466,8 +490,10 @@
 				target.visible_message(span_warning(message))
 			beads.on_ripcord(pull_actor, target, FALSE)
 			beads.beads_inserted = 0
-	else if(target.sexcon && !target.sexcon.arousal_frozen)
-		target.sexcon.adjust_arousal(80)
+	else
+		show_tailplug_pull_message(target, puller)
+		if(target.sexcon && !target.sexcon.arousal_frozen)
+			target.sexcon.adjust_arousal(80)
 	remove_intimate_accessory(target)
 	if(QDELETED(src))
 		return TRUE

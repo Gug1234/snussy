@@ -176,17 +176,36 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	chastity_victim.update_body_parts(TRUE)
 	chastity_victim.update_inv_belt()
 
-/obj/item/chastity/proc/on_gilded_orgasm_triggered(mob/living/carbon/human/wearer)
-	SIGNAL_HANDLER
+/obj/item/chastity/proc/get_gilded_drain_message(mob/living/carbon/human/wearer, amount, forced_payment = FALSE)
+	if(!chastity_gilded || !wearer || amount <= 0)
+		return null
+	if(forced_payment)
+		return span_userdanger("The gilded cage calls payment due, drinking [amount] mammon from my Nervelock with a cold golden pulse.")
+	return span_userdanger("The gilded cage drinks [amount] mammon from my Nervelock, the tithe ringing warm through the lock.")
+
+/obj/item/chastity/proc/show_gilded_drain_message(mob/living/carbon/human/wearer, amount, forced_payment = FALSE)
+	var/message = get_gilded_drain_message(wearer, amount, forced_payment)
+	if(!message)
+		return FALSE
+	to_chat(wearer, message)
+	return TRUE
+
+/obj/item/chastity/proc/can_gilded_drain_wearer(mob/living/carbon/human/wearer)
 	if(!chastity_gilded || !wearer || QDELETED(wearer))
-		return 0
+		return FALSE
 	if(wearer.chastity_device != src || loc != wearer)
-		return 0
+		return FALSE
 	if(gilded_orgasm_drain_in_progress)
-		return 0
+		return FALSE
 	var/drain_amount = clamp(round(gilded_drain_amount), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
 	if(drain_amount <= 0)
+		return FALSE
+	return TRUE
+
+/obj/item/chastity/proc/drain_gilded_nervelock(mob/living/carbon/human/wearer, forced_payment = FALSE)
+	if(!can_gilded_drain_wearer(wearer))
 		return 0
+	var/drain_amount = clamp(round(gilded_drain_amount), GILDED_CHASTITY_MIN_DRAIN, GILDED_CHASTITY_MAX_DRAIN)
 	gilded_orgasm_drain_in_progress = TRUE
 	var/current_balance = max(0, SStreasury.bank_accounts[wearer] || 0)
 	if(SStreasury.bank_accounts[wearer] != current_balance)
@@ -200,10 +219,15 @@ GLOBAL_LIST_INIT(chastity_standard_traits, list(
 	gilded_total_drained += drained
 	gilded_zero_fund_orgasms = 0
 	credit_gilded_recipient(wearer, drained)
-	log_cursed_chastity_command(wearer, CHASTITY_LOG_GILDED_DRAIN, "amount=[drained] recipient=[gilded_recipient] total=[gilded_total_drained]")
+	show_gilded_drain_message(wearer, drained, forced_payment)
+	log_cursed_chastity_command(wearer, CHASTITY_LOG_GILDED_DRAIN, "amount=[drained] recipient=[gilded_recipient] total=[gilded_total_drained] forced=[forced_payment]")
 	apply_gilded_drain_milestones(wearer)
 	gilded_orgasm_drain_in_progress = FALSE
 	return drained
+
+/obj/item/chastity/proc/on_gilded_orgasm_triggered(mob/living/carbon/human/wearer)
+	SIGNAL_HANDLER
+	return drain_gilded_nervelock(wearer)
 
 /obj/item/chastity/proc/handle_gilded_overdraw_effect_async(mob/living/carbon/human/wearer)
 	set waitfor = FALSE

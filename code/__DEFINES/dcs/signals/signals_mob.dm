@@ -74,6 +74,8 @@
 	#define COLLAR_COMMAND_SET_GILDED_CHASTITY_OVERDRAW_EFFECT "set_gilded_chastity_overdraw_effect"
 	#define COLLAR_COMMAND_SET_GILDED_CHASTITY_FORCED_MESSAGE_ENABLED "set_gilded_chastity_forced_message_enabled"
 	#define COLLAR_COMMAND_SET_GILDED_CHASTITY_FORCED_MESSAGE "set_gilded_chastity_forced_message"
+	#define COLLAR_COMMAND_FORCE_GILDED_CHASTITY_PAYMENT "force_gilded_chastity_payment"
+	#define COLLAR_COMMAND_SET_GILDED_CHASTITY_IMPOTENCE "set_gilded_chastity_impotence"
 
 /// Fired when a pet is released/cleaned up from collar control (mob/living/carbon/human/pet, datum/component/collar_master/controller)
 #define COMSIG_CARBON_COLLAR_RELEASED "carbon_collar_released"

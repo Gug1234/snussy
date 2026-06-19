@@ -181,11 +181,17 @@
 	device.chastity_master = master.mind
 	device.gilded_drain_amount = 5
 	device.finalize_chastity_equip(wearer)
+	var/datum/component/collar_master/CM = master.mind.AddComponent(/datum/component/collar_master)
+	TEST_ASSERT(CM.add_pet(wearer), "test master should be able to command the gilded wearer")
 
 	TEST_ASSERT_EQUAL(GILDED_CHASTITY_MAX_DRAIN, 100, "gilded drain max should allow 100 mammon")
 	TEST_ASSERT(device.set_gilded_drain_amount(wearer, 200), "gilded drain amount setter should accept numeric input")
 	TEST_ASSERT_EQUAL(device.gilded_drain_amount, 100, "gilded drain amount should clamp to 100")
 	device.gilded_drain_amount = 5
+	var/drain_message = device.get_gilded_drain_message(wearer, 3, FALSE)
+	TEST_ASSERT(findtext(drain_message, "<span class='userdanger'>"), "gilded drain message should use an intimate warning span")
+	TEST_ASSERT(findtext(drain_message, "Nervelock"), "gilded drain message should name the wearer's Nervelock")
+	TEST_ASSERT(findtext(drain_message, "3 mammon"), "gilded drain message should include the drained mammon")
 
 	SStreasury.bank_accounts[wearer] = 3
 	SStreasury.bank_accounts[master] = 7
@@ -202,6 +208,15 @@
 	TEST_ASSERT_EQUAL(SStreasury.bank_accounts[wearer], 0, "orgasm drain should clamp to the wearer's available balance")
 	TEST_ASSERT_EQUAL(SStreasury.bank_accounts[wearer], 0, "gilded drain should never overdraw the wearer")
 	TEST_ASSERT_EQUAL(SStreasury.bank_accounts[master], 10, "master recipient should receive drained mammon")
+
+	SStreasury.bank_accounts[wearer] = 6
+	SStreasury.bank_accounts[master] = 10
+	device.gilded_recipient = GILDED_CHASTITY_RECIPIENT_MASTER
+	device.gilded_drain_amount = 4
+	TEST_ASSERT(CM.force_pet_gilded_chastity_payment(wearer), "master should be able to force a gilded payment")
+	TEST_ASSERT_EQUAL(SStreasury.bank_accounts[wearer], 2, "forced gilded payment should debit the wearer")
+	TEST_ASSERT_EQUAL(SStreasury.bank_accounts[master], 14, "forced gilded payment should credit the master")
+	device.gilded_drain_amount = 5
 
 	SStreasury.bank_accounts[wearer] = 8
 	var/self_master_treasury_before = SStreasury.treasury_value
@@ -289,7 +304,20 @@
 	for(var/i in 1 to GILDED_CHASTITY_ZERO_ORGASMS_FOR_LIMP)
 		device.on_gilded_orgasm_triggered(wearer)
 		sleep(1)
-	TEST_ASSERT(HAS_TRAIT(wearer, TRAIT_LIMPDICK), "three zero-fund orgasms should apply round-only limpness")
+	TEST_ASSERT(!HAS_TRAIT_FROM(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE), "empty-Nervelock punishments should not apply gilded impotence without a master toggle")
+	TEST_ASSERT(CM.set_pet_gilded_chastity_impotence(wearer, TRUE), "master should be able to apply gilded cage impotence")
+	TEST_ASSERT(HAS_TRAIT_FROM(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE), "gilded impotence toggle should apply limpness from the cage")
+	TEST_ASSERT(device.gilded_limped, "gilded device should record master-applied impotence")
+	TEST_ASSERT(CM.set_pet_gilded_chastity_impotence(wearer, FALSE), "master should be able to reverse gilded cage impotence")
+	TEST_ASSERT(!HAS_TRAIT_FROM(wearer, TRAIT_LIMPDICK, GILDED_CHASTITY_TRAIT_SOURCE), "gilded impotence toggle should remove its limpness trait")
+	TEST_ASSERT(!device.gilded_limped, "gilded device should clear master-applied impotence state")
+
+	SStreasury.bank_accounts[wearer] = 0
+	device.gilded_overdraw_effect = GILDED_CHASTITY_OVERDRAW_SHRINK
+	penis.penis_size = DEFAULT_PENIS_SIZE
+	TEST_ASSERT(CM.force_pet_gilded_chastity_payment(wearer), "forced payment should still call the gilded device when the wearer is empty")
+	sleep(1)
+	TEST_ASSERT_EQUAL(penis.penis_size, DEFAULT_PENIS_SIZE - 1, "forced payment with an empty Nervelock should trigger overdraw punishment")
 
 	if(wearer.chastity_device == device)
 		device.remove_chastity(wearer)

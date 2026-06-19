@@ -11,6 +11,14 @@
 		return null
 	return clean_descriptor
 
+/obj/item/intimate_accessory_roundstart_socket
+	name = "brittle socket setting"
+	desc = "A brittle round-start accent for intimate accessories."
+	icon = 'modular/icons/obj/lewd/intimate_accessories.dmi'
+	icon_state = "rear_plug_item_2"
+	w_class = WEIGHT_CLASS_TINY
+	sellprice = 0
+
 /obj/item/intimate_accessory
 	name = "intimate accessory"
 	desc = "A personal accessory meant for intimate wear. If you're seeing this report it as a bug."
@@ -36,6 +44,8 @@
 	/// Round-start accessories have no sell value until a gem is socketed,
 	/// preventing players from spawning with precious metal jewelry to sell.
 	var/roundstart_equipped = FALSE
+	/// Round-start socket accents are visual only and shatter instead of producing a sellable gem.
+	var/roundstart_socket_breaks_on_extract = FALSE
 	var/intimate_retains_internal_creampie = FALSE
 	var/intimate_passive_insertable_effect = FALSE
 	var/lubedup = FALSE
@@ -865,6 +875,7 @@
 	current_gem_descriptor = null
 	intimate_gem_color = initial(intimate_gem_color)
 	gem_value_bonus = 0
+	roundstart_socket_breaks_on_extract = FALSE
 	on_beriddle_state_changed(FALSE)
 	on_socket_state_changed("socket_reset")
 
@@ -878,6 +889,7 @@
 	socketed_item_type = I.type
 	current_gem_descriptor = socket_descriptor ? socket_descriptor : get_socket_descriptor_from_item(I)
 	intimate_gem_color = socket_color ? socket_color : get_socket_color_from_item(I)
+	roundstart_socket_breaks_on_extract = FALSE
 	if(isnull(socket_value_bonus))
 		gem_value_bonus = max(0, I.sellprice)
 	else
@@ -893,7 +905,37 @@
 	current_gem_descriptor = socket_descriptor
 	intimate_gem_color = socket_color
 	gem_value_bonus = max(0, socket_value_bonus)
+	roundstart_socket_breaks_on_extract = FALSE
 	on_socket_state_changed(reason)
+	return TRUE
+
+/obj/item/intimate_accessory/proc/get_roundstart_socketed_description(base_desc)
+	if(!roundstart_socket_breaks_on_extract)
+		return base_desc
+	var/socket_desc = "The socketed accent is set with brittle round-start glasswork and would shatter if pried loose."
+	if(!length(base_desc))
+		return socket_desc
+	if(findtext(base_desc, socket_desc))
+		return base_desc
+	return "[base_desc] [socket_desc]"
+
+/obj/item/intimate_accessory/proc/apply_roundstart_gem_socket(socket_key)
+	var/list/socket_option = find_intimate_roundstart_option(get_intimate_roundstart_socket_options(), socket_key)
+	if(!socket_option || socket_option["key"] == "none")
+		return FALSE
+	if(has_socketed_insert())
+		return FALSE
+	if(!socket_item_by_type(
+		/obj/item/intimate_accessory_roundstart_socket,
+		socket_descriptor = socket_option["descriptor"],
+		socket_color = socket_option["color"],
+		socket_value_bonus = 0,
+		reason = "gem_changed"
+	))
+		return FALSE
+	roundstart_socket_breaks_on_extract = TRUE
+	desc = get_roundstart_socketed_description(desc)
+	on_socket_state_changed("gem_changed")
 	return TRUE
 
 /obj/item/intimate_accessory/proc/try_socket_gem(obj/item/roguegem/gem, mob/living/user)
@@ -939,6 +981,13 @@
 
 	if(!has_socketed_insert())
 		to_chat(user, span_warning("The socket is already empty."))
+		return TRUE
+
+	if(roundstart_socket_breaks_on_extract)
+		var/socket_desc = current_gem_descriptor ? "[current_gem_descriptor]-set accent" : "socketed accent"
+		playsound(get_turf(src), 'sound/items/indexer_open.ogg', 45, TRUE)
+		user.visible_message(span_warning("[user]'s chisel cracks the [socket_desc] in [src], scattering worthless fragments."), span_warning("My chisel cracks the [socket_desc] in [src], scattering worthless fragments."))
+		reset_socketed_state()
 		return TRUE
 
 	var/socket_path = socketed_item_type
