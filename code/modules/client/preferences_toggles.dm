@@ -228,6 +228,8 @@
 			if("hear_instruments")
 				owner.prefs.toggles ^= SOUND_INSTRUMENTS
 				owner.prefs.save_preferences()
+				for(var/datum/looping_sound/persistent_loop in GLOB.persistent_sound_loops)
+					owner.update_persistent_sound_loop(persistent_loop)
 				owner.update_sounds()
 				owner.sync_instrument_audio_toggle()
 			if("animal_emotes")
@@ -258,6 +260,17 @@
 				owner.toggle_intimate_reaction_extreme()
 			if("intimate_reaction_accessory_free")
 				owner.toggle_intimate_reaction_accessory_free()
+		SStgui.update_uis(src)
+		return TRUE
+
+	if(action == "select")
+		var/select_id = params["id"]
+		switch(select_id)
+			if("hud_colorblind_palette")
+				if(!owner.prefs.set_hud_colorblind_palette(params["value"]))
+					return FALSE
+				owner.prefs.save_preferences()
+				owner.refresh_colorblind_hud_palette()
 		SStgui.update_uis(src)
 		return TRUE
 
