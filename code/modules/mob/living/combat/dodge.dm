@@ -146,6 +146,11 @@
 			if(UH?.used_intent?.unarmed)
 				prob2defend = prob2defend - (UH.get_skill_level(/datum/skill/combat/unarmed) * 10)
 				prob2defend = prob2defend + (H.get_skill_level(/datum/skill/combat/unarmed) * 10)
+			else if(!UH && U.skills)
+				var/datum/intent/attacker_intent = U.used_intent
+				var/attacker_skill_type = attacker_intent?.masteritem?.associated_skill || /datum/skill/combat/unarmed
+				prob2defend = prob2defend - (U.get_skill_level(attacker_skill_type) * 10)
+				prob2defend = prob2defend + (H.get_skill_level(/datum/skill/combat/unarmed) * 10)
 
 		if(HAS_TRAIT(L, TRAIT_GUIDANCE))
 			prob2defend += 20
