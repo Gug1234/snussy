@@ -3096,6 +3096,7 @@
 #include "modular\code\game\objects\items\lewd\chastity\chastity_equip.dm"
 #include "modular\code\game\objects\items\lewd\chastity\chastity_variants.dm"
 #include "modular\code\game\objects\items\lewd\chastity\strings\chastity_string_banks.dm"
+#include "modular\code\game\objects\items\lewd\intimate_accessory\intimate_variants.dm"
 #include "modular\code\game\objects\items\rogueitems\keys_chastity.dm"
 #include "modular\code\game\objects\items\rogueitems\keys_chastity_overrides.dm"
 #include "modular\code\game\objects\items\rogueitems\chastity\chastityitems.dm"

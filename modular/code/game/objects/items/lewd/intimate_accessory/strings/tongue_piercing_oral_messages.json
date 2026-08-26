@@ -1,0 +1,72 @@
+{
+	"tongue_piercing_oral_gentle": [
+		"[THEIR_CAP] tongue piercing clicks faintly between wet breaths.",
+		"A small metal tongue bar softly taps against teeth from [THEIR] mouth.",
+		"A quiet metallic click flickers between each warm breath from [THEIR] tongue piercing."
+	],
+	"tongue_piercing_oral_rough": [
+		"[THEIR_CAP] tongue piercing clicks in a quick metallic rhythm.",
+		"A small metal tongue bar taps hard against teeth from [THEIR] mouth.",
+		"A bright metallic click flashes between rough breaths from [THEIR] tongue piercing."
+	],
+	"tongue_piercing_oral_silver_gentle": [
+		"[THEIR_CAP] silver tongue piercing gives a crisp little chime between breaths.",
+		"A bright silver click slips between wet sounds from [THEIR] tongue bar.",
+		"[THEIR_CAP] polished silver tongue piercing ticks softly against teeth."
+	],
+	"tongue_piercing_oral_silver_rough": [
+		"[THEIR_CAP] silver tongue piercing rings in a bright, biting chime.",
+		"A sharp silver click cracks between wet sounds from [THEIR] tongue bar.",
+		"[THEIR_CAP] polished silver tongue piercing ticks in a hard metallic beat."
+	],
+	"tongue_piercing_oral_psydonic_gentle": [
+		"[THEIR_CAP] psydonic tongue piercing hums a bright hymn between wet breaths.",
+		"[THEIR_CAP] psydonic tongue bar clicks in a measured, devotional rhythm.",
+		"A faint psydonic resonance trembles with each slick motion of [THEIR] tongue piercing."
+	],
+	"tongue_piercing_oral_psydonic_rough": [
+		"[THEIR_CAP] psydonic tongue piercing hums a fierce hymn between wet breaths.",
+		"[THEIR_CAP] psydonic tongue bar taps in a strict, urgent rhythm.",
+		"A hard psydonic resonance shivers from [THEIR] tongue piercing."
+	],
+	"tongue_piercing_oral_psydonic_silver_gentle": [
+		"[THEIR_CAP] silvered psydonic tongue piercing rings like a tiny bell between wet breaths.",
+		"[THEIR_CAP] psydonic silver-cross tongue piercing chimes with each careful lick.",
+		"A bright silver psydonic note slips from [THEIR] tongue piercing."
+	],
+	"tongue_piercing_oral_psydonic_silver_rough": [
+		"[THEIR_CAP] silvered psydonic tongue piercing strikes a sharp chime through the wet noise.",
+		"[THEIR_CAP] psydonic silver-cross tongue bar clicks in a bright, insistent rhythm.",
+		"A hard silver psydonic note snaps from [THEIR] tongue piercing."
+	],
+	"tongue_piercing_oral_psydonic_gold_gentle": [
+		"[THEIR_CAP] gilded psydonic tongue piercing hums a warm hymn between breaths.",
+		"[THEIR_CAP] golden psydonic tongue bar sings softly with each pull of the mouth.",
+		"A mellow psydonic chime drifts from [THEIR] golden tongue piercing."
+	],
+	"tongue_piercing_oral_psydonic_gold_rough": [
+		"[THEIR_CAP] gilded psydonic tongue piercing thrums with a forceful hymn.",
+		"[THEIR_CAP] golden psydonic tongue bar rings in a driving cadence.",
+		"A bright psydonic peal rises from [THEIR] golden tongue piercing."
+	],
+	"tongue_piercing_oral_zizite_gentle": [
+		"[THEIR_CAP] zizite tongue piercing taps a cold rhythm against teeth.",
+		"A dark zizite click cuts softly through the wet sounds from [THEIR] tongue bar.",
+		"[THEIR_CAP] iron zcross tongue piercing chatters in a restrained metallic beat."
+	],
+	"tongue_piercing_oral_zizite_rough": [
+		"[THEIR_CAP] zizite tongue piercing taps a hard, cold rhythm against teeth.",
+		"A dark zizite click slices through the wet sounds from [THEIR] tongue bar.",
+		"[THEIR_CAP] iron zcross tongue piercing chatters in a strict metallic beat."
+	],
+	"tongue_piercing_oral_zizite_ancient_gentle": [
+		"[THEIR_CAP] ancient zizite tongue piercing taps a stern cadence against teeth.",
+		"An old, avantyne zcross note clicks quietly from [THEIR] tongue piercing.",
+		"A deep zizite tick marks each breath from [THEIR] ancient tongue bar."
+	],
+	"tongue_piercing_oral_zizite_ancient_rough": [
+		"[THEIR_CAP] ancient zizite tongue piercing hammers a cold cadence against teeth.",
+		"An old, avantyne zcross note snaps from [THEIR] tongue piercing.",
+		"A deep zizite clack drives each breath from [THEIR] ancient tongue bar."
+	]
+}

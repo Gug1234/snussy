@@ -1,0 +1,52 @@
+{
+	"cursed_piercing_bound": [
+		"The cursed piercing bites shut in my %SLOT%, too warm and too aware.",
+		"My %SLOT% throbs around the cursed piercing as it seals itself in place.",
+		"The gem flashes once, and the cursed piercing locks into my %SLOT%."
+	],
+	"cursed_piercing_organ_size_changed": [
+		"The cursed piercing pulses, forcing a %DIRECTION% change through my %ORGAN%. Size %SIZE%.",
+		"A hot throb runs from the piercing into my %ORGAN%, leaving the flesh %DIRECTION%. Size %SIZE%.",
+		"The gem gives a sharp little throb; the change leaves my %ORGAN% %DIRECTION% than before. Size %SIZE%."
+	],
+	"cursed_piercing_lactation_start": [
+		"The cursed piercing warms, and my chest swells with a sudden full ache.",
+		"A heavy heat gathers behind my nipples as the piercing trembles; they've begun to leak.",
+		"The gem pulses against me, and my breasts tighten with new pressure."
+	],
+	"cursed_piercing_lactation_stop": [
+		"The cursed piercing cools, and the pressure in my chest begins to fade.",
+		"A cold pulse runs through the piercing, stilling the milk-heavy ache in my breasts.",
+		"The gem dims, and the forced fullness in my chest eases away."
+	],
+	"cursed_piercing_impotence_start": [
+		"The cursed piercing sends a deadening pulse through my groin, rendering me limpdicked.",
+		"A cold command settles below my belly; the piercing has made me uselessly soft.",
+		"The gem flickers, and any answering heat in my groin is smothered flat."
+	],
+	"cursed_piercing_impotence_stop": [
+		"The cursed piercing releases its cold grip on my groin.",
+		"Warmth returns below my belly as the piercing lets my body answer again.",
+		"The gem loosens its command, and the suppressing force in my groin fades."
+	],
+	"cursed_piercing_slot_changed": [
+		"The cursed piercing twists free and reforms in my %SLOT%, sealing before I can react.",
+		"A crawling heat crosses my skin as the piercing relocates to my %SLOT%.",
+		"The gem flashes, and the piercing skewers itself into my %SLOT%."
+	],
+	"cursed_piercing_metal_changed": [
+		"The piercing's metal contorts and recolors itself into %METAL%.",
+		"My cursed piercing warms as its frame reshapes into %METAL%.",
+		"The metal around the gem ripples, settling into %METAL%."
+	],
+	"cursed_piercing_gem_changed": [
+		"The socket burns as the cursed piercing's gem becomes %GEM%.",
+		"The gem in my cursed piercing clouds, clears, and settles as %GEM%.",
+		"A flash of color cuts through the piercing, leaving %GEM% set in its socket."
+	],
+	"cursed_piercing_descriptor_changed": [
+		"The curse settles into the piercing's name: %NAME%.",
+		"The gem flickers as the piercing's identity reshapes into %NAME%.",
+		"A quiet command fixes the cursed piercing's examine name as %NAME%."
+	]
+}
