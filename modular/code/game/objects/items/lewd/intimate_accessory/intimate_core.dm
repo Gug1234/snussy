@@ -58,7 +58,6 @@
 	var/mob/living/carbon/human/wearer
 	var/violent_rear_ejection_active = FALSE
 	var/list/violent_rear_ejection_throw_stats
-	// nudist_approved = TRUE // prep for nudist PR being made by another person.
 
 /obj/item/intimate_accessory/proc/get_intimate_color_string()
 	var/metal_color = intimate_metal_color

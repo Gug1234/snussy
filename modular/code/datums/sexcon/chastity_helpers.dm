@@ -259,3 +259,15 @@
 		return FALSE
 
 	return chastity.record_nonself_ejaculation(source, receiver)
+
+/// Extreme ERP filtering
+/proc/viewer_can_see_extreme_content(atom/source, mob/viewer)
+	if(viewer == source || !viewer?.client?.prefs)
+		return TRUE
+	return viewer.client.prefs.extreme_erp
+
+/proc/send_extreme_content_visible_message(atom/source, message, self_message = null, vision_distance = DEFAULT_MESSAGE_RANGE, atom/content_source = null)
+	if(!content_source)
+		content_source = source
+	var/datum/callback/viewer_filter = CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(viewer_can_see_extreme_content), content_source)
+	return send_gated_visible_message(source, message, self_message, vision_distance, viewer_filter)

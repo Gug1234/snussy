@@ -460,6 +460,30 @@ GLOBAL_LIST_EMPTY(chosen_names)
 #define APPEARANCE_CATEGORY_COLUMN "<td valign='top' width='14%'>"
 #define MAX_MUTANT_ROWS 4
 
+/datum/preferences/proc/get_character_sheet_erp_menu_entries()// intented to house more menuing later (chastity, cursed collars, sex editors, etc.)
+	return list(
+		list("preference" = "intimate_accessories_menu", "label" = "Intimate Accessories Menu"),
+	)
+
+/datum/preferences/proc/get_character_sheet_erp_menu_links()
+	var/list/menu_links = list()
+	for(var/list/menu_entry as anything in get_character_sheet_erp_menu_entries())
+		menu_links += "<a href='?_src_=prefs;preference=[menu_entry["preference"]];task=menu'>[menu_entry["label"]]</a>"
+	return menu_links.Join(" ")
+
+/datum/preferences/proc/open_character_sheet_erp_menu(mob/user, preference)
+	var/client/C = user?.client
+	if(!C || C.prefs != src)
+		return FALSE
+
+	switch(preference)
+		if("intimate_accessories_menu")
+			var/datum/intimate_lobby_menu/menu = new(src)
+			menu.ui_interact(user)
+			return TRUE
+
+	return FALSE
+
 /datum/preferences/proc/ShowChoices(mob/user, tabchoice)
 	if(!user || !user.client)
 		return
@@ -740,6 +764,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			dat += "<br><b>Rumours & Noble Gossip:</b><a href='?_src_=prefs;preference=formathelp;task=input'>(?)</a><br><a href='?_src_=prefs;preference=rumour;task=input'>Set Rumours</a><a href='?_src_=prefs;preference=gossip;task=input'>Set Gossip</a><a href='?_src_=prefs;preference=rumour_preview;task=input'><i>Preview</i></a>"
 
 			dat += "<br><b>ERP Preferences:</b><a href='?_src_=prefs;preference=formathelp;task=input'>(?)</a><a href='?_src_=prefs;preference=erpprefs;task=input'>Change</a>"
+			dat += "<br><b>ERP Menus:</b> [get_character_sheet_erp_menu_links()]"
 			dat += "<br><b>Song:</b> <a href='?_src_=prefs;preference=ooc_extra;task=input'>Change URL</a>"
 			dat += "<a href='?_src_=prefs;preference=change_title;task=input'>Change Title</a>"
 			dat += "<a href='?_src_=prefs;preference=change_artist;task=input'>Change Artist</a>"
@@ -1609,6 +1634,8 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 	else if(href_list["preference"] == "customizers")
 		ShowCustomizers(user)
 		return
+	else if((href_list["task"] == "menu") && open_character_sheet_erp_menu(user, href_list["preference"]))
+		return TRUE
 	else if(href_list["preference"] == "origin_select")
 		var/chosen_type = text2path(href_list["type"])
 		if(chosen_type && (chosen_type in GLOB.origins))

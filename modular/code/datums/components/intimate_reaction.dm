@@ -34,6 +34,47 @@
  *      text or repeated visible_message spam. BYOND will thank you.
  *    - If this stops working yell at Yuckuza on Discord.
  */
+/proc/send_gated_visible_message(atom/source, message, self_message = null, vision_distance = DEFAULT_MESSAGE_RANGE, datum/callback/viewer_filter = null, blind_message = null, runechat_message = null, log_seen = NONE, log_seen_msg = null)
+	if(!source || !message)
+		return 0
+	if(!get_turf(source))
+		return 0
+
+	var/list/hearers = get_hearers_in_view(vision_distance, source)
+	var/list/seen = log_seen ? list() : null
+	var/accepted_viewers = 0
+	for(var/mob/M in hearers)
+		if(self_message && M == source)
+			continue
+		if(is_hidden_from_ghosts(source, M))
+			continue
+		if(viewer_filter && !viewer_filter.Invoke(M))
+			continue
+
+		accepted_viewers++
+		if(log_seen)
+			seen += M
+		if(!M.client)
+			continue
+
+		var/viewer_message = message
+		if(M.see_invisible < source.invisibility)
+			viewer_message = blind_message
+		if(!viewer_message)
+			continue
+		M.show_message(viewer_message, MSG_VISUAL, blind_message, MSG_AUDIBLE)
+		if(runechat_message && M.can_hear())
+			M.create_chat_message(source, raw_message = runechat_message, spans = list("emote"))
+
+	if(log_seen)
+		log_seen(source, null, seen, (log_seen_msg ? log_seen_msg : message), log_seen)
+
+	if(self_message && ismob(source))
+		var/mob/source_mob = source
+		source_mob.show_message(self_message, MSG_VISUAL, blind_message, MSG_AUDIBLE)
+
+	return accepted_viewers
+
 /datum/component/intimate_reaction
 	/// Override to COMPONENT_DUPE_ALLOW_ALL for accessories that can coexist in multiples on the same wearer
 	/// (e.g., a nipple piercing and a tongue piercing are different items but the same component subtype).
@@ -114,6 +155,77 @@
 /// Subtypes override to add item-specific checks (e.g., source.chastity_device == parent for the chastity subtype).
 /datum/component/intimate_reaction/proc/is_valid_wearer_source(mob/living/carbon/human/source)
 	return source && !QDELETED(source) && source == wearer
+
+/// Builds a list of nearby mobs whose client prefs say they should NOT see
+/// intimate reaction visible_messages. The wearer (source) is never added;
+/// source-side emission is checked by source_can_emit_intimate_reaction().
+///
+/// content_flags — bitfield of INTIMATE_CONTENT_* flags describing the message.
+///   The master toggle (intimate_reaction_enabled) is always checked.
+/datum/component/intimate_reaction/proc/viewer_can_see_intimate_reaction(mob/viewer, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, category = null)
+	if(!viewer?.client?.prefs)
+		return TRUE
+	var/datum/preferences/P = viewer.client.prefs
+	return P.can_emit_intimate_reaction_category(category, content_flags, require_accessory_free, require_intimate_accessories)
+
+/datum/component/intimate_reaction/proc/source_can_emit_intimate_reaction(mob/living/carbon/human/source, category, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE)
+	if(!source?.client?.prefs)
+		return TRUE
+	return source.client.prefs.can_emit_intimate_reaction_category(category, content_flags, require_accessory_free, require_intimate_accessories)
+
+/datum/component/intimate_reaction/proc/viewer_can_see_intimate_reaction_with_context(mob/living/carbon/human/source, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, category = null, mob/viewer)
+	if(viewer == source)
+		return TRUE
+	return viewer_can_see_intimate_reaction(viewer, content_flags, require_accessory_free, require_intimate_accessories, category)
+
+/datum/component/intimate_reaction/proc/get_intimate_reaction_viewer_filter(mob/living/carbon/human/source, content_flags = 0, require_accessory_free = FALSE, require_intimate_accessories = FALSE, category = null)
+	return CALLBACK(src, PROC_REF(viewer_can_see_intimate_reaction_with_context), source, content_flags, require_accessory_free, require_intimate_accessories, category)
+
+// ── Reaction Coordination ──────────────────────────────────────────────────
+// When a wearer has multiple intimate accessories (piercings + plug + chastity belt),
+// each component's movement/sex reactions can fire simultaneously, flooding chat.
+// These procs enforce a shared cooldown per reaction category on the mob so that
+// once one component fires, the others are suppressed until the cooldown expires.
+// The previously-fired category gets DOUBLE cooldown to rotate variety.
+
+/// Base cooldown (in ticks) between any two intimate reactions in the same category.
+/// Movement uses this directly; sex_received uses half (since it fires less often).
+#define INTIMATE_REACTION_MOVEMENT_COOLDOWN (12 SECONDS)
+#define INTIMATE_REACTION_SEX_COOLDOWN (8 SECONDS)
+
+/// Checks whether the given reaction category is allowed to fire on this wearer right now.
+/// Returns TRUE if the category is off cooldown and may proceed.
+/datum/component/intimate_reaction/proc/can_fire_reaction(mob/living/carbon/human/source, category)
+	if(!source)
+		return FALSE
+	if(!source.intimate_reaction_last_fired)
+		return TRUE // Never fired before — always allowed
+	var/last_time = source.intimate_reaction_last_fired[category]
+	if(!last_time)
+		return TRUE // This category never fired — allowed
+	var/base_cd
+	switch(category)
+		if("movement")
+			base_cd = INTIMATE_REACTION_MOVEMENT_COOLDOWN
+		if("sex_received")
+			base_cd = INTIMATE_REACTION_SEX_COOLDOWN
+		else
+			base_cd = INTIMATE_REACTION_MOVEMENT_COOLDOWN
+	// The previously-fired category gets double cooldown to rotate variety
+	var/effective_cd = base_cd
+	if(source.intimate_reaction_last_category == category)
+		effective_cd = base_cd * 2
+	return (world.time >= last_time + effective_cd)
+
+/// Marks the given reaction category as having just fired on this wearer.
+/// Call this AFTER successfully emitting a message.
+/datum/component/intimate_reaction/proc/mark_reaction_fired(mob/living/carbon/human/source, category)
+	if(!source)
+		return
+	if(!source.intimate_reaction_last_fired)
+		source.intimate_reaction_last_fired = list()
+	source.intimate_reaction_last_fired[category] = world.time
+	source.intimate_reaction_last_category = category
 
 /**
  * Picks a random string from an external JSON string bank.
@@ -481,6 +593,14 @@
 		return FALSE
 
 	var/string_key = get_pain_key(source, pain_amt)
+	if(!string_key)
+		return FALSE
+	var/is_spiked = HAS_TRAIT(source, TRAIT_CHASTITY_SPIKED)
+	var/content_flags = INTIMATE_CONTENT_CHASTITY
+	if(is_spiked)
+		content_flags |= INTIMATE_CONTENT_EXTREME
+	if(!source_can_emit_intimate_reaction(source, string_key, content_flags))
+		return FALSE
 	var/message = pick_string_bank("chastity_pain_messages.json", string_key)
 	if(!message)
 		return FALSE
@@ -499,37 +619,55 @@
 	else
 		to_chat(source, span_boldwarning(message))
 
+	// so nearby players don't see chastity pain reactions. The wearer still gets to_chat above.
+	var/show_reactions = !source.client?.prefs || source.client.prefs.show_intimate_examine
+	var/datum/callback/viewer_filter = show_reactions ? get_intimate_reaction_viewer_filter(source, content_flags, FALSE, FALSE, string_key) : null
+
 	if(pain_amt >= PAIN_HIGH_EFFECT)
-		source.fullscreen_redflash("redflash3")
-		if(prob(70))
+		if(is_spiked)
+			source.flash_fullscreen("redflash3")
+		else
+			source.flash_fullscreen("redflash2")
+		if(show_reactions && prob(70))
 			if(devout_spiked)
-				source.visible_message(span_notice("[source] goes very still, jaw set, as the chastity spikes bite deep — enduring it with deliberate composure."))
+				send_gated_visible_message(source, span_notice("[source] goes very still, jaw set, as the chastity spikes bite deep — enduring it with deliberate composure."), viewer_filter = viewer_filter)
 			else if(masochist_spiked)
-				source.visible_message(span_warning("[source] shudders and whimpers as the chastity spikes bite in, seeming to savor the punishment."))
+				send_gated_visible_message(source, span_warning("[source] shudders and whimpers as the chastity spikes bite in, seeming to savor the punishment."), viewer_filter = viewer_filter)
+			else if(!is_spiked)
+				send_gated_visible_message(source, span_warning("[source] goes rigid, hand shooting to the front of their chastity device, face drained of color."), viewer_filter = viewer_filter)
 			else
-				source.visible_message(span_warning("[source] writhes in pain as the chastity spikes dig bloody into their tortured flesh!"))
+				send_gated_visible_message(source, span_warning("[source] writhes in pain as the chastity spikes dig bloody into their tortured flesh!"), viewer_filter = viewer_filter)
 		return TRUE
 
 	if(pain_amt >= PAIN_MED_EFFECT)
-		source.fullscreen_redflash("redflash2")
-		if(prob(50))
+		if(is_spiked)
+			source.flash_fullscreen("redflash2")
+		else
+			source.flash_fullscreen("redflash1")
+		if(show_reactions && prob(50))
 			if(devout_spiked)
-				source.visible_message(span_notice("[source] breathes carefully through the bite of the chastity spikes, expression drawn but steady."))
+				send_gated_visible_message(source, span_notice("[source] breathes carefully through the bite of the chastity spikes, expression drawn but steady."), viewer_filter = viewer_filter)
 			else if(masochist_spiked)
-				source.visible_message(span_warning("[source] trembles as the chastity spikes grind in, breathing out an eager, pained moan."))
+				send_gated_visible_message(source, span_warning("[source] trembles as the chastity spikes grind in, breathing out an eager, pained moan."), viewer_filter = viewer_filter)
+			else if(!is_spiked)
+				send_gated_visible_message(source, span_warning("[source] flinches and adjusts their stance, jaw tight, one hand hovering near the device."), viewer_filter = viewer_filter)
 			else
-				source.visible_message(span_warning("[source] shudders in pain as the chastity spikes dig into their flesh!"))
+				send_gated_visible_message(source, span_warning("[source] shudders in pain as the chastity spikes dig into their flesh!"), viewer_filter = viewer_filter)
 		return TRUE
 
-	source.fullscreen_redflash("redflash1")
-	if(prob(30))
+	if(is_spiked)
+		source.flash_fullscreen("redflash1")
+	if(show_reactions && prob(30))
 		if(devout_spiked)
-			source.visible_message(span_notice("[source] shifts slightly as the chastity spikes catch, then stills themselves with quiet deliberateness."))
+			send_gated_visible_message(source, span_notice("[source] shifts slightly as the chastity spikes catch, then stills themselves with quiet deliberateness."), viewer_filter = viewer_filter)
 		else if(masochist_spiked)
-			source.visible_message(span_warning("[source] shivers as the chastity spikes tease their flesh, eyes half-lidded."))
+			send_gated_visible_message(source, span_warning("[source] shivers as the chastity spikes tease their flesh, eyes half-lidded."), viewer_filter = viewer_filter)
+		else if(!is_spiked)
+			send_gated_visible_message(source, span_warning("[source] shifts uncomfortably, wincing as the chastity device pinches."), viewer_filter = viewer_filter)
 		else
-			source.visible_message(span_warning("[source] groans as the chastity spikes prod their flesh..."))
+			send_gated_visible_message(source, span_warning("[source] groans as the chastity spikes prod their flesh..."), viewer_filter = viewer_filter)
 	return TRUE
+
 
 /// Movement reaction for chastity devices — dispatched by the base on_wearer_moved handler.
 /// Handles the step counter, high-pop chance scaling, optional chastity sound, and message dispatch.

@@ -45,6 +45,18 @@
 	var/obj/item/undies/underwear = null	//Underwear item
 	var/obj/item/legwears/legwear_socks = null	//legwear item
 	var/obj/item/chastity/chastity_device = null // Chastity item reference.
+	var/obj/item/intimate_accessory/intimate_genital_piercing = null
+	var/obj/item/intimate_accessory/intimate_genital_insertable = null
+	var/obj/item/intimate_accessory/intimate_rear_piercing = null
+	var/obj/item/intimate_accessory/intimate_rear_insertable = null
+	var/obj/item/intimate_accessory/intimate_breast_piercing = null
+	var/obj/item/intimate_accessory/intimate_breast_insertable = null
+	var/obj/item/intimate_accessory/intimate_mouth_piercing = null
+	var/obj/item/intimate_accessory/intimate_mouth_insertable = null
+	var/obj/item/intimate_accessory/intimate_ear_piercing = null
+	var/obj/item/intimate_accessory/intimate_nose_piercing = null
+	var/obj/item/intimate_accessory/intimate_belly_piercing = null
+	var/list/intimate_accessories = list()
 
 	var/datum/dna/dna = null //Carbon
 	///last mind to control this mob, for blood-based cloning

@@ -427,6 +427,93 @@
 		effective_target.sate_addiction(/datum/charflaw/addiction/baothamarked)
 	after_ejaculation()
 
+/datum/sex_controller/proc/target_retains_internal_creampie(mob/living/carbon/human/check_target = target)
+	if(!check_target)
+		return FALSE
+
+	var/obj/item/intimate_accessory/genital_accessory = check_target.intimate_genital_insertable
+	if(genital_accessory?.retains_internal_creampie())
+		return TRUE
+
+	var/obj/item/intimate_accessory/rear_accessory = check_target.intimate_rear_insertable
+	if(rear_accessory?.retains_internal_creampie())
+		return TRUE
+
+	return FALSE
+
+/datum/sex_controller/proc/apply_internal_creampie(mob/living/carbon/human/splashed_user = target, add_retained_load = FALSE, retained_load_amount = 1)
+	if(!splashed_user)
+		return null
+
+	var/datum/status_effect/facial/internal/creampie = splashed_user.has_status_effect(/datum/status_effect/facial/internal)
+	if(!creampie)
+		creampie = splashed_user.apply_status_effect(/datum/status_effect/facial/internal)
+	else
+		creampie.refresh_cum()
+
+	if(creampie && add_retained_load)
+		creampie.add_retained_load(retained_load_amount)
+
+	return creampie
+
+/datum/sex_controller/proc/consume_internal_creampie(mob/living/carbon/human/consuming_target = target, amount = 1)
+	if(!consuming_target)
+		return FALSE
+	if(!isnum(amount) || amount <= 0)
+		return FALSE
+
+	var/datum/status_effect/facial/internal/creampie = consuming_target.has_status_effect(/datum/status_effect/facial/internal)
+	if(!creampie)
+		return FALSE
+
+	if(creampie.retained_load > 0)
+		creampie.retained_load = max(0, creampie.retained_load - round(amount))
+		if(creampie.retained_load > 0)
+			creampie.refresh_cum()
+			return TRUE
+
+	consuming_target.remove_status_effect(/datum/status_effect/facial/internal)
+	consuming_target.remove_status_effect(/datum/status_effect/creampie_leak)
+	consuming_target.remove_status_effect(/datum/status_effect/creampie_leak/long)
+	return TRUE
+
+/datum/sex_controller/proc/release_retained_internal_creampie(mob/living/carbon/human/releasing_target = target)
+	if(!releasing_target)
+		return FALSE
+
+	var/datum/status_effect/facial/internal/creampie = releasing_target.has_status_effect(/datum/status_effect/facial/internal)
+	if(!creampie)
+		return FALSE
+
+	var/released_load = round(creampie.retained_load)
+	if(released_load <= 0)
+		return FALSE
+
+	creampie.retained_load = 0
+	creampie.refresh_cum()
+
+	var/release_msg = "[releasing_target] pulls out [releasing_target.p_their()] plug, and a hot spill of cum gushes free!"
+	releasing_target.visible_message(span_love(release_msg), vision_distance = (suppress_moan ? 1 : DEFAULT_MESSAGE_RANGE))
+	to_chat(releasing_target, span_love("The plug slips free and a hot spill of retained cum gushes out of me."))
+	playsound(releasing_target, 'sound/items/uncork.ogg', 45, TRUE, ignore_walls = FALSE)
+	playsound(releasing_target, 'sound/misc/mat/endout.ogg', suppress_moan ? 12 : 40, TRUE, ignore_walls = FALSE)
+
+	var/turf/release_turf = get_turf(releasing_target)
+	var/release_puddles = clamp(released_load, 1, 3)
+	var/puddle_index = 1
+	while(puddle_index <= release_puddles)
+		add_cum_floor(release_turf, do_big_puddle = (puddle_index == 1 && released_load >= 2))
+		puddle_index += 1
+
+	releasing_target.remove_status_effect(/datum/status_effect/creampie_leak)
+	releasing_target.remove_status_effect(/datum/status_effect/creampie_leak/long)
+	if(released_load >= 2)
+		releasing_target.apply_status_effect(/datum/status_effect/creampie_leak/long)
+	else
+		releasing_target.apply_status_effect(/datum/status_effect/creampie_leak)
+
+	return TRUE
+
 /datum/sex_controller/proc/cum_into(oral = FALSE, mob/living/carbon/human/splashed_user = null, datum/sex_action/knot_action = null, knot_swap_roles = FALSE, mob/living/carbon/human/knot_btm = null, orifice = SEX_PART_NULL, skip_knot_try = FALSE, consume_charge = TRUE)
 	// splashed_user is the bottom receiving; for top-initiated actions it matches target, for riding/blowjob it is the rider/sucker while target may be null
 	var/mob/living/carbon/human/effective_target = splashed_user || target
@@ -541,6 +628,18 @@
 	id = "creampie"
 	alert_type = null // don't show an alert on screen
 	tick_interval = 7 MINUTES // use this time as our dry count down
+	var/retained_load = 0
+
+/datum/status_effect/facial/internal/proc/add_retained_load(amount = 1)
+	if(!isnum(amount))
+		return retained_load
+
+	var/load_to_add = round(amount)
+	if(load_to_add <= 0)
+		return retained_load
+
+	retained_load += load_to_add
+	return retained_load
 
 /datum/status_effect/facial/external
 	id = "cumshot"

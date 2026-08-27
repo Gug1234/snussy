@@ -29,6 +29,12 @@
 		usr.client.prefs.current_tab = 1
 		usr.client.prefs.ShowChoices(usr, 4)
 
+/client/proc/prefs_resume_after_singleton()
+	if(!prefs || !mob)
+		return
+	prefs.current_tab = 1
+	prefs.ShowChoices(mob, 4)
+
 /client/verb/toggle_options_menu()
 	set name = "Toggles"
 	set category = "Options"
@@ -250,6 +256,16 @@
 				owner.toggle_facial_brands()
 			if("sensitive_branding")
 				owner.toggle_sensitive_brands()
+			if("intimate_accessories")
+				owner.toggle_intimate_accessories()
+			if("intimate_examine")
+				owner.toggle_intimate_examine()
+			if("intimate_reactions")
+				owner.toggle_intimate_reactions()
+			if("intimate_reaction_chastity")
+				owner.toggle_intimate_reaction_chastity()
+			if("intimate_reaction_extreme")
+				owner.toggle_intimate_reaction_extreme()
 			if("cursed_collars")
 				owner.toggle_cursed_collars()
 			if("voting_popup")
@@ -548,6 +564,60 @@
 			to_chat(src, "You ENDVRE through orgasms.")
 		else
 			to_chat(src, "You will no longer ENDVRE through orgasms.")
+
+/client/proc/toggle_intimate_accessories()
+	set name = "Toggle Intimate Accessories"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_enabled = !prefs.intimate_enabled
+	prefs.save_preferences()
+	if(!prefs.intimate_enabled)
+		if(hascall(src, "modular_handle_intimate_accessories_toggle_disable"))
+			call(src, "modular_handle_intimate_accessories_toggle_disable")()
+	to_chat(src, prefs.intimate_enabled ? "Intimate accessories enabled." : "Intimate accessories disabled.")
+
+/client/proc/toggle_intimate_examine()
+	set name = "Toggle Intimate Accessory Examine"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.show_intimate_examine = !prefs.show_intimate_examine
+	prefs.save_preferences()
+	to_chat(src, prefs.show_intimate_examine ? "Intimate accessory examine links enabled." : "Intimate accessory examine links disabled.")
+
+/client/proc/toggle_intimate_reactions()
+	set name = "Toggle Intimate Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_enabled = !prefs.intimate_reaction_enabled
+	var/mob/living/carbon/human/H = mob
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_enabled ? "Intimate reaction text enabled." : "Intimate reaction text disabled.")
+
+/client/proc/toggle_intimate_reaction_chastity()
+	set name = "Toggle Chastity Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_show_chastity = !prefs.intimate_reaction_show_chastity
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_show_chastity ? "Chastity reaction text enabled." : "Chastity reaction text disabled.")
+
+/client/proc/toggle_intimate_reaction_extreme()
+	set name = "Toggle Extreme Reaction Text"
+	set category = "Options"
+	set hidden = 1
+	if(!prefs)
+		return
+	prefs.intimate_reaction_show_extreme = !prefs.intimate_reaction_show_extreme
+	prefs.save_preferences()
+	to_chat(src, prefs.intimate_reaction_show_extreme ? "Extreme reaction text enabled." : "Extreme reaction text disabled.")
 
 /client/verb/toggle_voting_popup()
 	set category = "Options"

@@ -176,6 +176,7 @@
 	if(chat_message)
 		to_chat(src, chat_message)
 
+	SEND_SIGNAL(src, COMSIG_HUMAN_Z_IMPACT_DAMAGE, T, levels)
 	AdjustKnockdown(levels * 15)
 
 /mob/living/carbon/human/proc/setup_human_dna()

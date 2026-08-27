@@ -115,6 +115,10 @@
 
 	var/marriedto
 
+	var/list/intimate_reaction_last_fired = list()// Per mob cooldown bucket for intimate reaction strings.
+
+	var/intimate_reaction_last_category = null// Last category emitted by intimate reactions, tracked to prevent repeats.
+
 	var/has_stubble = TRUE
 
 	var/original_name = null

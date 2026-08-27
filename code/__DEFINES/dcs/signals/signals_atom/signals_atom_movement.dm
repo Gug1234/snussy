@@ -13,6 +13,8 @@
 #define COMSIG_ATOM_INTERCEPT_Z_FALL "movable_intercept_z_impact"
 ///signal sent out by an atom upon onZImpact : (turf/impacted_turf, levels)
 #define COMSIG_ATOM_ON_Z_IMPACT "movable_on_z_impact"
+/// Human-specific z-impact damage hook used by attached intimate accessories.
+#define COMSIG_HUMAN_Z_IMPACT_DAMAGE "human_z_impact_damage"
 /// From base of /atom/movable/beforeShuttleMove (turf/newT, direction, move_mode, /obj/docking_port/mobile/moving_dock)
 #define COMSIG_ATOM_BEFORE_SHUTTLE_MOVE "movable_before_shuttle_move"
 	// Docking turf movement return values - return a combination of these to override the move_mode for the turf containing the atom

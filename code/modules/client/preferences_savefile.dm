@@ -268,6 +268,12 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	S["edging"]				>> edging
 	S["sensitive_brands"] 	>> sensitive_brands
 	S["facial_brands"] 		>> facial_brands
+	S["intimate_enabled"]			>> intimate_enabled
+	S["show_intimate_examine"]		>> show_intimate_examine
+	S["intimate_reaction_enabled"]		>> intimate_reaction_enabled
+	S["intimate_reaction_show_chastity"]	>> intimate_reaction_show_chastity
+	S["intimate_reaction_show_extreme"]	>> intimate_reaction_show_extreme
+	S["intimate_reaction_show_accessory_free"]	>> intimate_reaction_show_accessory_free
 	S["cursed_collarable"] 	>> cursed_collarable
 	S["shake"]				>> shake
 	S["no_redflash"] 		>> no_redflash
@@ -327,6 +333,12 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	chatheadshot	= sanitize_integer(chatheadshot, 0, 1, initial(chatheadshot))
 	show_mouseover_role = sanitize_integer(show_mouseover_role, 0, 1, initial(show_mouseover_role))
 	chastity_hardmode = sanitize_integer(chastity_hardmode, CHASTITY_HARDMODE_DISABLED, CHASTITY_HARDMODE_ENABLED, initial(chastity_hardmode))
+	intimate_enabled = sanitize_integer(intimate_enabled, 0, 1, initial(intimate_enabled))
+	show_intimate_examine = sanitize_integer(show_intimate_examine, 0, 1, initial(show_intimate_examine))
+	intimate_reaction_enabled = sanitize_integer(intimate_reaction_enabled, 0, 1, initial(intimate_reaction_enabled))
+	intimate_reaction_show_chastity = sanitize_integer(intimate_reaction_show_chastity, 0, 1, initial(intimate_reaction_show_chastity))
+	intimate_reaction_show_extreme = sanitize_integer(intimate_reaction_show_extreme, 0, 1, initial(intimate_reaction_show_extreme))
+	intimate_reaction_show_accessory_free = sanitize_integer(intimate_reaction_show_accessory_free, 0, 1, initial(intimate_reaction_show_accessory_free))
 	max_chat_length = sanitize_integer(max_chat_length, 1, CHAT_MESSAGE_MAX_LENGTH, initial(max_chat_length))
 	see_chat_non_mob	= sanitize_integer(see_chat_non_mob, 0, 1, initial(see_chat_non_mob))
 	tgui_fancy		= sanitize_integer(tgui_fancy, 0, 1, initial(tgui_fancy))
@@ -442,6 +454,12 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	WRITE_FILE(S["edging"], edging)
 	WRITE_FILE(S["sensitive_brands"], sensitive_brands)
 	WRITE_FILE(S["facial_brands"], facial_brands)
+	WRITE_FILE(S["intimate_enabled"], intimate_enabled)
+	WRITE_FILE(S["show_intimate_examine"], show_intimate_examine)
+	WRITE_FILE(S["intimate_reaction_enabled"], intimate_reaction_enabled)
+	WRITE_FILE(S["intimate_reaction_show_chastity"], intimate_reaction_show_chastity)
+	WRITE_FILE(S["intimate_reaction_show_extreme"], intimate_reaction_show_extreme)
+	WRITE_FILE(S["intimate_reaction_show_accessory_free"], intimate_reaction_show_accessory_free)
 	WRITE_FILE(S["cursed_collarable"], cursed_collarable)
 	WRITE_FILE(S["shake"], shake)
 	WRITE_FILE(S["no_redflash"], no_redflash)
@@ -909,6 +927,31 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	_load_height(S)
 	_load_familiar_prefs(S)
 	_load_gnoll_prefs(S)
+	// piercing and plug hell block
+	S["pref_intimate_genital_piercing"] >> pref_intimate_genital_piercing
+	S["pref_intimate_genital_insertable"] >> pref_intimate_genital_insertable
+	S["pref_intimate_rear_piercing"] >> pref_intimate_rear_piercing
+	S["pref_intimate_rear_insertable"] >> pref_intimate_rear_insertable
+	S["pref_intimate_breast_piercing"] >> pref_intimate_breast_piercing
+	S["pref_intimate_breast_insertable"] >> pref_intimate_breast_insertable
+	S["pref_intimate_mouth_piercing"] >> pref_intimate_mouth_piercing
+	S["pref_intimate_mouth_insertable"] >> pref_intimate_mouth_insertable
+	S["pref_intimate_ear_piercing"] >> pref_intimate_ear_piercing
+	S["pref_intimate_nose_piercing"] >> pref_intimate_nose_piercing
+	S["pref_intimate_belly_piercing"] >> pref_intimate_belly_piercing
+	S["pref_intimate_genital_piercing_descriptor"] >> pref_intimate_genital_piercing_descriptor
+	S["pref_intimate_rear_piercing_descriptor"] >> pref_intimate_rear_piercing_descriptor
+	S["pref_intimate_breast_piercing_descriptor"] >> pref_intimate_breast_piercing_descriptor
+	S["pref_intimate_mouth_piercing_descriptor"] >> pref_intimate_mouth_piercing_descriptor
+	S["pref_intimate_ear_piercing_descriptor"] >> pref_intimate_ear_piercing_descriptor
+	S["pref_intimate_nose_piercing_descriptor"] >> pref_intimate_nose_piercing_descriptor
+	S["pref_intimate_belly_piercing_descriptor"] >> pref_intimate_belly_piercing_descriptor
+	S["pref_intimate_accessory_sockets"] >> pref_intimate_accessory_sockets
+	S["pref_intimate_rear_insertable_tail_type"] >> pref_intimate_rear_insertable_tail_type
+	S["pref_intimate_rear_insertable_tail_colors"] >> pref_intimate_rear_insertable_tail_colors
+	S["pref_intimate_rear_insertable_tail_icon"] >> pref_intimate_rear_insertable_tail_icon
+	S["pref_intimate_rear_insertable_bead_shape"] >> pref_intimate_rear_insertable_bead_shape
+	S["pref_intimate_rear_insertable_bead_metal"] >> pref_intimate_rear_insertable_bead_metal
 
 	var/patron_typepath
 	S["selected_patron"]	>> patron_typepath
@@ -1085,6 +1128,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 			new_wing_entry.accessory_type = old_accessory_type
 
 	validate_customizer_entries()
+	sanitize_intimate_accessory_preferences()
 
 	return TRUE
 
