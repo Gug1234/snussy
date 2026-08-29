@@ -84,6 +84,7 @@
 	name = "bronze pot"
 	desc = "A cauldron of bronze, aching to churn water and chopmealings into a champion's broth. It can hold a lot of liquid."
 	icon_state = "bronzepot"
+	sellprice = 30
 
 /obj/item/reagent_containers/glass/bucket/pot/teapot
 	name = "teapot"

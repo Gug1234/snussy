@@ -115,6 +115,7 @@ What it does:
 	name = "bronze platter"
 	desc = "A shined bronze platter that hasn't lost its charm, even after a thousand yils."
 	icon_state = "platter_bronze"
+	sellprice = 15
 
 /obj/item/cooking/platter/copper
 	name = "copper platter"
