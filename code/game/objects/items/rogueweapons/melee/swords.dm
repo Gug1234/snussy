@@ -52,6 +52,17 @@
 	clickcd = 10 // Less than rapier
 	penfactor = 35 // 22 + 35 = 57. Beats light leather slightly more than rapier per strike, but less strike
 
+<<<<<<< HEAD
+/datum/intent/sword/thrust/heavy
+	name = "heavy thrust"
+	icon_state = "inlunge"
+	penfactor = 60//on AP it's supposed to pen BSTEEL. I'll lower this to 50 if this is too much. Hopefully the high swing delay + charge time will be an okay lever
+	damfactor = 1.3
+	swingdelay = 0.9 SECONDS
+	chargetime = 0.5
+
+=======
+>>>>>>> 60e860c4d3403f53207a326f3c33a54531316c6d
 /datum/intent/sword/thrust/long
 	penfactor = 30 // 2h Longsword already have 30 damage. This let it pierce light armor easily
 	// Their cut is actually pretty decent when 2handed and should be inferior to zwei.
