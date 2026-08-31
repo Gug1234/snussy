@@ -47,11 +47,11 @@
 /obj/item/reagent_containers/glass/cup/attackby(obj/item/I, mob/user)
 	if(istype(I, /obj/item/dice) && max_dice)
 		if(reagents && reagents.total_volume)
-			to_chat(user, span_warning("[src] is full of liquid! You can’t fit dice in there."))
+			to_chat(user, span_warning("[src] is full of liquid! You can't fit dice in there."))
 			return TRUE
 
 		if(length(contents) >= max_dice)
-			to_chat(user, span_warning("[src] can’t hold more than [max_dice] dice."))
+			to_chat(user, span_warning("[src] can't hold more than [max_dice] dice."))
 			return TRUE
 
 		I.forceMove(src)
@@ -102,7 +102,7 @@
 
 	if(istype(target, /obj/item/dice) && max_dice)
 		if(reagents && reagents.total_volume)
-			to_chat(user, span_warning("[src] is full of liquid! You can’t scoop dice into it."))
+			to_chat(user, span_warning("[src] is full of liquid! You can't scoop dice into it."))
 			return
 
 		var/turf/T = get_turf(target)
@@ -186,7 +186,6 @@
 	name = "bronze mug"
 	desc = "Froth spills over the rim, and a clinking amongst other tankards causes its fizzling tithe to splash across the table. Oh, such a nite of revelry!"
 	icon_state = "bronzemug"
-	sellprice = 15
 	force = 7
 	throwforce = 13
 
@@ -194,7 +193,6 @@
 	name = "bronze goblet"
 	desc = "Drink deeply, my champion."
 	icon_state = "bronzegoblet"
-	sellprice = 18
 	force = 13
 	throwforce = 17
 

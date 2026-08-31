@@ -129,6 +129,7 @@
 	resistance_flags = FIRE_PROOF
 	body_parts_covered = EYES
 	anvilrepair = /datum/skill/craft/armorsmithing
+	adjustable = CAN_CADJUST
 	var/active_item = FALSE
 
 /obj/item/clothing/mask/rogue/spectacles/golden/equipped(mob/user, slot)
@@ -149,7 +150,8 @@
 	else
 		return
 
-
+/obj/item/clothing/mask/rogue/spectacles/golden/ComponentInitialize()
+	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/rummaging-03.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
 
 /obj/item/clothing/mask/rogue/spectacles/golden/dropped(mob/user, slot)
 	..()
@@ -356,6 +358,9 @@
 	anvilrepair = /datum/skill/craft/armorsmithing
 	smeltresult = /obj/item/ingot/iron
 	sewrepair = FALSE
+
+/obj/item/clothing/mask/rogue/facemask/ComponentInitialize()
+	AddComponent(/datum/component/armour_filtering/positive, TRAIT_FENCERDEXTERITY)
 
 /obj/item/clothing/mask/rogue/facemask/equipped(mob/user, slot)
 	..()
@@ -658,8 +663,23 @@
 	max_integrity = ARMOR_INT_MASK_IRON
 	armor = ARMOR_PLATE
 	flags_inv = HIDEFACE|HIDESNOUT
+	slot_flags = ITEM_SLOT_MASK|ITEM_SLOT_HIP
 	prevent_crits = list(BCLASS_CUT, BCLASS_STAB, BCLASS_CHOP, BCLASS_BLUNT)
 	sellprice = 0
+/obj/item/clothing/mask/rogue/lordmask/naledi/ComponentInitialize()
+	AddComponent(/datum/component/armour_filtering/positive, TRAIT_NALEDI, "naledi_mask")
+
+/obj/item/clothing/mask/rogue/lordmask/naledi/equipped(mob/user, slot)
+	..()
+	if(slot == SLOT_WEAR_MASK || slot == SLOT_HEAD)
+		ADD_TRAIT(user, TRAIT_SANDSTORM_GOGGLES, CLOTHING_TRAIT)
+	user.update_fov_angles()
+
+/obj/item/clothing/mask/rogue/lordmask/naledi/dropped(mob/user)
+	..()
+	REMOVE_TRAIT(user, TRAIT_SANDSTORM_GOGGLES, CLOTHING_TRAIT)
+	user.update_fov_angles()
+
 
 /obj/item/clothing/mask/rogue/lordmask/naledi/sojourner
 	name = "sojourner's mask"
@@ -933,7 +953,7 @@
 	icon_state = "iduelist"
 	break_sound = "garrote_snap"
 	blocksound = PLATEHIT
-	max_integrity = 125 //more durability due to less covered areas in compairson to a mask
+	max_integrity = ARMOR_INT_MASK_IRON_MAILLE
 	body_parts_inherent = EYES//no peeling these
 	armor = ARMOR_PLATE
 	adjustable = CAN_CADJUST
@@ -948,98 +968,11 @@
 	name = "steel duelist goggles"
 	desc = "Steel duelist goggles forged for the most punishing exchanges. They guard the eyes while leaving pride and identity uncovered."
 	icon_state = "sduelist"
-	max_integrity = 150
+	max_integrity = ARMOR_INT_MASK_STEEL_MAILLE
 
 /obj/item/clothing/mask/rogue/spectacles/duelist/bronze
 	name = "bronze duelist goggles"
 	desc = "Bronze duelist goggles offering modest protection without obscuring one's features. Every victory deserves a witness."
 	icon_state = "bduelist"
-	max_integrity = 125
-
-// PADDED MASKS, pretty much like the sack mask except is looking PRETTIER + has a state that's rolled down to show your identity.
-
-/obj/item/clothing/mask/rogue/facemask/padded
-	name = "padded mask"
-	desc = "A padded cloth mask with a visor, it will prevent bad smells more than damage."
-	icon_state = "gambesonmask"
-	blocksound = SOFTHIT
-	break_sound = 'sound/foley/cloth_rip.ogg'
-	drop_sound = 'sound/foley/dropsound/cloth_drop.ogg'
-	max_integrity = ARMOR_INT_MASK_CLOTH
-	armor = ARMOR_PADDED
-	adjustable = CAN_CADJUST
-	sewrepair = TRUE
-	salvage_result = /obj/item/natural/fibers
-	salvage_amount = 1
-	smeltresult = /obj/item/ash
-
-/obj/item/clothing/mask/rogue/facemask/padded/ComponentInitialize()
-	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/rummaging-03.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
-
-/obj/item/clothing/mask/rogue/facemask/leather
-	name = "padded leather mask"
-	desc = "A padded leather mask with a visor, it will prevent bad smells and some damage."
-	icon_state = "leathermask"
-	blocksound = SOFTHIT
-	break_sound = 'sound/foley/cloth_rip.ogg'
-	drop_sound = 'sound/foley/dropsound/chain_drop.ogg'
-	max_integrity = ARMOR_INT_MASK_LEATHER //slightly more durable than the padded mask
-	armor = ARMOR_LEATHER
-	adjustable = CAN_CADJUST
-	sewrepair = TRUE
-	salvage_result = /obj/item/natural/hide/cured
-	salvage_amount = 1
-	smeltresult = /obj/item/ash
-
-/obj/item/clothing/mask/rogue/facemask/leather/ComponentInitialize()
-	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/rummaging-03.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
-
-//chainmaille masks = pretty much like a normal mask except is made to protect against cutting damage instead of blunt damage.
-
-/obj/item/clothing/mask/rogue/facemask/maille
-	name = "iron chainmaille mask"
-	desc = "A padded chainmaille mask that will protect against some damage and can be rolled down to show your identity."
-	icon_state = "imaillemask"
-	blocksound = CHAINHIT
-	drop_sound = 'sound/foley/dropsound/chain_drop.ogg'
-	pickup_sound = 'sound/foley/equip/equip_armor_chain.ogg'
-	equip_sound = 'sound/foley/equip/equip_armor_chain.ogg'
-	max_integrity = ARMOR_INT_MASK_IRON_MAILLE
-	armor = ARMOR_MAILLE
-	adjustable = CAN_CADJUST
-	toggle_icon_state = TRUE
-
-/obj/item/clothing/mask/rogue/facemask/maille/ComponentInitialize()
-	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/chain_equip.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
-
-/obj/item/clothing/mask/rogue/facemask/steel/maille
-	name = "steel chainmaille mask"
-	desc = "A padded chainmaille mask that will protect against some damage and can be rolled down to show your identity."
-	icon_state = "smaillemask"
-	blocksound = CHAINHIT
-	drop_sound = 'sound/foley/dropsound/chain_drop.ogg'
-	pickup_sound = 'sound/foley/equip/equip_armor_chain.ogg'
-	equip_sound = 'sound/foley/equip/equip_armor_chain.ogg'
-	max_integrity = ARMOR_INT_MASK_STEEL_MAILLE //maille's get less defense but more durability than fullplate masks
-	armor = ARMOR_MAILLE
-	adjustable = CAN_CADJUST
-	toggle_icon_state = TRUE
-
-/obj/item/clothing/mask/rogue/facemask/steel/maille/ComponentInitialize()
-	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/chain_equip.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
-
-/obj/item/clothing/mask/rogue/facemask/steel/maille/fluted
-	name = "steel fluted chainmaille mask"
-	desc = "A padded chainmaille mask that will protect against some damage and can be rolled down to show your identity. The fluted design is meant to deflect blows and increase durability."
-	icon_state = "sflutedmask"
-
-/obj/item/clothing/mask/rogue/facemask/steel/maille/fluted/ComponentInitialize()
-	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/chain_equip.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
-
-/obj/item/clothing/mask/rogue/facemask/maille/fluted
-	name = "iron fluted chainmaille mask"
-	desc = "A padded chainmaille mask that will protect against some damage and can be rolled down to show your identity. The fluted design is meant to deflect blows and increase durability."
-	icon_state = "iflutedmask"
-
-/obj/item/clothing/mask/rogue/facemask/maille/fluted/ComponentInitialize()
-	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/chain_equip.ogg', null, (UPD_HEAD|UPD_MASK))	//Standard mask
+	armor = ARMOR_BRONZE
+	max_integrity = ARMOR_INT_MASK_BRONZE + 50//worse protection than iron goggles so it gets a slight buff

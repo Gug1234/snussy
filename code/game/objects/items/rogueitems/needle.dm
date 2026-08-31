@@ -33,7 +33,7 @@
 /obj/item/needle
 	name = "needle"
 	icon_state = "needle"
-	desc = "This sharp needle can sew wounds, mend clothing, and stab someone if you’re desperate."
+	desc = "This sharp needle can sew wounds, mend clothing, and stab someone if you're desperate."
 	icon = 'icons/roguetown/items/misc.dmi'
 	lefthand_file = 'icons/mob/inhands/misc/food_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/misc/food_righthand.dmi'
@@ -275,13 +275,6 @@
 	name = "needle of pestra"
 	desc = span_green("This needle has been blessed by the goddess of medicine herself!")
 	infinite = TRUE
-
-/obj/item/needle/bronze
-	name = "bronze needle"
-	icon_state = "bronzeneedle"
-	desc = "A deceptively long needle with a craned tip, laced for labors-a-plenety."
-	stringamt = 30
-	maxstring = 30
 
 /obj/item/needle/decrepit
 	name = "decrepit needle"

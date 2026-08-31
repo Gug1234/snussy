@@ -105,6 +105,7 @@
 	armor = ARMOR_PADDED //gambeson for head
 	max_integrity = ARMOR_INT_CHEST_LIGHT_MEDIUM
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT)
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/neck/roguetown/coif/heavypadding
 	name = "heavy padded coif"
@@ -118,6 +119,7 @@
 	armor = ARMOR_PADDED_GOOD //full padded gambeson basically
 	max_integrity = ARMOR_INT_CHEST_LIGHT_MASTER
 	prevent_crits = list(BCLASS_CUT, BCLASS_BLUNT, BCLASS_CHOP)
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/neck/roguetown/coif/heavypadding/ComponentInitialize()
 	return
@@ -153,6 +155,7 @@
 
 /obj/item/clothing/neck/roguetown/coif/ComponentInitialize()
 	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, null, null, (UPD_HEAD|UPD_MASK|UPD_NECK))	//Soundless coif
+	AddComponent(/datum/component/armour_filtering/positive, TRAIT_FENCERDEXTERITY)
 
 /obj/item/clothing/neck/roguetown/leather
 	name = "hardened leather gorget"
@@ -169,6 +172,7 @@
 	max_integrity = ARMOR_INT_SIDE_HARDLEATHER
 	salvage_result = /obj/item/natural/hide/cured
 	salvage_amount = 1
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/neck/roguetown/chaincoif
 	name = "chain coif"
@@ -193,6 +197,7 @@
 
 /obj/item/clothing/neck/roguetown/chaincoif/ComponentInitialize()
 	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/foley/equip/chain_equip.ogg', null, (UPD_HEAD|UPD_MASK|UPD_NECK))	//Chain coif.
+	AddComponent(/datum/component/armour_filtering/negative, TRAIT_FENCERDEXTERITY)
 
 /obj/item/clothing/neck/roguetown/chaincoif/ancient
 	name = "ancient coif"
@@ -220,6 +225,7 @@
 
 /obj/item/clothing/neck/roguetown/chaincoif/chainmantle/ComponentInitialize()
 	AddComponent(/datum/component/adjustable_clothing, (NECK), null, null, 'sound/foley/equip/equip_armor_chain.ogg', null, (UPD_HEAD|UPD_MASK|UPD_NECK))	//Chain coif.
+	AddComponent(/datum/component/armour_filtering/negative, TRAIT_FENCERDEXTERITY)
 
 /obj/item/clothing/neck/roguetown/chaincoif/iron
 	name = "iron chain coif"
@@ -302,6 +308,7 @@
 
 /obj/item/clothing/neck/roguetown/bevor/ComponentInitialize()
 	AddComponent(/datum/component/adjustable_clothing, NECK, null, null, 'sound/items/visor.ogg', null, (UPD_HEAD|UPD_MASK|UPD_NECK)) // adjustable falling buffe for the bevor
+	AddComponent(/datum/component/armour_filtering/positive, TRAIT_FENCERDEXTERITY)
 
 /obj/item/clothing/neck/roguetown/bevor/iron
 	name = "iron bevor"
@@ -315,7 +322,7 @@
 	desc = "A jutting slab of bronze, traditionally mounted atop a panoplic assembly to veil the neck from precise strikes. </br>To tip the chin up while grounded is an ancient gesture; one which willingly beckons for the 'gift of mercy'."
 	icon_state = "bbevor"
 	armor = ARMOR_BRONZE
-	max_integrity = ARMOR_INT_SIDE_BRONZE
+	max_integrity = ARMOR_INT_SIDE_BRONZE + 25//275, -25 compared to bronze neckguard
 	smeltresult = /obj/item/ingot/bronze
 	anvilrepair = /datum/skill/craft/armorsmithing
 
@@ -341,20 +348,6 @@
 	smeltresult = /obj/item/ingot/steel
 	max_integrity = ARMOR_INT_SIDE_STEEL
 	icon_state = "sgorget"
-
-/obj/item/clothing/neck/roguetown/gorget/aventail
-	name = "aventail"
-	desc = "A thick garment of steel maille and padding, traditionally attached to bascinets. It's burdensome on the shoulders of those who aren't properly \
-	trained to wear knightly garments."
-	icon_state = "aventailbase"
-	body_parts_covered = NECK|MOUTH
-	slot_flags = ITEM_SLOT_NECK
-	max_integrity = ARMOR_INT_SIDE_STEEL + ARMOR_INT_SIDE_COVERAGE_BONUS //In essence, a chainmail gorget.
-	flags_inv = HIDEFACE|HIDEFACIALHAIR|HIDESNOUT
-	armor_class = ARMOR_CLASS_MEDIUM
-	armor = ARMOR_MAILLE
-	blocksound = CHAINHIT
-	smeltresult = /obj/item/ingot/steel
 
 /obj/item/clothing/neck/roguetown/gorget/steel/ancient
 	name = "ancient gorget"
@@ -434,26 +427,6 @@
 	name = "vreccale"
 	desc = "Nature knows not of mercy."
 	icon_state = "iwolfcollaralt"
-
-/obj/item/clothing/neck/roguetown/gorget/gold
-	name = "golden gorget"
-	desc = "A series of resplendant golden plates designed to protect the neck, traditionally worn atop a jacket or cuirass. The holy sigil between its buckled halves promises to carry the flame of its wearer, no matter what strike's poised its way."
-	icon_state = "goldgorget"
-	armor_class = ARMOR_CLASS_HEAVY //Ceremonial. Heavy is the head that bears the burden.
-	armor = ARMOR_INDESTRUCTIBLE //Renders its wearer completely invulnerable to damage. The caveat is, however..
-	max_integrity = ARMOR_INT_SIDE_GOLD // ..is that it's extraordinarily fragile. To note, this is lower than even Decrepit-tier armor.
-	anvilrepair = null
-	smeltresult = /obj/item/ingot/gold
-	smelt_bar_num = 1
-	grid_height = 96
-	grid_width = 96
-	unenchantable = TRUE
-
-/obj/item/clothing/neck/roguetown/gorget/gold/king
-	name = "royal golden gorget"
-	max_integrity = ARMOR_INT_SIDE_GOLDPLUS // Doubled integrity.
-	sellprice = 300
-	unenchantable = TRUE
 
 /obj/item/clothing/neck/roguetown/gorget/steel/kazengun
 	name = "kazengunite gorget"
@@ -1242,7 +1215,7 @@
 	slot_flags = ITEM_SLOT_NECK
 	sellprice = 20
 
-// AP port. 
+// AP port.
 
 /obj/item/clothing/neck/roguetown/psicross/inhumen/g
 	name = "golden inverted psycross"
