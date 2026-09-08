@@ -54,6 +54,7 @@
 		/datum/advclass/wretch/antipope,
 		/datum/advclass/wretch/wretchedtoiler,
 		/datum/advclass/wretch/ancientchampion,
+		/datum/advclass/wretch/blooddrunk,
 	)
 
 /datum/job/roguetown/wretch/after_spawn(mob/living/L, mob/M, latejoin = TRUE)
