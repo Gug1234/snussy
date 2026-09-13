@@ -439,11 +439,7 @@
 
 /datum/anvil_recipe/weapons/iron/broadsword
 	name = "Broadsword, Iron (+1 Iron, 1 Small Log)"
-	additional_items = list(/obj/item/ingot/iron, /obj/item/grown/log/tree/small)
-	created_item = /obj/item/rogueweapon/sword/long/broadsword
-
-/datum/anvil_recipe/weapons/iron/broadsword
-	name = "Broadsword, Iron (+1 Iron, 1 Small Log)"
+	req_blade = /obj/item/blade/iron_sword
 	additional_items = list(/obj/item/ingot/iron, /obj/item/grown/log/tree/small)
 	created_item = /obj/item/rogueweapon/sword/long/broadsword
 
@@ -598,6 +594,7 @@
 
 /datum/anvil_recipe/weapons/iron/peasantwarflail
 	name = "Greatflail, Iron (+1 Iron, +2 Small Log)"
+	req_blade = /obj/item/blade/iron_mace
 	additional_items = list(/obj/item/ingot/iron, /obj/item/grown/log/tree/small, /obj/item/grown/log/tree/small)
 	created_item = /obj/item/rogueweapon/flail/peasantwarflail
 	display_category = ITEM_CAT_WEAPONS_FLAILS
@@ -747,12 +744,7 @@
 
 /datum/anvil_recipe/weapons/steel/peasantwarflail
 	name = "Greatflail, Steel (+1 Steel, +2 Small Log)"
-	additional_items = list(/obj/item/ingot/steel, /obj/item/grown/log/tree/small, /obj/item/grown/log/tree/small)
-	created_item = /obj/item/rogueweapon/flail/peasantwarflail/steel
-	display_category = ITEM_CAT_WEAPONS_FLAILS
-
-/datum/anvil_recipe/weapons/steel/peasantwarflail
-	name = "Greatflail, Steel (+1 Steel, +2 Small Log)"
+	req_blade = /obj/item/blade/steel_mace
 	additional_items = list(/obj/item/ingot/steel, /obj/item/grown/log/tree/small, /obj/item/grown/log/tree/small)
 	created_item = /obj/item/rogueweapon/flail/peasantwarflail/steel
 	display_category = ITEM_CAT_WEAPONS_FLAILS
@@ -780,11 +772,7 @@
 
 /datum/anvil_recipe/weapons/steel/broadsword
 	name = "Broadsword, Steel (+1 Steel, +1 Small Log)"
-	additional_items = list(/obj/item/ingot/steel, /obj/item/grown/log/tree/small)
-	created_item = /obj/item/rogueweapon/sword/long/broadsword/steel
-
-/datum/anvil_recipe/weapons/steel/broadsword
-	name = "Broadsword, Steel (+1 Steel, +1 Small Log)"
+	req_blade = /obj/item/blade/steel_sword
 	additional_items = list(/obj/item/ingot/steel, /obj/item/grown/log/tree/small)
 	created_item = /obj/item/rogueweapon/sword/long/broadsword/steel
 
@@ -1184,12 +1172,6 @@
 	created_item = /obj/item/rogueweapon/flail/peasantwarflail/silver
 	display_category = ITEM_CAT_WEAPONS_FLAILS
 
-/datum/anvil_recipe/weapons/silver/peasantwarflail
-	name = "Greatflail, Silver (+2 Silver, +2 Small Log)"
-	additional_items = list(/obj/item/ingot/silver, /obj/item/ingot/silver, /obj/item/grown/log/tree/small, /obj/item/grown/log/tree/small)
-	created_item = /obj/item/rogueweapon/flail/peasantwarflail/silver
-	display_category = ITEM_CAT_WEAPONS_FLAILS
-
 /datum/anvil_recipe/weapons/silver/whip
 	name = "Whip, Silver (+1 Leather Whip)"
 	additional_items = list(/obj/item/rogueweapon/whip)
@@ -1302,17 +1284,6 @@
 	created_item = /obj/item/rogueweapon/shield/bronze/great
 	craftdiff = 2
 
-/datum/anvil_recipe/weapons/bronze/bronzeshield
-	name = "Shield, Bronze (+1 Bronze, +1 Cured Leather)"
-	additional_items = list(/obj/item/ingot/bronze, /obj/item/natural/hide/cured)
-	created_item = /obj/item/rogueweapon/shield/bronze
-
-/datum/anvil_recipe/weapons/bronze/bronzegreatshield
-	name = "Greatshield, Bronze (+2 Bronze, +1 Cured Leather)"
-	additional_items = list(/obj/item/ingot/bronze, /obj/item/natural/hide/cured)
-	created_item = /obj/item/rogueweapon/shield/bronze/great
-	craftdiff = 2
-
 // CROSSBOW
 
 /datum/anvil_recipe/weapons/steel/xbow
@@ -1411,14 +1382,6 @@
 	createditem_num = 10
 	i_type = "Ammo"
 	display_category = ITEM_CAT_WEAPONS_AMMO
-
-/datum/anvil_recipe/weapons/bronze/arrows
-	name = "Hastequilled Arrows, Bronze (+2 Stick) (x10)"
-	additional_items = list(/obj/item/grown/log/tree/stick, /obj/item/grown/log/tree/stick)
-	created_item = /obj/item/ammo_casing/caseless/rogue/arrow/bronze
-	display_category = ITEM_CAT_WEAPONS_AMMO
-	createditem_num = 10
-	i_type = "Ammo"
 
 /datum/anvil_recipe/weapons/bronze/arrows
 	name = "Hastequilled Arrows, Bronze (+2 Stick) (x10)"
@@ -1576,12 +1539,6 @@
 	name = "Blacksteel Flail (+2 Blacksteel, +1 Silk)"
 	additional_items = list(/obj/item/ingot/blacksteel, /obj/item/ingot/blacksteel, /obj/item/natural/silk)
 	created_item = /obj/item/rogueweapon/flail/blacksteel
-	display_category = ITEM_CAT_WEAPONS_FLAILS
-
-/datum/anvil_recipe/weapons/blacksteel/peasantwarflail
-	name = "Blacksteel Greatflail (+2 Blacksteel, +1 Small Log, +1 Rontz)"
-	additional_items = list(/obj/item/ingot/blacksteel, /obj/item/ingot/blacksteel, /obj/item/roguegem/ruby, /obj/item/grown/log/tree/small)
-	created_item = /obj/item/rogueweapon/flail/peasantwarflail/blacksteel
 	display_category = ITEM_CAT_WEAPONS_FLAILS
 
 /datum/anvil_recipe/weapons/blacksteel/peasantwarflail
