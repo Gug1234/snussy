@@ -88,8 +88,7 @@ Balloon Alert / Floating Text defines
 	/datum/species/arachnid,\
 	/datum/species/anthromorphsmall,\
 	/datum/species/kobold,\
-	/datum/species/tieberian,\
-	/datum/species/ooze\
+	/datum/species/tieberian\
 
 #define RACES_SHUNNED \
 	/datum/species/dullahan,\
@@ -97,6 +96,11 @@ Balloon Alert / Floating Text defines
 	/datum/species/goblinp,\
 	/datum/species/harpy,\
 	/datum/species/ooze\
+
+#define RACES_SHUNNED_NO_ANNOYING \///anti edge case bracket
+	/datum/species/halforc,\
+	/datum/species/goblinp,\
+	/datum/species/harpy,\
 
 #define RACES_DESPISED \
 	/datum/species/dullahan,\
@@ -115,6 +119,8 @@ Balloon Alert / Floating Text defines
 #define RACES_NO_CONSTRUCT list(RACES_SHUNNED, RACES_TOLERATED, RACES_RESPECTED)
 
 #define RACES_SHUNNED_UP list(RACES_SHUNNED, RACES_TOLERATED, RACES_RESPECTED)
+
+#define RACES_NO_ANNOYING list(RACES_SHUNNED_NO_ANNOYING, RACES_TOLERATED, RACES_RESPECTED)///no revenants, no ooze, no contructs. For classes that become broken nonsense on the aforementioned.
 
 #define RACES_TOLERATED_UP list(RACES_TOLERATED, RACES_RESPECTED)
 
