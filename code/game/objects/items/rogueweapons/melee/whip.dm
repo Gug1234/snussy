@@ -405,5 +405,4 @@
 	minstr = 11
 	max_integrity = 280
 	max_blade_int = 280
-	wbalance = WBALANCE_HEAVY
 	smeltresult = /obj/item/ingot/blacksteel
