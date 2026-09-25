@@ -1,4 +1,4 @@
 author: "Yuckuza"
 delete-after: True
 changes:
-  - balance: "Sisseans can now eat organs."
+  - bugfix: "fixed drow urumi doing 0 damage"
