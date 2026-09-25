@@ -491,6 +491,30 @@
 	armor = ARMOR_BRONZE
 	max_integrity = ARMOR_INT_SIDE_BRONZE
 
+/obj/item/clothing/shoes/roguetown/boots/armor/bronze/entombed
+	name = "patinated bronze greaves"
+	desc = "Greaves of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	Time has rotted away the hide padding... only the wearers flesh melded to the metal keeps these greaves from sloughing off."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_boots"
+	item_state = "entombed_boots"
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	body_parts_inherent = FEET | LEGS
+	armor_class = ARMOR_CLASS_HEAVY
+	unenchantable = TRUE
+
+/obj/item/clothing/shoes/roguetown/boots/armor/bronze/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/shoes/roguetown/boots/armor/bronze/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 /obj/item/clothing/shoes/roguetown/boots/maille
 	name = "maille boots"
 	desc = "A pair of leather boots, reinforced with smaller steel plates along the feet and ankles. Woven into the top of each boot's cuff is a \

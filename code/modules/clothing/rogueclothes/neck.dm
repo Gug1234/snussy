@@ -415,6 +415,32 @@
 	smeltresult = /obj/item/ingot/bronze
 	max_integrity = ARMOR_INT_SIDE_BRONZE + ARMOR_INT_SIDE_COVERAGE_BONUS
 
+/obj/item/clothing/neck/roguetown/gorget/bronze/entombed
+	name = "patinated bronze gorgette"
+	desc = "A bevor of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	Once adjustable, the slab is now fused to the wearer... trying now would take the flesh along with it."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_bevor"
+	item_state = "entombed_bevor"
+	flags_inv = HIDEFACIALHAIR|HIDESNOUT
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	body_parts_covered = NECK|MOUTH|NOSE
+	body_parts_inherent = NECK|MOUTH|NOSE
+	armor_class = ARMOR_CLASS_HEAVY
+	unenchantable = TRUE
+
+/obj/item/clothing/neck/roguetown/gorget/bronze/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/neck/roguetown/gorget/bronze/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 /obj/item/clothing/neck/roguetown/gorget/copper
 	name = "neck protector"
 	icon_state = "copperneck"

@@ -119,6 +119,31 @@
 	. = ..()
 	AddComponent(/datum/component/cursed_item, TRAIT_CABAL, "ARMOR", "RENDERED ASUNDER")
 
+/obj/item/clothing/under/roguetown/platelegs/entombed
+	name = "patinated bronze chausses"
+	desc = "A hulking mass of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	These leg garments weigh heavy, and threaten to pull the entombed into the earth with each labored step."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_legs"
+	item_state = "entombed_legs"
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	armor = ARMOR_BRONZE
+	body_parts_inherent = GROIN|LEGS
+	smeltresult = /obj/item/ingot/bronze 
+	unenchantable = TRUE
+
+/obj/item/clothing/under/roguetown/platelegs/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/under/roguetown/platelegs/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 /obj/item/clothing/under/roguetown/platelegs/skirt
 	name = "steel plate tassets"
 	desc = "A set of hanging plates of steel to protect the hips and thighs without too much burden."

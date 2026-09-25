@@ -97,7 +97,7 @@ Balloon Alert / Floating Text defines
 	/datum/species/harpy,\
 	/datum/species/ooze\
 
-#define RACES_SHUNNED_NO_ANNOYING \///anti edge case bracket
+#define RACES_SHUNNED_NO_ANNOYING \
 	/datum/species/halforc,\
 	/datum/species/goblinp,\
 	/datum/species/harpy,\

@@ -3,7 +3,7 @@
 	tutorial = "Ageless, undying warrior, armor caked in a tarnished sheen, speckled with long-ago viscera. \
 	It will not break; it will not come off. Parts of your skin have fused to the once shimmering panoply. \
 	Your blood has been in the boots far more times than you can count; it's your skin, and you will die in it. \
-	O' entombed juggernaut, take root in your bronzed warcasket and, perched within, RISE!"
+	O' entombed juggernaut, take root in your bronze warcasket and, perched within, RISE!"
 	allowed_sexes = list(MALE, FEMALE)
 	allowed_races = RACES_NO_ANNOYING
 	allowed_ages = list(AGE_MIDDLEAGED, AGE_OLD)
@@ -23,10 +23,10 @@
 	TRAIT_NOHUNGER//helmets dont open, so we cant eat or... but we also cant drink (i.e. no potions)
 	)
 	subclass_stats = list(
-		STATKEY_CON = 5,//grudgebearer soldier statline on bronze age bathsalts
-		STATKEY_WIL = 5,
-		STATKEY_STR = 5,
-		STATKEY_SPD = -6//slowest, fattest fucks
+		STATKEY_CON = 7,//grudgebearer soldier statline on bronze age bathsalts, weighted 10
+		STATKEY_WIL = 7,
+		STATKEY_STR = 7,
+		STATKEY_SPD = -9//slowest, fattest fucks
 	)
 	subclass_skills = list(
 		/datum/skill/combat/shields = SKILL_LEVEL_MASTER,//hilarious
@@ -42,6 +42,12 @@
 	extra_context = "This subclass is age-limited to middle aged and old. Middle-aged gives expert \
 	in the chosen weapon skill while old gets master."
 
-/datum/outfit/job/roguetown/wretch/entombed/pre_equip(mob/living/carbon/human/H, visualsOnly)
+/datum/outfit/job/roguetown/wretch/entombed/pre_equip(mob/living/carbon/human/H)
 	..()
-
+	head = /obj/item/clothing/head/roguetown/helmet/heavy/bronze/entombed
+	neck = /obj/item/clothing/neck/roguetown/gorget/bronze/entombed
+	pants = /obj/item/clothing/under/roguetown/platelegs/entombed
+	armor = /obj/item/clothing/suit/roguetown/armor/plate/full/bronze/entombed
+	gloves = /obj/item/clothing/gloves/roguetown/plate/entombed
+	wrists = /obj/item/clothing/wrists/roguetown/bracers/bronze/entombed
+	shoes = /obj/item/clothing/shoes/roguetown/boots/armor/bronze/entombed

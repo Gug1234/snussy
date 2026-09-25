@@ -746,6 +746,30 @@ and crackling with insidious energies."
 	body_parts_covered = CHEST | VITALS | LEGS
 	max_integrity = ARMOR_INT_CHEST_PLATE_STEELLIGHT
 
+/obj/item/clothing/suit/roguetown/armor/plate/full/bronze/entombed
+	name = "patinated bronze warcasket"
+	desc = "A hulking mass of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	The juggernaut entombed within has fused with this metal-carapace, it is their skin, although it may never break, \
+	modern steel can puncture through to the flesh beneath."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_chest"
+	item_state = "entombed_chest"
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	body_parts_inherent = COVERAGE_FULL
+	unenchantable = TRUE
+
+/obj/item/clothing/suit/roguetown/armor/plate/full/bronze/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/suit/roguetown/armor/plate/full/bronze/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 //----------------- Citywatch Armor ---------------------
 // Credits to Twilight Axis (https://github.com/Twilight-Fortress-SS13/Twilight-Axis) for the sprites!
 /obj/item/clothing/suit/roguetown/armor/plate/citywatch

@@ -56,6 +56,32 @@
 			pic.color = get_detail_color()
 		add_overlay(pic)
 
+/obj/item/clothing/head/roguetown/helmet/heavy/bronze/entombed
+	name = "patinated bronze warcrown"
+	desc = "A greathelm of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	This frightful helm sports an entricately sculpted face holding a perpetual scowl. The mask now acts as the wearers own. \
+	Even the one entombed is unlikely to remember what the face melded to the metal mask looked like prior to their confinement."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_helm"
+	item_state = "entombed_helm"
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	body_parts_inherent = FULL_HEAD
+	armor_class = ARMOR_CLASS_HEAVY
+	smeltresult = /obj/item/ingot/bronze 
+	unenchantable = TRUE
+
+/obj/item/clothing/head/roguetown/helmet/heavy/bronze/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/head/roguetown/helmet/heavy/bronze/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 /obj/item/clothing/head/roguetown/helmet/heavy/ancient
 	name = "ancient barbute"
 	desc = "Polished gilbranze plates, pounded to form a visored helmet. Zizo commands ambition, and ambition commands sacrifice; let these sundered legionnaires rise again, to spill the blood of unenlightened fools. A coiled pocket is perched atop the rim, awaiting to be plumed."

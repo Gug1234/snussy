@@ -43,6 +43,31 @@
 	color = "#bb9696"
 	anvilrepair = null
 
+/obj/item/clothing/gloves/roguetown/plate/entombed
+	name = "patinated bronze gauntlets"
+	desc = "A gauntlets of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	The metal fingers are stiff yet sturdy; the joints underneath would be useless if not for the gloves working as an exoskeleton."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	sleeved = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_gloves"
+	item_state = "entombed_gloves"
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	armor = ARMOR_BRONZE
+	smeltresult = /obj/item/ingot/bronze 
+	unenchantable = TRUE
+
+/obj/item/clothing/gloves/roguetown/plate/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/gloves/roguetown/plate/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 /obj/item/clothing/gloves/roguetown/plate/graggar
 	name = "vicious gauntlets"
 	desc = "Plate gauntlets which carry the motive force of this world, violence."

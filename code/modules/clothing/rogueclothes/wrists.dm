@@ -67,6 +67,31 @@
 	armor = ARMOR_BRONZE
 	max_integrity = ARMOR_INT_SIDE_BRONZE
 
+/obj/item/clothing/wrists/roguetown/bracers/bronze/entombed
+	name = "patinated bronze wristguards"
+	desc = "Wristguards of bronze oxidized a rich mix of verdigris, brown, gold, and burgandy. \
+	Despite its advanced age, the armor is nigh unbreakable at the cost of being impossible to remove from the wearer. \
+	The fine hide that cushioned the inside has long rotted away... they bear the marks of countless deflected blows."
+	icon = 'icons/roguetown/clothing/special/entombed.dmi'
+	sleeved = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	mob_overlay_icon = 'icons/roguetown/clothing/special/onmob/entombed.dmi'
+	icon_state = "entombed_bracers"
+	item_state = "entombed_bracers"
+	resistance_flags = FIRE_PROOF | INDESTRUCTIBLE//inherits bronze protection, limited to entombed wretch.
+	body_parts_inherent = ARMS | HANDS
+	armor_class = ARMOR_CLASS_HEAVY
+	unenchantable = TRUE
+
+/obj/item/clothing/wrists/roguetown/bracers/bronze/entombed/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+
+/obj/item/clothing/wrists/roguetown/bracers/bronze/entombed/dropped(mob/living/carbon/human/user)
+	. = ..()
+	if(QDELETED(src))
+		return
+	qdel(src)
+
 /obj/item/clothing/wrists/roguetown/bracers/gold
 	name = "golden bracers"
 	desc = "A resplendant pair of golden vambraces, further padded with besilked sleeves. Each halve is marked with a holy sigil, sloped upwards to help catch-and-reflect sunlight into the eyes of unsuspecting assailants."
