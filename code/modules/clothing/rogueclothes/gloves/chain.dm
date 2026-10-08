@@ -19,6 +19,7 @@
 
 /obj/item/clothing/gloves/roguetown/chain/ComponentInitialize()
 	AddComponent(/datum/component/armour_filtering/negative, TRAIT_FENCERDEXTERITY)
+	AddComponent(/datum/component/armour_filtering/negative, TRAIT_MAGEDEXTERITY)
 
 /obj/item/clothing/gloves/roguetown/chain/ancient
 	name = "ancient chain gauntlets"
@@ -64,8 +65,19 @@
 
 
 /obj/item/clothing/gloves/roguetown/chain/iron
+	name = "iron chain gauntlets"
 	icon_state = "icgloves"
 	desc = "Gauntlets made of interlinked iron rings. They offer decent protection against common weaponries, except for arrows."
 	anvilrepair = /datum/skill/craft/armorsmithing
 	smeltresult = /obj/item/alch/irondust
 	max_integrity = ARMOR_INT_SIDE_IRON
+
+/obj/item/clothing/gloves/roguetown/chain/bronze
+	icon_state = "bcgloves"
+	name = "bronze maille gauntlets"
+	desc = "Armored mittens, woven together from a series of interlinked bronze rings. It can comfortably accomadate the needs of a warrior in \
+	almost any action, be it stringing a longbow or wielding a sword."
+	anvilrepair = /datum/skill/craft/armorsmithing
+	smeltresult = /obj/item/ingot/bronze
+	max_integrity = ARMOR_INT_SIDE_BRONZE
+	armor = ARMOR_BRONZE

@@ -102,6 +102,7 @@
 
 	var/list/character_entries = list(
 		list("id" = "masked_examine", "label" = "Masked Examine", "enabled" = !!owner.prefs.masked_examine, "desc" = "Allow your character info to be seen while masked."),
+		list("id" = "top_examine", "label" = "Examine Info At Top", "enabled" = !!owner.prefs.top_examine, "desc" = "Show the headshot, name, and other main examine info at the top of the examine block instead of the bottom."),
 		list("id" = "wildshape_name", "label" = "Show Wildshape Name", "enabled" = !!owner.prefs.wildshape_name, "desc" = "Show your character name while in wildshape."),
 		list("id" = "nsfw_examine", "label" = "Always Show NSFW Examine", "enabled" = !!owner.prefs.nsfw_examine_always, "desc" = "Always display NSFW examine info, even when clothed."),
 	)
@@ -144,12 +145,17 @@
 	var/list/content_entries = list(
 		list("id" = "animal_emotes", "label" = "Animal Noise Emotes", "enabled" = !!(!owner.prefs.mute_animal_emotes), "desc" = "Play animal emote sound effects."),
 		list("id" = "erp_panel", "label" = "Enable ERP Panel Interactions", "enabled" = !!owner.prefs.sexable, "desc" = "Allow others to use ERP panel interactions on you."),
+		list("id" = "erp_visuals", "label" = "Enable ERP Visual Effects", "enabled" = !!owner.prefs.erp_visuals, "desc" = "Enable visual effects like hearts and screen overlays during ERP."),
 		list("id" = "chastity", "label" = "Enable Chastity Content", "enabled" = !!owner.prefs.chastenable, "desc" = "Show and allow chastity-related content."),
 		list("id" = "permanent_binding", "label" = "Enable Permanent Binding", "enabled" = (owner.prefs.chastity_hardmode == CHASTITY_HARDMODE_ENABLED), "desc" = "Enable irreversible key-only chastity lock behavior."),
 		list("id" = "extreme_erp", "label" = "Enable Extreme ERP Content", "enabled" = !!owner.prefs.extreme_erp, "desc" = "Allow extreme ERP content categories."),
 		list("id" = "edging", "label" = "Enable Edging Content", "enabled" = !!owner.prefs.edging, "desc" = "Allow edging-related ERP content."),
+		list("id" = "free_use_default", "label" = "Toggle Free Use Default", "enabled" = !!owner.prefs.free_use_default, "desc" = "Start with Free Use enabled by default. You can manually disable it at any point in the ERP panel."),
 		list("id" = "facial_branding", "label" = "Enable Facial Branding", "enabled" = !!owner.prefs.facial_brands, "desc" = "Allow others to brand your face."),
 		list("id" = "sensitive_branding", "label" = "Enable Sensitive Branding", "enabled" = !!owner.prefs.sensitive_brands, "desc" = "Allow others to brand your genital & breast organs (if present)."),
+		list("id" = "pubes", "label" = "Enable Pubic Hair Descriptors", "enabled" = !!owner.prefs.pubes, "desc" = "See pubic hair descriptors on examining someone with exposed pubic hair (if present)."),
+		list("id" = "pits", "label" = "Enable Armpit Hair Descriptors", "enabled" = !!owner.prefs.pits, "desc" = "See armpit hair descriptors on examining someone with exposed underarms (if present)."),
+		list("id" = "descriptor_color", "label" = "Enable Colored Descriptors", "enabled" = !!owner.prefs.descriptor_color, "desc" = "Color genital descriptors based on arousal and body hair descriptors based on hair color."),
 		list("id" = "cursed_collars", "label" = "Enable Cursed Collars", "enabled" = !!owner.prefs.cursed_collarable, "desc" = "Allow others to equip a cursed collar on you."),
 	)
 
@@ -189,6 +195,8 @@
 				owner.set_picinchat()
 			if("masked_examine")
 				owner.masked_examine()
+			if("top_examine")
+				owner.toggle_topexamine()
 			if("mouseover_role")
 				owner.toggle_mouseover_role()
 			if("nsfw_examine")
@@ -244,6 +252,8 @@
 				owner.mute_animal_emotes()
 			if("erp_panel")
 				owner.toggle_ERP()
+			if("erp_visuals")
+				owner.toggle_ERP_visuals()
 			if("chastity")
 				owner.toggle_Chastity()
 			if("permanent_binding")
@@ -252,6 +262,8 @@
 				owner.toggle_extreme_ERP()
 			if("edging")
 				owner.toggle_edging()
+			if("free_use_default")
+				owner.toggle_free_use_default()
 			if("facial_branding")
 				owner.toggle_facial_brands()
 			if("sensitive_branding")
@@ -266,6 +278,12 @@
 				owner.toggle_intimate_reaction_chastity()
 			if("intimate_reaction_extreme")
 				owner.toggle_intimate_reaction_extreme()
+			if("pubes")
+				owner.toggle_pubes()
+			if("pits")
+				owner.toggle_pits()
+			if("descriptor_color")
+				owner.toggle_descriptor_color()
 			if("cursed_collars")
 				owner.toggle_cursed_collars()
 			if("voting_popup")
@@ -332,6 +350,15 @@
 			to_chat(src, "Your character information will be viewable when masked.")
 		else
 			to_chat(src, "Your character information will no longer be viewable when masked.")
+
+/client/verb/toggle_topexamine()
+	set category = "Options"
+	set name = "Toggle Top Examine"
+	set hidden = 1
+	if(prefs)
+		prefs.top_examine = !prefs.top_examine
+		prefs.save_preferences()
+		to_chat(src, "Main examine text will now be shown at the [prefs.top_examine ? "top" : "bottom"] of the examine block.")
 
 /client/verb/toggle_mouseover_role()
 	set category = "Options"
@@ -431,6 +458,21 @@
 			to_chat(src, "Others can play with you.")
 		else
 			to_chat(src, "Others can't touch you.")
+
+/client/verb/toggle_ERP_visuals()
+	set category = "Options"
+	set name = "Toggle ERP Visual Effects"
+	set hidden = 1
+	if(prefs)
+		prefs.erp_visuals = !prefs.erp_visuals
+		prefs.save_preferences()
+		if(prefs.erp_visuals)
+			to_chat(src, "ERP visual effects enabled.")
+		else
+			to_chat(src, "ERP visual effects disabled.")
+			var/mob/living/carbon/human/H = mob
+			if(istype(H) && H.sexcon)
+				H.sexcon.update_pink_screen()
 
 /client/verb/toggle_Chastity() // Alters whether the user can see or interact with any content related to chastity devices, including the devices themselves, actions that target them, and messages related to them. This is intended for users who want to avoid accidentally encountering this content, but still want to be able to use the game without missing out on unrelated features.
 	set category = "Options"
@@ -553,6 +595,42 @@
 		else
 			to_chat(src, "Your genital and breast organs can no longer be branded by others.")
 
+/client/verb/toggle_pubes()
+	set category = "Options"
+	set name = "Toggle Pubic Hair Descriptors"
+	set hidden = 1
+	if(prefs)
+		prefs.pubes = !prefs.pubes
+		prefs.save_preferences()
+		if(prefs.pubes)
+			to_chat(src, "Pubic hair descriptors are now visible when examining exposed players.")
+		else
+			to_chat(src, "You will no longer see pubic hair descriptions when examining exposed players.")
+
+/client/verb/toggle_pits()
+	set category = "Options"
+	set name = "Toggle Armpit Hair Descriptors"
+	set hidden = 1
+	if(prefs)
+		prefs.pits = !prefs.pits
+		prefs.save_preferences()
+		if(prefs.pits)
+			to_chat(src, "Armpit hair descriptors are now visible when examining exposed players.")
+		else
+			to_chat(src, "You will no longer see armpit hair descriptors when examining players.")
+
+/client/verb/toggle_descriptor_color()
+	set category = "Options"
+	set name = "Toggle Colored Descriptors"
+	set hidden = 1
+	if(prefs)
+		prefs.descriptor_color = !prefs.descriptor_color
+		prefs.save_preferences()
+		if(prefs.descriptor_color)
+			to_chat(src, "Genital and body hair descriptor colors are now visible.")
+		else
+			to_chat(src, "Genital and body hair descriptor colors are no longer visible.")
+
 /client/verb/toggle_edging() // Toggles edging content in the ERP panel, for psydonites who clearly can't ENDURE.
 	set category = "Options"
 	set name = "Toggle Edging Content"
@@ -618,6 +696,18 @@
 	prefs.intimate_reaction_show_extreme = !prefs.intimate_reaction_show_extreme
 	prefs.save_preferences()
 	to_chat(src, prefs.intimate_reaction_show_extreme ? "Extreme reaction text enabled." : "Extreme reaction text disabled.")
+
+/client/verb/toggle_free_use_default()
+	set category = "Options"
+	set name = "Toggle Free Use Default"
+	set hidden = 1
+	if(prefs)
+		prefs.free_use_default = !prefs.free_use_default
+		prefs.save_preferences()
+		if(prefs.free_use_default)
+			to_chat(src, "You will now start with Free Use enabled by default.")
+		else
+			to_chat(src, "You will no longer start with Free Use enabled by default.")
 
 /client/verb/toggle_voting_popup()
 	set category = "Options"
@@ -1208,6 +1298,17 @@ GLOBAL_LIST_INIT(ghost_orbits, list(GHOST_ORBIT_CIRCLE,GHOST_ORBIT_TRIANGLE,GHOS
 	prefs.save_preferences()
 	to_chat(usr, "You will [(prefs.toggles & SOUND_ADMINHELP) ? "now" : "no longer"] hear a sound when adminhelps arrive.")
 	SSblackbox.record_feedback("nested tally", "admin_toggle", 1, list("Toggle Adminhelp Sound", "[prefs.toggles & SOUND_ADMINHELP ? "Enabled" : "Disabled"]")) //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
+/client/proc/toggledeathalarmsound()
+	set name = "Hear/Silence Death Alarms"
+	set category = "Prefs - Admin"
+	set desc = ""
+	if(!holder)
+		return
+	prefs.toggles ^= SOUND_DEATH_ALARM
+	prefs.save_preferences()
+	to_chat(usr, "You will [(prefs.toggles & SOUND_DEATH_ALARM) ? "now" : "no longer"] hear a sound when deaths appear in the admin log.")
+	SSblackbox.record_feedback("nested tally", "admin_toggle", 1, list("Toggle Death Alarm Sound", "[prefs.toggles & SOUND_DEATH_ALARM ? "Enabled" : "Disabled"]"))
 
 /client/proc/toggleannouncelogin()
 	set name = "Do/Don't Announce Login"

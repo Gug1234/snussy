@@ -77,6 +77,7 @@
 
 #define ORGAN_SLOT_FRILLS "frills"
 #define ORGAN_SLOT_HORNS "horns"
+#define ORGAN_SLOT_TUSKS "tusks"
 #define ORGAN_SLOT_ANTENNAS "antennas"
 #define ORGAN_SLOT_NECK_FEATURE "neck_feature"
 #define ORGAN_SLOT_SOUL "soul"
@@ -115,6 +116,14 @@
 #define BODYPART_FEATURE_LEGWEAR "legwear"
 #define BODYPART_FEATURE_BRAND "brand"
 #define BODYPART_FEATURE_CHASTITY "chastity"
+#define BODYPART_FEATURE_PUBES "pubes"
+#define BODYPART_FEATURE_PITS "pits"
+
+#define BODY_HAIR_MATERIAL_HAIR 1
+#define BODY_HAIR_MATERIAL_FUR 2
+#define BODY_HAIR_MATERIAL_FEATHERS 3
+#define BODY_HAIR_MATERIAL_FUZZ 4
+#define BODY_HAIR_MATERIAL_BRAIDS 5
 
 //flags for requirements for a surgery step
 #define SURGERY_BLOODY (1<<0)

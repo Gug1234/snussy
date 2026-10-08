@@ -88,6 +88,7 @@
 		/datum/customizer/bodypart_feature/legwear,
 		/datum/customizer/organ/wings/dracon,
 		/datum/customizer/organ/tail/lizard,
+		/datum/customizer/organ/tail/manticore,
 		/datum/customizer/organ/tail_feature/lizard_spines,
 		/datum/customizer/organ/snout/lizard/dracon,
 		/datum/customizer/organ/ears/lizard,
@@ -97,6 +98,8 @@
 		/datum/customizer/organ/penis/anthro,
 		/datum/customizer/organ/breasts/animal,
 		/datum/customizer/organ/vagina/anthro,
+		/datum/customizer/bodypart_feature/pubes/feathered,
+		/datum/customizer/bodypart_feature/pits/feathered,
 		/datum/customizer/organ/ears/anthro,
 		)
 	body_marking_sets = list(

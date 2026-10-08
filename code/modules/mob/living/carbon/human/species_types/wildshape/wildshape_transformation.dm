@@ -1,5 +1,8 @@
 /mob/living/carbon/human/species/wildshape/death(gibbed, nocutscene = FALSE)
-	werewolf_untransform(TRUE, gibbed)
+	if(untransform_on_death)
+		wildshape_untransform(TRUE, gibbed)
+	else
+		. = ..()
 
 /mob/living/carbon/human/proc/wildshape_transformation(shapepath)
 	if(!mind)
@@ -10,9 +13,6 @@
 	var/obj/item/stored_neck = wear_neck
 	var/obj/item/stored_ring = wear_ring
 
-	for(var/obj/item/I in src)
-		if (I != underwear && I != cloak && I != backr && I != backl && I != legwear_socks) // keep underwear, socks, back and cloak on, even if said cloak or back clothing remains inaccessible.
-			dropItemToGround(I)
 	regenerate_icons()
 	icon = null
 	var/oldinv = invisibility

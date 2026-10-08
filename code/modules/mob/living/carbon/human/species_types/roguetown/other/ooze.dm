@@ -43,7 +43,6 @@
 	inherent_traits = list(
 						TRAIT_NOBREATH,
 						TRAIT_ZOMBIE_IMMUNE,
-						TRAIT_BLOODLOSS_IMMUNE,
 						TRAIT_EASYDISMEMBER,
 						TRAIT_REGROW_LIMBS,
 						TRAIT_NASTY_EATER,
@@ -73,6 +72,8 @@
 		/datum/customizer/organ/breasts/human,
 		/datum/customizer/organ/vagina/human_anthro,
 		/datum/customizer/organ/testicles/anthro,
+		/datum/customizer/bodypart_feature/pubes,
+		/datum/customizer/bodypart_feature/pits,
 		/datum/customizer/organ/tail/anthro,
 		/datum/customizer/organ/tail_feature/anthro,
 		/datum/customizer/organ/snout/anthro,
@@ -212,7 +213,7 @@
 	STASTR = 2
 	STASPD = 2
 
-/mob/living/simple_animal/hostile/retaliate/rogue/ooze_blob/suffering/revive(full_heal = FALSE, admin_revive = FALSE)
+/mob/living/simple_animal/hostile/retaliate/rogue/ooze_blob/suffering/revive(full_heal = FALSE, admin_revive = FALSE, bypass_foreign_brain_check = FALSE)
 	var/obj/shapeshift_holder/ooze_death/H = locate() in src
 	if(H)
 		H.restore()
